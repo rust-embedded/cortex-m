@@ -1,0 +1,31 @@
+dist: trusty
+language: rust
+rust: nightly
+services: docker
+sudo: required
+
+matrix:
+  exclude:
+    # first, clear the matrix
+    - rust: nightly
+  # then add the targets one by one
+  include:
+    - env: TARGET=x86_64-unknown-linux-gnu
+    - env: TARGET=thumbv6m-none-eabi
+    - env: TARGET=thumbv7m-none-eabi
+    - env: TARGET=thumbv7em-none-eabi
+    - env: TARGET=thumbv7em-none-eabihf
+
+script:
+  - cargo generate-lockfile
+  - sh ci/run-docker.sh $TARGET
+
+branches:
+  only:
+    - auto
+    - try
+
+notifications:
+  email:
+    on_success: never
+  webhooks: https://homu.herokuapp.com/travis

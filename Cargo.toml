@@ -1,6 +1,7 @@
 [package]
 authors = ["Jorge Aparicio <japaricious@gmail.com>"]
 description = "Low level access to Cortex-M processors"
+documentation = "https://docs.rs/cortex-m"
 keywords = ["arm", "cortex-m", "register", "peripheral"]
 license = "MIT OR Apache-2.0"
 name = "cortex-m"

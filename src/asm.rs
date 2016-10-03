@@ -4,6 +4,7 @@
 ///
 /// Optionally, an "immediate" value (in the 0-255 range) can be passed to `bkpt!`. The debugger can
 /// then read this value using the Program Counter (PC).
+#[cfg(target_arch = "arm")]
 #[macro_export]
 macro_rules! bkpt {
     () => {
@@ -11,6 +12,21 @@ macro_rules! bkpt {
     };
     ($imm:expr) => {
         asm!(concat!("bkpt #", stringify!($imm)) :::: "volatile");
+    };
+}
+
+/// Puts the processor in Debug state. Debuggers can pick this up as a "breakpoint".
+///
+/// Optionally, an "immediate" value (in the 0-255 range) can be passed to `bkpt!`. The debugger can
+/// then read this value using the Program Counter (PC).
+#[cfg(not(target_arch = "arm"))]
+#[macro_export]
+macro_rules! bkpt {
+    () => {
+        asm!("nop" :::: "volatile");
+    };
+    ($e:expr) => {
+        asm!("nop" :::: "volatile");
     };
 }
 

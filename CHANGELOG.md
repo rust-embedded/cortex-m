@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Small, non user visible change to make this crate compile further for $HOST (e.g. x86_64) with the
+  goal of making it possible to test, on the HOST, downstream crates that depend on this one.
+
 ## [v0.1.0] - 2016-09-27
 
 ### Added

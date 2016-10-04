@@ -113,8 +113,8 @@ macro_rules! rw {
 
 srw!(#[doc = "Main Stack Pointer"] msp);
 srw!(#[doc = "Process Stack Pointer"] psp);
-rw!(#[doc = "Link Register"] lr: r15);
-rw!(#[doc = "Program Counter"] pc: r14);
+rw!(#[doc = "Link Register"] lr: r14);
+rw!(#[doc = "Program Counter"] pc: r15);
 srw!(#[doc = "Application Program Status Register"] apsr);
 sro!(#[doc = "Interrupt Program Status Register"] ipsr);
 sro!(#[doc = "Exception Program Status Register"] epsr);

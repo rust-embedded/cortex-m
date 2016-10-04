@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Read/write Operations on registers (lr, cr, msp, etc.) which were reversed.
+
 ## [v0.1.1] - 2016-10-03
 
 ### Changed

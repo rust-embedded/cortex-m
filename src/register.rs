@@ -73,8 +73,6 @@ macro_rules! sro {
     (#[$attr:meta] $name:ident) => {
         #[$attr]
         pub mod $name {
-            #![doc = "yay"]
-
             sr!($name);
         }
     }

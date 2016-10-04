@@ -21,6 +21,27 @@ pub mod interrupt;
 pub mod peripheral;
 pub mod register;
 
+/// Stack frame
+#[repr(C)]
+pub struct StackFrame {
+    /// (General purpose) Register 0
+    pub r0: u32,
+    /// (General purpose) Register 1
+    pub r1: u32,
+    /// (General purpose) Register 2
+    pub r2: u32,
+    /// (General purpose) Register 3
+    pub r3: u32,
+    /// (General purpose) Register 12
+    pub r12: u32,
+    /// Linker Register
+    pub lr: u32,
+    /// Program Counter
+    pub pc: u32,
+    /// Program Status Register
+    pub xpsr: u32,
+}
+
 /// Vector Table
 ///
 /// # References

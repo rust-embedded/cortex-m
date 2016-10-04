@@ -88,7 +88,7 @@ macro_rules! rw {
                 let r: u32;
                 match () {
                     #[cfg(target_arch = "arm")]
-                    () => asm!(concat!("mov ", stringify!($r), ",$0") : "=r"(r) ::: "volatile"),
+                    () => asm!(concat!("mov ", "$0,", stringify!($r)) : "=r"(r) ::: "volatile"),
 
                     #[cfg(not(target_arch = "arm"))]
                     () => r = 0,
@@ -101,7 +101,7 @@ macro_rules! rw {
             pub unsafe fn write(r: u32) {
                 match r {
                     #[cfg(target_arch = "arm")]
-                    _ => asm!(concat!("mov ", "$0,", stringify!($r)) :: "r"(r) ::: "volatile"),
+                    _ => asm!(concat!("mov ", stringify!($r), ",$0") :: "r"(r) ::: "volatile"),
 
                     #[cfg(not(target_arch = "arm"))]
                     _ => {}

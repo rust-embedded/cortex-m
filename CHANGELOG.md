@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.1.3]
+
+### Added
+
+- a StackFrame data structure
+
 ## [v0.1.2] - 2016-10-04
 
 ### Fixed
@@ -30,6 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/japaric/rustc-cfg/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/japaric/rustc-cfg/compare/v0.1.3...HEAD
+[v0.1.3]: https://github.com/japaric/rustc-cfg/compare/v0.1.2...v0.1.3
 [v0.1.2]: https://github.com/japaric/rustc-cfg/compare/v0.1.1...v0.1.2
 [v0.1.1]: https://github.com/japaric/rustc-cfg/compare/v0.1.0...v0.1.1

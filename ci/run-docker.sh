@@ -1,17 +1,30 @@
 set -ex
 
 run() {
-    echo $1
+    local target=$1
 
-    docker build -t rust ci/docker/$1
+    echo $target
+
+    # This directory needs to exist before calling docker, otherwise docker will create it but it
+    # will be owned by root
+    mkdir -p target
+
+    docker build -t $target ci/docker/$target
     docker run \
-           -v `rustc --print sysroot`:/rust:ro \
+           --rm \
+           --user $(id -u):$(id -g) \
+           -e CARGO_HOME=/cargo \
+           -e CARGO_TARGET_DIR=/target \
+           -e HOME=/tmp \
+           -v $HOME/.cargo:/cargo \
+           -v `pwd`/target:/target \
            -v `pwd`:/checkout:ro \
-           -e CARGO_TARGET_DIR=/tmp/target \
+           -v `rustc --print sysroot`:/rust:ro \
            -w /checkout \
-           -it rust \
-           ci/run.sh $1
+           -it $target \
+           sh -c "PATH=\$PATH:/rust/bin ci/run.sh $target"
 }
+
 
 if [ -z "$1" ]; then
     for d in `ls ci/docker/`; do

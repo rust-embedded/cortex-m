@@ -1,3 +1,4 @@
+cache: cargo
 dist: trusty
 language: rust
 rust: nightly
@@ -5,20 +6,18 @@ services: docker
 sudo: required
 
 matrix:
-  exclude:
-    # first, clear the matrix
-    - rust: nightly
-  # then add the targets one by one
   include:
-    - env: TARGET=x86_64-unknown-linux-gnu
     - env: TARGET=thumbv6m-none-eabi
     - env: TARGET=thumbv7m-none-eabi
     - env: TARGET=thumbv7em-none-eabi
     - env: TARGET=thumbv7em-none-eabihf
+env: TARGET=x86_64-unknown-linux-gnu
 
 script:
   - cargo generate-lockfile
   - sh ci/run-docker.sh $TARGET
+  # Travis can't cache files that are not readable by "others"
+  - chmod -R a+r $HOME/.cargo
 
 branches:
   only:

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.1.4]
+
+### Added
+
+- `asm::nop`, a wrapper over the NOP instruction
+
 ## [v0.1.3]
 
 ### Added
@@ -36,7 +42,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/japaric/rustc-cfg/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/japaric/rustc-cfg/compare/v0.1.4...HEAD
+[v0.1.4]: https://github.com/japaric/rustc-cfg/compare/v0.1.3...v0.1.4
 [v0.1.3]: https://github.com/japaric/rustc-cfg/compare/v0.1.2...v0.1.3
 [v0.1.2]: https://github.com/japaric/rustc-cfg/compare/v0.1.1...v0.1.2
 [v0.1.1]: https://github.com/japaric/rustc-cfg/compare/v0.1.0...v0.1.1

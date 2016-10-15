@@ -49,3 +49,8 @@ pub unsafe fn wfi() {
         () => {}
     }
 }
+
+/// A no-operation. Useful to stop delay loops being elided.
+pub fn nop() {
+    asm!("nop" :::: "volatile");
+}

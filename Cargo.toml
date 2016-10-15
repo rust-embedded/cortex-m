@@ -6,7 +6,7 @@ keywords = ["arm", "cortex-m", "register", "peripheral"]
 license = "MIT OR Apache-2.0"
 name = "cortex-m"
 repository = "https://github.com/japaric/cortex-m"
-version = "0.1.3"
+version = "0.1.4"
 
 [dependencies]
 volatile-register = "0.1.0"

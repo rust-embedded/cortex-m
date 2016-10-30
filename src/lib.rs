@@ -12,6 +12,7 @@
 #![deny(missing_docs)]
 #![deny(warnings)]
 #![feature(asm)]
+#![feature(const_fn)]
 #![no_std]
 
 extern crate volatile_register;

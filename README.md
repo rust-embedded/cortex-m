@@ -1,4 +1,3 @@
-[![Build status](https://travis-ci.org/japaric/cortex-m.svg?branch=master)](https://travis-ci.org/japaric/cortex-m)
 [![crates.io](https://img.shields.io/crates/d/cortex-m.svg)](https://crates.io/crates/cortex-m)
 [![crates.io](https://img.shields.io/crates/v/cortex-m.svg)](https://crates.io/crates/cortex-m)
 

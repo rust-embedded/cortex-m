@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- `interrupt::Mutex`, a "mutex" based on critical sections.
+
 ## [v0.1.4]
 
 ### Added

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- `interrupt::CritToken`, a struct that only exists in a critical section.
+
+### Changed
+
+- The closure that `interrupt::free` takes now takes a reference to an `interrupt::CritToken`.
+
 ## [v0.1.5]
 
 ### Added

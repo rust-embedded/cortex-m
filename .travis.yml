@@ -13,6 +13,11 @@ matrix:
     - env: TARGET=thumbv7em-none-eabihf
 env: TARGET=x86_64-unknown-linux-gnu
 
+install:
+  - curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $TRAVIS_RUST_VERSION
+  - source ~/.cargo/env
+  - rustup component add rust-src
+
 script:
   - cargo generate-lockfile
   - sh ci/run-docker.sh $TARGET

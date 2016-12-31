@@ -13,22 +13,10 @@ matrix:
 env: TARGET=x86_64-unknown-linux-gnu
 
 install:
-  # NOTE(TRAVIS_BRANCH) Travis is configured to only build *pushes* (not PRs).
-  - if [ $TRAVIS_BRANCH != master ] || [ $TRAVIS_EVENT_TYPE = cron ]; then
-      curl https://sh.rustup.rs -sSf |
-        sh -s -- -y --default-toolchain $TRAVIS_RUST_VERSION;
-
-      source ~/.cargo/env;
-
-      curl -LSfs http://japaric.github.io/trust/install.sh | \
-        sh -s -- --force --git japaric/cross --tag v0.1.2 --target x86_64-unknown-linux-gnu --to ~/.cargo/bin;
-    fi
+  - sh ci/install.sh
 
 script:
-  # NOTE(TRAVIS_BRANCH) See the NOTE in the `install` section
-  - if [ $TRAVIS_BRANCH != master ] || [ $TRAVIS_EVENT_TYPE = cron ]; then
-      sh ci/script.sh;
-    fi
+  - sh ci/script.sh
 
 cache: cargo
 before_cache:

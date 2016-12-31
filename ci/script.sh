@@ -11,4 +11,7 @@ main() {
     esac
 }
 
-main
+# NOTE See the NOTE in `install.sh`
+if [ $TRAVIS_BRANCH != master ] || [ $TRAVIS_EVENT_TYPE = cron ]; then
+    main
+fi

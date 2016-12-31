@@ -20,7 +20,8 @@ install:
 
       source ~/.cargo/env;
 
-      cargo install --git https://github.com/japaric/cross -f;
+      curl -LSfs http://japaric.github.io/trust/install.sh | \
+        sh -s -- --force --git japaric/cross --tag v0.1.2 --target x86_64-unknown-linux-gnu --to ~/.cargo/bin
     fi
 
 script:

@@ -26,7 +26,7 @@ install:
 script:
   # NOTE(TRAVIS_BRANCH) See the NOTE in the `install` section
   - if [ $TRAVIS_BRANCH != master ] || [ $TRAVIS_EVENT_TYPE = cron ]; then
-      sh ci/script.sh
+      sh ci/script.sh;
     fi
 
 cache: cargo

@@ -1,4 +1,3 @@
-cache: cargo
 dist: trusty
 language: rust
 rust: nightly
@@ -16,19 +15,23 @@ env: TARGET=x86_64-unknown-linux-gnu
 install:
   # NOTE(TRAVIS_BRANCH) Travis is configured to only build *pushes* (not PRs).
   - if [ $TRAVIS_BRANCH != master ] || [ $TRAVIS_EVENT_TYPE = cron ]; then
-      curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $TRAVIS_RUST_VERSION;
+      curl https://sh.rustup.rs -sSf |
+        sh -s -- -y --default-toolchain $TRAVIS_RUST_VERSION;
+
       source ~/.cargo/env;
-      rustup component add rust-src;
+
+      cargo install --git https://github.com/japaric/cross -f;
     fi
 
 script:
   # NOTE(TRAVIS_BRANCH) See the NOTE in the `install` section
-  # chmod: Travis can't cache files that are not readable by "others"
   - if [ $TRAVIS_BRANCH != master ] || [ $TRAVIS_EVENT_TYPE = cron ]; then
-      cargo generate-lockfile;
-      sh ci/run-docker.sh $TARGET;
-      chmod -R a+r $HOME/.cargo;
+      sh ci/script.sh
     fi
+
+cache: cargo
+before_cache:
+  - chmod -R a+r $HOME/.cargo;
 
 branches:
   only:

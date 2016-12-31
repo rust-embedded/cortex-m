@@ -9,7 +9,7 @@ main() {
            --force \
            --git japaric/cross \
            --tag v0.1.2 \
-           --target $TARGET \
+           --target x86_64-unknown-linux-musl \
            --to ~/.cargo/bin
 }
 

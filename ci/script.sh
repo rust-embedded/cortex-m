@@ -1,6 +1,8 @@
 set -ex
 
 main() {
+    cargo generate-lockfile
+
     case $TARGET in
         thumbv*-none-eabi*)
             cross build --target $TARGET

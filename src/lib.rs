@@ -22,6 +22,10 @@ pub mod interrupt;
 pub mod peripheral;
 pub mod register;
 
+mod exception;
+
+pub use exception::Exception;
+
 /// Stack frame
 #[repr(C)]
 pub struct StackFrame {

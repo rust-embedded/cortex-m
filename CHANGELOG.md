@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- `Exception` a enumeration of the kind of exceptions the processor can service.
+  There's also a `Exception::current` constructor that returns the `Exception`
+  that's currently being serviced.
+
 ## [v0.1.5]
 
 ### Added

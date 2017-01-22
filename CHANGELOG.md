@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.1.6] - 2017-01-22
+
 ### Added
 
 - `Exception` a enumeration of the kind of exceptions the processor can service.
@@ -58,7 +60,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/japaric/rustc-cfg/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/japaric/rustc-cfg/compare/v0.1.6...HEAD
+[v0.1.6]: https://github.com/japaric/rustc-cfg/compare/v0.1.5...v0.1.6
 [v0.1.5]: https://github.com/japaric/rustc-cfg/compare/v0.1.4...v0.1.5
 [v0.1.4]: https://github.com/japaric/rustc-cfg/compare/v0.1.3...v0.1.4
 [v0.1.3]: https://github.com/japaric/rustc-cfg/compare/v0.1.2...v0.1.3

@@ -121,4 +121,5 @@ sro!(#[doc = "Exception Program Status Register"] epsr);
 srw!(#[doc = "Priority Mask Register"] primask);
 srw!(#[doc = "Fault Mask Register"] faultmask);
 srw!(#[doc = "Base Priority Mask Register"] basepri);
+srw!(#[doc = "Base Priority Mask Register"] basepri_max);
 srw!(#[doc = "Control Register"] control);

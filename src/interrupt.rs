@@ -26,6 +26,12 @@ impl<T> Mutex<T> {
     }
 }
 
+/// Interrupt number
+pub unsafe trait Nr {
+    /// Returns the number associated with this interrupt
+    fn nr(&self) -> u8;
+}
+
 // FIXME `T` should have some bound: `Send` or `Sync`?
 unsafe impl<T> Sync for Mutex<T> {}
 

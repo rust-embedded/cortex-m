@@ -7,24 +7,29 @@
 //! - Interrupt manipulation mechanisms
 //! - Data structures like the vector table
 //! - Miscellaneous assembly instructions like `bkpt`
-//!
 
+#![cfg_attr(feature = "semihosting", feature(macro_reexport))]
 #![deny(missing_docs)]
 #![deny(warnings)]
 #![feature(asm)]
 #![feature(const_fn)]
+#![feature(core_intrinsics)]
+#![feature(naked_functions)]
 #![no_std]
 
+#[cfg(feature = "semihosting")]
+pub extern crate cortex_m_semihosting as semihosting;
 extern crate volatile_register;
 
+#[macro_use]
+mod macros;
+
+#[macro_use]
 pub mod asm;
+pub mod exception;
 pub mod interrupt;
 pub mod peripheral;
 pub mod register;
-
-mod exception;
-
-pub use exception::Exception;
 
 /// Stack frame
 #[repr(C)]
@@ -82,13 +87,21 @@ pub struct VectorTable {
     pub interrupts: [Option<Handler>; 0],
 }
 
-/// Returns the vector table
-pub fn vector_table() -> &'static VectorTable {
-    unsafe { deref(peripheral::scb().vtor.read() as usize) }
+/// A reserved spot in the vector table
+#[derive(Clone, Copy)]
+#[repr(u32)]
+pub enum Reserved {
+    /// Reserved
+    Vector = 0,
 }
 
 /// Exception/Interrupt Handler
 pub type Handler = unsafe extern "C" fn();
+
+/// Returns the vector table
+pub fn vector_table() -> &'static VectorTable {
+    unsafe { deref(peripheral::scb().vtor.read() as usize) }
+}
 
 #[cfg(test)]
 fn address<T>(r: &T) -> usize {

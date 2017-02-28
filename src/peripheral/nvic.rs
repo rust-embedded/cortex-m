@@ -59,7 +59,7 @@ impl Registers {
     {
         let nr = interrupt.nr();
 
-        self.ipr[usize::from(nr / 4)].read()
+        self.ipr[usize::from(nr)].read()
     }
 
     /// Is `interrupt` active or pre-empted and stacked
@@ -107,6 +107,6 @@ impl Registers {
     {
         let nr = interrupt.nr();
 
-        self.ipr[usize::from(nr / 4)].write(prio);
+        self.ipr[usize::from(nr)].write(prio);
     }
 }

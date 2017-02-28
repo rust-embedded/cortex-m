@@ -108,14 +108,9 @@ pub unsafe fn mpu_mut() -> &'static mut mpu::Registers {
     ::deref_mut(MPU)
 }
 
-/// `&nvic::Registers`
-pub fn nvic() -> &'static nvic::Registers {
-    unsafe { ::deref(NVIC) }
-}
-
 /// `&mut nvic::Registers`
-pub unsafe fn nvic_mut() -> &'static mut nvic::Registers {
-    ::deref_mut(NVIC)
+pub fn nvic() -> &'static mut nvic::Registers {
+    unsafe { ::deref_mut(NVIC) }
 }
 
 /// `&scb::Registers`

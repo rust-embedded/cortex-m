@@ -7,22 +7,22 @@ use volatile_register::{RO, RW};
 #[repr(C)]
 pub struct Registers {
     /// Interrupt Set-Enable
-    pub iser: [RW<u32>; 8],
+    iser: [RW<u32>; 8],
     reserved0: [u32; 24],
     /// Interrupt Clear-Enable
-    pub icer: [RW<u32>; 8],
+    icer: [RW<u32>; 8],
     reserved1: [u32; 24],
     /// Interrupt Set-Pending
-    pub ispr: [RW<u32>; 8],
+    ispr: [RW<u32>; 8],
     reserved2: [u32; 24],
     /// Interrupt Clear-Pending
-    pub icpr: [RW<u32>; 8],
+    icpr: [RW<u32>; 8],
     reserved3: [u32; 24],
     /// Interrupt Active Bit
-    pub iabr: [RO<u32>; 8],
+    iabr: [RO<u32>; 8],
     reserved4: [u32; 56],
     /// Interrupt Priority
-    pub ipr: [RW<u8>; 240],
+    ipr: [RW<u8>; 240],
 }
 
 impl Registers {

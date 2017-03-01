@@ -3,6 +3,12 @@
 use interrupt::Nr;
 use volatile_register::{RO, RW};
 
+#[cfg(thumbv6m)]
+const PRIORITY_BITS: u8 = 2;
+
+#[cfg(not(thumbv6m))]
+const PRIORITY_BITS: u8 = 4;
+
 /// Registers
 #[repr(C)]
 pub struct Registers {
@@ -59,7 +65,7 @@ impl Registers {
     {
         let nr = interrupt.nr();
 
-        self.ipr[usize::from(nr)].read()
+        self.ipr[usize::from(nr)].read() >> (8 - PRIORITY_BITS)
     }
 
     /// Is `interrupt` active or pre-empted and stacked
@@ -107,6 +113,7 @@ impl Registers {
     {
         let nr = interrupt.nr();
 
-        self.ipr[usize::from(nr)].write(prio);
+        self.ipr[usize::from(nr)].write((prio & ((1 << PRIORITY_BITS) - 1)) <<
+                                        (8 - PRIORITY_BITS));
     }
 }

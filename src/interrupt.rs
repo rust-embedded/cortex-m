@@ -22,7 +22,7 @@ impl<T> Mutex<T> {
     pub fn lock<F, R>(&self, f: F) -> R
         where F: FnOnce(&mut T) -> R
     {
-        unsafe { ::interrupt::free(|| f(&mut *self.inner.get())) }
+        unsafe { ::interrupt::free(|_| f(&mut *self.inner.get())) }
     }
 }
 
@@ -61,16 +61,23 @@ pub unsafe fn enable() {
     }
 }
 
+/// Critical section token
+///
+/// Indicates that you are executing code within a critical section
+pub struct CsToken {
+    _private: (),
+}
+
 /// Execute closure `f` in an interrupt-free context.
 /// This as also known as a "critical section".
 pub unsafe fn free<F, R>(f: F) -> R
-    where F: FnOnce() -> R
+    where F: FnOnce(&CsToken) -> R
 {
     let primask = ::register::primask::read();
 
     disable();
 
-    let r = f();
+    let r = f(&CsToken { _private: () });
 
     // If the interrupts were enabled before our `disable` call, then re-enable
     // them. Otherwise, keep them disabled

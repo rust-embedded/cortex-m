@@ -3,12 +3,6 @@
 use interrupt::Nr;
 use volatile_register::{RO, RW};
 
-#[cfg(armv6m)]
-const PRIORITY_BITS: u8 = 2;
-
-#[cfg(not(armv6m))]
-const PRIORITY_BITS: u8 = 4;
-
 /// Registers
 #[repr(C)]
 pub struct Registers {
@@ -59,13 +53,17 @@ impl Registers {
         self.iser[usize::from(nr / 32)].write(1 << (nr % 32));
     }
 
-    /// Gets the priority of `interrupt`
+    /// Gets the "priority" of `interrupt`
+    ///
+    /// NOTE NVIC encodes priority in the highest bits of a byte so values like
+    /// `1` and `2` have the same priority. Also for NVIC priorities, a lower
+    /// value (e.g. `16`) has higher priority than a larger value (e.g. `32`).
     pub fn get_priority<I>(&mut self, interrupt: I) -> u8
         where I: Nr
     {
         let nr = interrupt.nr();
 
-        self.ipr[usize::from(nr)].read() >> (8 - PRIORITY_BITS)
+        self.ipr[usize::from(nr)].read()
     }
 
     /// Is `interrupt` active or pre-empted and stacked
@@ -107,13 +105,15 @@ impl Registers {
         self.ispr[usize::from(nr / 32)].write(1 << (nr % 32));
     }
 
-    /// Sets the priority of `interrupt` to `prio`
+    /// Sets the "priority" of `interrupt` to `prio`
+    ///
+    /// NOTE See `get_priority` method for an explanation of how NVIC priorities
+    /// work.
     pub fn set_priority<I>(&mut self, interrupt: I, prio: u8)
         where I: Nr
     {
         let nr = interrupt.nr();
 
-        self.ipr[usize::from(nr)].write((prio & ((1 << PRIORITY_BITS) - 1)) <<
-                                        (8 - PRIORITY_BITS));
+        self.ipr[usize::from(nr)].write(prio);
     }
 }

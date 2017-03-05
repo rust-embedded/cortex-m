@@ -1,58 +1,86 @@
 //! Miscellaneous assembly instructions
 
-/// Puts the processor in Debug state. Debuggers can pick this up as a "breakpoint".
+/// Puts the processor in Debug state. Debuggers can pick this up as a
+/// "breakpoint".
 ///
-/// Optionally, an "immediate" value (in the 0-255 range) can be passed to `bkpt!`. The debugger can
-/// then read this value using the Program Counter (PC).
+/// Optionally, an "immediate" value (in the 0-255 range) can be passed to
+/// `bkpt!`. The debugger can then read this value using the Program Counter
+/// (PC).
 #[cfg(target_arch = "arm")]
 #[macro_export]
 macro_rules! bkpt {
     () => {
-        asm!("bkpt" :::: "volatile");
+        asm!("bkpt"
+             :
+             :
+             :
+             : "volatile");
     };
     ($imm:expr) => {
-        asm!(concat!("bkpt #", stringify!($imm)) :::: "volatile");
+        asm!(concat!("bkpt #", stringify!($imm))
+             :
+             :
+             :
+             : "volatile");
     };
 }
 
-/// Puts the processor in Debug state. Debuggers can pick this up as a "breakpoint".
+/// Puts the processor in Debug state. Debuggers can pick this up as a
+/// "breakpoint".
 ///
-/// Optionally, an "immediate" value (in the 0-255 range) can be passed to `bkpt!`. The debugger can
-/// then read this value using the Program Counter (PC).
+/// Optionally, an "immediate" value (in the 0-255 range) can be passed to
+/// `bkpt!`. The debugger can then read this value using the Program Counter
+/// (PC).
 #[cfg(not(target_arch = "arm"))]
 #[macro_export]
 macro_rules! bkpt {
     () => {
-        asm!("nop" :::: "volatile");
+        asm!("");
     };
     ($e:expr) => {
-        asm!("nop" :::: "volatile");
+        asm!("");
     };
 }
 
-/// Wait for event
-pub unsafe fn wfe() {
+/// Wait For Event
+pub fn wfe() {
     match () {
         #[cfg(target_arch = "arm")]
-        () => asm!("wfe" :::: "volatile"),
+        () => unsafe {
+            asm!("wfe"
+                 :
+                 :
+                 :
+                 : "volatile")
+        },
         #[cfg(not(target_arch = "arm"))]
         () => {}
     }
 }
 
-/// Wait for interupt
-pub unsafe fn wfi() {
+/// Wait For Interrupt
+pub fn wfi() {
     match () {
         #[cfg(target_arch = "arm")]
-        () => asm!("wfi" :::: "volatile"),
+        () => unsafe{
+            asm!("wfi"
+                 :
+                 :
+                 :
+                 : "volatile")
+        },
         #[cfg(not(target_arch = "arm"))]
         () => {}
     }
 }
 
-/// A no-operation. Useful to stop delay loops being elided.
+/// A no-operation. Useful to prevent delay loops from being optimized away.
 pub fn nop() {
     unsafe {
-        asm!("nop" :::: "volatile");
+        asm!("nop"
+             :
+             :
+             :
+             : "volatile");
     }
 }

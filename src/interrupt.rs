@@ -37,12 +37,16 @@ unsafe impl<T> Sync for Mutex<T> {}
 
 /// Disable interrupts, globally
 #[inline(always)]
-pub unsafe fn disable() {
+pub fn disable() {
     match () {
         #[cfg(target_arch = "arm")]
-        () => {
-            asm!("cpsid i" :::: "volatile");
-        }
+        () => unsafe {
+            asm!("cpsid i"
+                 :
+                 :
+                 :
+                 : "volatile");
+        },
         #[cfg(not(target_arch = "arm"))]
         () => {}
     }
@@ -50,12 +54,16 @@ pub unsafe fn disable() {
 
 /// Enable interrupts, globally
 #[inline(always)]
-pub unsafe fn enable() {
+pub fn enable() {
     match () {
         #[cfg(target_arch = "arm")]
-        () => {
-            asm!("cpsie i" :::: "volatile");
-        }
+        () => unsafe {
+            asm!("cpsie i"
+                 :
+                 :
+                 :
+                 : "volatile");
+        },
         #[cfg(not(target_arch = "arm"))]
         () => {}
     }
@@ -70,20 +78,19 @@ pub struct CsToken {
 
 /// Execute closure `f` in an interrupt-free context.
 /// This as also known as a "critical section".
-pub unsafe fn free<F, R>(f: F) -> R
+pub fn free<F, R>(f: F) -> R
     where F: FnOnce(&CsToken) -> R
 {
     let primask = ::register::primask::read();
 
+    // disable interrupts
     disable();
 
     let r = f(&CsToken { _private: () });
 
-    // If the interrupts were enabled before our `disable` call, then re-enable
+    // If the interrupts were active before our `disable` call, then re-enable
     // them. Otherwise, keep them disabled
-    // PRIMASK & 1 = 1 indicates that the interrupts were disabled
-    // PRIMASK & 1 = 0 indicates that they were enabled
-    if primask & 1 == 0 {
+    if primask.is_active() {
         enable();
     }
 

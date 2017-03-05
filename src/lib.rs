@@ -9,11 +9,11 @@
 //! - Miscellaneous assembly instructions like `bkpt`
 
 #![cfg_attr(feature = "semihosting", feature(macro_reexport))]
+#![cfg_attr(target_arch = "arm", feature(core_intrinsics))]
 #![deny(missing_docs)]
 #![deny(warnings)]
 #![feature(asm)]
 #![feature(const_fn)]
-#![feature(core_intrinsics)]
 #![feature(naked_functions)]
 #![no_std]
 

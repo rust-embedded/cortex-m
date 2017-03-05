@@ -1,6 +1,8 @@
 //! Exceptions
 
-use {Handler, Reserved, StackFrame};
+use {Handler, Reserved};
+#[cfg(target_arch = "arm")]
+use StackFrame;
 
 /// Kind of exception
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -98,6 +100,7 @@ pub const DEFAULT_HANDLERS: Handlers = Handlers {
 pub unsafe extern "C" fn default_handler() {
     // This is the actual exception handler. `_sf` is a pointer to the previous
     // stack frame
+    #[cfg(target_arch = "arm")]
     extern "C" fn handler(_sf: &StackFrame) -> ! {
         #[cfg(feature = "semihosting")]
         hprintln!("EXCEPTION {:?} @ PC=0x{:08x}", Exception::current(), _sf.pc);
@@ -109,12 +112,21 @@ pub unsafe extern "C" fn default_handler() {
         loop {}
     }
 
-    // "trampoline" to get to the real exception handler.
-    asm!("mrs r0, MSP
-          ldr r1, [r0, #20]
-          b $0"
-         :
-         : "i"(handler as extern "C" fn(&StackFrame) -> !) :: "volatile");
+    match () {
+        #[cfg(target_arch = "arm")]
+        () => {
+            // "trampoline" to get to the real exception handler.
+            asm!("mrs r0, MSP
+                  ldr r1, [r0, #20]
+                  b $0"
+                 :
+                 : "i"(handler as extern "C" fn(&StackFrame) -> !)
+                 :
+                 : "volatile");
 
-    ::core::intrinsics::unreachable()
+            ::core::intrinsics::unreachable()
+        }
+        #[cfg(not(target_arch = "arm"))]
+        () => {}
+    }
 }

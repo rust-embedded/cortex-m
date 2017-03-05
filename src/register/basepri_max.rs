@@ -9,7 +9,7 @@ pub fn write(basepri: u8) {
     unsafe {
         asm!("msr BASEPRI_MAX, $0"
              :
-             : "r"(basepri as u32)
+             : "r"(basepri)
              :
              : "volatile");
     }

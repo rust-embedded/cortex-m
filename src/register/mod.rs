@@ -27,12 +27,12 @@
 //! - Cortex-M* Devices Generic User Guide - Section 2.1.3 Core registers
 
 pub mod apsr;
-#[cfg(not(thumbv6m))]
+#[cfg(not(armv6m))]
 pub mod basepri;
-#[cfg(not(thumbv6m))]
+#[cfg(not(armv6m))]
 pub mod basepri_max;
 pub mod control;
-#[cfg(not(thumbv6m))]
+#[cfg(not(armv6m))]
 pub mod faultmask;
 pub mod lr;
 pub mod msp;

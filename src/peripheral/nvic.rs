@@ -3,10 +3,10 @@
 use interrupt::Nr;
 use volatile_register::{RO, RW};
 
-#[cfg(thumbv6m)]
+#[cfg(armv6m)]
 const PRIORITY_BITS: u8 = 2;
 
-#[cfg(not(thumbv6m))]
+#[cfg(not(armv6m))]
 const PRIORITY_BITS: u8 = 4;
 
 /// Registers

@@ -37,6 +37,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - The safety of assembly wrappers like `wfi` and `interrupt::free` has been
   reviewed. In many cases, the functions are no longer unsafe.
 
+- [breaking-change] `bkpt!` has been turned into a function. It no longer
+  accepts an immediate value.
+
 ### Removed
 
 - `vector_table` and its associated `struct`, `VectorTable`. It's not a good

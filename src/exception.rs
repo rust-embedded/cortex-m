@@ -72,32 +72,48 @@ pub struct Handlers {
     /// Pendable request for system service
     pub pendsv: unsafe extern "C" fn(&PendsvCtxt),
     /// System tick timer
-    pub sys_tick: unsafe extern "C" fn (&SysTickCtxt),
+    pub sys_tick: unsafe extern "C" fn(&SysTickCtxt),
 }
 
 /// Identifies the Nmi exception
-pub struct NmiCtxt { _0: () }
+pub struct NmiCtxt {
+    _0: (),
+}
 
 /// Identifies the HardFault exception
-pub struct HardFaultCtxt { _0: () }
+pub struct HardFaultCtxt {
+    _0: (),
+}
 
 /// Identifies the MemManage exception
-pub struct MemManageCtxt { _0: () }
+pub struct MemManageCtxt {
+    _0: (),
+}
 
 /// Identifies the BusFault exception
-pub struct BusFaultCtxt { _0: () }
+pub struct BusFaultCtxt {
+    _0: (),
+}
 
 /// Identifies the UsageFault exception
-pub struct UsageFaultCtxt { _0: () }
+pub struct UsageFaultCtxt {
+    _0: (),
+}
 
 /// Identifies the Svcall exception
-pub struct SvcallCtxt { _0: () }
+pub struct SvcallCtxt {
+    _0: (),
+}
 
 /// Identifies the Pendsv exception
-pub struct PendsvCtxt { _0: () }
+pub struct PendsvCtxt {
+    _0: (),
+}
 
 /// Identifies the Systick exception
-pub struct SysTickCtxt { _0: () }
+pub struct SysTickCtxt {
+    _0: (),
+}
 
 unsafe impl Token for NmiCtxt {}
 
@@ -134,8 +150,7 @@ pub const DEFAULT_HANDLERS: Handlers = Handlers {
 // This needs asm!, #[naked] and unreachable() to avoid modifying the stack
 // pointer (MSP), that way it points to the stacked registers
 #[naked]
-pub unsafe extern "C" fn default_handler<T>(_token: &T)
-{
+pub unsafe extern "C" fn default_handler<T>(_token: &T) {
     // This is the actual exception handler. `_sf` is a pointer to the previous
     // stack frame
     #[cfg(target_arch = "arm")]
@@ -143,9 +158,7 @@ pub unsafe extern "C" fn default_handler<T>(_token: &T)
         #[cfg(feature = "semihosting")]
         hprintln!("EXCEPTION {:?} @ PC=0x{:08x}", Exception::current(), _sr.pc);
 
-        unsafe {
-            bkpt!();
-        }
+        ::asm::bkpt();
 
         loop {}
     }

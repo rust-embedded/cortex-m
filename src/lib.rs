@@ -29,6 +29,7 @@ pub mod asm;
 pub mod ctxt;
 pub mod exception;
 pub mod interrupt;
+pub mod itm;
 pub mod peripheral;
 pub mod register;
 

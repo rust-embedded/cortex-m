@@ -1,8 +1,7 @@
 //! Exceptions
 
-use {Handler, Reserved};
-#[cfg(target_arch = "arm")]
-use StackFrame;
+use ctxt::Token;
+use Reserved;
 
 /// Kind of exception
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -35,7 +34,7 @@ pub enum Exception {
 impl Exception {
     /// Returns the kind of exception that's currently being serviced
     pub fn current() -> Exception {
-        match ::peripheral::scb().icsr.read() as u8 {
+        match unsafe { (*::peripheral::SCB.get()).icsr.read() } as u8 {
             0 => Exception::ThreadMode,
             2 => Exception::Nmi,
             3 => Exception::HardFault,
@@ -55,26 +54,64 @@ impl Exception {
 #[repr(C)]
 pub struct Handlers {
     /// Non-maskable interrupt
-    pub nmi: Handler,
+    pub nmi: unsafe extern "C" fn(&NmiCtxt),
     /// All class of fault
-    pub hard_fault: Handler,
+    pub hard_fault: unsafe extern "C" fn(&HardFaultCtxt),
     /// Memory management
-    pub mem_manage: Handler,
+    pub mem_manage: unsafe extern "C" fn(&MemManageCtxt),
     /// Pre-fetch fault, memory access fault
-    pub bus_fault: Handler,
+    pub bus_fault: unsafe extern "C" fn(&BusFaultCtxt),
     /// Undefined instruction or illegal state
-    pub usage_fault: Handler,
+    pub usage_fault: unsafe extern "C" fn(&UsageFaultCtxt),
     /// Reserved spots in the vector table
     pub _reserved0: [Reserved; 4],
     /// System service call via SWI instruction
-    pub svcall: Handler,
+    pub svcall: unsafe extern "C" fn(&SvcallCtxt),
     /// Reserved spots in the vector table
     pub _reserved1: [Reserved; 2],
     /// Pendable request for system service
-    pub pendsv: Handler,
+    pub pendsv: unsafe extern "C" fn(&PendsvCtxt),
     /// System tick timer
-    pub sys_tick: Handler,
+    pub sys_tick: unsafe extern "C" fn (&SysTickCtxt),
 }
+
+/// Identifies the Nmi exception
+pub struct NmiCtxt { _0: () }
+
+/// Identifies the HardFault exception
+pub struct HardFaultCtxt { _0: () }
+
+/// Identifies the MemManage exception
+pub struct MemManageCtxt { _0: () }
+
+/// Identifies the BusFault exception
+pub struct BusFaultCtxt { _0: () }
+
+/// Identifies the UsageFault exception
+pub struct UsageFaultCtxt { _0: () }
+
+/// Identifies the Svcall exception
+pub struct SvcallCtxt { _0: () }
+
+/// Identifies the Pendsv exception
+pub struct PendsvCtxt { _0: () }
+
+/// Identifies the Systick exception
+pub struct SysTickCtxt { _0: () }
+
+unsafe impl Token for NmiCtxt {}
+
+unsafe impl Token for HardFaultCtxt {}
+
+unsafe impl Token for MemManageCtxt {}
+
+unsafe impl Token for BusFaultCtxt {}
+
+unsafe impl Token for SvcallCtxt {}
+
+unsafe impl Token for PendsvCtxt {}
+
+unsafe impl Token for SysTickCtxt {}
 
 /// Default exception handlers
 pub const DEFAULT_HANDLERS: Handlers = Handlers {
@@ -95,15 +132,16 @@ pub const DEFAULT_HANDLERS: Handlers = Handlers {
 /// This handler triggers a breakpoint (`bkpt`) and gives you access, within a
 /// GDB session, to the stack frame (`_sf`) where the exception occurred.
 // This needs asm!, #[naked] and unreachable() to avoid modifying the stack
-// pointer (MSP), that way it points to the previous stack frame
+// pointer (MSP), that way it points to the stacked registers
 #[naked]
-pub unsafe extern "C" fn default_handler() {
+pub unsafe extern "C" fn default_handler<T>(_token: &T)
+{
     // This is the actual exception handler. `_sf` is a pointer to the previous
     // stack frame
     #[cfg(target_arch = "arm")]
-    extern "C" fn handler(_sf: &StackFrame) -> ! {
+    extern "C" fn handler(_sr: &StackedRegisters) -> ! {
         #[cfg(feature = "semihosting")]
-        hprintln!("EXCEPTION {:?} @ PC=0x{:08x}", Exception::current(), _sf.pc);
+        hprintln!("EXCEPTION {:?} @ PC=0x{:08x}", Exception::current(), _sr.pc);
 
         unsafe {
             bkpt!();
@@ -120,7 +158,7 @@ pub unsafe extern "C" fn default_handler() {
                   ldr r1, [r0, #20]
                   b $0"
                  :
-                 : "i"(handler as extern "C" fn(&StackFrame) -> !)
+                 : "i"(handler as extern "C" fn(&StackedRegisters) -> !)
                  :
                  : "volatile");
 
@@ -129,4 +167,25 @@ pub unsafe extern "C" fn default_handler() {
         #[cfg(not(target_arch = "arm"))]
         () => {}
     }
+}
+
+/// Registers stacked during an exception
+#[repr(C)]
+pub struct StackedRegisters {
+    /// (General purpose) Register 0
+    pub r0: u32,
+    /// (General purpose) Register 1
+    pub r1: u32,
+    /// (General purpose) Register 2
+    pub r2: u32,
+    /// (General purpose) Register 3
+    pub r3: u32,
+    /// (General purpose) Register 12
+    pub r12: u32,
+    /// Linker Register
+    pub lr: u32,
+    /// Program Counter
+    pub pc: u32,
+    /// Program Status Register
+    pub xpsr: u32,
 }

@@ -72,21 +72,22 @@ pub fn enable() {
 /// Critical section token
 ///
 /// Indicates that you are executing code within a critical section
-pub struct CsToken {
-    _private: (),
+pub struct CsCtxt {
+    _0: (),
 }
 
 /// Execute closure `f` in an interrupt-free context.
+///
 /// This as also known as a "critical section".
 pub fn free<F, R>(f: F) -> R
-    where F: FnOnce(&CsToken) -> R
+    where F: FnOnce(&CsCtxt) -> R
 {
     let primask = ::register::primask::read();
 
     // disable interrupts
     disable();
 
-    let r = f(&CsToken { _private: () });
+    let r = f(&CsCtxt { _0: () });
 
     // If the interrupts were active before our `disable` call, then re-enable
     // them. Otherwise, keep them disabled

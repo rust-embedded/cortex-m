@@ -8,7 +8,7 @@
 //! - Data structures like the vector table
 //! - Safe wrappers around assembly instructions like `bkpt`
 
-#![cfg_attr(feature = "semihosting", feature(macro_reexport))]
+#![feature(macro_reexport)]
 #![cfg_attr(target_arch = "arm", feature(core_intrinsics))]
 #![deny(missing_docs)]
 #![deny(warnings)]
@@ -17,7 +17,6 @@
 #![feature(naked_functions)]
 #![no_std]
 
-#[cfg(feature = "semihosting")]
 pub extern crate cortex_m_semihosting as semihosting;
 extern crate volatile_register;
 

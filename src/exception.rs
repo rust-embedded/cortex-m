@@ -155,9 +155,6 @@ pub unsafe extern "C" fn default_handler<T>(_token: &T) {
     // stack frame
     #[cfg(target_arch = "arm")]
     extern "C" fn handler(_sr: &StackedRegisters) -> ! {
-        #[cfg(feature = "semihosting")]
-        hprintln!("EXCEPTION {:?} @ PC=0x{:08x}", Exception::current(), _sr.pc);
-
         ::asm::bkpt();
 
         loop {}

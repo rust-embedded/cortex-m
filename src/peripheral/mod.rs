@@ -10,7 +10,7 @@ use core::ptr;
 
 use volatile_register::{RO, RW, WO};
 
-use interrupt::Nr;
+use interrupt::{CsCtxt, Nr};
 
 #[cfg(test)]
 mod test;
@@ -67,6 +67,11 @@ impl<T> Peripheral<T> {
             address: address,
             _marker: PhantomData,
         }
+    }
+
+    /// Borrows the peripheral for the duration of the critical section
+    pub fn borrow<'cs>(&self, _ctxt: &'cs CsCtxt) -> &'cs T {
+        unsafe { &*self.get() }
     }
 
     /// Returns a pointer to the register block

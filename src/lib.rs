@@ -8,7 +8,6 @@
 //! - Data structures like the vector table
 //! - Safe wrappers around assembly instructions like `bkpt`
 
-#![feature(macro_reexport)]
 #![cfg_attr(target_arch = "arm", feature(core_intrinsics))]
 #![deny(missing_docs)]
 #![deny(warnings)]

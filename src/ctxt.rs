@@ -25,8 +25,16 @@ where
     }
 
     /// Acquires a reference to the context local data
-    pub fn borrow<'a>(&'static self, _ctxt: &'a Ctxt) -> &'a T {
+    pub fn borrow<'ctxt>(&'static self, _ctxt: &'ctxt Ctxt) -> &'ctxt T {
         unsafe { &*self.data.get() }
+    }
+
+    /// Acquires a mutable reference to the context local data
+    pub fn borrow_mut<'ctxt>(
+        &'static self,
+        _ctxt: &'ctxt mut Ctxt,
+    ) -> &'ctxt mut T {
+        unsafe { &mut *self.data.get() }
     }
 }
 

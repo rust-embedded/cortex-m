@@ -54,25 +54,25 @@ impl Exception {
 #[repr(C)]
 pub struct Handlers {
     /// Non-maskable interrupt
-    pub nmi: unsafe extern "C" fn(&Nmi),
+    pub nmi: unsafe extern "C" fn(Nmi),
     /// All class of fault
-    pub hard_fault: unsafe extern "C" fn(&HardFault),
+    pub hard_fault: unsafe extern "C" fn(HardFault),
     /// Memory management
-    pub mem_manage: unsafe extern "C" fn(&MemManage),
+    pub mem_manage: unsafe extern "C" fn(MemManage),
     /// Pre-fetch fault, memory access fault
-    pub bus_fault: unsafe extern "C" fn(&BusFault),
+    pub bus_fault: unsafe extern "C" fn(BusFault),
     /// Undefined instruction or illegal state
-    pub usage_fault: unsafe extern "C" fn(&UsageFault),
+    pub usage_fault: unsafe extern "C" fn(UsageFault),
     /// Reserved spots in the vector table
     pub _reserved0: [Reserved; 4],
     /// System service call via SWI instruction
-    pub svcall: unsafe extern "C" fn(&Svcall),
+    pub svcall: unsafe extern "C" fn(Svcall),
     /// Reserved spots in the vector table
     pub _reserved1: [Reserved; 2],
     /// Pendable request for system service
-    pub pendsv: unsafe extern "C" fn(&Pendsv),
+    pub pendsv: unsafe extern "C" fn(Pendsv),
     /// System tick timer
-    pub sys_tick: unsafe extern "C" fn(&SysTick),
+    pub sys_tick: unsafe extern "C" fn(SysTick),
 }
 
 /// Non-maskable interrupt
@@ -150,7 +150,7 @@ pub const DEFAULT_HANDLERS: Handlers = Handlers {
 // This needs asm!, #[naked] and unreachable() to avoid modifying the stack
 // pointer (MSP), that way it points to the stacked registers
 #[naked]
-pub unsafe extern "C" fn default_handler<T>(_token: &T) {
+pub unsafe extern "C" fn default_handler<T>(_token: T) {
     // This is the actual exception handler. `_sf` is a pointer to the previous
     // stack frame
     #[cfg(target_arch = "arm")]

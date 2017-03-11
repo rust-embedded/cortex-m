@@ -1,6 +1,6 @@
 //! Exceptions
 
-use ctxt::Token;
+use ctxt::Context;
 use Reserved;
 
 /// Kind of exception
@@ -54,80 +54,80 @@ impl Exception {
 #[repr(C)]
 pub struct Handlers {
     /// Non-maskable interrupt
-    pub nmi: unsafe extern "C" fn(&NmiCtxt),
+    pub nmi: unsafe extern "C" fn(&Nmi),
     /// All class of fault
-    pub hard_fault: unsafe extern "C" fn(&HardFaultCtxt),
+    pub hard_fault: unsafe extern "C" fn(&HardFault),
     /// Memory management
-    pub mem_manage: unsafe extern "C" fn(&MemManageCtxt),
+    pub mem_manage: unsafe extern "C" fn(&MemManage),
     /// Pre-fetch fault, memory access fault
-    pub bus_fault: unsafe extern "C" fn(&BusFaultCtxt),
+    pub bus_fault: unsafe extern "C" fn(&BusFault),
     /// Undefined instruction or illegal state
-    pub usage_fault: unsafe extern "C" fn(&UsageFaultCtxt),
+    pub usage_fault: unsafe extern "C" fn(&UsageFault),
     /// Reserved spots in the vector table
     pub _reserved0: [Reserved; 4],
     /// System service call via SWI instruction
-    pub svcall: unsafe extern "C" fn(&SvcallCtxt),
+    pub svcall: unsafe extern "C" fn(&Svcall),
     /// Reserved spots in the vector table
     pub _reserved1: [Reserved; 2],
     /// Pendable request for system service
-    pub pendsv: unsafe extern "C" fn(&PendsvCtxt),
+    pub pendsv: unsafe extern "C" fn(&Pendsv),
     /// System tick timer
-    pub sys_tick: unsafe extern "C" fn(&SysTickCtxt),
+    pub sys_tick: unsafe extern "C" fn(&SysTick),
 }
 
-/// Identifies the Nmi exception
-pub struct NmiCtxt {
+/// Non-maskable interrupt
+pub struct Nmi {
     _0: (),
 }
 
-/// Identifies the HardFault exception
-pub struct HardFaultCtxt {
+/// All class of fault
+pub struct HardFault {
     _0: (),
 }
 
-/// Identifies the MemManage exception
-pub struct MemManageCtxt {
+/// Memory management
+pub struct MemManage {
     _0: (),
 }
 
-/// Identifies the BusFault exception
-pub struct BusFaultCtxt {
+/// Pre-fetch fault, memory access fault
+pub struct BusFault {
     _0: (),
 }
 
-/// Identifies the UsageFault exception
-pub struct UsageFaultCtxt {
+/// Undefined instruction or illegal state
+pub struct UsageFault {
     _0: (),
 }
 
-/// Identifies the Svcall exception
-pub struct SvcallCtxt {
+/// System service call via SWI instruction
+pub struct Svcall {
     _0: (),
 }
 
-/// Identifies the Pendsv exception
-pub struct PendsvCtxt {
+/// Pendable request for system service
+pub struct Pendsv {
     _0: (),
 }
 
-/// Identifies the Systick exception
-pub struct SysTickCtxt {
+/// System tick timer
+pub struct SysTick {
     _0: (),
 }
 
-unsafe impl Token for NmiCtxt {}
+unsafe impl Context for Nmi {}
 
-unsafe impl Token for HardFaultCtxt {}
+unsafe impl Context for HardFault {}
 
-unsafe impl Token for MemManageCtxt {}
+unsafe impl Context for MemManage {}
 
-unsafe impl Token for BusFaultCtxt {}
+unsafe impl Context for BusFault {}
 
-unsafe impl Token for SvcallCtxt {}
+unsafe impl Context for Svcall {}
 
-unsafe impl Token for PendsvCtxt {}
+unsafe impl Context for Pendsv {}
 
-unsafe impl Token for SysTickCtxt {}
+unsafe impl Context for SysTick {}
 
 /// Default exception handlers
 pub const DEFAULT_HANDLERS: Handlers = Handlers {

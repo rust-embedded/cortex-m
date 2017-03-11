@@ -15,14 +15,9 @@ impl<T> Mutex<T> {
 }
 
 impl<T> Mutex<T> {
-    /// Gets access to the inner data
-    ///
-    /// NOTE this prevents interrupts handlers from running thus gaining
-    /// exclusive access to the processor
-    pub fn lock<F, R>(&self, f: F) -> R
-        where F: FnOnce(&mut T) -> R
-    {
-        unsafe { ::interrupt::free(|_| f(&mut *self.inner.get())) }
+    /// Borrows the data for the duration of the critical section
+    pub fn borrow<'cs>(&self, _ctxt: &'cs CriticalSection) -> &'cs T {
+        unsafe { &*self.inner.get() }
     }
 }
 
@@ -32,7 +27,6 @@ pub unsafe trait Nr {
     fn nr(&self) -> u8;
 }
 
-// FIXME `T` should have some bound: `Send` or `Sync`?
 unsafe impl<T> Sync for Mutex<T> {}
 
 /// Disable interrupts, globally
@@ -69,10 +63,10 @@ pub fn enable() {
     }
 }
 
-/// Critical section token
+/// Critical section context
 ///
 /// Indicates that you are executing code within a critical section
-pub struct CsCtxt {
+pub struct CriticalSection {
     _0: (),
 }
 
@@ -80,14 +74,15 @@ pub struct CsCtxt {
 ///
 /// This as also known as a "critical section".
 pub fn free<F, R>(f: F) -> R
-    where F: FnOnce(&CsCtxt) -> R
+where
+    F: FnOnce(&CriticalSection) -> R,
 {
     let primask = ::register::primask::read();
 
     // disable interrupts
     disable();
 
-    let r = f(&CsCtxt { _0: () });
+    let r = f(&CriticalSection { _0: () });
 
     // If the interrupts were active before our `disable` call, then re-enable
     // them. Otherwise, keep them disabled

@@ -10,7 +10,7 @@ use core::ptr;
 
 use volatile_register::{RO, RW, WO};
 
-use interrupt::{CsCtxt, Nr};
+use interrupt::{CriticalSection, Nr};
 
 #[cfg(test)]
 mod test;
@@ -69,8 +69,8 @@ impl<T> Peripheral<T> {
         }
     }
 
-    /// Borrows the peripheral for the duration of the critical section
-    pub fn borrow<'cs>(&self, _ctxt: &'cs CsCtxt) -> &'cs T {
+    /// Borrows the peripheral for the duration of a critical section
+    pub fn borrow<'cs>(&self, _ctxt: &'cs CriticalSection) -> &'cs T {
         unsafe { &*self.get() }
     }
 

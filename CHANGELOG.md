@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Execution context primitives: execution context `Local` data and `Token`s to
   identify execution contexts.
 
+- A `borrow` method to `Mutex` that replaces `lock`. This method returns a `&-`
+  reference.
+
 ### Changed
 
 - [breaking-change] `StackFrame` has been renamed to `StackedRegisters` and
@@ -44,6 +47,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - `vector_table` and its associated `struct`, `VectorTable`. It's not a good
   idea to give people a simple way to call the exception handlers.
+
+- `Mutex`'s `lock` method as it's unsound. You can use it to get multiple `&mut
+  -` references to the data.
 
 ## [v0.1.6] - 2017-01-22
 

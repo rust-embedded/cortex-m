@@ -8,8 +8,8 @@
 //! - MSP
 //! - PRIMASK
 //!
-//! The rest of registers (see list below) can be accessed in either, PRIVILEGED or UNPRIVILEGED,
-//! mode.
+//! The rest of registers (see list below) can be accessed in either, PRIVILEGED
+//! or UNPRIVILEGED, mode.
 //!
 //! - APSR
 //! - LR

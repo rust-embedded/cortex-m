@@ -52,7 +52,8 @@ pub const TPIU: Peripheral<Tpiu> = unsafe { Peripheral::new(0xE004_0000) };
 
 /// A peripheral
 pub struct Peripheral<T>
-    where T: 'static
+where
+    T: 'static,
 {
     address: usize,
     _marker: PhantomData<&'static mut T>,
@@ -290,7 +291,8 @@ pub struct Nvic {
 impl Nvic {
     /// Clears `interrupt`'s pending state
     pub fn clear_pending<I>(&self, interrupt: I)
-        where I: Nr
+    where
+        I: Nr,
     {
         let nr = interrupt.nr();
 
@@ -299,7 +301,8 @@ impl Nvic {
 
     /// Disables `interrupt`
     pub fn disable<I>(&self, interrupt: I)
-        where I: Nr
+    where
+        I: Nr,
     {
         let nr = interrupt.nr();
 
@@ -308,7 +311,8 @@ impl Nvic {
 
     /// Enables `interrupt`
     pub fn enable<I>(&self, interrupt: I)
-        where I: Nr
+    where
+        I: Nr,
     {
         let nr = interrupt.nr();
 
@@ -321,7 +325,8 @@ impl Nvic {
     /// `1` and `2` have the same priority. Also for NVIC priorities, a lower
     /// value (e.g. `16`) has higher priority than a larger value (e.g. `32`).
     pub fn get_priority<I>(&self, interrupt: I) -> u8
-        where I: Nr
+    where
+        I: Nr,
     {
         let nr = interrupt.nr();
 
@@ -330,7 +335,8 @@ impl Nvic {
 
     /// Is `interrupt` active or pre-empted and stacked
     pub fn is_active<I>(&self, interrupt: I) -> bool
-        where I: Nr
+    where
+        I: Nr,
     {
         let nr = interrupt.nr();
         let mask = 1 << (nr % 32);
@@ -340,7 +346,8 @@ impl Nvic {
 
     /// Checks if `interrupt` is enabled
     pub fn is_enabled<I>(&self, interrupt: I) -> bool
-        where I: Nr
+    where
+        I: Nr,
     {
         let nr = interrupt.nr();
         let mask = 1 << (nr % 32);
@@ -350,7 +357,8 @@ impl Nvic {
 
     /// Checks if `interrupt` is pending
     pub fn is_pending<I>(&self, interrupt: I) -> bool
-        where I: Nr
+    where
+        I: Nr,
     {
         let nr = interrupt.nr();
         let mask = 1 << (nr % 32);
@@ -360,7 +368,8 @@ impl Nvic {
 
     /// Forces `interrupt` into pending state
     pub fn set_pending<I>(&self, interrupt: I)
-        where I: Nr
+    where
+        I: Nr,
     {
         let nr = interrupt.nr();
 
@@ -372,7 +381,8 @@ impl Nvic {
     /// NOTE See `get_priority` method for an explanation of how NVIC priorities
     /// work.
     pub fn set_priority<I>(&self, interrupt: I, prio: u8)
-        where I: Nr
+    where
+        I: Nr,
     {
         let nr = interrupt.nr();
 

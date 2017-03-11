@@ -5,14 +5,16 @@ use core::cell::UnsafeCell;
 
 /// Data local to a context
 pub struct Local<T, Ctxt>
-    where Ctxt: Context
+where
+    Ctxt: Context,
 {
     _ctxt: PhantomData<Ctxt>,
     data: UnsafeCell<T>,
 }
 
 impl<T, Ctxt> Local<T, Ctxt>
-    where Ctxt: Context
+where
+    Ctxt: Context,
 {
     /// Initializes context local data
     pub const fn new(value: T) -> Self {
@@ -28,7 +30,11 @@ impl<T, Ctxt> Local<T, Ctxt>
     }
 }
 
-unsafe impl<T, Ctxt> Sync for Local<T, Ctxt> where Ctxt: Context {}
+unsafe impl<T, Ctxt> Sync for Local<T, Ctxt>
+where
+    Ctxt: Context,
+{
+}
 
 /// A token unique to a context
 pub unsafe trait Context {}

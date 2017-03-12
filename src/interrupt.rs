@@ -15,62 +15,86 @@ impl<T> Mutex<T> {
 }
 
 impl<T> Mutex<T> {
-    /// Gets access to the inner data
-    ///
-    /// NOTE this prevents interrupts handlers from running thus gaining
-    /// exclusive access to the processor
-    pub fn lock<F, R>(&self, f: F) -> R
-        where F: FnOnce(&mut T) -> R
-    {
-        unsafe { ::interrupt::free(|| f(&mut *self.inner.get())) }
+    /// Borrows the data for the duration of the critical section
+    pub fn borrow<'cs>(&self, _ctxt: &'cs CriticalSection) -> &'cs T {
+        unsafe { &*self.inner.get() }
+    }
+
+    /// Mutably borrows the data for the duration of the critical section
+    pub fn borrow_mut<'cs>(
+        &self,
+        _ctxt: &'cs mut CriticalSection,
+    ) -> &'cs mut T {
+        unsafe { &mut *self.inner.get() }
     }
 }
 
-// FIXME `T` should have some bound: `Send` or `Sync`?
+/// Interrupt number
+pub unsafe trait Nr {
+    /// Returns the number associated with this interrupt
+    fn nr(&self) -> u8;
+}
+
 unsafe impl<T> Sync for Mutex<T> {}
 
-/// Disable interrupts, globally
+/// Disables all interrupts
 #[inline(always)]
-pub unsafe fn disable() {
+pub fn disable() {
     match () {
         #[cfg(target_arch = "arm")]
-        () => {
-            asm!("cpsid i" :::: "volatile");
-        }
+        () => unsafe {
+            asm!("cpsid i"
+                 :
+                 :
+                 :
+                 : "volatile");
+        },
         #[cfg(not(target_arch = "arm"))]
         () => {}
     }
 }
 
-/// Enable interrupts, globally
+/// Enables all the interrupts
 #[inline(always)]
-pub unsafe fn enable() {
+pub fn enable() {
     match () {
         #[cfg(target_arch = "arm")]
-        () => {
-            asm!("cpsie i" :::: "volatile");
-        }
+        () => unsafe {
+            asm!("cpsie i"
+                 :
+                 :
+                 :
+                 : "volatile");
+        },
         #[cfg(not(target_arch = "arm"))]
         () => {}
     }
+}
+
+/// Critical section context
+///
+/// Indicates that you are executing code within a critical section
+pub struct CriticalSection {
+    _0: (),
 }
 
 /// Execute closure `f` in an interrupt-free context.
+///
 /// This as also known as a "critical section".
-pub unsafe fn free<F, R>(f: F) -> R
-    where F: FnOnce() -> R
+pub fn free<F, R>(f: F) -> R
+where
+    F: FnOnce(CriticalSection) -> R,
 {
     let primask = ::register::primask::read();
 
+    // disable interrupts
     disable();
 
-    let r = f();
+    let r = f(CriticalSection { _0: () });
 
-    // If the interrupts were enabled before our `disable` call, then re-enable
+    // If the interrupts were active before our `disable` call, then re-enable
     // them. Otherwise, keep them disabled
-    // PRIMASK & 1 = 1 indicates that the interrupts were disabled
-    // PRIMASK & 1 = 0 indicates that they were enabled
-    if primask & 1 == 0 {
+    if primask.is_active() {
         enable();
     }
 

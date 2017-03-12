@@ -156,10 +156,13 @@ pub extern "C" fn default_handler<T>(_token: T)
 where
     T: Context,
 {
-    // This is the actual exception handler. `_sf` is a pointer to the previous
+    // This is the actual exception handler. `_sr` is a pointer to the previous
     // stack frame
     #[cfg(target_arch = "arm")]
     extern "C" fn handler(_sr: &StackedRegisters) -> ! {
+        // What exception is currently being serviced
+        let _e = Exception::current();
+
         ::asm::bkpt();
 
         loop {}

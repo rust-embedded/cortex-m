@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- The default exception handler now identifies the exception that's being
+  serviced.
+
 ## [v0.2.0] - 2017-03-11
 
 ### Added

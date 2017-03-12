@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.2.1] - 2017-03-12
+
 ### Changed
 
 - The default exception handler now identifies the exception that's being
@@ -111,7 +113,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.2.1...HEAD
+[v0.2.1]: https://github.com/japaric/cortex-m/compare/v0.2.0...v0.2.1
 [v0.2.0]: https://github.com/japaric/cortex-m/compare/v0.1.6...v0.2.0
 [v0.1.6]: https://github.com/japaric/cortex-m/compare/v0.1.5...v0.1.6
 [v0.1.5]: https://github.com/japaric/cortex-m/compare/v0.1.4...v0.1.5

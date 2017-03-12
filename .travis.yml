@@ -1,6 +1,6 @@
 dist: trusty
 language: rust
-rust: nightly
+rust: nightly-2017-03-04
 services: docker
 sudo: required
 

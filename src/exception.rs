@@ -153,7 +153,8 @@ pub const DEFAULT_HANDLERS: Handlers = Handlers {
 // pointer (MSP), that way it points to the stacked registers
 #[naked]
 pub extern "C" fn default_handler<T>(_token: T)
-    where T: Context
+where
+    T: Context,
 {
     // This is the actual exception handler. `_sf` is a pointer to the previous
     // stack frame
@@ -167,16 +168,18 @@ pub extern "C" fn default_handler<T>(_token: T)
     match () {
         #[cfg(target_arch = "arm")]
         () => {
-            // "trampoline" to get to the real exception handler.
-            asm!("mrs r0, MSP
+            unsafe {
+                // "trampoline" to get to the real exception handler.
+                asm!("mrs r0, MSP
                   ldr r1, [r0, #20]
                   b $0"
-                 :
-                 : "i"(handler as extern "C" fn(&StackedRegisters) -> !)
-                 :
-                 : "volatile");
+                     :
+                     : "i"(handler as extern "C" fn(&StackedRegisters) -> !)
+                     :
+                     : "volatile");
 
-            ::core::intrinsics::unreachable()
+                ::core::intrinsics::unreachable()
+            }
         }
         #[cfg(not(target_arch = "arm"))]
         () => {}

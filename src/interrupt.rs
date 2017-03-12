@@ -21,7 +21,10 @@ impl<T> Mutex<T> {
     }
 
     /// Mutably borrows the data for the duration of the critical section
-    pub fn borrow_mut<'cs>(&self, _ctxt: &'cs mut CriticalSection) -> &'cs mut T {
+    pub fn borrow_mut<'cs>(
+        &self,
+        _ctxt: &'cs mut CriticalSection,
+    ) -> &'cs mut T {
         unsafe { &mut *self.inner.get() }
     }
 }

@@ -10,6 +10,7 @@
 //! defined.
 //!
 //! ```
+//! # use cortex_m::ctxt::Context;
 //! // This must be in a library crate
 //! /// Token unique to the TIM7 interrupt handler
 //! pub struct Tim7 { _0: () }
@@ -21,6 +22,11 @@
 //! `Local`.
 //!
 //! ```
+//! # #![feature(const_fn)]
+//! # use std::cell::Cell;
+//! # use cortex_m::ctxt::{Context, Local};
+//! # struct Tim7;
+//! # unsafe impl Context for Tim7 {}
 //! // omitted: how to put this handler in the vector table
 //! extern "C" fn tim7(ctxt: Tim7) {
 //!     static STATE: Local<Cell<bool>, Tim7> = Local::new(Cell::new(false));
@@ -42,7 +48,12 @@
 //! access context local data. (Given that you got the signatures right)
 //!
 //! ```
-//! static TIM3_DATA: Local<Cell<bool>, Tim3>
+//! # #![feature(const_fn)]
+//! # use std::cell::Cell;
+//! # use cortex_m::ctxt::{Context, Local};
+//! # struct Tim3;
+//! # struct Tim4;
+//! static TIM3_DATA: Local<Cell<bool>, Tim3> = Local::new(Cell::new(false));
 //!
 //! extern "C" fn tim3(ctxt: Tim3) {
 //!     let data = TIM3_DATA.borrow(&ctxt);
@@ -52,19 +63,26 @@
 //!     //let data = TIM3_DATA.borrow(&ctxt);
 //!     // ^ wouldn't work
 //! }
+//! # unsafe impl Context for Tim3 {}
+//! # fn main() {}
 //! ```
 //!
 //! To have the application use these tokenized function signatures, you can
 //! define, in a library, a `Handlers` struct that represents the vector table:
 //!
 //! ```
+//! # struct Tim1;
+//! # struct Tim2;
+//! # struct Tim3;
+//! # struct Tim4;
+//! # extern "C" fn default_handler<T>(_: T) {}
 //! #[repr(C)]
 //! pub struct Handlers {
 //!     tim1: extern "C" fn(Tim1),
 //!     tim2: extern "C" fn(Tim2),
 //!     tim3: extern "C" fn(Tim3),
 //!     tim4: extern "C" fn(Tim4),
-//!     ..
+//!     /* .. */
 //! }
 //!
 //! pub const DEFAULT_HANDLERS: Handlers = Handlers {
@@ -72,14 +90,17 @@
 //!     tim2: default_handler,
 //!     tim3: default_handler,
 //!     tim4: default_handler,
-//!     ..
-//! }
+//!     /* .. */
+//! };
 //! ```
 //!
 //! Then have the user use that `struct` to register the interrupt handlers:
 //!
 //! ```
-//! extern "C" fn tim3(ctxt: Tim3) { .. }
+//! # struct Tim3;
+//! # struct Handlers { tim3: extern "C" fn(Tim3), tim4: extern "C" fn(Tim3) }
+//! # const DEFAULT_HANDLERS: Handlers = Handlers { tim3: tim3, tim4: tim3 };
+//! extern "C" fn tim3(ctxt: Tim3) { /* .. */ }
 //!
 //! // override the TIM3 interrupt handler
 //! #[no_mangle]

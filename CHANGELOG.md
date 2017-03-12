@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
-- Semihosting functionality is now exposed via the "semihosting" Cargo feature.
+- Semihosting functionality in the `semihosting` module.
 
 - `exception::Handlers` struct that represent the section of the vector table
   that contains the exception handlers.
@@ -18,11 +18,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - A high level API for the NVIC peripheral.
 
-- Execution context primitives: execution context `Local` data and `Token`s to
-  identify execution contexts.
+- Context local data.
 
-- A `borrow` method to `Mutex` that replaces `lock`. This method returns a `&-`
-  reference.
+- `borrow`/`borrow_mut` methods to `Mutex` that replace `lock`.
+
+- API and macros to send bytes / (formatted) strings through ITM
 
 ### Changed
 
@@ -33,7 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   and are no longer `Sync`.
 
 - [breaking-change] `interrupt::free`'s closure now includes a critical section
-  token, `CsCtxt`.
+  token, `CriticalSection`.
 
 - [breaking-change] the core register API has been revamped for type safety.
 
@@ -48,8 +48,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `vector_table` and its associated `struct`, `VectorTable`. It's not a good
   idea to give people a simple way to call the exception handlers.
 
-- `Mutex`'s `lock` method as it's unsound. You can use it to get multiple `&mut
-  -` references to the data.
+- `Mutex`'s `lock` method as it's unsound. You could use it to get multiple
+  `&mut -` references to the wrapped data.
 
 ## [v0.1.6] - 2017-01-22
 

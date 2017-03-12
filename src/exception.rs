@@ -3,7 +3,7 @@
 use ctxt::Context;
 use Reserved;
 
-/// Kind of exception
+/// Enumeration of all exceptions
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Exception {
     /// i.e. currently not servicing an exception

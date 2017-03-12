@@ -43,39 +43,35 @@ unsafe fn write_words(stim: &Stim, bytes: &[u32]) {
     }
 }
 
-struct Itm {
-    port: u8,
-}
+struct Port<'p>(&'p Stim);
 
-impl fmt::Write for Itm {
+impl<'p> fmt::Write for Port<'p> {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        write_all(self.port, s.as_bytes());
+        write_all(self.0, s.as_bytes());
         Ok(())
     }
 }
 
 /// Writes a `buffer` to the ITM `port`
-pub fn write_all(port: u8, buffer: &[u8]) {
-    let stim = unsafe { &(*::peripheral::ITM.get()).stim[port as usize] };
-
+pub fn write_all(port: &Stim, buffer: &[u8]) {
     if buffer.len() < 7 {
-        write_bytes(stim, buffer);
+        write_bytes(port, buffer);
     } else {
         let (head, body, tail) = unsafe { split(buffer) };
-        write_bytes(stim, head);
-        unsafe { write_words(stim, body) }
-        write_bytes(stim, tail);
+        write_bytes(port, head);
+        unsafe { write_words(port, body) }
+        write_bytes(port, tail);
     }
 }
 
 /// Writes `fmt::Arguments` to the ITM `port`
-pub fn write_fmt(port: u8, args: fmt::Arguments) {
+pub fn write_fmt(port: &Stim, args: fmt::Arguments) {
     use core::fmt::Write;
 
-    Itm { port }.write_fmt(args).ok();
+    Port(port).write_fmt(args).ok();
 }
 
 /// Writes a string to the ITM `port`
-pub fn write_str(port: u8, string: &str) {
+pub fn write_str(port: &Stim, string: &str) {
     write_all(port, string.as_bytes())
 }

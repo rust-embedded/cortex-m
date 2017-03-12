@@ -34,7 +34,7 @@ pub unsafe trait Nr {
 
 unsafe impl<T> Sync for Mutex<T> {}
 
-/// Disable interrupts, globally
+/// Disables all interrupts
 #[inline(always)]
 pub fn disable() {
     match () {
@@ -51,7 +51,7 @@ pub fn disable() {
     }
 }
 
-/// Enable interrupts, globally
+/// Enables all the interrupts
 #[inline(always)]
 pub fn enable() {
     match () {

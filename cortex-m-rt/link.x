@@ -17,7 +17,7 @@ SECTIONS
 
     /* Entry point: the reset handler */
     __reset = .;
-    *(.text.start);
+    KEEP(*(.text.start));
 
     *(.text.*);
     *(.rodata.*);

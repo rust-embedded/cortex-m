@@ -31,6 +31,7 @@
 #![feature(compiler_builtins_lib)]
 #![feature(lang_items)]
 #![feature(linkage)]
+#![feature(used)]
 #![no_std]
 
 #[cfg(feature = "panic-over-itm")]
@@ -44,13 +45,10 @@ extern crate r0;
 
 mod lang_items;
 
-// TODO make private and use `#[used]`
 /// The reset handler
 ///
 /// This is the entry point of all programs
-#[doc(hidden)]
-#[export_name = "start"]
-pub unsafe extern "C" fn reset_handler() -> ! {
+unsafe extern "C" fn reset_handler() -> ! {
     extern "C" {
         static mut _ebss: u32;
         static mut _sbss: u32;
@@ -79,3 +77,8 @@ pub unsafe extern "C" fn reset_handler() -> ! {
         asm!("wfi" :::: "volatile");
     }
 }
+
+#[allow(dead_code)]
+#[used]
+#[link_section = ".rodata.reset_handler"]
+static RESET_HANDLER: unsafe extern "C" fn() -> ! = reset_handler;

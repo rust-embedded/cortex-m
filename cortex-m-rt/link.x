@@ -7,17 +7,13 @@ SECTIONS
     /* Vector table */
     _VECTOR_TABLE = .;
     LONG(ORIGIN(RAM) + LENGTH(RAM));
-    LONG(__reset + 1);
 
+    KEEP(*(.rodata.reset_handler));
     KEEP(*(.rodata._EXCEPTIONS));
     __exceptions = .;
 
     KEEP(*(.rodata._INTERRUPTS));
     __interrupts = .;
-
-    /* Entry point: the reset handler */
-    __reset = .;
-    KEEP(*(.text.start));
 
     *(.text.*);
     *(.rodata.*);

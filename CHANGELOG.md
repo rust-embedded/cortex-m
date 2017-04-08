@@ -21,8 +21,8 @@ static FOO: Mutex<bool> = Mutex::new(false);
 fn main() {
     cortex_m::interrupt::free(|mut cs1| {
         cortex_m::interrupt::free(|mut cs2| {
-            let foo = FOO.borrow_mut(&mut cs1);
-            let and_foo = FOO.borrow_mut(&mut cs2);
+            let foo: &mut bool = FOO.borrow_mut(&mut cs1);
+            let and_foo: &mut bool = FOO.borrow_mut(&mut cs2);
         });
     });
 }
@@ -134,7 +134,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.2.2...HEAD
+[v0.2.2]: https://github.com/japaric/cortex-m/compare/v0.2.1...v0.2.2
 [v0.2.1]: https://github.com/japaric/cortex-m/compare/v0.2.0...v0.2.1
 [v0.2.0]: https://github.com/japaric/cortex-m/compare/v0.1.6...v0.2.0
 [v0.1.6]: https://github.com/japaric/cortex-m/compare/v0.1.5...v0.1.6

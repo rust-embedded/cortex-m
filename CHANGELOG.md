@@ -7,14 +7,35 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-## [v0.2.1] - 2017-03-12
+## [v0.2.2] - 2017-04-08
+
+### Fixed
+
+- MEMORY SAFETY BUG. The `Mutex.borrow_mut` method has been removed as it can be
+  used to bypass Rust's borrow checker and get, for example, two mutable
+  references to the same data.
+
+``` rust
+static FOO: Mutex<bool> = Mutex::new(false);
+
+fn main() {
+    cortex_m::interrupt::free(|mut cs1| {
+        cortex_m::interrupt::free(|mut cs2| {
+            let foo = FOO.borrow_mut(&mut cs1);
+            let and_foo = FOO.borrow_mut(&mut cs2);
+        });
+    });
+}
+```
+
+## [v0.2.1] - 2017-03-12 - YANKED
 
 ### Changed
 
 - The default exception handler now identifies the exception that's being
   serviced.
 
-## [v0.2.0] - 2017-03-11
+## [v0.2.0] - 2017-03-11 - YANKED
 
 ### Added
 

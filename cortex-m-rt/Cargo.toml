@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Jorge Aparicio <japaricious@gmail.com>"]
 
 [dependencies]
-r0 = "0.2.0"
+r0 = "0.2.1"
 
 [dependencies.cortex-m]
 optional = true

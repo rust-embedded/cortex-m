@@ -7,20 +7,19 @@ SECTIONS
     /* Vector table */
     _VECTOR_TABLE = .;
     LONG(ORIGIN(RAM) + LENGTH(RAM));
-    LONG(__reset + 1);
 
+    KEEP(*(.rodata.reset_handler));
     KEEP(*(.rodata._EXCEPTIONS));
     __exceptions = .;
 
     KEEP(*(.rodata._INTERRUPTS));
     __interrupts = .;
 
-    /* Entry point: the reset handler */
-    __reset = .;
-    KEEP(*(.text.start));
-
     *(.text.*);
     *(.rodata.*);
+    _init_array_start = ALIGN(4);
+    KEEP(*(.init_array));
+    _init_array_end = ALIGN(4);
   } > FLASH
 
   .bss : ALIGN(4)

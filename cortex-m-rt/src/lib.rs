@@ -31,6 +31,7 @@
 #![feature(compiler_builtins_lib)]
 #![feature(lang_items)]
 #![feature(linkage)]
+#![feature(used)]
 #![no_std]
 
 #[cfg(feature = "panic-over-itm")]
@@ -44,13 +45,10 @@ extern crate r0;
 
 mod lang_items;
 
-// TODO make private and use `#[used]`
 /// The reset handler
 ///
 /// This is the entry point of all programs
-#[doc(hidden)]
-#[export_name = "start"]
-pub unsafe extern "C" fn reset_handler() -> ! {
+unsafe extern "C" fn reset_handler() -> ! {
     extern "C" {
         static mut _ebss: u32;
         static mut _sbss: u32;
@@ -59,10 +57,14 @@ pub unsafe extern "C" fn reset_handler() -> ! {
         static mut _sdata: u32;
 
         static _sidata: u32;
+
+        static _init_array_start: extern "C" fn();
+        static _init_array_end: extern "C" fn();
     }
 
     ::r0::zero_bss(&mut _sbss, &mut _ebss);
     ::r0::init_data(&mut _sdata, &mut _edata, &_sidata);
+    ::r0::run_init_array(&_init_array_start, &_init_array_end);
 
     // NOTE `rustc` forces this signature on us. See `src/lang_items.rs`
     extern "C" {
@@ -79,3 +81,8 @@ pub unsafe extern "C" fn reset_handler() -> ! {
         asm!("wfi" :::: "volatile");
     }
 }
+
+#[allow(dead_code)]
+#[used]
+#[link_section = ".rodata.reset_handler"]
+static RESET_HANDLER: unsafe extern "C" fn() -> ! = reset_handler;

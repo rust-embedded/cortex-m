@@ -60,14 +60,10 @@ unsafe extern "C" fn reset_handler() -> ! {
         static mut _sdata: u32;
 
         static _sidata: u32;
-
-        static _init_array_start: extern "C" fn();
-        static _init_array_end: extern "C" fn();
     }
 
     ::r0::zero_bss(&mut _sbss, &mut _ebss);
     ::r0::init_data(&mut _sdata, &mut _edata, &_sidata);
-    ::r0::run_init_array(&_init_array_start, &_init_array_end);
 
     // NOTE `rustc` forces this signature on us. See `src/lang_items.rs`
     extern "C" {

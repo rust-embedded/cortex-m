@@ -9,10 +9,10 @@ SECTIONS
     LONG(ORIGIN(RAM) + LENGTH(RAM));
 
     KEEP(*(.rodata.reset_handler));
-    KEEP(*(.rodata._EXCEPTIONS));
+    KEEP(*(.rodata.exceptions));
     __exceptions = .;
 
-    KEEP(*(.rodata._INTERRUPTS));
+    KEEP(*(.rodata.interrupts));
     __interrupts = .;
 
     *(.text.*);

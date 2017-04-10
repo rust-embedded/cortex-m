@@ -34,8 +34,8 @@
 #![feature(used)]
 #![no_std]
 
-#[cfg(feature = "panic-over-itm")]
-#[macro_use]
+#[cfg(any(feature = "panic-over-itm", feature = "exceptions"))]
+#[cfg_attr(feature = "panic-over-itm", macro_use)]
 extern crate cortex_m;
 extern crate compiler_builtins;
 #[cfg(feature = "panic-over-semihosting")]
@@ -44,6 +44,9 @@ extern crate cortex_m_semihosting;
 extern crate r0;
 
 mod lang_items;
+
+#[cfg(feature = "exceptions")]
+use cortex_m::exception;
 
 /// The reset handler
 ///
@@ -57,14 +60,10 @@ unsafe extern "C" fn reset_handler() -> ! {
         static mut _sdata: u32;
 
         static _sidata: u32;
-
-        static _init_array_start: extern "C" fn();
-        static _init_array_end: extern "C" fn();
     }
 
     ::r0::zero_bss(&mut _sbss, &mut _ebss);
     ::r0::init_data(&mut _sdata, &mut _edata, &_sidata);
-    ::r0::run_init_array(&_init_array_start, &_init_array_end);
 
     // NOTE `rustc` forces this signature on us. See `src/lang_items.rs`
     extern "C" {
@@ -86,3 +85,11 @@ unsafe extern "C" fn reset_handler() -> ! {
 #[used]
 #[link_section = ".rodata.reset_handler"]
 static RESET_HANDLER: unsafe extern "C" fn() -> ! = reset_handler;
+
+#[allow(dead_code)]
+#[cfg(feature = "exceptions")]
+#[link_section = ".rodata.exceptions"]
+#[used]
+static EXCEPTIONS: exception::Handlers = exception::Handlers {
+    ..exception::DEFAULT_HANDLERS
+};

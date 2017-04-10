@@ -8,7 +8,7 @@ r0 = "0.2.1"
 
 [dependencies.cortex-m]
 optional = true
-version = "0.2.0"
+version = "0.2.2"
 
 [dependencies.cortex-m-semihosting]
 optional = true
@@ -19,6 +19,9 @@ features = ["mem"]
 git = "https://github.com/rust-lang-nursery/compiler-builtins"
 
 [features]
+default = ["exceptions"]
+# handle exceptions using the default handler
+exceptions = ["cortex-m"]
 linker-script = []
 panic-over-itm = ["cortex-m"]
 panic-over-semihosting = ["cortex-m-semihosting"]

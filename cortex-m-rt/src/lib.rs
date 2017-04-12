@@ -70,7 +70,7 @@
 //! static INTERRUPTS: SomeStruct = SomeStruct { .. }
 //! ```
 //!
-//! # Usage
+//! # Example
 //!
 //! ``` text
 //! $ cargo new --bin app && cd $_

@@ -43,8 +43,19 @@ SECTIONS
   }
 }
 
-ASSERT(__exceptions - ORIGIN(FLASH) == 0x40,
-       "you must define the _EXCEPTIONS symbol");
+ASSERT(__exceptions - ORIGIN(FLASH) == 0x40, "
+You must specify the exception handlers.
+Create a non `pub` static variable with type
+`cortex_m::exception::Handlers` and place it in the
+'.rodata.exceptions' section. (cf. #[link_section])
+Apply the `#[used]` attribute to the variable to help it reach the linker.");
 
-ASSERT(__interrupts - __exceptions > 0,
-       "you must define the _INTERRUPTS symbol");
+ASSERT(__interrupts - __exceptions > 0, "
+You must specify the interrupt handlers.
+Create a non `pub` static variable and place it in the
+'.rodata.interrupts' section. (cf. #[link_section])
+Apply the `#[used]` attribute to the variable to help it reach the linker.");
+
+ASSERT(__interrupts - __exceptions <= 0x3c0, "
+There can't be more than 240 interrupt handlers.
+Fix the '.rodata.interrupts' section. (cf. #[link_section])");

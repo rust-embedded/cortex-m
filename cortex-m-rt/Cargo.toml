@@ -14,10 +14,6 @@ version = "0.2.2"
 optional = true
 version = "0.1.3"
 
-[dependencies.compiler_builtins]
-features = ["mem"]
-git = "https://github.com/rust-lang-nursery/compiler-builtins"
-
 [features]
 default = ["exceptions"]
 # handle exceptions using the default handler

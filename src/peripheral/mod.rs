@@ -380,7 +380,7 @@ impl Nvic {
     ///
     /// NOTE See `get_priority` method for an explanation of how NVIC priorities
     /// work.
-    pub fn set_priority<I>(&self, interrupt: I, prio: u8)
+    pub unsafe fn set_priority<I>(&self, interrupt: I, prio: u8)
     where
         I: Nr,
     {

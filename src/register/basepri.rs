@@ -16,7 +16,7 @@ pub fn read() -> u8 {
 
 /// Writes to the CPU register
 #[inline(always)]
-pub fn write(basepri: u8) {
+pub unsafe fn write(basepri: u8) {
     unsafe {
         asm!("msr BASEPRI, $0"
              :

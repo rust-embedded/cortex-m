@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- MEMORY SAFETY. Some concurrency models that use "partial" critical sections
+  (cf. BASEPRI) can be broken by changing the priority of interrupts or by
+  changing BASEPRI in some scenarios. For this reason `NVIC.set_priority` and
+  `register::basepri::write` are now `unsafe`.
+
 ## [v0.2.2] - 2017-04-08
 
 ### Fixed

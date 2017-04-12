@@ -20,7 +20,7 @@ optional = true
 version = "0.1.3"
 
 [features]
-default = ["exceptions"]
+default = ["exceptions", "linker-script"]
 # handle exceptions using the default handler
 exceptions = ["cortex-m"]
 linker-script = []

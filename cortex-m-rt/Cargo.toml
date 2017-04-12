@@ -21,8 +21,11 @@ version = "0.1.3"
 
 [features]
 default = ["exceptions", "linker-script"]
-# handle exceptions using the default handler
+# service all exceptions using the default handler
 exceptions = ["cortex-m"]
+# generic linker script
 linker-script = []
+# prints panic messages to the ITM
 panic-over-itm = ["cortex-m"]
+# prints panic messages to the host stdout
 panic-over-semihosting = ["cortex-m-semihosting"]

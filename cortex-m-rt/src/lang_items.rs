@@ -28,6 +28,7 @@ unsafe extern "C" fn panic_fmt(
         () => {}
     }
 
+    #[cfg(target_arch = "arm")]
     asm!("bkpt" :::: "volatile");
 
     loop {}

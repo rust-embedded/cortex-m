@@ -1,3 +1,6 @@
+[![crates.io](https://img.shields.io/crates/v/cortex-m-rt.svg)](https://crates.io/crates/cortex-m-rt)
+[![crates.io](https://img.shields.io/crates/d/cortex-m-rt.svg)](https://crates.io/crates/cortex-m-rt)
+
 # `cortex-m-rt`
 
 > Minimal runtime / startup for Cortex-M microcontrollers

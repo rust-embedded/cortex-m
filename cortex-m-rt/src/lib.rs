@@ -192,6 +192,7 @@ unsafe extern "C" fn reset_handler() -> ! {
     // If `main` returns, then we go into "reactive" mode and attend interrupts
     // as they occur.
     loop {
+        #[cfg(target_arch = "arm")]
         asm!("wfi" :::: "volatile");
     }
 }

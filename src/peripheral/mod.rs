@@ -386,7 +386,7 @@ impl Nvic {
     {
         let nr = interrupt.nr();
 
-        unsafe { self.ipr[usize::from(nr)].write(prio) }
+        self.ipr[usize::from(nr)].write(prio)
     }
 }
 

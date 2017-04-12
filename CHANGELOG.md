@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.2.3] - 2017-04-11
+
 ### Fixed
 
 - MEMORY SAFETY. Some concurrency models that use "partial" critical sections
@@ -141,7 +143,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.2.3...HEAD
+[v0.2.3]: https://github.com/japaric/cortex-m/compare/v0.2.2...v0.2.3
 [v0.2.2]: https://github.com/japaric/cortex-m/compare/v0.2.1...v0.2.2
 [v0.2.1]: https://github.com/japaric/cortex-m/compare/v0.2.0...v0.2.1
 [v0.2.0]: https://github.com/japaric/cortex-m/compare/v0.1.6...v0.2.0

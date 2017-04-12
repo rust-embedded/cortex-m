@@ -1,6 +1,8 @@
 //! Minimal startup / runtime for Cortex-M microcontrollers
 //!
-//! Provides
+//! # Features
+//!
+//! This crate provides
 //!
 //! - Before main initialization of the `.bss` and `.data` sections
 //!
@@ -66,6 +68,76 @@
 //! #[link_section = ".rodata.interrupts"]
 //! #[used]
 //! static INTERRUPTS: SomeStruct = SomeStruct { .. }
+//! ```
+//!
+//! # Usage
+//!
+//! ``` text
+//! $ cargo new --bin app && cd $_
+//!
+//! $ cargo add cortex-m cortex-m-rt
+//!
+//! $ cat Xargo.toml
+//! ```
+//!
+//! ``` text
+//! [dependencies.core]
+//!
+//! [dependencies.compiler_builtins]
+//! features = ["mem"]
+//! git = "https://github.com/rust-lang-nursery/compiler-builtins"
+//! stage = 1
+//! ```
+//!
+//! ``` text
+//! $ cat memory.x
+//! ```
+//!
+//! ``` text
+//! MEMORY
+//! {
+//!   FLASH : ORIGIN = 0x08000000, LENGTH = 128K
+//!   RAM : ORIGIN = 0x20000000, LENGTH = 8K
+//! }
+//! ```
+//!
+//! ``` text
+//! $ cat src/main.rs
+//! ```
+//!
+//! ``` ignore,no_run
+//! #![feature(used)]
+//! #![no_std]
+//!
+//! #[macro_use]
+//! extern crate cortex_m;
+//! extern crate cortex_m_rt;
+//!
+//! fn main() {
+//!     hprintln!("Hello, world!");
+//! }
+//!
+//! #[allow(dead_code)]
+//! #[link_section = ".rodata.interrupts"]
+//! #[used]
+//! static INTERRUPTS: [u32; 240] = [0; 240];
+//! ```
+//!
+//! ``` text
+//! $ xargo rustc --target thumbv7m-none-eabi -- -C link-args='-Tlink.x -nostartfiles'
+//!
+//! $ arm-none-eabi-objdump -Cd $(find target -name app) | less
+//! 08000000 <_VECTOR_TABLE>:
+//!  8000000:       20002000        .word   0x20002000
+//!
+//! 08000004 <cortex_m_rt::RESET_HANDLER>:
+//!  8000004:       08000671                                q...
+//!
+//! 08000008 <cortex_m_rt::EXCEPTIONS>:
+//!  8000008:       080005a5 080005bd 08000569 08000599     ........i.......
+//!  8000018:       08000581 00000000 00000000 00000000     ................
+//!  8000028:       00000000 080005b1 00000000 00000000     ................
+//!  8000038:       0800058d 08000575                       ....u...
 //! ```
 
 #![deny(missing_docs)]

@@ -4,12 +4,45 @@
 //!
 //! - Before main initialization of the `.bss` and `.data` sections
 //!
-//! - An overridable (\*) `panic_fmt` implementation that prints overs the ITM
-//!   or through semihosting depending on the enabled Cargo feature.
+//! - An overridable (\*) `panic_fmt` implementation that prints to the ITM or
+//!   to the host stdout (through semihosting) depending on which Cargo feature
+//!   has been enabled: `"panic-over-itm"` or `"panic-over-semihosting"`.
 //!
-//! - Minimal `start` lang item, to support vanilla `fn main()`. NOTE the
+//! - A minimal `start` lang item, to support vanilla `fn main()`. NOTE the
 //!   processor goes into "reactive" mode (`loop { asm!("wfi") }`) after
 //!   returning from `main`.
+//!
+//! - An opt-in linker script (`"linker-script"` Cargo feature) that encodes
+//!   the memory layout of a generic Cortex-M microcontroller. This linker
+//!   script is missing the definition of the FLASH and RAM memory regions of
+//!   the device. This missing information must be supplied through a `memory.x`
+//!   linker script of the form:
+//!
+//! ``` text
+//! MEMORY
+//! {
+//!   FLASH : ORIGIN = 0x08000000, LENGTH = 128K
+//!   RAM : ORIGIN = 0x20000000, LENGTH = 8K
+//! }
+//! ```
+//!
+//! - A default exception handler tailored for debugging and that provides
+//!   access to the stacked registers under the debugger. By default, all
+//!   exceptions (\*\*) are serviced by this handler but this can be overridden
+//!   on a per exception basis by opting out of the "exceptions" Cargo feature
+//!   and then defining the following `struct`
+//!
+//! ``` ignore,no_run
+//! use cortex_m::exception;
+//!
+//! #[link_section = ".rodata.exceptions"]
+//! #[used]
+//! static EXCEPTIONS: exception::Handlers = exception::Handlers {
+//!     hard_fault: my_override,
+//!     nmi: another_handler,
+//!     ..exception::DEFAULT_HANDLERS
+//! };
+//! ````
 //!
 //! (\*) To override the `panic_fmt` implementation, simply create a new
 //! `rust_begin_unwind` symbol:
@@ -23,6 +56,16 @@
 //! ) -> ! {
 //!     ..
 //! }
+//! ```
+//!
+//! (\*\*) All the device specific exceptions, i.e. the interrupts, are left
+//! unpopulated. You must fill that part of the vector table by defining the
+//! following static (with the right memory layout):
+//!
+//! ``` ignore,no_run
+//! #[link_section = ".rodata.interrupts"]
+//! #[used]
+//! static INTERRUPTS: SomeStruct = SomeStruct { .. }
 //! ```
 
 #![deny(missing_docs)]

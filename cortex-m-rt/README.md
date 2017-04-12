@@ -1,6 +1,6 @@
 # `cortex-m-rt`
 
-> Minimal startup / runtime for Cortex-M microcontrollers
+> Minimal runtime / startup for Cortex-M microcontrollers
 
 # License
 

@@ -6,7 +6,7 @@ keywords = ["arm", "cortex-m", "runtime", "startup"]
 license = "MIT OR Apache-2.0"
 name = "cortex-m-rt"
 repository = "https://github.com/japaric/cortex-m-rt"
-version = "0.1.0"
+version = "0.1.1"
 
 [dependencies]
 r0 = "0.2.1"

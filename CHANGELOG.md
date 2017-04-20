@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.2.4] - 2017-04-20
+
 ### Fixed
 
 - MEMORY SAFETY. `interrupt::free` leaked the critical section making it
@@ -23,7 +25,7 @@ fn main() {
 }
 ```
 
-## [v0.2.3] - 2017-04-11
+## [v0.2.3] - 2017-04-11 - YANKED
 
 ### Fixed
 
@@ -32,7 +34,7 @@ fn main() {
   changing BASEPRI in some scenarios. For this reason `NVIC.set_priority` and
   `register::basepri::write` are now `unsafe`.
 
-## [v0.2.2] - 2017-04-08
+## [v0.2.2] - 2017-04-08 - YANKED
 
 ### Fixed
 
@@ -159,7 +161,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.2.3...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.2.4...HEAD
+[v0.2.4]: https://github.com/japaric/cortex-m/compare/v0.2.3...v0.2.4
 [v0.2.3]: https://github.com/japaric/cortex-m/compare/v0.2.2...v0.2.3
 [v0.2.2]: https://github.com/japaric/cortex-m/compare/v0.2.1...v0.2.2
 [v0.2.1]: https://github.com/japaric/cortex-m/compare/v0.2.0...v0.2.1

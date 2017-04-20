@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- MEMORY SAFETY. `interrupt::free` leaked the critical section making it
+  possible to access a `Mutex` when interrupts are enabled (see below). This has
+  been fixed by changing the signature of `interrupt::free`.
+
+``` rust
+static FOO: Mutex<bool> = Mutex::new(false);
+
+fn main() {
+    let cs = cortex_m::interrupt::free(|cs| cs);
+    // interrupts are enabled at this point
+    let foo = FOO.borrow(&cs);
+}
+```
+
 ## [v0.2.3] - 2017-04-11
 
 ### Fixed

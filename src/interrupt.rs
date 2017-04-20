@@ -75,14 +75,14 @@ pub struct CriticalSection {
 /// This as also known as a "critical section".
 pub fn free<F, R>(f: F) -> R
 where
-    F: FnOnce(CriticalSection) -> R,
+    F: FnOnce(&CriticalSection) -> R,
 {
     let primask = ::register::primask::read();
 
     // disable interrupts
     disable();
 
-    let r = f(CriticalSection { _0: () });
+    let r = f(&CriticalSection { _0: () });
 
     // If the interrupts were active before our `disable` call, then re-enable
     // them. Otherwise, keep them disabled

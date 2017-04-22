@@ -163,34 +163,35 @@ mod lang_items;
 #[cfg(feature = "exceptions")]
 use cortex_m::exception;
 
+extern "C" {
+    // NOTE `rustc` forces this signature on us. See `src/lang_items.rs`
+    fn main(argc: isize, argv: *const *const u8) -> isize;
+
+    // Boundaries of the .bss section
+    static mut _ebss: u32;
+    static mut _sbss: u32;
+
+    // Boundaries of the .data section
+    static mut _edata: u32;
+    static mut _sdata: u32;
+
+    // Initial values of the .data section (stored in Flash)
+    static _sidata: u32;
+}
+
 /// The reset handler
 ///
 /// This is the entry point of all programs
 unsafe extern "C" fn reset_handler() -> ! {
-    extern "C" {
-        static mut _ebss: u32;
-        static mut _sbss: u32;
-
-        static mut _edata: u32;
-        static mut _sdata: u32;
-
-        static _sidata: u32;
-    }
-
     ::r0::zero_bss(&mut _sbss, &mut _ebss);
     ::r0::init_data(&mut _sdata, &mut _edata, &_sidata);
 
-    // NOTE `rustc` forces this signature on us. See `src/lang_items.rs`
-    extern "C" {
-        fn main(argc: isize, argv: *const *const u8) -> isize;
-    }
-
-    // Neither `argc` or `argv` make sense in bare metal contexts so we just
+    // Neither `argc` or `argv` make sense in bare metal context so we just
     // stub them
     main(0, ::core::ptr::null());
 
-    // If `main` returns, then we go into "reactive" mode and attend interrupts
-    // as they occur.
+    // If `main` returns, then we go into "reactive" mode and simply attend
+    // interrupts as they occur.
     loop {
         #[cfg(target_arch = "arm")]
         asm!("wfi" :::: "volatile");

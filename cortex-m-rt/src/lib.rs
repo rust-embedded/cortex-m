@@ -44,7 +44,7 @@
 //!     nmi: another_handler,
 //!     ..exception::DEFAULT_HANDLERS
 //! };
-//! ````
+//! ```
 //!
 //! (\*) To override the `panic_fmt` implementation, simply create a new
 //! `rust_begin_unwind` symbol:

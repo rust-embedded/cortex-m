@@ -6,7 +6,7 @@ SECTIONS
   {
     /* Vector table */
     _VECTOR_TABLE = .;
-    LONG(ORIGIN(RAM) + LENGTH(RAM));
+    LONG(_stack_start);
 
     KEEP(*(.rodata.reset_handler));
     KEEP(*(.rodata.exceptions));

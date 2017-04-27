@@ -16,17 +16,10 @@
 //!
 //! - An opt-in linker script (`"linker-script"` Cargo feature) that encodes
 //!   the memory layout of a generic Cortex-M microcontroller. This linker
-//!   script is missing the definition of the FLASH and RAM memory regions of
-//!   the device. This missing information must be supplied through a `memory.x`
-//!   linker script of the form:
-//!
-//! ``` text
-//! MEMORY
-//! {
-//!   FLASH : ORIGIN = 0x08000000, LENGTH = 128K
-//!   RAM : ORIGIN = 0x20000000, LENGTH = 8K
-//! }
-//! ```
+//!   script is missing the definitions of the FLASH and RAM memory regions of
+//!   the device and of the `_stack_start` symbol (address where the call stack
+//!   is allocated). This missing information must be supplied through a
+//!   `memory.x` file (see example below).
 //!
 //! - A default exception handler tailored for debugging and that provides
 //!   access to the stacked registers under the debugger. By default, all
@@ -77,7 +70,7 @@
 //!
 //! $ cargo add cortex-m cortex-m-rt
 //!
-//! $ cat Xargo.toml
+//! $ edit Xargo.toml && cat $_
 //! ```
 //!
 //! ``` text
@@ -90,7 +83,7 @@
 //! ```
 //!
 //! ``` text
-//! $ cat memory.x
+//! $ edit memory.x && cat $_
 //! ```
 //!
 //! ``` text
@@ -99,10 +92,13 @@
 //!   FLASH : ORIGIN = 0x08000000, LENGTH = 128K
 //!   RAM : ORIGIN = 0x20000000, LENGTH = 8K
 //! }
+//!
+//! /* This is where the call stack will be allocated */
+//! _stack_start = ORIGIN(RAM) + LENGTH(RAM);
 //! ```
 //!
 //! ``` text
-//! $ cat src/main.rs
+//! $ edit src/main.rs && cat $_
 //! ```
 //!
 //! ``` ignore,no_run
@@ -113,31 +109,41 @@
 //! extern crate cortex_m;
 //! extern crate cortex_m_rt;
 //!
+//! use cortex_m::asm;
+//!
 //! fn main() {
 //!     hprintln!("Hello, world!");
 //! }
 //!
+//! // As we are not using interrupts, we just register a dummy catch all handler
 //! #[allow(dead_code)]
 //! #[link_section = ".rodata.interrupts"]
 //! #[used]
-//! static INTERRUPTS: [u32; 240] = [0; 240];
+//! static INTERRUPTS: [extern "C" fn(); 240] = [default_handler; 240];
+//!
+//! extern "C" fn default_handler() {
+//!     asm::bkpt();
+//! }
 //! ```
 //!
 //! ``` text
-//! $ xargo rustc --target thumbv7m-none-eabi -- -C link-args='-Tlink.x -nostartfiles'
+//! $ cargo install xargo
+//!
+//! $ xargo rustc --target thumbv7m-none-eabi -- \
+//!       -C link-arg=-Tlink.x -C linker=arm-none-eabi-ld -Z linker-flavor=ld
 //!
 //! $ arm-none-eabi-objdump -Cd $(find target -name app) | less
 //! 08000000 <_VECTOR_TABLE>:
 //!  8000000:       20002000        .word   0x20002000
 //!
 //! 08000004 <cortex_m_rt::RESET_HANDLER>:
-//!  8000004:       08000671                                q...
+//!  8000004:       0800065f                                _...
 //!
 //! 08000008 <cortex_m_rt::EXCEPTIONS>:
-//!  8000008:       080005a5 080005bd 08000569 08000599     ........i.......
-//!  8000018:       08000581 00000000 00000000 00000000     ................
-//!  8000028:       00000000 080005b1 00000000 00000000     ................
-//!  8000038:       0800058d 08000575                       ....u...
+//!  8000008:       08000585 0800058f 080005a3 08000571     ............q...
+//!  8000018:       0800057b 00000000 00000000 00000000     {...............
+//!  8000028:       00000000 08000567 00000000 00000000     ....g...........
+//!  8000038:       080005ad 08000599                       ........
 //! ```
 
 #![deny(missing_docs)]

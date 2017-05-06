@@ -35,6 +35,17 @@ SECTIONS
 
   _sidata = LOADADDR(.data);
 
+  /* Due to an unfortunate combination of legacy concerns,
+     toolchain drawbacks, and insufficient attention to detail,
+     rustc has no choice but to mark .debug_gdb_scripts as allocatable.
+     We really do not want to upload it to our target, so we
+     remove the allocatable bit. Unfortunately, it appears
+     that the only way to do this in a linker script is
+     the extremely obscure "INFO" output section type specifier. */
+  .debug_gdb_scripts 0 (INFO) : {
+    KEEP(*(.debug_gdb_scripts))
+  }
+
   /DISCARD/ :
   {
     /* Unused unwinding stuff */

@@ -1,12 +1,13 @@
 [package]
-authors = ["Jorge Aparicio <japaricious@gmail.com>"]
+authors = ["Jorge Aparicio <jorge@japaric.io>"]
+categories = ["embedded", "no-std"]
 description = "Minimal runtime / startup for Cortex-M microcontrollers"
 documentation = "https://docs.rs/cortex-m-rt"
 keywords = ["arm", "cortex-m", "runtime", "startup"]
 license = "MIT OR Apache-2.0"
 name = "cortex-m-rt"
 repository = "https://github.com/japaric/cortex-m-rt"
-version = "0.2.0"
+version = "0.2.1"
 
 [dependencies]
 r0 = "0.2.1"

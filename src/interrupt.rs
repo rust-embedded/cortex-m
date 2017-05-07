@@ -55,7 +55,7 @@ pub fn disable() {
 pub unsafe fn enable() {
     match () {
         #[cfg(target_arch = "arm")]
-        () => unsafe {
+        () => {
             asm!("cpsie i"
                  :
                  :

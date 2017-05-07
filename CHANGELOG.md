@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `interrupt::free` critical section thus breaking the preemption protection.
   The `interrupt::enable` method is now `unsafe`.
 
-## [v0.2.4] - 2017-04-20
+## [v0.2.4] - 2017-04-20 - YANKED
 
 ### Fixed
 
@@ -156,14 +156,14 @@ fn main() {
 
 - Read/write Operations on registers (lr, cr, msp, etc.) which were reversed.
 
-## [v0.1.1] - 2016-10-03 [YANKED]
+## [v0.1.1] - 2016-10-03 - YANKED
 
 ### Changed
 
 - Small, non user visible change to make this crate compile further for $HOST (e.g. x86_64) with the
   goal of making it possible to test, on the HOST, downstream crates that depend on this one.
 
-## v0.1.0 - 2016-09-27 [YANKED]
+## v0.1.0 - 2016-09-27 - YANKED
 
 ### Added
 
@@ -173,7 +173,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.2.4...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.2.5...HEAD
+[v0.2.5]: https://github.com/japaric/cortex-m/compare/v0.2.4...v0.2.5
 [v0.2.4]: https://github.com/japaric/cortex-m/compare/v0.2.3...v0.2.4
 [v0.2.3]: https://github.com/japaric/cortex-m/compare/v0.2.2...v0.2.3
 [v0.2.2]: https://github.com/japaric/cortex-m/compare/v0.2.1...v0.2.2

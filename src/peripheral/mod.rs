@@ -424,6 +424,57 @@ pub struct Scb {
     pub cpacr: RW<u32>,
 }
 
+/// FPU access mode
+pub enum FpuAccessMode {
+    /// FPU is not accessible
+    Disabled,
+    /// FPU is accessible in Privileged and User mode
+    Enabled,
+    /// FPU is accessible in Privileged mode only
+    Privileged,
+}
+
+const SCB_CPACR_FPU_MASK:   u32 = 0x00780000;
+const SCB_CPACR_FPU_ENABLE: u32 = 0x00280000;
+const SCB_CPACR_FPU_USER:   u32 = 0x00500000;
+
+impl Scb {
+    /// Gets FPU access mode
+    pub fn fpu_access_mode(&self) -> FpuAccessMode {
+        let cpacr = self.cpacr.read();
+        if cpacr & (SCB_CPACR_FPU_ENABLE | SCB_CPACR_FPU_USER) != 0 {
+            FpuAccessMode::Enabled
+        } else if cpacr & SCB_CPACR_FPU_ENABLE != 0 {
+            FpuAccessMode::Privileged
+        } else {
+            FpuAccessMode::Disabled
+        }
+    }
+
+    /// Sets FPU access mode
+    pub fn set_fpu_access_mode(&self, mode: FpuAccessMode) {
+        let mut cpacr = self.cpacr.read() & !SCB_CPACR_FPU_MASK;
+        match mode {
+            FpuAccessMode::Disabled => (),
+            FpuAccessMode::Privileged =>
+                cpacr |= SCB_CPACR_FPU_ENABLE,
+            FpuAccessMode::Enabled =>
+                cpacr |= SCB_CPACR_FPU_ENABLE | SCB_CPACR_FPU_USER,
+        }
+        unsafe { self.cpacr.write(cpacr) }
+    }
+
+    /// Shorthand for `set_fpu_access_mode(FpuAccessMode::Enabled)`
+    pub fn enable_fpu(&self) {
+        self.set_fpu_access_mode(FpuAccessMode::Enabled)
+    }
+
+    /// Shorthand for `set_fpu_access_mode(FpuAccessMode::Disabled)`
+    pub fn disable_fpu(&self) {
+        self.set_fpu_access_mode(FpuAccessMode::Disabled)
+    }
+}
+
 /// SysTick register block
 #[repr(C)]
 pub struct Syst {

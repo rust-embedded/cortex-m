@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.2.5] - 2017-05-07
+
+### Added
+
+- Higher level API for the SysTick and FPU peripherals
+
+### Fixed
+
+- MEMORY SAFETY. `interrupt::enable` was safe to call inside an
+  `interrupt::free` critical section thus breaking the preemption protection.
+  The `interrupt::enable` method is now `unsafe`.
+
 ## [v0.2.4] - 2017-04-20
 
 ### Fixed

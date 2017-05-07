@@ -47,8 +47,12 @@ pub fn disable() {
 }
 
 /// Enables all the interrupts
+///
+/// # Safety
+///
+/// - Do not call this function inside an `interrupt::free` critical section
 #[inline(always)]
-pub fn enable() {
+pub unsafe fn enable() {
     match () {
         #[cfg(target_arch = "arm")]
         () => unsafe {
@@ -87,7 +91,7 @@ where
     // If the interrupts were active before our `disable` call, then re-enable
     // them. Otherwise, keep them disabled
     if primask.is_active() {
-        enable();
+        unsafe { enable() }
     }
 
     r

@@ -1,5 +1,6 @@
 [package]
-authors = ["Jorge Aparicio <japaricious@gmail.com>"]
+authors = ["Jorge Aparicio <jorge@japaric.io>"]
+categories = ["embedded", "hardware-support", "no-std"]
 description = "Low level access to Cortex-M processors"
 documentation = "https://docs.rs/cortex-m"
 keywords = ["arm", "cortex-m", "register", "peripheral"]

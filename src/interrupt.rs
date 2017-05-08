@@ -27,7 +27,14 @@ pub unsafe trait Nr {
     fn nr(&self) -> u8;
 }
 
-unsafe impl<T> Sync for Mutex<T> {}
+// NOTE `Mutex` can be used as a channel so, the protected data must be `Send`
+// to prevent sending non-Sendable stuff (e.g. interrupt tokens) across
+// different execution contexts (e.g. interrupts)
+unsafe impl<T> Sync for Mutex<T>
+where
+    T: Send,
+{
+}
 
 /// Disables all interrupts
 #[inline(always)]
@@ -61,7 +68,7 @@ pub unsafe fn enable() {
                  :
                  :
                  : "volatile");
-        },
+        }
         #[cfg(not(target_arch = "arm"))]
         () => {}
     }

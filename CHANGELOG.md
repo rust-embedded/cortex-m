@@ -7,6 +7,97 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.2.6] - 2017-05-08
+
+### Fixed
+
+- [breaking-change]. MEMORY UNSAFETY. `Mutex` could be used as a channel to send
+  interrupt tokens from one interrupt to other thus breaking the context `Local`
+  abstraction. See reproduction case below. This has been fixed by making
+  `Mutex` `Sync` only if the protected data is `Send`.
+
+``` rust
+#![feature(const_fn)]
+#![feature(used)]
+#![no_std]
+
+extern crate cortex_m;
+extern crate cortex_m_rt;
+extern crate stm32f30x;
+
+use core::cell::RefCell;
+
+use cortex_m::ctxt::Local;
+use cortex_m::interrupt::Mutex;
+use stm32f30x::interrupt::{self, Exti0, Exti1};
+
+fn main() {
+    // ..
+
+    // trigger exti0
+    // then trigger exti0 again
+}
+
+static CHANNEL: Mutex<RefCell<Option<Exti0>>> = Mutex::new(RefCell::new(None));
+// Supposedly task *local* data
+static LOCAL: Local<i32, Exti0> = Local::new(0);
+
+extern "C" fn exti0(mut ctxt: Exti0) {
+    static FIRST: Local<bool, Exti0> = Local::new(true);
+
+    let first = *FIRST.borrow(&ctxt);
+
+    // toggle
+    if first {
+        *FIRST.borrow_mut(&mut ctxt) = false;
+    }
+
+    if first {
+        cortex_m::interrupt::free(
+            |cs| {
+                let channel = CHANNEL.borrow(cs);
+
+                // BAD: transfer interrupt token to another interrupt
+                *channel.borrow_mut() = Some(ctxt);
+            },
+        );
+
+        return;
+    }
+    let _local = LOCAL.borrow_mut(&mut ctxt);
+
+    // ..
+
+    // trigger exti1 here
+
+    // ..
+
+    // `LOCAL` mutably borrowed up to this point
+}
+
+extern "C" fn exti1(_ctxt: Exti1) {
+    cortex_m::interrupt::free(|cs| {
+        let channel = CHANNEL.borrow(cs);
+        let mut channel = channel.borrow_mut();
+
+        if let Some(mut other_task) = channel.take() {
+            // BAD: `exti1` has access to `exti0`'s interrupt token
+            // so it can now mutably access local while `exti0` is also using it
+            let _local = LOCAL.borrow_mut(&mut other_task);
+        }
+    });
+}
+
+#[allow(dead_code)]
+#[used]
+#[link_section = ".rodata.interrupts"]
+static INTERRUPTS: interrupt::Handlers = interrupt::Handlers {
+    Exti0: exti0,
+    Exti1: exti1,
+    ..interrupt::DEFAULT_HANDLERS
+};
+```
+
 ## [v0.2.5] - 2017-05-07
 
 ### Added
@@ -15,17 +106,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
-- MEMORY SAFETY. `interrupt::enable` was safe to call inside an
-  `interrupt::free` critical section thus breaking the preemption protection.
-  The `interrupt::enable` method is now `unsafe`.
+- [breaking-change]. MEMORY UNSAFETY. `interrupt::enable` was safe to call
+  inside an `interrupt::free` critical section thus breaking the preemption
+  protection. The `interrupt::enable` method is now `unsafe`.
 
 ## [v0.2.4] - 2017-04-20 - YANKED
 
 ### Fixed
 
-- MEMORY SAFETY. `interrupt::free` leaked the critical section making it
-  possible to access a `Mutex` when interrupts are enabled (see below). This has
-  been fixed by changing the signature of `interrupt::free`.
+- [breaking-change]. MEMORY UNSAFETY. `interrupt::free` leaked the critical
+  section making it possible to access a `Mutex` when interrupts are enabled
+  (see below). This has been fixed by changing the signature of
+  `interrupt::free`.
 
 ``` rust
 static FOO: Mutex<bool> = Mutex::new(false);
@@ -41,18 +133,18 @@ fn main() {
 
 ### Fixed
 
-- MEMORY SAFETY. Some concurrency models that use "partial" critical sections
-  (cf. BASEPRI) can be broken by changing the priority of interrupts or by
-  changing BASEPRI in some scenarios. For this reason `NVIC.set_priority` and
-  `register::basepri::write` are now `unsafe`.
+- [breaking-change]. MEMORY UNSAFETY. Some concurrency models that use "partial"
+  critical sections (cf. BASEPRI) can be broken by changing the priority of
+  interrupts or by changing BASEPRI in some scenarios. For this reason
+  `NVIC.set_priority` and `register::basepri::write` are now `unsafe`.
 
 ## [v0.2.2] - 2017-04-08 - YANKED
 
 ### Fixed
 
-- MEMORY SAFETY BUG. The `Mutex.borrow_mut` method has been removed as it can be
-  used to bypass Rust's borrow checker and get, for example, two mutable
-  references to the same data.
+- [breaking-change]. MEMORY UNSAFETY. The `Mutex.borrow_mut` method has been
+  removed as it can be used to bypass Rust's borrow checker and get, for
+  example, two mutable references to the same data.
 
 ``` rust
 static FOO: Mutex<bool> = Mutex::new(false);

@@ -442,9 +442,9 @@ impl Scb {
     /// Gets FPU access mode
     pub fn fpu_access_mode(&self) -> FpuAccessMode {
         let cpacr = self.cpacr.read();
-        if cpacr & (SCB_CPACR_FPU_ENABLE | SCB_CPACR_FPU_USER) != 0 {
+        if cpacr & SCB_CPACR_FPU_MASK == SCB_CPACR_FPU_ENABLE | SCB_CPACR_FPU_USER {
             FpuAccessMode::Enabled
-        } else if cpacr & SCB_CPACR_FPU_ENABLE != 0 {
+        } else if cpacr & SCB_CPACR_FPU_MASK == SCB_CPACR_FPU_ENABLE {
             FpuAccessMode::Privileged
         } else {
             FpuAccessMode::Disabled

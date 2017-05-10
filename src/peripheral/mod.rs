@@ -434,9 +434,9 @@ pub enum FpuAccessMode {
     Privileged,
 }
 
-const SCB_CPACR_FPU_MASK:   u32 = 0x00780000;
-const SCB_CPACR_FPU_ENABLE: u32 = 0x00280000;
-const SCB_CPACR_FPU_USER:   u32 = 0x00500000;
+const SCB_CPACR_FPU_MASK:   u32 = 0x00f00000;
+const SCB_CPACR_FPU_ENABLE: u32 = 0x00500000;
+const SCB_CPACR_FPU_USER:   u32 = 0x00a00000;
 
 impl Scb {
     /// Gets FPU access mode

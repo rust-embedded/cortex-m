@@ -1,7 +1,7 @@
 //! Fault Mask Register
 
 /// All exceptions are ...
-#[derive(Clone, Copy, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Faultmask {
     /// Active
     Active,

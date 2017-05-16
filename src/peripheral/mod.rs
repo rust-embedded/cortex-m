@@ -51,6 +51,7 @@ pub const TPIU: Peripheral<Tpiu> = unsafe { Peripheral::new(0xE004_0000) };
 // TODO stand-alone registers: ICTR, ACTLR and STIR
 
 /// A peripheral
+#[derive(Debug)]
 pub struct Peripheral<T>
 where
     T: 'static,
@@ -425,6 +426,7 @@ pub struct Scb {
 }
 
 /// FPU access mode
+#[derive(Clone, Copy, Debug)]
 pub enum FpuAccessMode {
     /// FPU is not accessible
     Disabled,
@@ -489,6 +491,7 @@ pub struct Syst {
 }
 
 /// SysTick clock source
+#[derive(Clone, Copy, Debug)]
 pub enum SystClkSource {
     /// Core-provided clock
     Core,

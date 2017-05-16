@@ -1,6 +1,7 @@
 //! Control register
 
 /// Control register
+#[derive(Clone, Copy, Debug)]
 pub struct Control {
     bits: u32,
 }
@@ -40,7 +41,7 @@ impl Control {
 }
 
 /// Thread mode privilege level
-#[derive(Clone, Copy, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Npriv {
     /// Privileged
     Privileged,
@@ -61,7 +62,7 @@ impl Npriv {
 }
 
 /// Currently active stack pointer
-#[derive(Clone, Copy, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Spsel {
     /// MSP is the current stack pointer
     Msp,
@@ -82,7 +83,7 @@ impl Spsel {
 }
 
 /// Whether context floating-point is currently active
-#[derive(Clone, Copy, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Fpca {
     /// Floating-point context active.
     Active,

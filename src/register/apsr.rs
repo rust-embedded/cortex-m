@@ -1,6 +1,7 @@
 //! Application Program Status Register
 
 /// Application Program Status Register
+#[derive(Clone, Copy, Debug)]
 pub struct Apsr {
     bits: u32,
 }

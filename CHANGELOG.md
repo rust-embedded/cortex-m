@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.2.7] - 2017-05-23
+
+### Added
+
+- `Dwt.enable_cycle_counter`
+
 ## [v0.2.6] - 2017-05-08
 
 ### Fixed
@@ -265,7 +271,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.2.6...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.2.7...HEAD
+[v0.2.7]: https://github.com/japaric/cortex-m/compare/v0.2.6...v0.2.7
 [v0.2.6]: https://github.com/japaric/cortex-m/compare/v0.2.5...v0.2.6
 [v0.2.5]: https://github.com/japaric/cortex-m/compare/v0.2.4...v0.2.5
 [v0.2.4]: https://github.com/japaric/cortex-m/compare/v0.2.3...v0.2.4

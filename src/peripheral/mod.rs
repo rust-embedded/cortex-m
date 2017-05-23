@@ -150,6 +150,13 @@ pub struct Dwt {
     pub lsr: RO<u32>,
 }
 
+impl Dwt {
+    /// Enables the cycle counter
+    pub fn enable_cycle_counter(&self) {
+        unsafe { self.ctrl.modify(|r| r | 1) }
+    }
+}
+
 /// Comparator
 #[repr(C)]
 pub struct Comparator {
@@ -436,15 +443,17 @@ pub enum FpuAccessMode {
     Privileged,
 }
 
-const SCB_CPACR_FPU_MASK:   u32 = 0x00780000;
+const SCB_CPACR_FPU_MASK: u32 = 0x00780000;
 const SCB_CPACR_FPU_ENABLE: u32 = 0x00280000;
-const SCB_CPACR_FPU_USER:   u32 = 0x00500000;
+const SCB_CPACR_FPU_USER: u32 = 0x00500000;
 
 impl Scb {
     /// Gets FPU access mode
     pub fn fpu_access_mode(&self) -> FpuAccessMode {
         let cpacr = self.cpacr.read();
-        if cpacr & SCB_CPACR_FPU_MASK == SCB_CPACR_FPU_ENABLE | SCB_CPACR_FPU_USER {
+        if cpacr & SCB_CPACR_FPU_MASK ==
+            SCB_CPACR_FPU_ENABLE | SCB_CPACR_FPU_USER
+        {
             FpuAccessMode::Enabled
         } else if cpacr & SCB_CPACR_FPU_MASK == SCB_CPACR_FPU_ENABLE {
             FpuAccessMode::Privileged
@@ -458,10 +467,10 @@ impl Scb {
         let mut cpacr = self.cpacr.read() & !SCB_CPACR_FPU_MASK;
         match mode {
             FpuAccessMode::Disabled => (),
-            FpuAccessMode::Privileged =>
-                cpacr |= SCB_CPACR_FPU_ENABLE,
-            FpuAccessMode::Enabled =>
-                cpacr |= SCB_CPACR_FPU_ENABLE | SCB_CPACR_FPU_USER,
+            FpuAccessMode::Privileged => cpacr |= SCB_CPACR_FPU_ENABLE,
+            FpuAccessMode::Enabled => {
+                cpacr |= SCB_CPACR_FPU_ENABLE | SCB_CPACR_FPU_USER
+            }
         }
         unsafe { self.cpacr.write(cpacr) }
     }
@@ -496,18 +505,18 @@ pub enum SystClkSource {
     /// Core-provided clock
     Core,
     /// External reference clock
-    External
+    External,
 }
 
-const SYST_COUNTER_MASK:  u32 = 0x00ffffff;
+const SYST_COUNTER_MASK: u32 = 0x00ffffff;
 
-const SYST_CSR_ENABLE:    u32 = 1 << 0;
-const SYST_CSR_TICKINT:   u32 = 1 << 1;
+const SYST_CSR_ENABLE: u32 = 1 << 0;
+const SYST_CSR_TICKINT: u32 = 1 << 1;
 const SYST_CSR_CLKSOURCE: u32 = 1 << 2;
 const SYST_CSR_COUNTFLAG: u32 = 1 << 16;
 
-const SYST_CALIB_SKEW:    u32 = 1 << 30;
-const SYST_CALIB_NOREF:   u32 = 1 << 31;
+const SYST_CALIB_SKEW: u32 = 1 << 30;
+const SYST_CALIB_NOREF: u32 = 1 << 31;
 
 impl Syst {
     /// Checks if counter is enabled
@@ -545,17 +554,19 @@ impl Syst {
         let clk_source_bit = self.csr.read() & SYST_CSR_CLKSOURCE != 0;
         match clk_source_bit {
             false => SystClkSource::External,
-            true  => SystClkSource::Core
+            true => SystClkSource::Core,
         }
     }
 
     /// Sets clock source
     pub fn set_clock_source(&self, clk_source: SystClkSource) {
         match clk_source {
-            SystClkSource::External =>
-                unsafe { self.csr.modify(|v| v & !SYST_CSR_CLKSOURCE) },
-            SystClkSource::Core =>
-                unsafe { self.csr.modify(|v| v | SYST_CSR_CLKSOURCE) }
+            SystClkSource::External => unsafe {
+                self.csr.modify(|v| v & !SYST_CSR_CLKSOURCE)
+            },
+            SystClkSource::Core => unsafe {
+                self.csr.modify(|v| v | SYST_CSR_CLKSOURCE)
+            },
         }
     }
 
@@ -589,7 +600,8 @@ impl Syst {
         unsafe { self.cvr.write(0) }
     }
 
-    /// Returns the reload value with which the counter would wrap once per 10 ms
+    /// Returns the reload value with which the counter would wrap once per 10
+    /// ms
     ///
     /// Returns `0` if the value is not known (e.g. because the clock can
     /// change dynamically).
@@ -599,8 +611,9 @@ impl Syst {
 
     /// Checks if the calibration value is precise
     ///
-    /// Returns `false` if using the reload value returned by `get_ticks_per_10ms()`
-    /// may result in a period significantly deviating from 10 ms.
+    /// Returns `false` if using the reload value returned by
+    /// `get_ticks_per_10ms()` may result in a period significantly deviating
+    /// from 10 ms.
     pub fn is_precise(&self) -> bool {
         self.calib.read() & SYST_CALIB_SKEW == 0
     }

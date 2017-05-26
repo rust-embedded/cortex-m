@@ -15,21 +15,21 @@ SECTIONS
     KEEP(*(.rodata.interrupts));
     __interrupts = .;
 
-    *(.text.*);
-    *(.rodata.*);
+    *(.text .text.*);
+    *(.rodata .rodata.*);
   } > FLASH
 
   .bss : ALIGN(4)
   {
     _sbss = .;
-    *(.bss.*);
+    *(.bss .bss.*);
     _ebss = ALIGN(4);
   } > RAM
 
   .data : ALIGN(4)
   {
     _sdata = .;
-    *(.data.*);
+    *(.data .data.*);
     _edata = ALIGN(4);
   } > RAM AT > FLASH
 

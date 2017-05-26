@@ -189,7 +189,7 @@ extern "C" {
 /// The reset handler
 ///
 /// This is the entry point of all programs
-#[link_section = ".text.reset_handler"]
+#[link_section = ".reset_handler"]
 unsafe extern "C" fn reset_handler() -> ! {
     ::r0::zero_bss(&mut _sbss, &mut _ebss);
     ::r0::init_data(&mut _sdata, &mut _edata, &_sidata);

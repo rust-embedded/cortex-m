@@ -21,7 +21,7 @@ SECTIONS
   {
     /* Put reset handler first in .text section so it ends up as the entry */
     /* point of the program. */
-    KEEP(*(.text.reset_handler));
+    KEEP(*(.reset_handler));
 
     *(.text .text.*);
   } > FLASH

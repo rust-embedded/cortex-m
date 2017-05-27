@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- The linker sections have renamed / reorder to make `arm-none-eabi-size -A`
+  more useful. You'll now see something like this:
+
+```
+$ arm-none-eabi-size -A hello
+hello  :
+section                size        addr
+.vector_table          1024   134217728
+.text                   288   134218752
+.rodata                  14   134219040
+```
+
+- `cortex-m-rt::reset_handler` is now the entry point of all programs that link
+  to `cortex-m-rt`. This makes GDB's `load` command work correctly. It will now
+  set the Program Counter to `reset_handler` after flashing the program so
+  there's no need to reset the microcontroller after flashing.
+
 ## [v0.2.1] - 2017-05-07
 
 ### Fixed

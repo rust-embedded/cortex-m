@@ -2,21 +2,32 @@ INCLUDE memory.x
 
 SECTIONS
 {
-  .text ORIGIN(FLASH) :
+  .vector_table ORIGIN(FLASH) :
   {
     /* Vector table */
-    _VECTOR_TABLE = .;
+    _svector_table = .;
     LONG(_stack_start);
 
-    KEEP(*(.rodata.reset_handler));
+    KEEP(*(.vector_table.reset_handler));
 
     KEEP(*(.rodata.exceptions));
     _eexceptions = .;
 
     KEEP(*(.rodata.interrupts));
     _einterrupts = .;
+  } > FLASH
+
+  .text : ALIGN(4)
+  {
+    /* Put reset handler first in .text section so it ends up as the entry */
+    /* point of the program. */
+    KEEP(*(.reset_handler));
 
     *(.text .text.*);
+  } > FLASH
+
+  .rodata : ALIGN(4)
+  {
     *(.rodata .rodata.*);
   } > FLASH
 

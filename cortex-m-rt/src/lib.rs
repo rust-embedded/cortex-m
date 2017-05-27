@@ -189,6 +189,7 @@ extern "C" {
 /// The reset handler
 ///
 /// This is the entry point of all programs
+#[link_section = ".reset_handler"]
 unsafe extern "C" fn reset_handler() -> ! {
     ::r0::zero_bss(&mut _sbss, &mut _ebss);
     ::r0::init_data(&mut _sdata, &mut _edata, &_sidata);
@@ -207,7 +208,7 @@ unsafe extern "C" fn reset_handler() -> ! {
 
 #[allow(dead_code)]
 #[used]
-#[link_section = ".rodata.reset_handler"]
+#[link_section = ".vector_table.reset_handler"]
 static RESET_HANDLER: unsafe extern "C" fn() -> ! = reset_handler;
 
 #[allow(dead_code)]

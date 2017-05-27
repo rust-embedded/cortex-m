@@ -135,18 +135,14 @@
 //! $ xargo rustc --target thumbv7m-none-eabi -- \
 //!       -C link-arg=-Tlink.x -C linker=arm-none-eabi-ld -Z linker-flavor=ld
 //!
-//! $ arm-none-eabi-objdump -Cd $(find target -name app) | less
-//! 08000000 <_VECTOR_TABLE>:
-//!  8000000:       20002000        .word   0x20002000
+//! $ arm-none-eabi-objdump -Cd $(find target -name app) | head
 //!
-//! 08000004 <cortex_m_rt::RESET_HANDLER>:
-//!  8000004:       0800065f                                _...
+//! Disassembly of section .text:
 //!
-//! 08000008 <cortex_m_rt::EXCEPTIONS>:
-//!  8000008:       08000585 0800058f 080005a3 08000571     ............q...
-//!  8000018:       0800057b 00000000 00000000 00000000     {...............
-//!  8000028:       00000000 08000567 00000000 00000000     ....g...........
-//!  8000038:       080005ad 08000599                       ........
+//! 08000400 <cortex_m_rt::reset_handler>:
+//!  8000400:       b580            push    {r7, lr}
+//!  8000402:       466f            mov     r7, sp
+//!  8000404:       b084            sub     sp, #16
 //! ```
 
 #![deny(missing_docs)]

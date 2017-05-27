@@ -27,6 +27,8 @@
 //!   on a per exception basis by opting out of the "exceptions" Cargo feature
 //!   and then defining the following `struct`
 //!
+//! - A `_sheap` symbol at whose address you can locate the heap.
+//!
 //! ``` ignore,no_run
 //! use cortex_m::exception;
 //!

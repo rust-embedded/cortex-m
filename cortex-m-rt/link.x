@@ -47,6 +47,9 @@ SECTIONS
 
   _sidata = LOADADDR(.data);
 
+  /* The heap starts right after the .bss + .data section ends */
+  _sheap = _edata;
+
   /* Due to an unfortunate combination of legacy concerns,
      toolchain drawbacks, and insufficient attention to detail,
      rustc has no choice but to mark .debug_gdb_scripts as allocatable.

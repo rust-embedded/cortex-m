@@ -213,7 +213,7 @@ static RESET_HANDLER: unsafe extern "C" fn() -> ! = reset_handler;
 
 #[allow(dead_code)]
 #[cfg(feature = "exceptions")]
-#[link_section = ".vector_table.exceptions"]
+#[link_section = ".rodata.exceptions"]
 #[used]
 static EXCEPTIONS: exception::Handlers = exception::Handlers {
     ..exception::DEFAULT_HANDLERS

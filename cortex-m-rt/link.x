@@ -10,10 +10,10 @@ SECTIONS
 
     KEEP(*(.vector_table.reset_handler));
 
-    KEEP(*(.vector_table.exceptions));
+    KEEP(*(.rodata.exceptions));
     _eexceptions = .;
 
-    KEEP(*(.vector_table.interrupts));
+    KEEP(*(.rodata.interrupts));
     _einterrupts = .;
   } > FLASH
 

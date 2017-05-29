@@ -1,3 +1,5 @@
+text_offset = 0;
+
 INCLUDE memory.x
 
 SECTIONS
@@ -15,6 +17,11 @@ SECTIONS
 
     KEEP(*(.rodata.interrupts));
     _einterrupts = .;
+  } > FLASH
+
+  .reserved : ALIGN(4)
+  {
+    . += text_offset;
   } > FLASH
 
   .text : ALIGN(4)

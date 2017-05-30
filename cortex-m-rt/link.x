@@ -99,3 +99,11 @@ Create a non `pub` static variable and place it in the
 ASSERT(_einterrupts - _eexceptions <= 0x3c0, "
 There can't be more than 240 interrupt handlers.
 Fix the '.rodata.interrupts' section. (cf. #[link_section])");
+
+ASSERT(_einterrupts <= _text_start, "
+The '.text' section can't be placed inside '.vector_table' section.
+Set '_text_start' to an adress greater than '_einterrupts'");
+
+ASSERT(_text_start < ORIGIN(FLASH) + LENGTH(FLASH), "
+The '.text' section must be placed inside the FLASH memory
+Set '_text_start' to an adress smaller than 'ORIGIN(FLASH) + LENGTH(FLASH)");

@@ -1,6 +1,9 @@
 //! Instrumentation Trace Macrocell
 
 use core::{fmt, ptr, slice};
+
+use aligned::Aligned;
+
 use peripheral::Stim;
 
 fn round_up_to_multiple_of(x: usize, k: usize) -> usize {
@@ -61,6 +64,36 @@ pub fn write_all(port: &Stim, buffer: &[u8]) {
         write_bytes(port, head);
         unsafe { write_words(port, body) }
         write_bytes(port, tail);
+    }
+}
+
+/// Writes a 4-byte aligned `buffer` to the ITM `port`
+pub fn write_aligned(port: &Stim, buffer: &Aligned<u32, [u8]>) {
+    unsafe {
+        let len = buffer.len();
+        let split = len & !0b11;
+        write_words(
+            port,
+            slice::from_raw_parts(buffer.as_ptr() as *const u32, split >> 2),
+        );
+
+        // 3 bytes or less left
+        let mut left = len & 0b11;
+        let mut ptr = buffer.as_ptr().offset(split as isize);
+
+        // at least 2 bytes left
+        if left > 1 {
+            left -= 2;
+            while !port.is_fifo_ready() {}
+            port.write_u16(ptr::read(ptr as *const u16));
+            ptr = ptr.offset(2);
+        }
+
+        // final byte
+        if left == 1 {
+            while !port.is_fifo_ready() {}
+            port.write_u8(*ptr);
+        }
     }
 }
 

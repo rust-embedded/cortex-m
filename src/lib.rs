@@ -16,6 +16,7 @@
 #![feature(naked_functions)]
 #![no_std]
 
+extern crate aligned;
 pub extern crate cortex_m_semihosting as semihosting;
 extern crate volatile_register;
 

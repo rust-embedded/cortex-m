@@ -1,5 +1,3 @@
-text_offset = 0;
-
 INCLUDE memory.x
 
 SECTIONS
@@ -19,11 +17,14 @@ SECTIONS
     _einterrupts = .;
   } > FLASH
 
+  PROVIDE(_text_start = _einterrupts);
+  _reserved_size = _text_start - _einterrupts;
+
   .reserved : ALIGN(4)
   {
-    . += text_offset;
+    . += _reserved_size;
   } > FLASH
-
+  
   .text : ALIGN(4)
   {
     /* Put reset handler first in .text section so it ends up as the entry */

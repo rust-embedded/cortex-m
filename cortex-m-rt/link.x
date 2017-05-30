@@ -18,14 +18,8 @@ SECTIONS
   } > FLASH
 
   PROVIDE(_stext = _einterrupts);
-  _reserved_size = _stext - _einterrupts;
-
-  .reserved : ALIGN(4)
-  {
-    . += _reserved_size;
-  } > FLASH
   
-  .text : ALIGN(4)
+  .text _stext : ALIGN(4)
   {
     /* Put reset handler first in .text section so it ends up as the entry */
     /* point of the program. */

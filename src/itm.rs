@@ -68,6 +68,19 @@ pub fn write_all(port: &Stim, buffer: &[u8]) {
 }
 
 /// Writes a 4-byte aligned `buffer` to the ITM `port`
+///
+/// # Examples
+///
+/// ``` ignore
+/// let mut buffer: Aligned<u32, _> = Aligned([0; 14]);
+///
+/// buffer.copy_from_slice(b"Hello, world!\n");
+///
+/// itm::write_aligned(&itm.stim[0], &buffer);
+///
+/// // Or equivalently
+/// itm::write_aligned(&itm.stim[0], &Aligned(*b"Hello, world!\n"));
+/// ```
 pub fn write_aligned(port: &Stim, buffer: &Aligned<u32, [u8]>) {
     unsafe {
         let len = buffer.len();

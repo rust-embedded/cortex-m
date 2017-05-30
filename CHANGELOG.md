@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.2.8] - 2017-05-30
+
+### Added
+
+- An `itm::write_aligned` function to write 4 byte aligned buffers to an ITM
+  port. This function is faster than `itm::write_all` for small buffers but
+  requires the buffer to be aligned.
+
 ## [v0.2.7] - 2017-05-23
 
 ### Added
@@ -271,7 +279,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.2.7...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.2.8...HEAD
+[v0.2.8]: https://github.com/japaric/cortex-m/compare/v0.2.7...v0.2.8
 [v0.2.7]: https://github.com/japaric/cortex-m/compare/v0.2.6...v0.2.7
 [v0.2.6]: https://github.com/japaric/cortex-m/compare/v0.2.5...v0.2.6
 [v0.2.5]: https://github.com/japaric/cortex-m/compare/v0.2.4...v0.2.5

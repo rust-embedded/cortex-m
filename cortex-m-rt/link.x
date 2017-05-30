@@ -17,8 +17,8 @@ SECTIONS
     _einterrupts = .;
   } > FLASH
 
-  PROVIDE(_text_start = _einterrupts);
-  _reserved_size = _text_start - _einterrupts;
+  PROVIDE(_stext = _einterrupts);
+  _reserved_size = _stext - _einterrupts;
 
   .reserved : ALIGN(4)
   {
@@ -100,10 +100,10 @@ ASSERT(_einterrupts - _eexceptions <= 0x3c0, "
 There can't be more than 240 interrupt handlers.
 Fix the '.rodata.interrupts' section. (cf. #[link_section])");
 
-ASSERT(_einterrupts <= _text_start, "
+ASSERT(_einterrupts <= _stext, "
 The '.text' section can't be placed inside '.vector_table' section.
-Set '_text_start' to an adress greater than '_einterrupts'");
+Set '_stext' to an adress greater than '_einterrupts'");
 
-ASSERT(_text_start < ORIGIN(FLASH) + LENGTH(FLASH), "
+ASSERT(_stext < ORIGIN(FLASH) + LENGTH(FLASH), "
 The '.text' section must be placed inside the FLASH memory
-Set '_text_start' to an adress smaller than 'ORIGIN(FLASH) + LENGTH(FLASH)");
+Set '_stext' to an adress smaller than 'ORIGIN(FLASH) + LENGTH(FLASH)");

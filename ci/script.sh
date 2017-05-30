@@ -3,7 +3,7 @@ set -ex
 main() {
     case $TARGET in
         thumbv*-none-eabi*)
-            cargo check --target $TARGET
+            xargo check --target $TARGET
             ;;
         *)
             cargo test --target $TARGET

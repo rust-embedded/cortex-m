@@ -1,7 +1,7 @@
 set -ex
 
 main() {
-    return
+    cargo install xargo || true
 }
 
 # NOTE(TRAVIS_BRANCH) Travis is configured to only build *pushes* (not PRs)

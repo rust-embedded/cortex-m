@@ -106,4 +106,4 @@ Set '_stext' to an adress greater than '_einterrupts'");
 
 ASSERT(_stext < ORIGIN(FLASH) + LENGTH(FLASH), "
 The '.text' section must be placed inside the FLASH memory
-Set '_stext' to an adress smaller than 'ORIGIN(FLASH) + LENGTH(FLASH)");
+Set '_stext' to an address smaller than 'ORIGIN(FLASH) + LENGTH(FLASH)");

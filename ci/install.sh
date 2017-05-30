@@ -1,7 +1,12 @@
 set -ex
 
 main() {
-    cargo install xargo || true
+    case $TARGET in
+        thumbv*-none-eabi*)
+            cargo install xargo || true
+            rustup component add rust-src || true
+            ;;
+    esac
 }
 
 # NOTE(TRAVIS_BRANCH) Travis is configured to only build *pushes* (not PRs)

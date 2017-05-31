@@ -18,7 +18,7 @@ SECTIONS
   } > FLASH
 
   PROVIDE(_stext = _einterrupts);
-  
+
   .text _stext : ALIGN(4)
   {
     /* Put reset handler first in .text section so it ends up as the entry */

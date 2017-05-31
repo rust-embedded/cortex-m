@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.2.3] - 2017-05-30
+
+### Added
+
+- A `_stext` symbol which can be specified in the linker script to customize the
+  location of the `.text` section. If not specified the `.text` section will be
+  placed right after the `.vector_table` section.
+
 ## [v0.2.2] - 2017-05-27
 
 ### Added
@@ -79,7 +87,8 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/japaric/cortex-m-rt/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m-rt/compare/v0.2.3...HEAD
+[v0.2.3]: https://github.com/japaric/cortex-m-rt/compare/v0.2.2...v0.2.3
 [v0.2.2]: https://github.com/japaric/cortex-m-rt/compare/v0.2.1...v0.2.2
 [v0.2.1]: https://github.com/japaric/cortex-m-rt/compare/v0.2.0...v0.2.1
 [v0.2.0]: https://github.com/japaric/cortex-m-rt/compare/v0.1.3...v0.2.0

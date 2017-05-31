@@ -31,6 +31,10 @@ pub fn write_all(port: &Stim, buffer: &[u8]) {
         let mut len = buffer.len();
         let mut ptr = buffer.as_ptr();
 
+        if len == 0 {
+            return;
+        }
+
         // 0x01 OR 0x03
         if ptr as usize % 2 == 1 {
             while !port.is_fifo_ready() {}
@@ -43,12 +47,23 @@ pub fn write_all(port: &Stim, buffer: &[u8]) {
 
         // 0x02
         if ptr as usize % 4 == 2 {
-            while !port.is_fifo_ready() {}
-            port.write_u16(ptr::read(ptr as *const u16));
+            if len > 1 {
+                // at least 2 bytes
+                while !port.is_fifo_ready() {}
+                port.write_u16(ptr::read(ptr as *const u16));
 
-            // 0x04
-            ptr = ptr.offset(2);
-            len -= 2;
+                // 0x04
+                ptr = ptr.offset(2);
+                len -= 2;
+            } else {
+                if len == 1 {
+                    // last byte
+                    while !port.is_fifo_ready() {}
+                    port.write_u8(*ptr);
+                }
+
+                return;
+            }
         }
 
         write_aligned(port, mem::transmute(slice::from_raw_parts(ptr, len)));

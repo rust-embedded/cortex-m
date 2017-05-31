@@ -7,7 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-## [v0.2.8] - 2017-05-30
+## [v0.2.9] - 2017-05-30
+
+### Fixed
+
+- A bug in `itm::write_all` where it would ignore the length of the buffer and
+  serialize contents that come after the buffer.
+
+## [v0.2.8] - 2017-05-30 - YANKED
 
 ### Added
 
@@ -279,7 +286,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.2.8...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.2.9...HEAD
+[v0.2.9]: https://github.com/japaric/cortex-m/compare/v0.2.8...v0.2.9
 [v0.2.8]: https://github.com/japaric/cortex-m/compare/v0.2.7...v0.2.8
 [v0.2.7]: https://github.com/japaric/cortex-m/compare/v0.2.6...v0.2.7
 [v0.2.6]: https://github.com/japaric/cortex-m/compare/v0.2.5...v0.2.6

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.2.4] - 2017-06-03
+
+### Added
+
+- A non-allocatable `.stlog` section to support the [`stlog`] logging framework.
+
+[`stlog`]: https://crates.io/crates/stlog
+
 ## [v0.2.3] - 2017-05-30
 
 ### Added
@@ -87,7 +95,8 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/japaric/cortex-m-rt/compare/v0.2.3...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m-rt/compare/v0.2.4...HEAD
+[v0.2.4]: https://github.com/japaric/cortex-m-rt/compare/v0.2.3...v0.2.4
 [v0.2.3]: https://github.com/japaric/cortex-m-rt/compare/v0.2.2...v0.2.3
 [v0.2.2]: https://github.com/japaric/cortex-m-rt/compare/v0.2.1...v0.2.2
 [v0.2.1]: https://github.com/japaric/cortex-m-rt/compare/v0.2.0...v0.2.1

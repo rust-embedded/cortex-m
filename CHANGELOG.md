@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.2.10] - 2017-06-05
+
+### Added
+
+- Functions for the instructions DMB, ISB and DSB
+
+### Changed
+
+- All the functions in the `asm` module are now `inline(always)`
+
 ## [v0.2.9] - 2017-05-30
 
 ### Fixed
@@ -286,7 +296,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.2.9...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.2.10...HEAD
+[v0.2.10]: https://github.com/japaric/cortex-m/compare/v0.2.9...v0.2.10
 [v0.2.9]: https://github.com/japaric/cortex-m/compare/v0.2.8...v0.2.9
 [v0.2.8]: https://github.com/japaric/cortex-m/compare/v0.2.7...v0.2.8
 [v0.2.7]: https://github.com/japaric/cortex-m/compare/v0.2.6...v0.2.7

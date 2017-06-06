@@ -48,6 +48,10 @@ pub const SYST: Peripheral<Syst> = unsafe { Peripheral::new(0xE000_E010) };
 /// Trace Port Interface Unit;
 pub const TPIU: Peripheral<Tpiu> = unsafe { Peripheral::new(0xE004_0000) };
 
+/// Cache and branch predictor maintenance operations
+#[cfg(armv7m)]
+pub const CBP: Peripheral<Cbp> = unsafe { Peripheral::new(0xE000_EF50) };
+
 // TODO stand-alone registers: ICTR, ACTLR and STIR
 
 /// A peripheral
@@ -100,13 +104,65 @@ pub struct Cpuid {
     pub isar: [RO<u32>; 5],
     reserved1: u32,
     /// Cache Level ID
+    #[cfg(armv7m)]
     pub clidr: RO<u32>,
     /// Cache Type
+    #[cfg(armv7m)]
     pub ctr: RO<u32>,
     /// Cache Size ID
+    #[cfg(armv7m)]
     pub ccsidr: RO<u32>,
     /// Cache Size Selection
-    pub csselr: RO<u32>,
+    #[cfg(armv7m)]
+    pub csselr: RW<u32>,
+}
+
+#[cfg(armv7m)]
+const CSSELR_IND_POS: u32 = 0;
+#[cfg(armv7m)]
+const CSSELR_IND_MASK: u32 = 1 << CSSELR_IND_POS;
+#[cfg(armv7m)]
+const CSSELR_LEVEL_POS: u32 = 1;
+#[cfg(armv7m)]
+const CSSELR_LEVEL_MASK: u32 = 0x7 << CSSELR_LEVEL_POS;
+#[cfg(armv7m)]
+const CCSIDR_NUMSETS_POS: u32 = 13;
+#[cfg(armv7m)]
+const CCSIDR_NUMSETS_MASK: u32 = 0x7FFF << CCSIDR_NUMSETS_POS;
+#[cfg(armv7m)]
+const CCSIDR_ASSOCIATIVITY_POS: u32 = 3;
+#[cfg(armv7m)]
+const CCSIDR_ASSOCIATIVITY_MASK: u32 = 0x3FF << CCSIDR_ASSOCIATIVITY_POS;
+
+
+impl Cpuid {
+    /// Selects the current CCSIDR
+    ///
+    /// * `level`: the required cache level minus 1, e.g. 0 for L1, 1 for L2
+    /// * `ind`: select instruction cache (1) or data/unified cache (0)
+    #[cfg(armv7m)]
+    pub fn select_cache(&self, level: u32, ind: u32) {
+        unsafe { self.csselr.write(
+            ((level << CSSELR_LEVEL_POS) & CSSELR_LEVEL_MASK) |
+            ((ind   <<   CSSELR_IND_POS) &   CSSELR_IND_MASK)
+        )}
+    }
+
+    /// Returns the number of sets in the selected cache
+    #[cfg(armv7m)]
+    pub fn cache_num_sets(&self, level: u32, ind: u32) -> u32 {
+        self.select_cache(level, ind);
+        ::asm::dsb();
+        1 + ((self.ccsidr.read() & CCSIDR_NUMSETS_MASK) >> CCSIDR_NUMSETS_POS)
+    }
+
+    /// Returns the number of ways in the selected cache
+    #[cfg(armv7m)]
+    pub fn cache_num_ways(&self, level: u32, ind: u32) -> u32 {
+        self.select_cache(level, ind);
+        ::asm::dsb();
+        1 + ((self.ccsidr.read() & CCSIDR_ASSOCIATIVITY_MASK) >> CCSIDR_ASSOCIATIVITY_POS)
+    }
 }
 
 /// DCB register block
@@ -443,6 +499,11 @@ pub enum FpuAccessMode {
     Privileged,
 }
 
+#[cfg(armv7m)]
+const SCB_CCR_IC_MASK: u32 = (1<<17);
+#[cfg(armv7m)]
+const SCB_CCR_DC_MASK: u32 = (1<<16);
+
 const SCB_CPACR_FPU_MASK: u32 = 0x00780000;
 const SCB_CPACR_FPU_ENABLE: u32 = 0x00280000;
 const SCB_CPACR_FPU_USER: u32 = 0x00500000;
@@ -483,6 +544,230 @@ impl Scb {
     /// Shorthand for `set_fpu_access_mode(FpuAccessMode::Disabled)`
     pub fn disable_fpu(&self) {
         self.set_fpu_access_mode(FpuAccessMode::Disabled)
+    }
+
+    /// Enables I-Cache
+    #[cfg(armv7m)]
+    #[inline]
+    pub fn enable_icache(&self) {
+        // All of CBP is write-only so no data races are possible
+        let cbp = unsafe { &mut *CBP.get() };
+
+        ::asm::dsb();
+        ::asm::isb();
+
+        // Invalidate I-Cache
+        cbp.iciallu();
+
+        // Enable I-Cache
+        unsafe { self.ccr.modify(|r| r | SCB_CCR_IC_MASK) };
+
+        ::asm::dsb();
+        ::asm::isb();
+    }
+
+    /// Disables I-Cache
+    #[cfg(armv7m)]
+    #[inline]
+    pub fn disable_icache(&self) {
+        // All of CBP is write-only so no data races are possible
+        let cbp = unsafe { &mut *CBP.get() };
+
+        ::asm::dsb();
+        ::asm::isb();
+
+        // Disable I-Cache
+        unsafe { self.ccr.modify(|r| r & !SCB_CCR_IC_MASK) };
+
+        // Invalidate I-Cache
+        cbp.iciallu();
+
+        ::asm::dsb();
+        ::asm::isb();
+    }
+
+    /// Invalidates I-Cache
+    #[cfg(armv7m)]
+    #[inline]
+    pub fn invalidate_icache(&self) {
+        // All of CBP is write-only so no data races are possible
+        let cbp = unsafe { &mut *CBP.get() };
+
+        ::asm::dsb();
+        ::asm::isb();
+
+        // Invalidate I-Cache
+        cbp.iciallu();
+
+        ::asm::dsb();
+        ::asm::isb();
+    }
+
+    /// Enables D-cache
+    #[cfg(armv7m)]
+    #[inline]
+    pub fn enable_dcache(&self, cpuid: &Cpuid) {
+        // Invalidate anything currently in the DCache
+        self.invalidate_dcache(cpuid);
+
+        // Now turn on the DCache
+        unsafe { self.ccr.modify(|r| r | SCB_CCR_DC_MASK) };
+
+        ::asm::dsb();
+        ::asm::isb();
+    }
+
+    /// Disables D-cache
+    #[cfg(armv7m)]
+    #[inline]
+    pub fn disable_dcache(&self, cpuid: &Cpuid) {
+        // Turn off the DCache
+        unsafe { self.ccr.modify(|r| r & !SCB_CCR_DC_MASK) };
+
+        // Clean and invalidate whatever was left in it
+        self.clean_invalidate_dcache(cpuid);
+    }
+
+    /// Invalidates D-cache
+    #[cfg(armv7m)]
+    #[inline]
+    pub fn invalidate_dcache(&self, cpuid: &Cpuid) {
+        // All of CBP is write-only so no data races are possible
+        let cbp = unsafe { &mut *CBP.get() };
+
+        // Read number of sets and ways
+        let sets = cpuid.cache_num_sets(0, 0);
+        let ways = cpuid.cache_num_ways(0, 0);
+
+        // Invalidate entire D-Cache
+        for set in 0..sets {
+            for way in 0..ways {
+                cbp.dcisw(set, way);
+            }
+        }
+
+        ::asm::dsb();
+        ::asm::isb();
+    }
+
+    /// Cleans D-cache
+    #[cfg(armv7m)]
+    #[inline]
+    pub fn clean_dcache(&self, cpuid: &Cpuid) {
+        // All of CBP is write-only so no data races are possible
+        let cbp = unsafe { &mut *CBP.get() };
+
+        // Read number of sets and ways
+        let sets = cpuid.cache_num_sets(0, 0);
+        let ways = cpuid.cache_num_ways(0, 0);
+
+        for set in 0..sets {
+            for way in 0..ways {
+                cbp.dccsw(set, way);
+            }
+        }
+
+        ::asm::dsb();
+        ::asm::isb();
+    }
+
+    /// Cleans and invalidates D-cache
+    #[cfg(armv7m)]
+    #[inline]
+    pub fn clean_invalidate_dcache(&self, cpuid: &Cpuid) {
+        // All of CBP is write-only so no data races are possible
+        let cbp = unsafe { &mut *CBP.get() };
+
+        // Read number of sets and ways
+        let sets = cpuid.cache_num_sets(0, 0);
+        let ways = cpuid.cache_num_ways(0, 0);
+
+        for set in 0..sets {
+            for way in 0..ways {
+                cbp.dccisw(set, way);
+            }
+        }
+
+        ::asm::dsb();
+        ::asm::isb();
+    }
+
+    /// Invalidates D-cache by address
+    ///
+    /// `addr`: the address to invalidate, aligned to 32-byte boundary
+    /// `size`: size of the memory block, in number of bytes, a multiple of 32
+    #[cfg(armv7m)]
+    #[inline]
+    pub fn invalidate_dcache_by_address(&self, addr: u32, size: u32) {
+        // All of CBP is write-only so no data races are possible
+        let cbp = unsafe { &mut *CBP.get() };
+
+        ::asm::dsb();
+
+        // Cache lines are fixed to 32 bit on Cortex-M7 and not present in earlier Cortex-M
+        const LINESIZE: u32 = 32;
+
+        let mut addr = addr;
+
+        for _ in 0..(size/LINESIZE) {
+            cbp.dcimvac(addr);
+            addr += LINESIZE;
+        }
+
+        ::asm::dsb();
+        ::asm::isb();
+    }
+
+    /// Cleans D-cache by address
+    ///
+    /// `addr`: the address to clean, aligned to 32-byte boundary
+    /// `size`: size of the memory block, in number of bytes, a multiple of 32
+    #[cfg(armv7m)]
+    #[inline]
+    pub fn clean_dcache_by_address(&self, addr: u32, size: u32) {
+        // All of CBP is write-only so no data races are possible
+        let cbp = unsafe { &mut *CBP.get() };
+
+        ::asm::dsb();
+
+        // Cache lines are fixed to 32 bit on Cortex-M7 and not present in earlier Cortex-M
+        const LINESIZE: u32 = 32;
+
+        let mut addr = addr;
+
+        for _ in 0..(size/LINESIZE) {
+            cbp.dccmvac(addr);
+            addr += LINESIZE;
+        }
+
+        ::asm::dsb();
+        ::asm::isb();
+    }
+
+    /// Cleans and invalidates D-cache by address
+    ///
+    /// `addr`: the address to clean and invalidate, aligned to 32-byte boundary
+    /// `size`: size of the memory block, in number of bytes, a multiple of 32
+    #[cfg(armv7m)]
+    #[inline]
+    pub fn clean_invalidate_dcache_by_address(&self, addr: u32, size: u32) {
+        // All of CBP is write-only so no data races are possible
+        let cbp = unsafe { &mut *CBP.get() };
+
+        ::asm::dsb();
+
+        // Cache lines are fixed to 32 bit on Cortex-M7 and not present in earlier Cortex-M
+        const LINESIZE: u32 = 32;
+
+        let mut addr = addr;
+
+        for _ in 0..(size/LINESIZE) {
+            cbp.dccimvac(addr);
+            addr += LINESIZE;
+        }
+
+        ::asm::dsb();
+        ::asm::isb();
     }
 }
 
@@ -645,4 +930,123 @@ pub struct Tpiu {
     reserved3: [u32; 4],
     /// TPIU Type
     pub _type: RO<u32>,
+}
+
+/// Cache and branch predictor maintenance operations register block
+#[repr(C)]
+#[cfg(armv7m)]
+pub struct Cbp {
+    /// I-cache invalidate all to PoU
+    pub iciallu: WO<u32>,
+    reserved0: RW<u32>,
+    /// I-cache invalidate by MVA to PoU
+    pub icimvau: WO<u32>,
+    /// D-cache invalidate by MVA to PoC
+    pub dcimvac: WO<u32>,
+    /// D-cache invalidate by set-way
+    pub dcisw: WO<u32>,
+    /// D-cache clean by MVA to PoU
+    pub dccmvau: WO<u32>,
+    /// D-cache clean by MVA to PoC
+    pub dccmvac: WO<u32>,
+    /// D-cache clean by set-way
+    pub dccsw: WO<u32>,
+    /// D-cache clean and invalidate by MVA to PoC
+    pub dccimvac: WO<u32>,
+    /// D-cache clean and invalidate by set-way
+    pub dccisw: WO<u32>,
+    /// Branch predictor invalidate all
+    pub bpiall: WO<u32>,
+}
+
+#[cfg(armv7m)]
+const CBP_SW_WAY_POS: u32 = 30;
+#[cfg(armv7m)]
+const CBP_SW_WAY_MASK: u32 = 0x3 << CBP_SW_WAY_POS;
+#[cfg(armv7m)]
+const CBP_SW_SET_POS: u32 = 5;
+#[cfg(armv7m)]
+const CBP_SW_SET_MASK: u32 = 0x1FF << CBP_SW_SET_POS;
+
+#[cfg(armv7m)]
+impl Cbp {
+    /// I-cache invalidate all to PoU
+    #[inline(always)]
+    pub fn iciallu(&self) {
+        unsafe { self.iciallu.write(0); }
+    }
+
+    /// I-cache invalidate by MVA to PoU
+    #[inline(always)]
+    pub fn icimvau(&self, mva: u32) {
+        unsafe { self.icimvau.write(mva); }
+    }
+
+    /// D-cache invalidate by MVA to PoC
+    #[inline(always)]
+    pub fn dcimvac(&self, mva: u32) {
+        unsafe { self.dcimvac.write(mva); }
+    }
+
+    /// D-cache invalidate by set-way
+    #[inline(always)]
+    pub fn dcisw(&self, set: u32, way: u32) {
+        // The ARMv7-M Architecture Reference Manual, as of Revision E.b, says these set/way
+        // operations have a register data format which depends on the implementation's
+        // associativity and number of sets. Specifically the 'way' and 'set' fields have
+        // offsets 32-log2(ASSOCIATIVITY) and log2(LINELEN) respectively.
+        //
+        // However, in Cortex-M7 devices, these offsets are fixed at 30 and 5, as per the Cortex-M7
+        // Generic User Guide section 4.8.3. Since no other ARMv7-M implementations except the
+        // Cortex-M7 have a DCACHE or ICACHE at all, it seems safe to do the same thing as the
+        // CMSIS-Core implementation and use fixed values.
+        unsafe { self.dcisw.write(
+            ((way << CBP_SW_WAY_POS) & CBP_SW_WAY_MASK) |
+            ((set << CBP_SW_SET_POS) & CBP_SW_SET_MASK));
+        }
+    }
+
+    /// D-cache clean by MVA to PoU
+    #[inline(always)]
+    pub fn dccmvau(&self, mva: u32) {
+        unsafe { self.dccmvau.write(mva); }
+    }
+
+    /// D-cache clean by MVA to PoC
+    #[inline(always)]
+    pub fn dccmvac(&self, mva: u32) {
+        unsafe { self.dccmvac.write(mva); }
+    }
+
+    /// D-cache clean by set-way
+    #[inline(always)]
+    pub fn dccsw(&self, set: u32, way: u32) {
+        // See comment for dcisw() about the format here
+        unsafe { self.dccsw.write(
+            ((way << CBP_SW_WAY_POS) & CBP_SW_WAY_MASK) |
+            ((set << CBP_SW_SET_POS) & CBP_SW_SET_MASK));
+        }
+    }
+
+    /// D-cache clean and invalidate by MVA to PoC
+    #[inline(always)]
+    pub fn dccimvac(&self, mva: u32) {
+        unsafe { self.dccimvac.write(mva); }
+    }
+
+    /// D-cache clean and invalidate by set-way
+    #[inline(always)]
+    pub fn dccisw(&self, set: u32, way: u32) {
+        // See comment for dcisw() about the format here
+        unsafe { self.dccisw.write(
+            ((way << CBP_SW_WAY_POS) & CBP_SW_WAY_MASK) |
+            ((set << CBP_SW_SET_POS) & CBP_SW_SET_MASK));
+        }
+    }
+
+    /// Branch predictor invalidate all
+    #[inline(always)]
+    pub fn bpiall(&self) {
+        unsafe { self.bpiall.write(0); }
+    }
 }

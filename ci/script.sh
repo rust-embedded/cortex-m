@@ -1,14 +1,12 @@
 set -ex
 
 main() {
-    cargo generate-lockfile
-
     case $TARGET in
         thumbv*-none-eabi*)
-            cross build --target $TARGET
+            xargo check --target $TARGET
             ;;
         *)
-            cross test --target $TARGET
+            cargo test --target $TARGET
             ;;
     esac
 }

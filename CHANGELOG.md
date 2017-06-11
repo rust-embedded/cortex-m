@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.2.10] - 2017-06-05
+
+### Added
+
+- Functions for the instructions DMB, ISB and DSB
+
+### Changed
+
+- All the functions in the `asm` module are now `inline(always)`
+
+## [v0.2.9] - 2017-05-30
+
+### Fixed
+
+- A bug in `itm::write_all` where it would ignore the length of the buffer and
+  serialize contents that come after the buffer.
+
+## [v0.2.8] - 2017-05-30 - YANKED
+
+### Added
+
+- An `itm::write_aligned` function to write 4 byte aligned buffers to an ITM
+  port. This function is faster than `itm::write_all` for small buffers but
+  requires the buffer to be aligned.
+
+## [v0.2.7] - 2017-05-23
+
+### Added
+
+- `Dwt.enable_cycle_counter`
+
 ## [v0.2.6] - 2017-05-08
 
 ### Fixed
@@ -265,7 +296,11 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.2.6...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.2.10...HEAD
+[v0.2.10]: https://github.com/japaric/cortex-m/compare/v0.2.9...v0.2.10
+[v0.2.9]: https://github.com/japaric/cortex-m/compare/v0.2.8...v0.2.9
+[v0.2.8]: https://github.com/japaric/cortex-m/compare/v0.2.7...v0.2.8
+[v0.2.7]: https://github.com/japaric/cortex-m/compare/v0.2.6...v0.2.7
 [v0.2.6]: https://github.com/japaric/cortex-m/compare/v0.2.5...v0.2.6
 [v0.2.5]: https://github.com/japaric/cortex-m/compare/v0.2.4...v0.2.5
 [v0.2.4]: https://github.com/japaric/cortex-m/compare/v0.2.3...v0.2.4

@@ -190,6 +190,7 @@ where
 }
 
 /// Registers stacked during an exception
+#[derive(Clone, Copy, Debug)]
 #[repr(C)]
 pub struct StackedRegisters {
     /// (General purpose) Register 0

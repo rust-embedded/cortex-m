@@ -150,12 +150,12 @@ impl Cpuid {
     }
 
     /// Returns the number of sets and ways in the selected cache
-    pub fn cache_num_sets_ways(&self, level: u8, ind: CsselrCacheType) -> (u32, u32) {
+    pub fn cache_num_sets_ways(&self, level: u8, ind: CsselrCacheType) -> (u16, u16) {
         self.select_cache(level, ind);
         ::asm::dsb();
         let ccsidr = self.ccsidr.read();
-        (1 + ((ccsidr & CCSIDR_NUMSETS_MASK) >> CCSIDR_NUMSETS_POS),
-         1 + ((ccsidr & CCSIDR_ASSOCIATIVITY_MASK) >> CCSIDR_ASSOCIATIVITY_POS))
+        ((1 + ((ccsidr & CCSIDR_NUMSETS_MASK) >> CCSIDR_NUMSETS_POS)) as u16,
+         (1 + ((ccsidr & CCSIDR_ASSOCIATIVITY_MASK) >> CCSIDR_ASSOCIATIVITY_POS)) as u16)
     }
 }
 
@@ -971,7 +971,7 @@ impl Cbp {
 
     /// D-cache invalidate by set-way
     #[inline(always)]
-    pub fn dcisw(&self, set: u32, way: u32) {
+    pub fn dcisw(&self, set: u16, way: u16) {
         // The ARMv7-M Architecture Reference Manual, as of Revision E.b, says these set/way
         // operations have a register data format which depends on the implementation's
         // associativity and number of sets. Specifically the 'way' and 'set' fields have
@@ -982,8 +982,8 @@ impl Cbp {
         // Cortex-M7 have a DCACHE or ICACHE at all, it seems safe to do the same thing as the
         // CMSIS-Core implementation and use fixed values.
         unsafe { self.dcisw.write(
-            ((way << CBP_SW_WAY_POS) & CBP_SW_WAY_MASK) |
-            ((set << CBP_SW_SET_POS) & CBP_SW_SET_MASK));
+            (((way as u32) << CBP_SW_WAY_POS) & CBP_SW_WAY_MASK) |
+            (((set as u32) << CBP_SW_SET_POS) & CBP_SW_SET_MASK));
         }
     }
 
@@ -1001,11 +1001,11 @@ impl Cbp {
 
     /// D-cache clean by set-way
     #[inline(always)]
-    pub fn dccsw(&self, set: u32, way: u32) {
+    pub fn dccsw(&self, set: u16, way: u16) {
         // See comment for dcisw() about the format here
         unsafe { self.dccsw.write(
-            ((way << CBP_SW_WAY_POS) & CBP_SW_WAY_MASK) |
-            ((set << CBP_SW_SET_POS) & CBP_SW_SET_MASK));
+            (((way as u32) << CBP_SW_WAY_POS) & CBP_SW_WAY_MASK) |
+            (((set as u32) << CBP_SW_SET_POS) & CBP_SW_SET_MASK));
         }
     }
 
@@ -1017,11 +1017,11 @@ impl Cbp {
 
     /// D-cache clean and invalidate by set-way
     #[inline(always)]
-    pub fn dccisw(&self, set: u32, way: u32) {
+    pub fn dccisw(&self, set: u16, way: u16) {
         // See comment for dcisw() about the format here
         unsafe { self.dccisw.write(
-            ((way << CBP_SW_WAY_POS) & CBP_SW_WAY_MASK) |
-            ((set << CBP_SW_SET_POS) & CBP_SW_SET_MASK));
+            (((way as u32) << CBP_SW_WAY_POS) & CBP_SW_WAY_MASK) |
+            (((set as u32) << CBP_SW_SET_POS) & CBP_SW_SET_MASK));
         }
     }
 

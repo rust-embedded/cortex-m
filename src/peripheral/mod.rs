@@ -148,20 +148,14 @@ impl Cpuid {
         )}
     }
 
-    /// Returns the number of sets in the selected cache
+    /// Returns the number of sets and ways in the selected cache
     #[cfg(armv7m)]
-    pub fn cache_num_sets(&self, level: u32, ind: u32) -> u32 {
+    pub fn cache_num_sets_ways(&self, level: u32, ind: u32) -> (u32, u32) {
         self.select_cache(level, ind);
         ::asm::dsb();
-        1 + ((self.ccsidr.read() & CCSIDR_NUMSETS_MASK) >> CCSIDR_NUMSETS_POS)
-    }
-
-    /// Returns the number of ways in the selected cache
-    #[cfg(armv7m)]
-    pub fn cache_num_ways(&self, level: u32, ind: u32) -> u32 {
-        self.select_cache(level, ind);
-        ::asm::dsb();
-        1 + ((self.ccsidr.read() & CCSIDR_ASSOCIATIVITY_MASK) >> CCSIDR_ASSOCIATIVITY_POS)
+        let ccsidr = self.ccsidr.read();
+        (1 + ((ccsidr & CCSIDR_NUMSETS_MASK) >> CCSIDR_NUMSETS_POS),
+         1 + ((ccsidr & CCSIDR_ASSOCIATIVITY_MASK) >> CCSIDR_ASSOCIATIVITY_POS))
     }
 }
 
@@ -636,8 +630,7 @@ impl Scb {
         let cbp = unsafe { &mut *CBP.get() };
 
         // Read number of sets and ways
-        let sets = cpuid.cache_num_sets(0, 0);
-        let ways = cpuid.cache_num_ways(0, 0);
+        let (sets, ways) = cpuid.cache_num_sets_ways(0, 0);
 
         // Invalidate entire D-Cache
         for set in 0..sets {
@@ -658,8 +651,7 @@ impl Scb {
         let cbp = unsafe { &mut *CBP.get() };
 
         // Read number of sets and ways
-        let sets = cpuid.cache_num_sets(0, 0);
-        let ways = cpuid.cache_num_ways(0, 0);
+        let (sets, ways) = cpuid.cache_num_sets_ways(0, 0);
 
         for set in 0..sets {
             for way in 0..ways {
@@ -679,8 +671,7 @@ impl Scb {
         let cbp = unsafe { &mut *CBP.get() };
 
         // Read number of sets and ways
-        let sets = cpuid.cache_num_sets(0, 0);
-        let ways = cpuid.cache_num_ways(0, 0);
+        let (sets, ways) = cpuid.cache_num_sets_ways(0, 0);
 
         for set in 0..sets {
             for way in 0..ways {

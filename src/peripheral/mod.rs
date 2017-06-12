@@ -117,23 +117,14 @@ pub struct Cpuid {
     pub csselr: RW<u32>,
 }
 
-#[cfg(armv7m)]
 const CSSELR_IND_POS: u32 = 0;
-#[cfg(armv7m)]
 const CSSELR_IND_MASK: u32 = 1 << CSSELR_IND_POS;
-#[cfg(armv7m)]
 const CSSELR_LEVEL_POS: u32 = 1;
-#[cfg(armv7m)]
 const CSSELR_LEVEL_MASK: u32 = 0x7 << CSSELR_LEVEL_POS;
-#[cfg(armv7m)]
 const CCSIDR_NUMSETS_POS: u32 = 13;
-#[cfg(armv7m)]
 const CCSIDR_NUMSETS_MASK: u32 = 0x7FFF << CCSIDR_NUMSETS_POS;
-#[cfg(armv7m)]
 const CCSIDR_ASSOCIATIVITY_POS: u32 = 3;
-#[cfg(armv7m)]
 const CCSIDR_ASSOCIATIVITY_MASK: u32 = 0x3FF << CCSIDR_ASSOCIATIVITY_POS;
-
 
 impl Cpuid {
     /// Selects the current CCSIDR
@@ -493,9 +484,7 @@ pub enum FpuAccessMode {
     Privileged,
 }
 
-#[cfg(armv7m)]
 const SCB_CCR_IC_MASK: u32 = (1<<17);
-#[cfg(armv7m)]
 const SCB_CCR_DC_MASK: u32 = (1<<16);
 
 const SCB_CPACR_FPU_MASK: u32 = 0b11_11 << 20;
@@ -539,9 +528,11 @@ impl Scb {
     pub fn disable_fpu(&self) {
         self.set_fpu_access_mode(FpuAccessMode::Disabled)
     }
+}
 
+#[cfg(armv7m)]
+impl Scb {
     /// Enables I-Cache
-    #[cfg(armv7m)]
     #[inline]
     pub fn enable_icache(&self) {
         // All of CBP is write-only so no data races are possible
@@ -561,7 +552,6 @@ impl Scb {
     }
 
     /// Disables I-Cache
-    #[cfg(armv7m)]
     #[inline]
     pub fn disable_icache(&self) {
         // All of CBP is write-only so no data races are possible
@@ -581,7 +571,6 @@ impl Scb {
     }
 
     /// Invalidates I-Cache
-    #[cfg(armv7m)]
     #[inline]
     pub fn invalidate_icache(&self) {
         // All of CBP is write-only so no data races are possible
@@ -598,7 +587,6 @@ impl Scb {
     }
 
     /// Enables D-cache
-    #[cfg(armv7m)]
     #[inline]
     pub fn enable_dcache(&self, cpuid: &Cpuid) {
         // Invalidate anything currently in the DCache
@@ -612,7 +600,6 @@ impl Scb {
     }
 
     /// Disables D-cache
-    #[cfg(armv7m)]
     #[inline]
     pub fn disable_dcache(&self, cpuid: &Cpuid) {
         // Turn off the DCache
@@ -627,7 +614,6 @@ impl Scb {
     /// Note that calling this while the dcache is enabled will probably wipe out your
     /// stack, depending on optimisations, breaking returning to the call point.
     /// It's used immediately before enabling the dcache, but not exported publicly.
-    #[cfg(armv7m)]
     #[inline]
     fn invalidate_dcache(&self, cpuid: &Cpuid) {
         // All of CBP is write-only so no data races are possible
@@ -648,7 +634,6 @@ impl Scb {
     }
 
     /// Cleans D-cache
-    #[cfg(armv7m)]
     #[inline]
     pub fn clean_dcache(&self, cpuid: &Cpuid) {
         // All of CBP is write-only so no data races are possible
@@ -668,7 +653,6 @@ impl Scb {
     }
 
     /// Cleans and invalidates D-cache
-    #[cfg(armv7m)]
     #[inline]
     pub fn clean_invalidate_dcache(&self, cpuid: &Cpuid) {
         // All of CBP is write-only so no data races are possible
@@ -691,7 +675,6 @@ impl Scb {
     ///
     /// `addr`: the address to invalidate, aligned to 32-byte boundary
     /// `size`: size of the memory block, in number of bytes, a multiple of 32
-    #[cfg(armv7m)]
     #[inline]
     pub fn invalidate_dcache_by_address(&self, addr: u32, size: u32) {
         // All of CBP is write-only so no data races are possible
@@ -717,7 +700,6 @@ impl Scb {
     ///
     /// `addr`: the address to clean, aligned to 32-byte boundary
     /// `size`: size of the memory block, in number of bytes, a multiple of 32
-    #[cfg(armv7m)]
     #[inline]
     pub fn clean_dcache_by_address(&self, addr: u32, size: u32) {
         // All of CBP is write-only so no data races are possible
@@ -743,7 +725,6 @@ impl Scb {
     ///
     /// `addr`: the address to clean and invalidate, aligned to 32-byte boundary
     /// `size`: size of the memory block, in number of bytes, a multiple of 32
-    #[cfg(armv7m)]
     #[inline]
     pub fn clean_invalidate_dcache_by_address(&self, addr: u32, size: u32) {
         // All of CBP is write-only so no data races are possible
@@ -954,13 +935,9 @@ pub struct Cbp {
     pub bpiall: WO<u32>,
 }
 
-#[cfg(armv7m)]
 const CBP_SW_WAY_POS: u32 = 30;
-#[cfg(armv7m)]
 const CBP_SW_WAY_MASK: u32 = 0x3 << CBP_SW_WAY_POS;
-#[cfg(armv7m)]
 const CBP_SW_SET_POS: u32 = 5;
-#[cfg(armv7m)]
 const CBP_SW_SET_MASK: u32 = 0x1FF << CBP_SW_SET_POS;
 
 #[cfg(armv7m)]

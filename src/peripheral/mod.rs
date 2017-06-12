@@ -126,22 +126,31 @@ const CCSIDR_NUMSETS_MASK: u32 = 0x7FFF << CCSIDR_NUMSETS_POS;
 const CCSIDR_ASSOCIATIVITY_POS: u32 = 3;
 const CCSIDR_ASSOCIATIVITY_MASK: u32 = 0x3FF << CCSIDR_ASSOCIATIVITY_POS;
 
+/// Type of cache to select on CSSELR writes.
+#[cfg(armv7m)]
+pub enum CsselrCacheType {
+    /// Select DCache or unified cache
+    DataOrUnified = 0,
+    /// Select ICache
+    Instruction = 1,
+}
+
+#[cfg(armv7m)]
 impl Cpuid {
     /// Selects the current CCSIDR
     ///
     /// * `level`: the required cache level minus 1, e.g. 0 for L1, 1 for L2
-    /// * `ind`: select instruction cache (1) or data/unified cache (0)
-    #[cfg(armv7m)]
-    pub fn select_cache(&self, level: u32, ind: u32) {
+    /// * `ind`: select instruction cache or data/unified cache
+    pub fn select_cache(&self, level: u8, ind: CsselrCacheType) {
+        assert!(level<8);
         unsafe { self.csselr.write(
-            ((level << CSSELR_LEVEL_POS) & CSSELR_LEVEL_MASK) |
-            ((ind   <<   CSSELR_IND_POS) &   CSSELR_IND_MASK)
+            (((level as u32) << CSSELR_LEVEL_POS) & CSSELR_LEVEL_MASK) |
+            (((ind   as u32) <<   CSSELR_IND_POS) &   CSSELR_IND_MASK)
         )}
     }
 
     /// Returns the number of sets and ways in the selected cache
-    #[cfg(armv7m)]
-    pub fn cache_num_sets_ways(&self, level: u32, ind: u32) -> (u32, u32) {
+    pub fn cache_num_sets_ways(&self, level: u8, ind: CsselrCacheType) -> (u32, u32) {
         self.select_cache(level, ind);
         ::asm::dsb();
         let ccsidr = self.ccsidr.read();
@@ -620,7 +629,7 @@ impl Scb {
         let cbp = unsafe { &mut *CBP.get() };
 
         // Read number of sets and ways
-        let (sets, ways) = cpuid.cache_num_sets_ways(0, 0);
+        let (sets, ways) = cpuid.cache_num_sets_ways(0, CsselrCacheType::DataOrUnified);
 
         // Invalidate entire D-Cache
         for set in 0..sets {
@@ -640,7 +649,7 @@ impl Scb {
         let cbp = unsafe { &mut *CBP.get() };
 
         // Read number of sets and ways
-        let (sets, ways) = cpuid.cache_num_sets_ways(0, 0);
+        let (sets, ways) = cpuid.cache_num_sets_ways(0, CsselrCacheType::DataOrUnified);
 
         for set in 0..sets {
             for way in 0..ways {
@@ -659,7 +668,7 @@ impl Scb {
         let cbp = unsafe { &mut *CBP.get() };
 
         // Read number of sets and ways
-        let (sets, ways) = cpuid.cache_num_sets_ways(0, 0);
+        let (sets, ways) = cpuid.cache_num_sets_ways(0, CsselrCacheType::DataOrUnified);
 
         for set in 0..sets {
             for way in 0..ways {

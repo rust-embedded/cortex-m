@@ -11,6 +11,7 @@ use core::ptr;
 use volatile_register::{RO, RW, WO};
 
 use interrupt::{CriticalSection, Nr};
+use asm;
 
 #[cfg(test)]
 mod test;
@@ -473,6 +474,8 @@ impl Scb {
             }
         }
         unsafe { self.cpacr.write(cpacr) }
+        asm::dsb();
+        asm::isb();
     }
 
     /// Shorthand for `set_fpu_access_mode(FpuAccessMode::Enabled)`

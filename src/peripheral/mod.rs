@@ -623,9 +623,13 @@ impl Scb {
     }
 
     /// Invalidates D-cache
+    ///
+    /// Note that calling this while the dcache is enabled will probably wipe out your
+    /// stack, depending on optimisations, breaking returning to the call point.
+    /// It's used immediately before enabling the dcache, but not exported publicly.
     #[cfg(armv7m)]
     #[inline]
-    pub fn invalidate_dcache(&self, cpuid: &Cpuid) {
+    fn invalidate_dcache(&self, cpuid: &Cpuid) {
         // All of CBP is write-only so no data races are possible
         let cbp = unsafe { &mut *CBP.get() };
 

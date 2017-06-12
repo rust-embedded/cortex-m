@@ -504,9 +504,9 @@ const SCB_CCR_IC_MASK: u32 = (1<<17);
 #[cfg(armv7m)]
 const SCB_CCR_DC_MASK: u32 = (1<<16);
 
-const SCB_CPACR_FPU_MASK: u32 = 0x00780000;
-const SCB_CPACR_FPU_ENABLE: u32 = 0x00280000;
-const SCB_CPACR_FPU_USER: u32 = 0x00500000;
+const SCB_CPACR_FPU_MASK: u32 = 0b11_11 << 20;
+const SCB_CPACR_FPU_ENABLE: u32 = 0b01_01 << 20;
+const SCB_CPACR_FPU_USER: u32 = 0b10_10 << 20;
 
 impl Scb {
     /// Gets FPU access mode

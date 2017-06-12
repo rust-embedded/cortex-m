@@ -682,8 +682,11 @@ impl Scb {
 
     /// Invalidates D-cache by address
     ///
-    /// `addr`: the address to invalidate, aligned to 32-byte boundary
-    /// `size`: size of the memory block, in number of bytes, a multiple of 32
+    /// `addr`: the address to invalidate
+    /// `size`: size of the memory block, in number of bytes
+    ///
+    /// Invalidates cache starting from the lowest 32-byte aligned address represented by `addr`,
+    /// in blocks of 32 bytes until at least `size` bytes have been invalidated.
     #[inline]
     pub fn invalidate_dcache_by_address(&self, addr: u32, size: u32) {
         // All of CBP is write-only so no data races are possible
@@ -691,10 +694,11 @@ impl Scb {
 
         ::asm::dsb();
 
+
         // Cache lines are fixed to 32 bit on Cortex-M7 and not present in earlier Cortex-M
         const LINESIZE: u32 = 32;
 
-        let mut addr = addr;
+        let mut addr = addr & 0xFFFF_FFE0;
 
         for _ in 0..(size/LINESIZE) {
             cbp.dcimvac(addr);
@@ -707,8 +711,11 @@ impl Scb {
 
     /// Cleans D-cache by address
     ///
-    /// `addr`: the address to clean, aligned to 32-byte boundary
-    /// `size`: size of the memory block, in number of bytes, a multiple of 32
+    /// `addr`: the address to clean
+    /// `size`: size of the memory block, in number of bytes
+    ///
+    /// Cleans cache starting from the lowest 32-byte aligned address represented by `addr`,
+    /// in blocks of 32 bytes until at least `size` bytes have been cleaned.
     #[inline]
     pub fn clean_dcache_by_address(&self, addr: u32, size: u32) {
         // All of CBP is write-only so no data races are possible
@@ -719,7 +726,7 @@ impl Scb {
         // Cache lines are fixed to 32 bit on Cortex-M7 and not present in earlier Cortex-M
         const LINESIZE: u32 = 32;
 
-        let mut addr = addr;
+        let mut addr = addr & 0xFFFF_FFE0;
 
         for _ in 0..(size/LINESIZE) {
             cbp.dccmvac(addr);
@@ -732,8 +739,12 @@ impl Scb {
 
     /// Cleans and invalidates D-cache by address
     ///
-    /// `addr`: the address to clean and invalidate, aligned to 32-byte boundary
-    /// `size`: size of the memory block, in number of bytes, a multiple of 32
+    /// `addr`: the address to clean and invalidate
+    /// `size`: size of the memory block, in number of bytes
+    ///
+    /// Cleans and invalidates cache starting from the lowest 32-byte aligned address represented
+    /// by `addr`, in blocks of 32 bytes until at least `size` bytes have been cleaned and
+    /// invalidated.
     #[inline]
     pub fn clean_invalidate_dcache_by_address(&self, addr: u32, size: u32) {
         // All of CBP is write-only so no data races are possible
@@ -744,7 +755,7 @@ impl Scb {
         // Cache lines are fixed to 32 bit on Cortex-M7 and not present in earlier Cortex-M
         const LINESIZE: u32 = 32;
 
-        let mut addr = addr;
+        let mut addr = addr & 0xFFFF_FFE0;
 
         for _ in 0..(size/LINESIZE) {
             cbp.dccimvac(addr);

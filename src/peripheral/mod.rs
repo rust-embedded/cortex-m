@@ -934,7 +934,7 @@ pub struct Tpiu {
 pub struct Cbp {
     /// I-cache invalidate all to PoU
     pub iciallu: WO<u32>,
-    reserved0: RW<u32>,
+    reserved0: u32,
     /// I-cache invalidate by MVA to PoU
     pub icimvau: WO<u32>,
     /// D-cache invalidate by MVA to PoC

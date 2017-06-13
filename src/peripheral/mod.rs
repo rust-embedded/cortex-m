@@ -541,14 +541,16 @@ impl Scb {
 
 #[cfg(armv7m)]
 impl Scb {
-    /// Enables I-Cache
+    /// Enables I-Cache if currently disabled
     #[inline]
     pub fn enable_icache(&self) {
+        // Don't do anything if ICache is already enabled
+        if self.icache_enabled() {
+            return;
+        }
+
         // All of CBP is write-only so no data races are possible
         let cbp = unsafe { &mut *CBP.get() };
-
-        ::asm::dsb();
-        ::asm::isb();
 
         // Invalidate I-Cache
         cbp.iciallu();
@@ -560,14 +562,16 @@ impl Scb {
         ::asm::isb();
     }
 
-    /// Disables I-Cache
+    /// Disables I-Cache if currently enabled
     #[inline]
     pub fn disable_icache(&self) {
+        // Don't do anything if ICache is already disabled
+        if !self.icache_enabled() {
+            return;
+        }
+
         // All of CBP is write-only so no data races are possible
         let cbp = unsafe { &mut *CBP.get() };
-
-        ::asm::dsb();
-        ::asm::isb();
 
         // Disable I-Cache
         unsafe { self.ccr.modify(|r| r & !SCB_CCR_IC_MASK) };
@@ -579,14 +583,19 @@ impl Scb {
         ::asm::isb();
     }
 
+    /// Returns whether the I-Cache is currently enabled
+    #[inline]
+    pub fn icache_enabled(&self) -> bool {
+        ::asm::dsb();
+        ::asm::isb();
+        self.ccr.read() & SCB_CCR_IC_MASK == SCB_CCR_IC_MASK
+    }
+
     /// Invalidates I-Cache
     #[inline]
     pub fn invalidate_icache(&self) {
         // All of CBP is write-only so no data races are possible
         let cbp = unsafe { &mut *CBP.get() };
-
-        ::asm::dsb();
-        ::asm::isb();
 
         // Invalidate I-Cache
         cbp.iciallu();
@@ -595,9 +604,14 @@ impl Scb {
         ::asm::isb();
     }
 
-    /// Enables D-cache
+    /// Enables D-cache if currently disabled
     #[inline]
     pub fn enable_dcache(&self, cpuid: &Cpuid) {
+        // Don't do anything if DCache is already enabled
+        if self.dcache_enabled() {
+            return;
+        }
+
         // Invalidate anything currently in the DCache
         self.invalidate_dcache(cpuid);
 
@@ -608,14 +622,27 @@ impl Scb {
         ::asm::isb();
     }
 
-    /// Disables D-cache
+    /// Disables D-cache if currently enabled
     #[inline]
     pub fn disable_dcache(&self, cpuid: &Cpuid) {
+        // Don't do anything if DCache is already disabled
+        if !self.dcache_enabled() {
+            return;
+        }
+
         // Turn off the DCache
         unsafe { self.ccr.modify(|r| r & !SCB_CCR_DC_MASK) };
 
         // Clean and invalidate whatever was left in it
         self.clean_invalidate_dcache(cpuid);
+    }
+
+    /// Returns whether the D-Cache is currently enabled
+    #[inline]
+    pub fn dcache_enabled(&self) -> bool {
+        ::asm::dsb();
+        ::asm::isb();
+        self.ccr.read() & SCB_CCR_DC_MASK == SCB_CCR_DC_MASK
     }
 
     /// Invalidates D-cache

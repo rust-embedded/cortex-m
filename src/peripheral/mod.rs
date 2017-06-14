@@ -137,8 +137,9 @@ impl Cpuid {
     ///
     /// * `level`: the required cache level minus 1, e.g. 0 for L1, 1 for L2
     /// * `ind`: select instruction cache or data/unified cache
+    ///
+    /// `level` is masked to be between 0 and 7.
     pub fn select_cache(&self, level: u8, ind: CsselrCacheType) {
-        assert!(level<8);
         unsafe { self.csselr.write(
             (((level as u32) << CSSELR_LEVEL_POS) & CSSELR_LEVEL_MASK) |
             (((ind   as u32) <<   CSSELR_IND_POS) &   CSSELR_IND_MASK)

@@ -1019,8 +1019,8 @@ impl Cbp {
         // Cortex-M7 have a DCACHE or ICACHE at all, it seems safe to do the same thing as the
         // CMSIS-Core implementation and use fixed values.
         unsafe { self.dcisw.write(
-            (((way as u32) << CBP_SW_WAY_POS) & CBP_SW_WAY_MASK) |
-            (((set as u32) << CBP_SW_SET_POS) & CBP_SW_SET_MASK));
+            (((way as u32) & (CBP_SW_WAY_MASK >> CBP_SW_WAY_POS)) << CBP_SW_WAY_POS) |
+            (((set as u32) & (CBP_SW_SET_MASK >> CBP_SW_SET_POS)) << CBP_SW_SET_POS));
         }
     }
 
@@ -1043,8 +1043,8 @@ impl Cbp {
     pub fn dccsw(&self, set: u16, way: u16) {
         // See comment for dcisw() about the format here
         unsafe { self.dccsw.write(
-            (((way as u32) << CBP_SW_WAY_POS) & CBP_SW_WAY_MASK) |
-            (((set as u32) << CBP_SW_SET_POS) & CBP_SW_SET_MASK));
+            (((way as u32) & (CBP_SW_WAY_MASK >> CBP_SW_WAY_POS)) << CBP_SW_WAY_POS) |
+            (((set as u32) & (CBP_SW_SET_MASK >> CBP_SW_SET_POS)) << CBP_SW_SET_POS));
         }
     }
 
@@ -1061,8 +1061,8 @@ impl Cbp {
     pub fn dccisw(&self, set: u16, way: u16) {
         // See comment for dcisw() about the format here
         unsafe { self.dccisw.write(
-            (((way as u32) << CBP_SW_WAY_POS) & CBP_SW_WAY_MASK) |
-            (((set as u32) << CBP_SW_SET_POS) & CBP_SW_SET_MASK));
+            (((way as u32) & (CBP_SW_WAY_MASK >> CBP_SW_WAY_POS)) << CBP_SW_WAY_POS) |
+            (((set as u32) & (CBP_SW_SET_MASK >> CBP_SW_SET_POS)) << CBP_SW_SET_POS));
         }
     }
 

@@ -712,20 +712,25 @@ impl Scb {
     /// Invalidates cache starting from the lowest 32-byte aligned address represented by `addr`,
     /// in blocks of 32 bytes until at least `size` bytes have been invalidated.
     #[inline]
-    pub fn invalidate_dcache_by_address(&self, addr: u32, size: u32) {
+    pub fn invalidate_dcache_by_address(&self, addr: usize, size: usize) {
+        // No-op zero sized operations
+        if size == 0 {
+            return;
+        }
+
         // All of CBP is write-only so no data races are possible
         let cbp = unsafe { &mut *CBP.get() };
 
         ::asm::dsb();
 
-
         // Cache lines are fixed to 32 bit on Cortex-M7 and not present in earlier Cortex-M
-        const LINESIZE: u32 = 32;
+        const LINESIZE: usize = 32;
+        let num_lines = ((size - 1)/LINESIZE) + 1;
 
         let mut addr = addr & 0xFFFF_FFE0;
 
-        for _ in 0..(size/LINESIZE) {
-            cbp.dcimvac(addr);
+        for _ in 0..num_lines {
+            cbp.dcimvac(addr as u32);
             addr += LINESIZE;
         }
 
@@ -741,19 +746,25 @@ impl Scb {
     /// Cleans cache starting from the lowest 32-byte aligned address represented by `addr`,
     /// in blocks of 32 bytes until at least `size` bytes have been cleaned.
     #[inline]
-    pub fn clean_dcache_by_address(&self, addr: u32, size: u32) {
+    pub fn clean_dcache_by_address(&self, addr: usize, size: usize) {
+        // No-op zero sized operations
+        if size == 0 {
+            return;
+        }
+
         // All of CBP is write-only so no data races are possible
         let cbp = unsafe { &mut *CBP.get() };
 
         ::asm::dsb();
 
         // Cache lines are fixed to 32 bit on Cortex-M7 and not present in earlier Cortex-M
-        const LINESIZE: u32 = 32;
+        const LINESIZE: usize = 32;
+        let num_lines = ((size - 1)/LINESIZE) + 1;
 
         let mut addr = addr & 0xFFFF_FFE0;
 
-        for _ in 0..(size/LINESIZE) {
-            cbp.dccmvac(addr);
+        for _ in 0..num_lines {
+            cbp.dccmvac(addr as u32);
             addr += LINESIZE;
         }
 
@@ -770,19 +781,25 @@ impl Scb {
     /// by `addr`, in blocks of 32 bytes until at least `size` bytes have been cleaned and
     /// invalidated.
     #[inline]
-    pub fn clean_invalidate_dcache_by_address(&self, addr: u32, size: u32) {
+    pub fn clean_invalidate_dcache_by_address(&self, addr: usize, size: usize) {
+        // No-op zero sized operations
+        if size == 0 {
+            return;
+        }
+
         // All of CBP is write-only so no data races are possible
         let cbp = unsafe { &mut *CBP.get() };
 
         ::asm::dsb();
 
         // Cache lines are fixed to 32 bit on Cortex-M7 and not present in earlier Cortex-M
-        const LINESIZE: u32 = 32;
+        const LINESIZE: usize = 32;
+        let num_lines = ((size - 1)/LINESIZE) + 1;
 
         let mut addr = addr & 0xFFFF_FFE0;
 
-        for _ in 0..(size/LINESIZE) {
-            cbp.dccimvac(addr);
+        for _ in 0..num_lines {
+            cbp.dccimvac(addr as u32);
             addr += LINESIZE;
         }
 

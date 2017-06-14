@@ -1005,6 +1005,8 @@ impl Cbp {
     }
 
     /// D-cache invalidate by set-way
+    ///
+    /// `set` is masked to be between 0 and 3, and `way` between 0 and 511.
     #[inline(always)]
     pub fn dcisw(&self, set: u16, way: u16) {
         // The ARMv7-M Architecture Reference Manual, as of Revision E.b, says these set/way
@@ -1035,6 +1037,8 @@ impl Cbp {
     }
 
     /// D-cache clean by set-way
+    ///
+    /// `set` is masked to be between 0 and 3, and `way` between 0 and 511.
     #[inline(always)]
     pub fn dccsw(&self, set: u16, way: u16) {
         // See comment for dcisw() about the format here
@@ -1051,6 +1055,8 @@ impl Cbp {
     }
 
     /// D-cache clean and invalidate by set-way
+    ///
+    /// `set` is masked to be between 0 and 3, and `way` between 0 and 511.
     #[inline(always)]
     pub fn dccisw(&self, set: u16, way: u16) {
         // See comment for dcisw() about the format here

@@ -113,15 +113,6 @@ pub struct Cpuid {
     pub csselr: RW<u32>,
 }
 
-const CSSELR_IND_POS: u32 = 0;
-const CSSELR_IND_MASK: u32 = 1 << CSSELR_IND_POS;
-const CSSELR_LEVEL_POS: u32 = 1;
-const CSSELR_LEVEL_MASK: u32 = 0x7 << CSSELR_LEVEL_POS;
-const CCSIDR_NUMSETS_POS: u32 = 13;
-const CCSIDR_NUMSETS_MASK: u32 = 0x7FFF << CCSIDR_NUMSETS_POS;
-const CCSIDR_ASSOCIATIVITY_POS: u32 = 3;
-const CCSIDR_ASSOCIATIVITY_MASK: u32 = 0x3FF << CCSIDR_ASSOCIATIVITY_POS;
-
 /// Type of cache to select on CSSELR writes.
 #[cfg(armv7m)]
 pub enum CsselrCacheType {
@@ -140,6 +131,11 @@ impl Cpuid {
     ///
     /// `level` is masked to be between 0 and 7.
     pub fn select_cache(&self, level: u8, ind: CsselrCacheType) {
+        const CSSELR_IND_POS: u32 = 0;
+        const CSSELR_IND_MASK: u32 = 1 << CSSELR_IND_POS;
+        const CSSELR_LEVEL_POS: u32 = 1;
+        const CSSELR_LEVEL_MASK: u32 = 0x7 << CSSELR_LEVEL_POS;
+
         unsafe { self.csselr.write(
             (((level as u32) << CSSELR_LEVEL_POS) & CSSELR_LEVEL_MASK) |
             (((ind   as u32) <<   CSSELR_IND_POS) &   CSSELR_IND_MASK)
@@ -148,6 +144,11 @@ impl Cpuid {
 
     /// Returns the number of sets and ways in the selected cache
     pub fn cache_num_sets_ways(&self, level: u8, ind: CsselrCacheType) -> (u16, u16) {
+        const CCSIDR_NUMSETS_POS: u32 = 13;
+        const CCSIDR_NUMSETS_MASK: u32 = 0x7FFF << CCSIDR_NUMSETS_POS;
+        const CCSIDR_ASSOCIATIVITY_POS: u32 = 3;
+        const CCSIDR_ASSOCIATIVITY_MASK: u32 = 0x3FF << CCSIDR_ASSOCIATIVITY_POS;
+
         self.select_cache(level, ind);
         ::asm::dsb();
         let ccsidr = self.ccsidr.read();
@@ -490,9 +491,6 @@ pub enum FpuAccessMode {
     Privileged,
 }
 
-const SCB_CCR_IC_MASK: u32 = (1<<17);
-const SCB_CCR_DC_MASK: u32 = (1<<16);
-
 const SCB_CPACR_FPU_MASK: u32 = 0b11_11 << 20;
 const SCB_CPACR_FPU_ENABLE: u32 = 0b01_01 << 20;
 const SCB_CPACR_FPU_USER: u32 = 0b10_10 << 20;
@@ -535,6 +533,15 @@ impl Scb {
         self.set_fpu_access_mode(FpuAccessMode::Disabled)
     }
 }
+
+#[cfg(armv7m)]
+mod scb_consts {
+    pub const SCB_CCR_IC_MASK: u32 = (1<<17);
+    pub const SCB_CCR_DC_MASK: u32 = (1<<16);
+}
+
+#[cfg(armv7m)]
+use self::scb_consts::*;
 
 #[cfg(armv7m)]
 impl Scb {
@@ -996,10 +1003,16 @@ pub struct Cbp {
     pub bpiall: WO<u32>,
 }
 
-const CBP_SW_WAY_POS: u32 = 30;
-const CBP_SW_WAY_MASK: u32 = 0x3 << CBP_SW_WAY_POS;
-const CBP_SW_SET_POS: u32 = 5;
-const CBP_SW_SET_MASK: u32 = 0x1FF << CBP_SW_SET_POS;
+#[cfg(armv7m)]
+mod cbp_consts {
+    pub const CBP_SW_WAY_POS: u32 = 30;
+    pub const CBP_SW_WAY_MASK: u32 = 0x3 << CBP_SW_WAY_POS;
+    pub const CBP_SW_SET_POS: u32 = 5;
+    pub const CBP_SW_SET_MASK: u32 = 0x1FF << CBP_SW_SET_POS;
+}
+
+#[cfg(armv7m)]
+use self::cbp_consts::*;
 
 #[cfg(armv7m)]
 impl Cbp {

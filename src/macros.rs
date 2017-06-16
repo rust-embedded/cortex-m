@@ -2,7 +2,7 @@
 #[macro_export]
 macro_rules! ehprint {
     ($s:expr) => {
-        $crate::semihosting:::io:ewrite_str($s);
+        $crate::semihosting::io::ewrite_str($s);
     };
     ($($arg:tt)*) => {
         $crate::semihosting::io::ewrite_fmt(format_args!($($arg)*));

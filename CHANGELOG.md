@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.2.11] - 2017-06-16
+
+### Added
+
+- An API to maintain the different caches (DCache, ICache) on Cortex M7 devices.
+
+### Fixed
+
+- the definition of the `ehprint!` macro.
+- the implementation of the FPU API.
+
 ## [v0.2.10] - 2017-06-05
 
 ### Added
@@ -296,7 +307,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.2.10...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.2.11...HEAD
+[v0.2.11]: https://github.com/japaric/cortex-m/compare/v0.2.10...v0.2.11
 [v0.2.10]: https://github.com/japaric/cortex-m/compare/v0.2.9...v0.2.10
 [v0.2.9]: https://github.com/japaric/cortex-m/compare/v0.2.8...v0.2.9
 [v0.2.8]: https://github.com/japaric/cortex-m/compare/v0.2.7...v0.2.8

@@ -8,12 +8,12 @@ SECTIONS
     _svector_table = .;
     LONG(_stack_start);
 
-    KEEP(*(.vector_table.reset_handler));
+    KEEP(*(.vector_table.reset_vector));
 
-    KEEP(*(.rodata.exceptions));
+    KEEP(*(.vector_table.exceptions));
     _eexceptions = .;
 
-    KEEP(*(.rodata.interrupts));
+    KEEP(*(.vector_table.interrupts));
     _einterrupts = .;
   } > FLASH
 
@@ -101,23 +101,23 @@ ASSERT(_eexceptions - ORIGIN(FLASH) > 8, "
 You must specify the exception handlers.
 Create a non `pub` static variable with type
 `cortex_m::exception::Handlers` and place it in the
-'.rodata.exceptions' section. (cf. #[link_section]). Apply the
+'.vector_table.exceptions' section. (cf. #[link_section]). Apply the
 `#[used]` attribute to the variable to make it reach the linker.");
 
 ASSERT(_eexceptions - ORIGIN(FLASH) == 0x40, "
-Invalid '.rodata.exceptions' section.
+Invalid '.vector_table.exceptions' section.
 Make sure to place a static with type `cortex_m::exception::Handlers`
 in that section (cf. #[link_section]) ONLY ONCE.");
 
 ASSERT(_einterrupts - _eexceptions > 0, "
 You must specify the interrupt handlers.
 Create a non `pub` static variable and place it in the
-'.rodata.interrupts' section. (cf. #[link_section]). Apply the
+'.vector_table.interrupts' section. (cf. #[link_section]). Apply the
 `#[used]` attribute to the variable to help it reach the linker.");
 
 ASSERT(_einterrupts - _eexceptions <= 0x3c0, "
 There can't be more than 240 interrupt handlers.
-Fix the '.rodata.interrupts' section. (cf. #[link_section])");
+Fix the '.vector_table.interrupts' section. (cf. #[link_section])");
 
 ASSERT(_einterrupts <= _stext, "
 The '.text' section can't be placed inside '.vector_table' section.

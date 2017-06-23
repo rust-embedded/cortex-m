@@ -118,7 +118,8 @@
 //!     hprintln!("Hello, world!");
 //! }
 //!
-//! // As we are not using interrupts, we just register a dummy catch all handler
+//! // As we are not using interrupts, we just register a dummy catch all
+//! // handler
 //! #[allow(dead_code)]
 //! #[link_section = ".rodata.interrupts"]
 //! #[used]
@@ -150,8 +151,10 @@
 #![deny(warnings)]
 #![feature(asm)]
 #![feature(compiler_builtins_lib)]
+#![feature(core_intrinsics)]
 #![feature(lang_items)]
 #![feature(linkage)]
+#![feature(naked_functions)]
 #![feature(used)]
 #![no_std]
 
@@ -161,8 +164,10 @@ extern crate r0;
 
 mod lang_items;
 
-#[cfg(feature = "exceptions")]
-use cortex_m::exception;
+use core::intrinsics;
+
+use cortex_m::asm;
+use cortex_m::exception::ExceptionFrame;
 
 extern "C" {
     // NOTE `rustc` forces this signature on us. See `src/lang_items.rs`
@@ -179,6 +184,10 @@ extern "C" {
     // Initial values of the .data section (stored in Flash)
     static _sidata: u32;
 }
+
+#[link_section = ".vector_table.reset_vector"]
+#[used]
+static RESET_VECTOR: unsafe extern "C" fn() -> ! = reset_handler;
 
 /// The reset handler
 ///
@@ -220,19 +229,303 @@ unsafe extern "C" fn reset_handler() -> ! {
     // If `main` returns, then we go into "reactive" mode and simply attend
     // interrupts as they occur.
     loop {
-        #[cfg(target_arch = "arm")]
         asm!("wfi" :::: "volatile");
     }
 }
+#[allow(non_snake_case)]
+#[allow(private_no_mangle_fns)]
+#[linkage = "weak"]
+#[naked]
+#[no_mangle]
+extern "C" fn NMI() {
+    unsafe {
+        asm!("b DEFAULT_HANDLER" :::: "volatile");
+        intrinsics::unreachable();
+    }
+}
 
-#[allow(dead_code)]
-#[used]
-#[link_section = ".vector_table.reset_handler"]
-static RESET_HANDLER: unsafe extern "C" fn() -> ! = reset_handler;
+#[allow(non_snake_case)]
+#[allow(private_no_mangle_fns)]
+#[linkage = "weak"]
+#[naked]
+#[no_mangle]
+extern "C" fn HARD_FAULT() {
+    unsafe {
+        asm!("b DEFAULT_HANDLER" :::: "volatile");
+        intrinsics::unreachable();
+    }
+}
 
-#[allow(dead_code)]
-#[cfg(feature = "exceptions")]
-#[link_section = ".rodata.exceptions"]
+#[allow(non_snake_case)]
+#[allow(private_no_mangle_fns)]
+#[linkage = "weak"]
+#[naked]
+#[no_mangle]
+extern "C" fn MEM_MANAGE() {
+    unsafe {
+        asm!("b DEFAULT_HANDLER" :::: "volatile");
+        intrinsics::unreachable();
+    }
+}
+
+#[allow(non_snake_case)]
+#[allow(private_no_mangle_fns)]
+#[linkage = "weak"]
+#[naked]
+#[no_mangle]
+extern "C" fn BUS_FAULT() {
+    unsafe {
+        asm!("b DEFAULT_HANDLER" :::: "volatile");
+        intrinsics::unreachable();
+    }
+}
+
+#[allow(non_snake_case)]
+#[allow(private_no_mangle_fns)]
+#[linkage = "weak"]
+#[naked]
+#[no_mangle]
+extern "C" fn USAGE_FAULT() {
+    unsafe {
+        asm!("b DEFAULT_HANDLER" :::: "volatile");
+        intrinsics::unreachable();
+    }
+}
+
+#[allow(non_snake_case)]
+#[allow(private_no_mangle_fns)]
+#[linkage = "weak"]
+#[naked]
+#[no_mangle]
+extern "C" fn SVCALL() {
+    unsafe {
+        asm!("b DEFAULT_HANDLER" :::: "volatile");
+        intrinsics::unreachable();
+    }
+}
+
+#[allow(non_snake_case)]
+#[allow(private_no_mangle_fns)]
+#[linkage = "weak"]
+#[naked]
+#[no_mangle]
+extern "C" fn PENDSV() {
+    unsafe {
+        asm!("b DEFAULT_HANDLER" :::: "volatile");
+        intrinsics::unreachable();
+    }
+}
+
+#[allow(non_snake_case)]
+#[allow(private_no_mangle_fns)]
+#[linkage = "weak"]
+#[naked]
+#[no_mangle]
+extern "C" fn SYS_TICK() {
+    unsafe {
+        asm!("b DEFAULT_HANDLER" :::: "volatile");
+        intrinsics::unreachable();
+    }
+}
+
 #[used]
-static EXCEPTIONS: exception::Handlers =
-    exception::Handlers { ..exception::DEFAULT_HANDLERS };
+#[link_section = ".vector_table.exceptions"]
+static EXCEPTIONS: [Option<unsafe extern "C" fn()>; 14] = [
+    Some(NMI),
+    Some(HARD_FAULT),
+    Some(MEM_MANAGE),
+    Some(BUS_FAULT),
+    Some(USAGE_FAULT),
+    None,
+    None,
+    None,
+    None,
+    Some(SVCALL),
+    None,
+    None,
+    Some(PENDSV),
+    Some(SYS_TICK),
+];
+
+extern "C" {
+    static INTERRUPTS: u32;
+}
+
+// NOTE here we create an undefined reference to the `INTERRUPTS` symbol. This
+// symbol will be provided by the device crate and points to the part of the
+// vector table that contains the device specific interrupts. We need this
+// undefined symbol because otherwise the linker may not include the interrupts
+// part of the vector table in the final binary. This can occur when LTO is
+// *not* used and several objects are passed to the linker: since the linker is
+// lazy it will not look at object files if it has found all the undefined
+// symbols that the top crate depends on; in that scenario it may never reach
+// the device crate (unlikely scenario but not impossible). With the undefined
+// symbol we force the linker to look for the missing part of the vector table.
+#[used]
+static DEMAND: &u32 = unsafe { &INTERRUPTS };
+
+/// `sf` points to the previous stack frame
+///
+/// That stack frame is a snapshot of the program state right before the
+/// exception occurred.
+#[allow(unused_variables)]
+extern "C" fn default_handler(sf: &ExceptionFrame) -> ! {
+    asm::bkpt();
+
+    loop {}
+
+    #[export_name = "DEFAULT_HANDLER"]
+    #[linkage = "weak"]
+    #[naked]
+    extern "C" fn trampoline() -> ! {
+        unsafe {
+            asm!("mrs r0, MSP
+                 b $0"
+                 :
+                 : "i"(default_handler as extern "C" fn(&ExceptionFrame) -> !)
+                 :
+                 : "volatile");
+
+            intrinsics::unreachable()
+        }
+    }
+
+    #[used]
+    static KEEP: extern "C" fn() -> ! = trampoline;
+}
+
+// make sure the compiler emits the DEFAULT_HANDLER symbol so the linker can
+// find it!
+#[used]
+static KEEP: extern "C" fn(&ExceptionFrame) -> ! = default_handler;
+
+/// This macro lets you override the default exception handler
+///
+/// The first and only argument to this macro is the path to the function that
+/// will be used as the default handler. That function must have signature
+/// `fn()`
+///
+/// # Examples
+///
+/// ``` ignore
+/// default_handler!(foo::bar);
+///
+/// mod foo {
+///     pub fn bar() {
+///         ::cortex_m::asm::bkpt();
+///         loop {}
+///     }
+/// }
+/// ```
+#[macro_export]
+macro_rules! default_handler {
+    ($body:path) => {
+        #[allow(non_snake_case)]
+        #[doc(hidden)]
+        #[no_mangle]
+        pub unsafe extern "C" fn DEFAULT_HANDLER() {
+            // type checking
+            let f: fn() = $body;
+            f();
+        }
+    }
+}
+
+/// Fault and system exceptions
+#[allow(non_camel_case_types)]
+#[doc(hidden)]
+pub enum Exception {
+    /// Non-maskable interrupt
+    NMI,
+    /// All class of fault.
+    HARD_FAULT,
+    /// Memory management.
+    MEN_MANAGE,
+    /// Pre-fetch fault, memory access fault.
+    BUS_FAULT,
+    /// Undefined instruction or illegal state.
+    USAGE_FAULT,
+    /// System service call via SWI instruction
+    SVCALL,
+    /// Pendable request for system service
+    PENDSV,
+    /// System tick timer
+    SYS_TICK,
+}
+
+/// Assigns a handler to an exception
+///
+/// This macro takes two arguments: the name of an exception and the path to the
+/// function that will be used as the handler of that exception. That function
+/// must have signature `fn()`.
+///
+/// Optionally a third argument may be used to declare static variables local to
+/// this exception handler. The handler will have exclusive access to these
+/// variables on each invocation. If the third argument is used then the
+/// signature of the handler function must be `fn(&mut $NAME::Local)` where
+/// `$NAME` is the first argument passed to the macro.
+///
+/// # Example
+///
+/// ``` ignore
+/// exception!(MEM_MANAGE, mpu_fault);
+///
+/// fn mpu_fault() {
+///     panic!("Oh no! Something went wrong");
+/// }
+///
+/// exception!(SYS_TICK, periodic, local: {
+///     counter: u32 = 0;
+/// });
+///
+/// fn periodic(local: &mut SYS_TICK::Local) {
+///     local.counter += 1;
+///     println!("This function has been called {} times", local.counter);
+/// }
+/// ```
+#[macro_export]
+macro_rules! exception {
+    ($NAME:ident, $body:path, local: {
+        $($lvar:ident:$lty:ident = $lval:expr;)+
+    }) => {
+        #[allow(non_snake_case)]
+        mod $NAME {
+            pub struct Local {
+                $(
+                    pub $lvar: $lty,
+                )+
+            }
+        }
+
+        #[allow(non_snake_case)]
+        #[doc(hidden)]
+        #[no_mangle]
+        pub unsafe extern "C" fn $NAME() {
+            // check that the handler exists
+            let _ = $crate::Exception::$NAME;
+
+            static mut LOCAL: self::$NAME::Local = self::$NAME::Local {
+                $(
+                    $lvar: $lval,
+                )*
+            };
+
+            // type checking
+            let f: fn(&mut self::$NAME::Local) = $body;
+            f(unsafe { &mut LOCAL });
+        }
+    };
+    ($NAME:ident, $body:path) => {
+        #[allow(non_snake_case)]
+        #[doc(hidden)]
+        #[no_mangle]
+        pub unsafe extern "C" fn $NAME() {
+            // check that the handler exists
+            let _ = $crate::Exception::$NAME;
+
+            // type checking
+            let f: fn() = $body;
+            f();
+        }
+    }
+}

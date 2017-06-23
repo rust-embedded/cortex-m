@@ -1,29 +1,12 @@
 //! Exceptions
 
-use ctxt::Context;
-use Reserved;
+#![allow(non_camel_case_types)]
 
 /// Enumeration of all exceptions
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum Exception {
-    /// i.e. currently not servicing an exception
-    ThreadMode,
-    /// Non-maskable interrupt.
-    Nmi,
-    /// All class of fault.
-    HardFault,
-    /// Memory management.
-    MemoryManagementFault,
-    /// Pre-fetch fault, memory access fault.
-    BusFault,
-    /// Undefined instruction or illegal state.
-    UsageFault,
-    /// System service call via SWI instruction
-    SVCall,
-    /// Pendable request for system service
-    PendSV,
-    /// System tick timer
-    Systick,
+pub enum Vector {
+    /// Fault or system exception
+    Exception(Exception),
     /// An interrupt
     Interrupt(u8),
     // Unreachable variant
@@ -31,161 +14,27 @@ pub enum Exception {
     Reserved,
 }
 
-impl Exception {
+impl Vector {
     /// Returns the kind of exception that's currently being serviced
-    pub fn current() -> Exception {
-        match unsafe { (*::peripheral::SCB.get()).icsr.read() } as u8 {
-            0 => Exception::ThreadMode,
-            2 => Exception::Nmi,
-            3 => Exception::HardFault,
-            4 => Exception::MemoryManagementFault,
-            5 => Exception::BusFault,
-            6 => Exception::UsageFault,
-            11 => Exception::SVCall,
-            14 => Exception::PendSV,
-            15 => Exception::Systick,
-            n if n >= 16 => Exception::Interrupt(n - 16),
-            _ => Exception::Reserved,
+    pub fn active() -> Option<Vector> {
+        // NOTE(safe) atomic read
+        let icsr = unsafe { (*::peripheral::SCB.get()).icsr.read() };
+        if icsr == 0 {
+            return None;
         }
-    }
-}
 
-/// Exception handlers
-#[repr(C)]
-pub struct Handlers {
-    /// Non-maskable interrupt
-    pub nmi: extern "C" fn(Nmi),
-    /// All class of fault
-    pub hard_fault: extern "C" fn(HardFault),
-    /// Memory management
-    pub mem_manage: extern "C" fn(MemManage),
-    /// Pre-fetch fault, memory access fault
-    pub bus_fault: extern "C" fn(BusFault),
-    /// Undefined instruction or illegal state
-    pub usage_fault: extern "C" fn(UsageFault),
-    /// Reserved spots in the vector table
-    pub _reserved0: [Reserved; 4],
-    /// System service call via SWI instruction
-    pub svcall: extern "C" fn(Svcall),
-    /// Reserved spots in the vector table
-    pub _reserved1: [Reserved; 2],
-    /// Pendable request for system service
-    pub pendsv: extern "C" fn(Pendsv),
-    /// System tick timer
-    pub sys_tick: extern "C" fn(SysTick),
-}
-
-/// Non-maskable interrupt
-pub struct Nmi {
-    _0: (),
-}
-
-/// All class of fault
-pub struct HardFault {
-    _0: (),
-}
-
-/// Memory management
-pub struct MemManage {
-    _0: (),
-}
-
-/// Pre-fetch fault, memory access fault
-pub struct BusFault {
-    _0: (),
-}
-
-/// Undefined instruction or illegal state
-pub struct UsageFault {
-    _0: (),
-}
-
-/// System service call via SWI instruction
-pub struct Svcall {
-    _0: (),
-}
-
-/// Pendable request for system service
-pub struct Pendsv {
-    _0: (),
-}
-
-/// System tick timer
-pub struct SysTick {
-    _0: (),
-}
-
-unsafe impl Context for Nmi {}
-
-unsafe impl Context for HardFault {}
-
-unsafe impl Context for MemManage {}
-
-unsafe impl Context for BusFault {}
-
-unsafe impl Context for UsageFault {}
-
-unsafe impl Context for Svcall {}
-
-unsafe impl Context for Pendsv {}
-
-unsafe impl Context for SysTick {}
-
-/// Default exception handlers
-pub const DEFAULT_HANDLERS: Handlers = Handlers {
-    _reserved0: [Reserved::Vector; 4],
-    _reserved1: [Reserved::Vector; 2],
-    bus_fault: default_handler,
-    hard_fault: default_handler,
-    mem_manage: default_handler,
-    nmi: default_handler,
-    pendsv: default_handler,
-    svcall: default_handler,
-    sys_tick: default_handler,
-    usage_fault: default_handler,
-};
-
-/// The default exception handler
-///
-/// This handler triggers a breakpoint (`bkpt`) and gives you access, within a
-/// GDB session, to the stack frame (`_sf`) where the exception occurred.
-// This needs asm!, #[naked] and unreachable() to avoid modifying the stack
-// pointer (MSP), that way it points to the stacked registers
-#[naked]
-pub extern "C" fn default_handler<T>(_token: T)
-where
-    T: Context,
-{
-    // This is the actual exception handler. `_sr` is a pointer to the previous
-    // stack frame
-    #[cfg(target_arch = "arm")]
-    extern "C" fn handler(_sr: &StackedRegisters) -> ! {
-        // What exception is currently being serviced
-        let _e = Exception::current();
-
-        ::asm::bkpt();
-
-        loop {}
-    }
-
-    match () {
-        #[cfg(target_arch = "arm")]
-        () => {
-            unsafe {
-                // "trampoline" to get to the real exception handler.
-                asm!("mrs r0, MSP
-                  ldr r1, [r0, #20]
-                  b $0"
-                     :
-                     : "i"(handler as extern "C" fn(&StackedRegisters) -> !)
-                     :
-                     : "volatile");
-
-                ::core::intrinsics::unreachable()
-            }
-        }
-        #[cfg(not(target_arch = "arm"))]
-        () => {}
+        Some(match icsr as u8 {
+            2 => Vector::Exception(Exception::NMI),
+            3 => Vector::Exception(Exception::HARD_FAULT),
+            4 => Vector::Exception(Exception::MEN_MANAGE),
+            5 => Vector::Exception(Exception::BUS_FAULT),
+            6 => Vector::Exception(Exception::USAGE_FAULT),
+            11 => Vector::Exception(Exception::SVCALL),
+            14 => Vector::Exception(Exception::PENDSV),
+            15 => Vector::Exception(Exception::SYS_TICK),
+            n if n >= 16 => Vector::Interrupt(n - 16),
+            _ => Vector::Reserved,
+        })
     }
 }
 
@@ -209,4 +58,110 @@ pub struct StackedRegisters {
     pub pc: u32,
     /// Program Status Register
     pub xpsr: u32,
+}
+
+#[macro_export]
+macro_rules! default_handler {
+    ($f:ident, local: {
+        $($lvar:ident:$lty:ident = $lval:expr;)*
+    }) => {
+        #[allow(non_snake_case)]
+        mod DEFAULT_HANDLER {
+            pub struct Locals {
+                $(
+                    pub $lvar: $lty,
+                )*
+            }
+        }
+
+        #[allow(non_snake_case)]
+        #[no_mangle]
+        pub extern "C" fn DEFAULT_HANDLER() {
+            static mut LOCALS: self::DEFAULT_HANDLER::Locals =
+                self::DEFAULT_HANDLER::Locals {
+                    $(
+                        $lvar: $lval,
+                    )*
+                };
+
+            // type checking
+            let f: fn(&mut self::DEFAULT_HANDLER::Locals) = $f;
+            f(unsafe { &mut LOCALS });
+        }
+    };
+    ($f:ident) => {
+        #[allow(non_snake_case)]
+        #[no_mangle]
+        pub extern "C" fn DEFAULT_HANDLER() {
+            // type checking
+            let f: fn() = $f;
+            f();
+        }
+    }
+}
+
+/// Fault and system exceptions
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Exception {
+    /// Non-maskable interrupt
+    NMI,
+    /// All class of fault.
+    HARD_FAULT,
+    /// Memory management.
+    MEN_MANAGE,
+    /// Pre-fetch fault, memory access fault.
+    BUS_FAULT,
+    /// Undefined instruction or illegal state.
+    USAGE_FAULT,
+    /// System service call via SWI instruction
+    SVCALL,
+    /// Pendable request for system service
+    PENDSV,
+    /// System tick timer
+    SYS_TICK,
+}
+
+#[macro_export]
+macro_rules! exception {
+    ($NAME:ident, $f:path, local: {
+        $($lvar:ident:$lty:ident = $lval:expr;)*
+    }) => {
+        #[allow(non_snake_case)]
+        mod $NAME {
+            pub struct Locals {
+                $(
+                    pub $lvar: $lty,
+                )*
+            }
+        }
+
+        #[allow(non_snake_case)]
+        #[no_mangle]
+        pub extern "C" fn $NAME() {
+            // check that the handler exists
+            let _ = $crate::exception::Exception::$NAME;
+
+            static mut LOCALS: self::$NAME::Locals = self::$NAME::Locals {
+                $(
+                    $lvar: $lval,
+                )*
+            };
+
+            // type checking
+            let f: fn(&mut self::$NAME::Locals) = $f;
+            f(unsafe { &mut LOCALS });
+        }
+    };
+    ($NAME:ident, $f:path) => {
+        #[allow(non_snake_case)]
+        #[no_mangle]
+        pub extern "C" fn $NAME() {
+            // check that the handler exists
+            let _ = $crate::exception::Exception::$NAME;
+
+            // type checking
+            let f: fn() = $f;
+            f();
+        }
+    }
 }

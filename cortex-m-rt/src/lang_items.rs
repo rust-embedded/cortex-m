@@ -6,32 +6,21 @@ unsafe extern "C" fn panic_fmt(
     _file: &'static str,
     _line: u32,
 ) -> ! {
-    match () {
-        #[cfg(feature = "panic-over-itm")]
-        () => {
-            use cortex_m::itm;
-            use cortex_m::peripheral::ITM;
+    ::core::intrinsics::abort()
+}
 
-            let port = &(*ITM.get()).stim[0];
-            iprint!(port, "panicked at '");
-            itm::write_fmt(port, _args);
-            iprintln!(port, "', {}:{}", _file, _line);
+#[macro_export]
+macro_rules! panic_fmt {
+    ($f:expr) => {
+        #[export_name = "rust_begin_unwind"]
+        pub unsafe extern "C" fn _panic_fmt(
+            args: ::core::fmt::Arguments,
+            file: &'static str,
+            line: u32,
+        ) -> ! {
+            $f(args, file, line)
         }
-        #[cfg(feature = "panic-over-semihosting")]
-        () => {
-            hprint!("panicked at '");
-            ::cortex_m_semihosting::io::write_fmt(_args);
-            hprintln!("', {}:{}", _file, _line);
-        }
-        #[cfg(not(any(feature = "panic-over-itm",
-                      feature = "panic-over-semihosting")))]
-        () => {}
     }
-
-    #[cfg(target_arch = "arm")]
-    asm!("bkpt" :::: "volatile");
-
-    loop {}
 }
 
 /// Lang item required to make the normal `main` work in applications

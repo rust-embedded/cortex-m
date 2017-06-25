@@ -149,18 +149,15 @@
 #![deny(warnings)]
 #![feature(asm)]
 #![feature(compiler_builtins_lib)]
+#![feature(core_intrinsics)]
 #![feature(lang_items)]
 #![feature(linkage)]
 #![feature(used)]
 #![no_std]
 
-#[cfg(any(feature = "panic-over-itm", feature = "exceptions"))]
-#[cfg_attr(feature = "panic-over-itm", macro_use)]
+#[cfg(feature = "exceptions")]
 extern crate cortex_m;
 extern crate compiler_builtins;
-#[cfg(feature = "panic-over-semihosting")]
-#[macro_use]
-extern crate cortex_m_semihosting;
 extern crate r0;
 
 mod lang_items;

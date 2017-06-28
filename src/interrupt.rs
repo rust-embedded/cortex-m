@@ -81,6 +81,10 @@ pub struct CriticalSection {
     _0: (),
 }
 
+macro_rules! barrier {
+    () => { asm!("" ::: "memory" : "volatile") }
+}
+
 /// Execute closure `f` in an interrupt-free context.
 ///
 /// This as also known as a "critical section".
@@ -93,7 +97,9 @@ where
     // disable interrupts
     disable();
 
+    unsafe { barrier!() }
     let r = f(&CriticalSection { _0: () });
+    unsafe { barrier!() }
 
     // If the interrupts were active before our `disable` call, then re-enable
     // them. Otherwise, keep them disabled

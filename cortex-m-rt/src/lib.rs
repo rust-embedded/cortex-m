@@ -189,20 +189,33 @@ unsafe extern "C" fn reset_handler() -> ! {
     r0::init_data(&mut _sdata, &mut _edata, &_sidata);
 
     match () {
+        #[cfg(not(has_fpu))]
+        () => {
+            // Neither `argc` or `argv` make sense in bare metal context so we just
+            // stub them
+            main(0, ::core::ptr::null());
+        }
         #[cfg(has_fpu)]
         () => {
             // NOTE(safe) no exception / interrupt that also accesses the FPU
             // can occur here
             let scb = &*cortex_m::peripheral::SCB.get();
             scb.enable_fpu();
-        }
-        #[cfg(not(has_fpu))]
-        () => {}
-    }
 
-    // Neither `argc` or `argv` make sense in bare metal context so we just
-    // stub them
-    main(0, ::core::ptr::null());
+            // Make sure the user main function never gets inlined into this
+            // function as that may cause FPU related instructions like vpush to
+            // be executed *before* enabling the FPU and that would generate an
+            // exception
+            #[inline(never)]
+            fn main() {
+                unsafe {
+                    ::main(0, ::core::ptr::null());
+                }
+            }
+
+            main()
+        }
+    }
 
     // If `main` returns, then we go into "reactive" mode and simply attend
     // interrupts as they occur.

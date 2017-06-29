@@ -104,12 +104,16 @@ pub struct Cpuid {
     pub isar: [RO<u32>; 5],
     reserved1: u32,
     /// Cache Level ID
+    #[cfg(armv7m)]
     pub clidr: RO<u32>,
     /// Cache Type
+    #[cfg(armv7m)]
     pub ctr: RO<u32>,
     /// Cache Size ID
+    #[cfg(armv7m)]
     pub ccsidr: RO<u32>,
     /// Cache Size Selection
+    #[cfg(armv7m)]
     pub csselr: RW<u32>,
 }
 

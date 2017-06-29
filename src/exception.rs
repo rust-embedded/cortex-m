@@ -53,7 +53,7 @@ impl Exception {
 /// Registers stacked (pushed into the stack) during an exception
 #[derive(Clone, Copy, Debug)]
 #[repr(C)]
-pub struct StackFrame {
+pub struct ExceptionFrame {
     /// (General purpose) Register 0
     pub r0: u32,
     /// (General purpose) Register 1

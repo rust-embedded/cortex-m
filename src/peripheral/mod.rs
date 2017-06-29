@@ -16,41 +16,41 @@ use interrupt::{CriticalSection, Nr};
 mod test;
 
 /// CPUID
-pub const CPUID: Peripheral<Cpuid> = unsafe { Peripheral::new(0xE000_ED00) };
+pub const CPUID: Peripheral<CPUID> = unsafe { Peripheral::new(0xE000_ED00) };
 
 /// Debug Control Block
-pub const DCB: Peripheral<Dcb> = unsafe { Peripheral::new(0xE000_EDF0) };
+pub const DCB: Peripheral<DCB> = unsafe { Peripheral::new(0xE000_EDF0) };
 
 /// Data Watchpoint and Trace unit
-pub const DWT: Peripheral<Dwt> = unsafe { Peripheral::new(0xE000_1000) };
+pub const DWT: Peripheral<DWT> = unsafe { Peripheral::new(0xE000_1000) };
 
 /// Flash Patch and Breakpoint unit
-pub const FPB: Peripheral<Fpb> = unsafe { Peripheral::new(0xE000_2000) };
+pub const FPB: Peripheral<FPB> = unsafe { Peripheral::new(0xE000_2000) };
 
 /// Floating Point Unit
-pub const FPU: Peripheral<Fpu> = unsafe { Peripheral::new(0xE000_EF30) };
+pub const FPU: Peripheral<FPU> = unsafe { Peripheral::new(0xE000_EF30) };
 
 /// Instrumentation Trace Macrocell
-pub const ITM: Peripheral<Itm> = unsafe { Peripheral::new(0xE000_0000) };
+pub const ITM: Peripheral<ITM> = unsafe { Peripheral::new(0xE000_0000) };
 
 /// Memory Protection Unit
-pub const MPU: Peripheral<Mpu> = unsafe { Peripheral::new(0xE000_ED90) };
+pub const MPU: Peripheral<MPU> = unsafe { Peripheral::new(0xE000_ED90) };
 
 /// Nested Vector Interrupt Controller
-pub const NVIC: Peripheral<Nvic> = unsafe { Peripheral::new(0xE000_E100) };
+pub const NVIC: Peripheral<NVIC> = unsafe { Peripheral::new(0xE000_E100) };
 
 /// System Control Block
-pub const SCB: Peripheral<Scb> = unsafe { Peripheral::new(0xE000_ED04) };
+pub const SCB: Peripheral<SCB> = unsafe { Peripheral::new(0xE000_ED04) };
 
 /// SysTick: System Timer
-pub const SYST: Peripheral<Syst> = unsafe { Peripheral::new(0xE000_E010) };
+pub const SYST: Peripheral<SYST> = unsafe { Peripheral::new(0xE000_E010) };
 
 /// Trace Port Interface Unit;
-pub const TPIU: Peripheral<Tpiu> = unsafe { Peripheral::new(0xE004_0000) };
+pub const TPIU: Peripheral<TPIU> = unsafe { Peripheral::new(0xE004_0000) };
 
 /// Cache and branch predictor maintenance operations
 #[cfg(armv7m)]
-pub const CBP: Peripheral<Cbp> = unsafe { Peripheral::new(0xE000_EF50) };
+pub const CBP: Peripheral<CBP> = unsafe { Peripheral::new(0xE000_EF50) };
 
 // TODO stand-alone registers: ICTR, ACTLR and STIR
 
@@ -88,7 +88,7 @@ impl<T> Peripheral<T> {
 
 /// CPUID register block
 #[repr(C)]
-pub struct Cpuid {
+pub struct CPUID {
     /// CPUID base
     pub base: RO<u32>,
     reserved0: [u32; 15],
@@ -159,7 +159,7 @@ impl Cpuid {
 
 /// DCB register block
 #[repr(C)]
-pub struct Dcb {
+pub struct DCB {
     /// Debug Halting Control and Status
     pub dhcsr: RW<u32>,
     /// Debug Core Register Selector
@@ -172,7 +172,7 @@ pub struct Dcb {
 
 /// DWT register block
 #[repr(C)]
-pub struct Dwt {
+pub struct DWT {
     /// Control
     pub ctrl: RW<u32>,
     /// Cycle Count
@@ -198,7 +198,7 @@ pub struct Dwt {
     pub lsr: RO<u32>,
 }
 
-impl Dwt {
+impl DWT {
     /// Enables the cycle counter
     pub fn enable_cycle_counter(&self) {
         unsafe { self.ctrl.modify(|r| r | 1) }
@@ -219,7 +219,7 @@ pub struct Comparator {
 
 /// FPB register block
 #[repr(C)]
-pub struct Fpb {
+pub struct FPB {
     /// Control
     pub ctrl: RW<u32>,
     /// Remap
@@ -235,7 +235,7 @@ pub struct Fpb {
 
 /// FPU register block
 #[repr(C)]
-pub struct Fpu {
+pub struct FPU {
     reserved: u32,
     /// Floating Point Context Control
     pub fpccr: RW<u32>,
@@ -249,7 +249,7 @@ pub struct Fpu {
 
 /// ITM register block
 #[repr(C)]
-pub struct Itm {
+pub struct ITM {
     /// Stimulus Port
     pub stim: [Stim; 256],
     reserved0: [u32; 640],
@@ -297,7 +297,7 @@ impl Stim {
 
 /// MPU register block
 #[repr(C)]
-pub struct Mpu {
+pub struct MPU {
     /// Type
     pub _type: RO<u32>,
     /// Control
@@ -324,7 +324,7 @@ pub struct Mpu {
 
 /// NVIC register block
 #[repr(C)]
-pub struct Nvic {
+pub struct NVIC {
     /// Interrupt Set-Enable
     pub iser: [RW<u32>; 8],
     reserved0: [u32; 24],
@@ -344,7 +344,7 @@ pub struct Nvic {
     pub ipr: [RW<u8>; 240],
 }
 
-impl Nvic {
+impl NVIC {
     /// Clears `interrupt`'s pending state
     pub fn clear_pending<I>(&self, interrupt: I)
     where
@@ -448,7 +448,7 @@ impl Nvic {
 
 /// SCB register block
 #[repr(C)]
-pub struct Scb {
+pub struct SCB {
     /// Interrupt Control and State
     pub icsr: RW<u32>,
     /// Vector Table Offset
@@ -495,7 +495,7 @@ const SCB_CPACR_FPU_MASK: u32 = 0b11_11 << 20;
 const SCB_CPACR_FPU_ENABLE: u32 = 0b01_01 << 20;
 const SCB_CPACR_FPU_USER: u32 = 0b10_10 << 20;
 
-impl Scb {
+impl SCB {
     /// Gets FPU access mode
     pub fn fpu_access_mode(&self) -> FpuAccessMode {
         let cpacr = self.cpacr.read();
@@ -817,7 +817,7 @@ impl Scb {
 
 /// SysTick register block
 #[repr(C)]
-pub struct Syst {
+pub struct SYST {
     /// Control and Status
     pub csr: RW<u32>,
     /// Reload Value
@@ -847,7 +847,7 @@ const SYST_CSR_COUNTFLAG: u32 = 1 << 16;
 const SYST_CALIB_SKEW: u32 = 1 << 30;
 const SYST_CALIB_NOREF: u32 = 1 << 31;
 
-impl Syst {
+impl SYST {
     /// Checks if counter is enabled
     pub fn is_counter_enabled(&self) -> bool {
         self.csr.read() & SYST_CSR_ENABLE != 0
@@ -955,7 +955,7 @@ impl Syst {
 
 /// TPIU register block
 #[repr(C)]
-pub struct Tpiu {
+pub struct TPIU {
     /// Supported Parallel Port Sizes
     pub sspsr: RO<u32>,
     /// Current Parallel Port Size
@@ -979,7 +979,7 @@ pub struct Tpiu {
 /// Cache and branch predictor maintenance operations register block
 #[repr(C)]
 #[cfg(armv7m)]
-pub struct Cbp {
+pub struct CBP {
     /// I-cache invalidate all to PoU
     pub iciallu: WO<u32>,
     reserved0: u32,

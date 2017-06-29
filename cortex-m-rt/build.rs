@@ -1,3 +1,5 @@
+use std::env;
+
 #[cfg(feature = "linker-script")]
 mod imp {
     use std::env;
@@ -6,6 +8,8 @@ mod imp {
     use std::path::PathBuf;
 
     pub fn main() {
+        ::has_fpu();
+
         // Put the linker script somewhere the linker can find it
         let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
         File::create(out.join("link.x"))
@@ -21,7 +25,17 @@ mod imp {
 
 #[cfg(not(feature = "linker-script"))]
 mod imp {
-    pub fn main() {}
+    pub fn main() {
+        ::has_fpu();
+    }
+}
+
+fn has_fpu() {
+    let target = env::var("TARGET").unwrap();
+
+    if target.ends_with("eabihf") {
+        println!("cargo:rustc-cfg=has_fpu");
+    }
 }
 
 fn main() {

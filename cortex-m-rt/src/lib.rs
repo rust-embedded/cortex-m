@@ -155,7 +155,6 @@
 #![feature(used)]
 #![no_std]
 
-#[cfg(feature = "exceptions")]
 extern crate cortex_m;
 extern crate compiler_builtins;
 extern crate r0;
@@ -189,6 +188,18 @@ unsafe extern "C" fn reset_handler() -> ! {
     r0::zero_bss(&mut _sbss, &mut _ebss);
     r0::init_data(&mut _sdata, &mut _edata, &_sidata);
 
+    match () {
+        #[cfg(has_fpu)]
+        () => {
+            // NOTE(safe) no exception / interrupt that also accesses the FPU
+            // can occur here
+            let scb = &*cortex_m::peripheral::SCB.get();
+            scb.enable_fpu();
+        }
+        #[cfg(not(has_fpu))]
+        () => {}
+    }
+
     // Neither `argc` or `argv` make sense in bare metal context so we just
     // stub them
     main(0, ::core::ptr::null());
@@ -210,6 +221,5 @@ static RESET_HANDLER: unsafe extern "C" fn() -> ! = reset_handler;
 #[cfg(feature = "exceptions")]
 #[link_section = ".rodata.exceptions"]
 #[used]
-static EXCEPTIONS: exception::Handlers = exception::Handlers {
-    ..exception::DEFAULT_HANDLERS
-};
+static EXCEPTIONS: exception::Handlers =
+    exception::Handlers { ..exception::DEFAULT_HANDLERS };

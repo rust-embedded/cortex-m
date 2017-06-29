@@ -12,9 +12,6 @@
 #![deny(warnings)]
 #![feature(asm)]
 #![feature(const_fn)]
-#![feature(linkage)]
-#![feature(naked_functions)]
-#![feature(used)]
 #![no_std]
 
 extern crate aligned;

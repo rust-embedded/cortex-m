@@ -1,25 +1,23 @@
 //! Exceptions
 
-#![allow(non_camel_case_types)]
-
-/// Enumeration of all exceptions
+/// Enumeration of all the exception types
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Exception {
     /// Non-maskable interrupt
     Nmi,
-    /// All class of fault.
+    /// Other type of faults and unhandled faults
     HardFault,
-    /// Memory management.
+    /// Memory protection related fault
     MenManage,
-    /// Pre-fetch fault, memory access fault.
+    /// Pre-fetch or memory access fault
     BusFault,
-    /// Undefined instruction or illegal state.
+    /// Fault due to undefined instruction or illegal state
     UsageFault,
-    /// System service call via SWI instruction
+    /// Supervisor call
     Svcall,
-    /// Pendable request for system service
+    /// Pendable request for system-level service
     Pendsv,
-    /// System tick timer
+    /// System timer exception
     SysTick,
     /// An interrupt
     Interrupt(u8),
@@ -29,15 +27,15 @@ pub enum Exception {
 }
 
 impl Exception {
-    /// Returns the kind of exception that's currently being serviced
+    /// Returns the type of the exception that's currently active
+    ///
+    /// Returns `None` if no exception is currently active
     pub fn active() -> Option<Exception> {
         // NOTE(safe) atomic read
         let icsr = unsafe { (*::peripheral::SCB.get()).icsr.read() };
-        if icsr == 0 {
-            return None;
-        }
 
         Some(match icsr as u8 {
+            0 => return None,
             2 => Exception::Nmi,
             3 => Exception::HardFault,
             4 => Exception::MenManage,
@@ -52,10 +50,10 @@ impl Exception {
     }
 }
 
-/// Registers stacked during an exception
+/// Registers stacked (pushed into the stack) during an exception
 #[derive(Clone, Copy, Debug)]
 #[repr(C)]
-pub struct StackedRegisters {
+pub struct StackFrame {
     /// (General purpose) Register 0
     pub r0: u32,
     /// (General purpose) Register 1

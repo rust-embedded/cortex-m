@@ -11,4 +11,8 @@ fn main() {
         println!("cargo:rustc-cfg=armv7m");
         //println!("cargo:rustc-cfg=armv7em");
     }
+
+    if target.ends_with("eabihf") {
+        println!("cargo:rustc-cfg=has_fpu");
+    }
 }

@@ -28,6 +28,7 @@ pub const DWT: Peripheral<DWT> = unsafe { Peripheral::new(0xE000_1000) };
 pub const FPB: Peripheral<FPB> = unsafe { Peripheral::new(0xE000_2000) };
 
 /// Floating Point Unit
+#[cfg(has_fpu)]
 pub const FPU: Peripheral<FPU> = unsafe { Peripheral::new(0xE000_EF30) };
 
 /// Instrumentation Trace Macrocell
@@ -238,6 +239,7 @@ pub struct FPB {
 }
 
 /// FPU register block
+#[cfg(has_fpu)]
 #[repr(C)]
 pub struct FPU {
     reserved: u32,
@@ -485,6 +487,7 @@ pub struct SCB {
 }
 
 /// FPU access mode
+#[cfg(has_fpu)]
 #[derive(Clone, Copy, Debug)]
 pub enum FpuAccessMode {
     /// FPU is not accessible
@@ -495,10 +498,17 @@ pub enum FpuAccessMode {
     Privileged,
 }
 
-const SCB_CPACR_FPU_MASK: u32 = 0b11_11 << 20;
-const SCB_CPACR_FPU_ENABLE: u32 = 0b01_01 << 20;
-const SCB_CPACR_FPU_USER: u32 = 0b10_10 << 20;
+#[cfg(has_fpu)]
+mod fpu_consts {
+    pub const SCB_CPACR_FPU_MASK: u32 = 0b11_11 << 20;
+    pub const SCB_CPACR_FPU_ENABLE: u32 = 0b01_01 << 20;
+    pub const SCB_CPACR_FPU_USER: u32 = 0b10_10 << 20;
+}
 
+#[cfg(has_fpu)]
+use self::fpu_consts::*;
+
+#[cfg(has_fpu)]
 impl SCB {
     /// Gets FPU access mode
     pub fn fpu_access_mode(&self) -> FpuAccessMode {

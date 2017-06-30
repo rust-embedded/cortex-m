@@ -13,13 +13,12 @@ version = "0.3.0"
 r0 = "0.2.1"
 
 [dependencies.cortex-m]
-optional = true
 version = "0.2.7"
 
 [features]
 default = ["exceptions", "linker-script"]
 # service all exceptions using the default handler
-exceptions = ["cortex-m"]
+exceptions = []
 # generic linker script
 linker-script = []
 # provides a panic_fmt implementation that calls the abort instruction (`udf 0xfe`)

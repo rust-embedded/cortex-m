@@ -145,11 +145,11 @@
 //!  8000404:       b084            sub     sp, #16
 //! ```
 
+#![cfg_attr(feature = "abort-on-panic", feature(core_intrinsics))]
 #![deny(missing_docs)]
 #![deny(warnings)]
 #![feature(asm)]
 #![feature(compiler_builtins_lib)]
-#![feature(core_intrinsics)]
 #![feature(lang_items)]
 #![feature(linkage)]
 #![feature(used)]
@@ -186,8 +186,8 @@ extern "C" {
 /// This is the entry point of all programs
 #[link_section = ".reset_handler"]
 unsafe extern "C" fn reset_handler() -> ! {
-    ::r0::zero_bss(&mut _sbss, &mut _ebss);
-    ::r0::init_data(&mut _sdata, &mut _edata, &_sidata);
+    r0::zero_bss(&mut _sbss, &mut _ebss);
+    r0::init_data(&mut _sdata, &mut _edata, &_sidata);
 
     // Neither `argc` or `argv` make sense in bare metal context so we just
     // stub them

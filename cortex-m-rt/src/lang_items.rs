@@ -1,26 +1,12 @@
 /// Default panic handler
+#[cfg(feature = "abort-on-panic")]
 #[lang = "panic_fmt"]
-#[linkage = "weak"]
 unsafe extern "C" fn panic_fmt(
-    _args: ::core::fmt::Arguments,
-    _file: &'static str,
-    _line: u32,
+    _: ::core::fmt::Arguments,
+    _: &'static str,
+    _: u32,
 ) -> ! {
     ::core::intrinsics::abort()
-}
-
-#[macro_export]
-macro_rules! panic_fmt {
-    ($f:expr) => {
-        #[export_name = "rust_begin_unwind"]
-        pub unsafe extern "C" fn _panic_fmt(
-            args: ::core::fmt::Arguments,
-            file: &'static str,
-            line: u32,
-        ) -> ! {
-            $f(args, file, line)
-        }
-    }
 }
 
 /// Lang item required to make the normal `main` work in applications

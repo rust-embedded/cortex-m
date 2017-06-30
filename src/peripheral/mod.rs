@@ -28,7 +28,7 @@ pub const DWT: Peripheral<DWT> = unsafe { Peripheral::new(0xE000_1000) };
 pub const FPB: Peripheral<FPB> = unsafe { Peripheral::new(0xE000_2000) };
 
 /// Floating Point Unit
-#[cfg(has_fpu)]
+#[cfg(any(has_fpu, test))]
 pub const FPU: Peripheral<FPU> = unsafe { Peripheral::new(0xE000_EF30) };
 
 /// Instrumentation Trace Macrocell
@@ -239,7 +239,7 @@ pub struct FPB {
 }
 
 /// FPU register block
-#[cfg(has_fpu)]
+#[cfg(any(has_fpu, test))]
 #[repr(C)]
 pub struct FPU {
     reserved: u32,

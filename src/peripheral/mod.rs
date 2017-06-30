@@ -123,7 +123,7 @@ pub enum CsselrCacheType {
 }
 
 #[cfg(armv7m)]
-impl Cpuid {
+impl CPUID {
     /// Selects the current CCSIDR
     ///
     /// * `level`: the required cache level minus 1, e.g. 0 for L1, 1 for L2
@@ -544,7 +544,7 @@ mod scb_consts {
 use self::scb_consts::*;
 
 #[cfg(armv7m)]
-impl Scb {
+impl SCB {
     /// Enables I-Cache if currently disabled
     #[inline]
     pub fn enable_icache(&self) {
@@ -610,7 +610,7 @@ impl Scb {
 
     /// Enables D-cache if currently disabled
     #[inline]
-    pub fn enable_dcache(&self, cpuid: &Cpuid) {
+    pub fn enable_dcache(&self, cpuid: &CPUID) {
         // Don't do anything if DCache is already enabled
         if self.dcache_enabled() {
             return;
@@ -628,7 +628,7 @@ impl Scb {
 
     /// Disables D-cache if currently enabled
     #[inline]
-    pub fn disable_dcache(&self, cpuid: &Cpuid) {
+    pub fn disable_dcache(&self, cpuid: &CPUID) {
         // Don't do anything if DCache is already disabled
         if !self.dcache_enabled() {
             return;
@@ -655,7 +655,7 @@ impl Scb {
     /// stack, depending on optimisations, breaking returning to the call point.
     /// It's used immediately before enabling the dcache, but not exported publicly.
     #[inline]
-    fn invalidate_dcache(&self, cpuid: &Cpuid) {
+    fn invalidate_dcache(&self, cpuid: &CPUID) {
         // All of CBP is write-only so no data races are possible
         let cbp = unsafe { &mut *CBP.get() };
 
@@ -675,7 +675,7 @@ impl Scb {
 
     /// Cleans D-cache
     #[inline]
-    pub fn clean_dcache(&self, cpuid: &Cpuid) {
+    pub fn clean_dcache(&self, cpuid: &CPUID) {
         // All of CBP is write-only so no data races are possible
         let cbp = unsafe { &mut *CBP.get() };
 
@@ -694,7 +694,7 @@ impl Scb {
 
     /// Cleans and invalidates D-cache
     #[inline]
-    pub fn clean_invalidate_dcache(&self, cpuid: &Cpuid) {
+    pub fn clean_invalidate_dcache(&self, cpuid: &CPUID) {
         // All of CBP is write-only so no data races are possible
         let cbp = unsafe { &mut *CBP.get() };
 
@@ -1015,7 +1015,7 @@ mod cbp_consts {
 use self::cbp_consts::*;
 
 #[cfg(armv7m)]
-impl Cbp {
+impl CBP {
     /// I-cache invalidate all to PoU
     #[inline(always)]
     pub fn iciallu(&self) {

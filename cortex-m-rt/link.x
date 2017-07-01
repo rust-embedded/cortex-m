@@ -59,7 +59,10 @@ SECTIONS
      remove the allocatable bit. Unfortunately, it appears
      that the only way to do this in a linker script is
      the extremely obscure "INFO" output section type specifier. */
-  .debug_gdb_scripts 0 (INFO) : {
+  /* a rustc hack will force the program to read the first byte of this section,
+     so we'll set the (fake) start address of this section to something we're
+     sure can be read at runtime: the start of the .text section */
+  .debug_gdb_scripts _stext (INFO) : {
     KEEP(*(.debug_gdb_scripts))
   }
 

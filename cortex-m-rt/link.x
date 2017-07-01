@@ -98,30 +98,28 @@ SECTIONS
 
 /* Do not exceed this mark in the error messages below                | */
 ASSERT(_eexceptions - ORIGIN(FLASH) > 8, "
-You must specify the exception handlers.
-Create a non `pub` static variable with type
-`cortex_m::exception::Handlers` and place it in the
-'.vector_table.exceptions' section. (cf. #[link_section]). Apply the
-`#[used]` attribute to the variable to make it reach the linker.");
+The exception handlers are missing. This is likely a cortex-m-rt bug.
+Please file a bug report at:
+https://github.com/japaric/cortex-m-rt/issues");
 
 ASSERT(_eexceptions - ORIGIN(FLASH) == 0x40, "
-Invalid '.vector_table.exceptions' section.
-Make sure to place a static with type `cortex_m::exception::Handlers`
-in that section (cf. #[link_section]) ONLY ONCE.");
+Invalid '.vector_table.exceptions' section. This is likely a
+cortex-m-rt bug. Please file a bug report at:
+https://github.com/japaric/cortex-m-rt/issues");
 
 ASSERT(_einterrupts - _eexceptions > 0, "
-You must specify the interrupt handlers.
-Create a non `pub` static variable and place it in the
-'.vector_table.interrupts' section. (cf. #[link_section]). Apply the
-`#[used]` attribute to the variable to help it reach the linker.");
+The interrupt handlers are missing. If you are not linking to a device
+crate then you supply the interrupt handlers yourself. Check the
+documentation.");
 
 ASSERT(_einterrupts - _eexceptions <= 0x3c0, "
-There can't be more than 240 interrupt handlers.
-Fix the '.vector_table.interrupts' section. (cf. #[link_section])");
+There can't be more than 240 interrupt handlers. This may be a bug in
+your device crate, or you may have registered more than 240 interrupt
+handlers.");
 
 ASSERT(_einterrupts <= _stext, "
 The '.text' section can't be placed inside '.vector_table' section.
-Set '_stext' to an adress greater than '_einterrupts'");
+Set '_stext' to an address greater than '_einterrupts'");
 
 ASSERT(_stext < ORIGIN(FLASH) + LENGTH(FLASH), "
 The '.text' section must be placed inside the FLASH memory

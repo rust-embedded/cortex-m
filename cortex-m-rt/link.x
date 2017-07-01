@@ -1,5 +1,7 @@
 INCLUDE memory.x
 
+PROVIDE(_stack_start = ORIGIN(RAM) + LENGTH(RAM));
+
 SECTIONS
 {
   .vector_table ORIGIN(FLASH) :

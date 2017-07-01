@@ -62,16 +62,12 @@
 //!
 //! $ # memory layout of the device
 //! $ edit memory.x && cat $_
-//!
 //! MEMORY
 //! {
 //!   /* NOTE K = KiBi = 1024 bytes */
 //!   FLASH : ORIGIN = 0x08000000, LENGTH = 128K
 //!   RAM : ORIGIN = 0x20000000, LENGTH = 8K
 //! }
-//!
-//! /* This is where the call stack will be allocated */
-//! _stack_start = ORIGIN(RAM) + LENGTH(RAM);
 //!
 //! $ edit src/main.rs && cat $_
 //! ```
@@ -217,6 +213,8 @@
 //! The call stack grows downwards so this address is usually set to the highest
 //! valid RAM address plus one (this *is* an invalid address but the processor
 //! will decrement the stack pointer *before* using its value as an address).
+//!
+//! If omitted this symbol value will default to `ORIGIN(RAM) + LENGTH(RAM)`.
 //!
 //! #### Example
 //!

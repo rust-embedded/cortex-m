@@ -27,6 +27,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   mechanism for registering exceptions (`static EXCEPTIONS`); use the new ones:
   `default_handler!` and `exception!`.
 
+- The `_stack_start` is now optional in the `memory.x` file. If unspecified its
+  value will be set to `ORIGIN(RAM) + LENGTH(RAM)`.
+
 ## [v0.2.4] - 2017-06-03
 
 ### Added

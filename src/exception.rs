@@ -4,7 +4,7 @@
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Exception {
     /// Non-maskable interrupt
-    Nmi,
+    NMI,
     /// Other type of faults and unhandled faults
     HardFault,
     /// Memory protection related fault
@@ -14,9 +14,9 @@ pub enum Exception {
     /// Fault due to undefined instruction or illegal state
     UsageFault,
     /// Supervisor call
-    Svcall,
+    SVCall,
     /// Pendable request for system-level service
-    Pendsv,
+    PendSV,
     /// System timer exception
     SysTick,
     /// An interrupt
@@ -36,13 +36,13 @@ impl Exception {
 
         Some(match icsr as u8 {
             0 => return None,
-            2 => Exception::Nmi,
+            2 => Exception::NMI,
             3 => Exception::HardFault,
             4 => Exception::MenManage,
             5 => Exception::BusFault,
             6 => Exception::UsageFault,
-            11 => Exception::Svcall,
-            14 => Exception::Pendsv,
+            11 => Exception::SVCall,
+            14 => Exception::PendSV,
             15 => Exception::SysTick,
             n if n >= 16 => Exception::Interrupt(n - 16),
             _ => Exception::Reserved,

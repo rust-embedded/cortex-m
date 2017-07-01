@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- [breaking-change] Renamed `StackedRergisters` to `ExceptionFrame` to better
+  reflect the ARM documentation.
+
+- [breaking-change] Renamed the variants of `Exception` to better match the
+  ARM documentation.
+
+- [breaking-change] Renamed `Exception::current` to `Exception::active` and
+  changed the signature to return `None` when no exception is being serviced.
+
+### Removed
+
+- [breaking-change] The `ctxt` module along with the exception "tokens" in the
+  `exception` module. The `cortex-m-rt` crate v0.3.0 provides a more ergonomic
+  mechanism to add state to interrupts / exceptions; replace your uses of
+  `Local` with that.
+
+- [breaking-change] `default_handler`, `DEFAULT_HANDLERS` and `Handlers` from
+  the `exception` module as well as `Reserved` from the root of the crate.
+  `cortex-m-rt` v0.3.0 provides a mechanism to override exceptions and the
+  default exception handler. Change your use of these `Handlers` and others to
+  that.
+
+### Fixed
+
+- `interrupt::{enable,disable}` are now compiler barriers. The compiler should
+  not reorder code around these function calls for memory safety; that is the
+  case now.
+
 ## [v0.2.11] - 2017-06-16
 
 ### Added

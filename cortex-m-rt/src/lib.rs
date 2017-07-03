@@ -574,11 +574,11 @@ pub enum Exception {
 /// function that will be used as the handler of that exception. That function
 /// must have signature `fn()`.
 ///
-/// Optionally a third argument may be used to declare static variables local to
-/// this exception handler. The handler will have exclusive access to these
-/// variables on each invocation. If the third argument is used then the
-/// signature of the handler function must be `fn(&mut $NAME::Local)` where
-/// `$NAME` is the first argument passed to the macro.
+/// Optionally, a third argument may be used to declare exception local data.
+/// The handler will have exclusive access to this data on each invocation. If
+/// the third argument is used then the signature of the handler function must
+/// be `fn(&mut $NAME::Local)` where `$NAME` is the first argument passed to the
+/// macro.
 ///
 /// # Example
 ///

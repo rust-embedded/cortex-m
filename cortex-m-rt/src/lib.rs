@@ -627,7 +627,7 @@ macro_rules! exception {
 
             // type checking
             let f: fn(&mut self::$NAME::Local) = $body;
-            f(unsafe { &mut LOCAL });
+            f(&mut LOCAL);
         }
     };
     ($NAME:ident, $body:path) => {

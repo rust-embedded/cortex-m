@@ -479,23 +479,6 @@ static EXCEPTIONS: [Option<unsafe extern "C" fn()>; 14] = [
     Some(SYS_TICK),
 ];
 
-extern "C" {
-    static INTERRUPTS: u32;
-}
-
-// NOTE here we create an undefined reference to the `INTERRUPTS` symbol. This
-// symbol will be provided by the device crate and points to the part of the
-// vector table that contains the device specific interrupts. We need this
-// undefined symbol because otherwise the linker may not include the interrupts
-// part of the vector table in the final binary. This can occur when LTO is
-// *not* used and several objects are passed to the linker: since the linker is
-// lazy it will not look at object files if it has found all the undefined
-// symbols that the top crate depends on; in that scenario it may never reach
-// the device crate (unlikely scenario but not impossible). With the undefined
-// symbol we force the linker to look for the missing part of the vector table.
-#[used]
-static DEMAND: &u32 = unsafe { &INTERRUPTS };
-
 /// `sf` points to the previous stack frame
 ///
 /// That stack frame is a snapshot of the program state right before the

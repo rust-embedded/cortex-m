@@ -1,5 +1,10 @@
 INCLUDE memory.x
 
+/* Create an undefined reference to the INTERRUPTS symbol. This is required to
+   force the linker to *not* drop the INTERRUPTS symbol if it comes from an
+   object file that's passed to the linker *before* this crate */
+EXTERN(INTERRUPTS);
+
 PROVIDE(_stack_start = ORIGIN(RAM) + LENGTH(RAM));
 
 SECTIONS

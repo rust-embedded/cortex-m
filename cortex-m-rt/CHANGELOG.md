@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- A `default_handler!` macro to override the default exception handler.
+
+- An `exception!` macro to override the handler for a particular exception.
+
+### Changed
+
+- The FPU will now be enabled before `main` if the target has FPU support.
+
+- [breaking-change] the features "panic-over-itm" and "panic-over-semihosting"
+  has been removed. the `panic_fmt` language item is now *not* included by
+  default. An opt-in feature named "abort-on-panic" can be enabled to make this
+  crate provide a `panic_fmt` implementation that simply aborts.
+
+- [breaking-change] The sections `.rodata.{exceptions,interrupts}` have been
+  renamed to `.vector_table.{exceptions,interrupts}`. This break the old
+  mechanism for registering exceptions (`static EXCEPTIONS`); use the new ones:
+  `default_handler!` and `exception!`.
+
+- The `_stack_start` is now optional in the `memory.x` file. If unspecified its
+  value will be set to `ORIGIN(RAM) + LENGTH(RAM)`.
+
 ## [v0.2.4] - 2017-06-03
 
 ### Added

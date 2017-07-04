@@ -5,6 +5,7 @@ unsafe extern "C" fn panic_fmt(
     _: ::core::fmt::Arguments,
     _: &'static str,
     _: u32,
+    _: u32,
 ) -> ! {
     ::core::intrinsics::abort()
 }

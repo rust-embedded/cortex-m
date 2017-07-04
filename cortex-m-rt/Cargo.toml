@@ -11,7 +11,8 @@ version = "0.3.0"
 
 [dependencies]
 r0 = "0.2.1"
-cortex-m = "0.2.11"
+# cortex-m = "0.3.0"
+cortex-m = { git = "https://github.com/japaric/cortex-m" }
 
 [features]
 default = ["linker-script"]

@@ -5,12 +5,12 @@
 //! - ARMv7-M Architecture Reference Manual (Issue E.b) - Chapter B3
 
 use core::cell::UnsafeCell;
-use core::marker::PhantomData;
 use core::ptr;
 
+pub use mcu::Peripheral;
 use volatile_register::{RO, RW, WO};
 
-use interrupt::{CriticalSection, Nr};
+use interrupt::Nr;
 
 #[cfg(test)]
 mod test;
@@ -53,38 +53,6 @@ pub const TPIU: Peripheral<TPIU> = unsafe { Peripheral::new(0xE004_0000) };
 pub const CBP: Peripheral<CBP> = unsafe { Peripheral::new(0xE000_EF50) };
 
 // TODO stand-alone registers: ICTR, ACTLR and STIR
-
-/// A peripheral
-#[derive(Debug)]
-pub struct Peripheral<T>
-where
-    T: 'static,
-{
-    address: usize,
-    _marker: PhantomData<&'static mut T>,
-}
-
-impl<T> Peripheral<T> {
-    /// Creates a new peripheral
-    ///
-    /// `address` is the base address of the register block
-    pub const unsafe fn new(address: usize) -> Self {
-        Peripheral {
-            address: address,
-            _marker: PhantomData,
-        }
-    }
-
-    /// Borrows the peripheral for the duration of a critical section
-    pub fn borrow<'cs>(&self, _ctxt: &'cs CriticalSection) -> &'cs T {
-        unsafe { &*self.get() }
-    }
-
-    /// Returns a pointer to the register block
-    pub fn get(&self) -> *mut T {
-        self.address as *mut T
-    }
-}
 
 /// CPUID register block
 #[repr(C)]

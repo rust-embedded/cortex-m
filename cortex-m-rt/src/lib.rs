@@ -364,6 +364,7 @@ unsafe extern "C" fn reset_handler() -> ! {
         asm!("wfi" :::: "volatile");
     }
 }
+
 #[allow(non_snake_case)]
 #[allow(private_no_mangle_fns)]
 #[linkage = "weak"]

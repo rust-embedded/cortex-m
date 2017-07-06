@@ -11,5 +11,5 @@ version = "0.3.0"
 
 [dependencies]
 aligned = "0.1.1"
-bare-metal = { git = "https://github.com/japaric/bare-metal" }
+bare-metal = "0.1.0"
 volatile-register = "0.2.0"

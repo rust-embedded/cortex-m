@@ -15,7 +15,7 @@
 #![no_std]
 
 extern crate aligned;
-extern crate mcu;
+extern crate bare_metal;
 extern crate volatile_register;
 
 #[macro_use]

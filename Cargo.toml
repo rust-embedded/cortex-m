@@ -10,6 +10,6 @@ repository = "https://github.com/japaric/cortex-m"
 version = "0.3.0"
 
 [dependencies]
-mcu = { git = "https://github.com/japaric/mcu" }
 aligned = "0.1.1"
+bare-metal = { git = "https://github.com/japaric/bare-metal" }
 volatile-register = "0.2.0"

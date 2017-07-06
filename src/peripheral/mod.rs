@@ -7,7 +7,7 @@
 use core::cell::UnsafeCell;
 use core::ptr;
 
-pub use mcu::Peripheral;
+pub use bare_metal::Peripheral;
 use volatile_register::{RO, RW, WO};
 
 use interrupt::Nr;

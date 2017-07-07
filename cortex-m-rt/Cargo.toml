@@ -10,13 +10,9 @@ repository = "https://github.com/japaric/cortex-m-rt"
 version = "0.3.0"
 
 [dependencies]
+cortex-m = "0.3.0"
 r0 = "0.2.1"
-# cortex-m = "0.3.0"
-cortex-m = { git = "https://github.com/japaric/cortex-m" }
 
 [features]
-default = ["linker-script"]
-# generic linker script
-linker-script = []
 # provides a panic_fmt implementation that calls the abort instruction (`udf 0xfe`)
 abort-on-panic = []

@@ -237,7 +237,8 @@
 //!
 //! This symbol indicates where the `.text` section will be located. If not
 //! specified in the `memory.x` file it will default to right after the vector
-//! table -- the vector table is always located at the start of the FLASH region.
+//! table -- the vector table is always located at the start of the FLASH
+//! region.
 //!
 //! The main use of this symbol is leaving some space between the vector table
 //! and the `.text` section unused. This is required on some microcontrollers
@@ -535,13 +536,13 @@ static KEEP: extern "C" fn(&ExceptionFrame) -> ! = default_handler;
 /// ```
 #[macro_export]
 macro_rules! default_handler {
-    ($body:path) => {
+    ($path:path) => {
         #[allow(non_snake_case)]
         #[doc(hidden)]
         #[no_mangle]
         pub unsafe extern "C" fn DEFAULT_HANDLER() {
             // type checking
-            let f: fn() = $body;
+            let f: fn() = $path;
             f();
         }
     }
@@ -576,10 +577,10 @@ pub enum Exception {
 /// must have signature `fn()`.
 ///
 /// Optionally, a third argument may be used to declare exception local data.
-/// The handler will have exclusive access to this data on each invocation. If
-/// the third argument is used then the signature of the handler function must
-/// be `fn(&mut $NAME::Local)` where `$NAME` is the first argument passed to the
-/// macro.
+/// The handler will have exclusive access to these *local* variables on each
+/// invocation. If the third argument is used then the signature of the handler
+/// function must be `fn(&mut $NAME::Locals)` where `$NAME` is the first
+/// argument passed to the macro.
 ///
 /// # Example
 ///
@@ -590,23 +591,23 @@ pub enum Exception {
 ///     panic!("Oh no! Something went wrong");
 /// }
 ///
-/// exception!(SYS_TICK, periodic, local: {
+/// exception!(SYS_TICK, periodic, locals: {
 ///     counter: u32 = 0;
 /// });
 ///
-/// fn periodic(local: &mut SYS_TICK::Local) {
-///     local.counter += 1;
-///     println!("This function has been called {} times", local.counter);
+/// fn periodic(locals: &mut SYS_TICK::Locals) {
+///     locals.counter += 1;
+///     println!("This function has been called {} times", locals.counter);
 /// }
 /// ```
 #[macro_export]
 macro_rules! exception {
-    ($NAME:ident, $body:path, local: {
+    ($NAME:ident, $path:path, locals: {
         $($lvar:ident:$lty:ident = $lval:expr;)+
     }) => {
         #[allow(non_snake_case)]
         mod $NAME {
-            pub struct Local {
+            pub struct Locals {
                 $(
                     pub $lvar: $lty,
                 )+
@@ -620,18 +621,18 @@ macro_rules! exception {
             // check that the handler exists
             let _ = $crate::Exception::$NAME;
 
-            static mut LOCAL: self::$NAME::Local = self::$NAME::Local {
+            static mut LOCALS: self::$NAME::Locals = self::$NAME::Locals {
                 $(
                     $lvar: $lval,
                 )*
             };
 
             // type checking
-            let f: fn(&mut self::$NAME::Local) = $body;
-            f(&mut LOCAL);
+            let f: fn(&mut self::$NAME::Locals) = $path;
+            f(&mut LOCALS);
         }
     };
-    ($NAME:ident, $body:path) => {
+    ($NAME:ident, $path:path) => {
         #[allow(non_snake_case)]
         #[doc(hidden)]
         #[no_mangle]
@@ -640,7 +641,7 @@ macro_rules! exception {
             let _ = $crate::Exception::$NAME;
 
             // type checking
-            let f: fn() = $body;
+            let f: fn() = $path;
             f();
         }
     }

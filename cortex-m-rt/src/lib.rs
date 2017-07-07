@@ -279,7 +279,8 @@
 //! }
 //! ```
 
-#![cfg_attr(target_arch = "arm", feature(core_intrinsics))]
+#![cfg_attr(any(target_arch = "arm", feature = "abort-on-panic"),
+            feature(core_intrinsics))]
 #![deny(missing_docs)]
 #![deny(warnings)]
 #![feature(asm)]

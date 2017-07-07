@@ -496,13 +496,13 @@ static EXCEPTIONS: [Option<unsafe extern "C" fn()>; 14] = [
     Some(SYS_TICK),
 ];
 
-/// `sf` points to the previous stack frame
+/// `ef` points to the exception frame
 ///
-/// That stack frame is a snapshot of the program state right before the
+/// That exception frame is a snapshot of the program state right before the
 /// exception occurred.
 #[allow(unused_variables)]
 #[cfg(target_arch = "arm")]
-extern "C" fn default_handler(sf: &ExceptionFrame) -> ! {
+extern "C" fn default_handler(ef: &ExceptionFrame) -> ! {
     asm::bkpt();
 
     loop {}

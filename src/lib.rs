@@ -5,7 +5,6 @@
 //! - Access to core peripherals like NVIC, SCB and SysTick.
 //! - Access to core registers like CONTROL, MSP and PSR.
 //! - Interrupt manipulation mechanisms
-//! - Data structures like the vector table
 //! - Safe wrappers around assembly instructions like `bkpt`
 
 #![deny(missing_docs)]

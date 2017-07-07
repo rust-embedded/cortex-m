@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.3.0] - 2017-07-07
+
 ### Changed
 
 - [breaking-change] Renamed `StackedRergisters` to `ExceptionFrame` to better
@@ -17,6 +19,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - [breaking-change] Renamed `Exception::current` to `Exception::active` and
   changed the signature to return `None` when no exception is being serviced.
+
+- Moved bits non specific to the Cortex-M architecture into the [`bare-metal`]
+  crate with the goal of sharing code between this crate and crates tailored for
+  other (microcontroller) architectures.
+
+[`bare-metal`]: https://crates.io/crates/bare-metal
 
 ### Removed
 
@@ -337,7 +345,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.2.11...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.3.0...HEAD
+[v0.3.0]: https://github.com/japaric/cortex-m/compare/v0.2.11...v0.3.0
 [v0.2.11]: https://github.com/japaric/cortex-m/compare/v0.2.10...v0.2.11
 [v0.2.10]: https://github.com/japaric/cortex-m/compare/v0.2.9...v0.2.10
 [v0.2.9]: https://github.com/japaric/cortex-m/compare/v0.2.8...v0.2.9

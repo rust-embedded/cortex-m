@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.3.1] - 2017-07
+
+### Fixed
+
+- A warning when compiling for x86_64 and the "abort-on-panic" feature is
+  enabled.
+
 ## [v0.3.0] - 2017-07-07
 
 ### Added
@@ -120,7 +127,8 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/japaric/cortex-m-rt/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m-rt/compare/v0.3.1...HEAD
+[v0.3.1]: https://github.com/japaric/cortex-m-rt/compare/v0.3.0...v0.3.1
 [v0.3.0]: https://github.com/japaric/cortex-m-rt/compare/v0.2.4...v0.3.0
 [v0.2.4]: https://github.com/japaric/cortex-m-rt/compare/v0.2.3...v0.2.4
 [v0.2.3]: https://github.com/japaric/cortex-m-rt/compare/v0.2.2...v0.2.3

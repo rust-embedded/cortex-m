@@ -279,12 +279,11 @@
 //! }
 //! ```
 
-#![cfg_attr(feature = "abort-on-panic", feature(core_intrinsics))]
+#![cfg_attr(target_arch = "arm", feature(core_intrinsics))]
 #![deny(missing_docs)]
 #![deny(warnings)]
 #![feature(asm)]
 #![feature(compiler_builtins_lib)]
-#![feature(core_intrinsics)]
 #![feature(lang_items)]
 #![feature(linkage)]
 #![feature(naked_functions)]
@@ -297,13 +296,17 @@ extern crate r0;
 
 mod lang_items;
 
+#[cfg(target_arch = "arm")]
 use core::intrinsics;
 
+#[cfg(target_arch = "arm")]
 use cortex_m::asm;
+#[cfg(target_arch = "arm")]
 use cortex_m::exception::ExceptionFrame;
 
 extern "C" {
     // NOTE `rustc` forces this signature on us. See `src/lang_items.rs`
+    #[cfg(target_arch = "arm")]
     fn main(argc: isize, argv: *const *const u8) -> isize;
 
     // Boundaries of the .bss section
@@ -318,6 +321,7 @@ extern "C" {
     static _sidata: u32;
 }
 
+#[cfg(target_arch = "arm")]
 #[link_section = ".vector_table.reset_vector"]
 #[used]
 static RESET_VECTOR: unsafe extern "C" fn() -> ! = reset_handler;
@@ -325,6 +329,7 @@ static RESET_VECTOR: unsafe extern "C" fn() -> ! = reset_handler;
 /// The reset handler
 ///
 /// This is the entry point of all programs
+#[cfg(target_arch = "arm")]
 #[link_section = ".reset_handler"]
 unsafe extern "C" fn reset_handler() -> ! {
     r0::zero_bss(&mut _sbss, &mut _ebss);
@@ -368,6 +373,7 @@ unsafe extern "C" fn reset_handler() -> ! {
 
 #[allow(non_snake_case)]
 #[allow(private_no_mangle_fns)]
+#[cfg(target_arch = "arm")]
 #[linkage = "weak"]
 #[naked]
 #[no_mangle]
@@ -380,6 +386,7 @@ extern "C" fn NMI() {
 
 #[allow(non_snake_case)]
 #[allow(private_no_mangle_fns)]
+#[cfg(target_arch = "arm")]
 #[linkage = "weak"]
 #[naked]
 #[no_mangle]
@@ -392,6 +399,7 @@ extern "C" fn HARD_FAULT() {
 
 #[allow(non_snake_case)]
 #[allow(private_no_mangle_fns)]
+#[cfg(target_arch = "arm")]
 #[linkage = "weak"]
 #[naked]
 #[no_mangle]
@@ -404,6 +412,7 @@ extern "C" fn MEM_MANAGE() {
 
 #[allow(non_snake_case)]
 #[allow(private_no_mangle_fns)]
+#[cfg(target_arch = "arm")]
 #[linkage = "weak"]
 #[naked]
 #[no_mangle]
@@ -416,6 +425,7 @@ extern "C" fn BUS_FAULT() {
 
 #[allow(non_snake_case)]
 #[allow(private_no_mangle_fns)]
+#[cfg(target_arch = "arm")]
 #[linkage = "weak"]
 #[naked]
 #[no_mangle]
@@ -428,6 +438,7 @@ extern "C" fn USAGE_FAULT() {
 
 #[allow(non_snake_case)]
 #[allow(private_no_mangle_fns)]
+#[cfg(target_arch = "arm")]
 #[linkage = "weak"]
 #[naked]
 #[no_mangle]
@@ -440,6 +451,7 @@ extern "C" fn SVCALL() {
 
 #[allow(non_snake_case)]
 #[allow(private_no_mangle_fns)]
+#[cfg(target_arch = "arm")]
 #[linkage = "weak"]
 #[naked]
 #[no_mangle]
@@ -452,6 +464,7 @@ extern "C" fn PENDSV() {
 
 #[allow(non_snake_case)]
 #[allow(private_no_mangle_fns)]
+#[cfg(target_arch = "arm")]
 #[linkage = "weak"]
 #[naked]
 #[no_mangle]
@@ -462,6 +475,7 @@ extern "C" fn SYS_TICK() {
     }
 }
 
+#[cfg(target_arch = "arm")]
 #[used]
 #[link_section = ".vector_table.exceptions"]
 static EXCEPTIONS: [Option<unsafe extern "C" fn()>; 14] = [
@@ -486,6 +500,7 @@ static EXCEPTIONS: [Option<unsafe extern "C" fn()>; 14] = [
 /// That stack frame is a snapshot of the program state right before the
 /// exception occurred.
 #[allow(unused_variables)]
+#[cfg(target_arch = "arm")]
 extern "C" fn default_handler(sf: &ExceptionFrame) -> ! {
     asm::bkpt();
 
@@ -513,6 +528,7 @@ extern "C" fn default_handler(sf: &ExceptionFrame) -> ! {
 
 // make sure the compiler emits the DEFAULT_HANDLER symbol so the linker can
 // find it!
+#[cfg(target_arch = "arm")]
 #[used]
 static KEEP: extern "C" fn(&ExceptionFrame) -> ! = default_handler;
 

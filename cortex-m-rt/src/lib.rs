@@ -57,7 +57,6 @@
 //!
 //! [dependencies.compiler_builtins]
 //! features = ["mem"]
-//! git = "https://github.com/rust-lang-nursery/compiler-builtins"
 //! stage = 1
 //!
 //! $ # memory layout of the device

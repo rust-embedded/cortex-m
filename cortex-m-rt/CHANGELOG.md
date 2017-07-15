@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.3.3] - 2017-07-17
+
+### Changed
+
+- Updated the documentation: it's no longer necessary to use the
+  compiler-builtins repository since that crate landed in rust-lang/rust and
+  it's now available in the `rust-src` component.
+
 ## [v0.3.2] - 2017-07-07
 
 ### Changed

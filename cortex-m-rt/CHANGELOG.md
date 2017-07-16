@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Align the end of .rodata to a 4-byte boundary. With this the sections that
+  will go into Flash memory will be 4 byte aligned at the start and at the
+  end. Which seems to be required (?) by Cortex-M0 devices.
+
 ## [v0.3.3] - 2017-07-14
 
 ### Changed

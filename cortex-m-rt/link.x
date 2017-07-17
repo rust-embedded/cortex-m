@@ -9,7 +9,7 @@ PROVIDE(_stack_start = ORIGIN(RAM) + LENGTH(RAM));
 
 SECTIONS
 {
-  .vector_table ORIGIN(FLASH) :
+  .vector_table ORIGIN(FLASH) : ALIGN(4)
   {
     /* Vector table */
     _svector_table = .;
@@ -45,17 +45,18 @@ SECTIONS
   {
     _sbss = .;
     *(.bss .bss.*);
-    _ebss = ALIGN(4);
+    . = ALIGN(4);
+    _ebss = .;
   } > RAM
 
   .data : ALIGN(4)
   {
+    _sidata = LOADADDR(.data);
     _sdata = .;
     *(.data .data.*);
-    _edata = ALIGN(4);
+    . = ALIGN(4);
+    _edata = .;
   } > RAM AT > FLASH
-
-  _sidata = LOADADDR(.data);
 
   /* The heap starts right after the .bss + .data section ends */
   _sheap = _edata;

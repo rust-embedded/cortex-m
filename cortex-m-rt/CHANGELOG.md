@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   will go into Flash memory will be 4 byte aligned at the start and at the
   end. Which seems to be required (?) by Cortex-M0 devices.
 
+- .bss and .data are now padded so their sizes are multiple of 4 bytes. This
+  improves the output of `objdump`; before, the output showed "Address
+  0x20000004 is out of bounds".
+
 ## [v0.3.3] - 2017-07-14
 
 ### Changed

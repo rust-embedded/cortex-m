@@ -58,6 +58,17 @@ SECTIONS
     _edata = .;
   } > RAM AT > FLASH
 
+  /* fake output .got section */
+  /* Dynamic relocations are unsupported. This section is only used to detect
+     relocatable code in the input files and raise an error if relocatable code
+     is found */
+  .got :
+  {
+    _sgot = .;
+    KEEP(*(.got .got.*));
+    _egot = .;
+  } > RAM AT > FLASH
+
   /* The heap starts right after the .bss + .data section ends */
   _sheap = _edata;
 
@@ -111,3 +122,10 @@ Set '_stext' to an address greater than '_einterrupts'");
 ASSERT(_stext < ORIGIN(FLASH) + LENGTH(FLASH), "
 The '.text' section must be placed inside the FLASH memory
 Set '_stext' to an address smaller than 'ORIGIN(FLASH) + LENGTH(FLASH)");
+
+ASSERT(_sgot == _egot, "
+.got section detected in the input files. Dynamic relocations are not
+supported. If you are linking to C code compiled using the `gcc` crate
+then modify your build script to compile the C code _without_ the
+-fPIC flag. See the documentation of the `gcc::Config.fpic` method for
+details.");

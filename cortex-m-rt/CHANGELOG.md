@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   improves the output of `objdump`; before, the output showed "Address
   0x20000004 is out of bounds".
 
+- Linking now aborts if any of the input files contains a .got section. Dynamic
+  relocations are not supported and Rust code is not relocatable by default.
+  This error only occurs if C code that was compiled with the -fPIC flag is
+  linked in. The error message will tell the user how to compile their C code
+  without -fPIC.
+
 ## [v0.3.3] - 2017-07-14
 
 ### Changed

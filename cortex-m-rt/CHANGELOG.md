@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Remove duplication of default exception handlers. This saves 32 bytes of Flash
+  memory (.text).
+
 ## [v0.3.4] - 2017-07-19
 
 ### Changed

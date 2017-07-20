@@ -10,7 +10,7 @@ pub fn write(basepri: u8) {
         asm!("msr BASEPRI_MAX, $0"
              :
              : "r"(basepri)
-             :
+             : "memory"
              : "volatile");
     }
 }

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.3.1] - 2017-07-20
+
+### Changed
+
+- `{basepri,basepri_max}::write` are now compiler barriers for the same reason
+  that `interrupt::{disable,enable}` are: they are used to create critical
+  sections.
+
 ## [v0.3.0] - 2017-07-07
 
 ### Changed
@@ -345,7 +353,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.3.1...HEAD
+[v0.3.1]: https://github.com/japaric/cortex-m/compare/v0.3.0...v0.3.1
 [v0.3.0]: https://github.com/japaric/cortex-m/compare/v0.2.11...v0.3.0
 [v0.2.11]: https://github.com/japaric/cortex-m/compare/v0.2.10...v0.2.11
 [v0.2.10]: https://github.com/japaric/cortex-m/compare/v0.2.9...v0.2.10

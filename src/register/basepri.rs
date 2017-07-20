@@ -20,6 +20,6 @@ pub unsafe fn write(basepri: u8) {
     asm!("msr BASEPRI, $0"
          :
          : "r"(basepri)
-         :
+         : "memory"
          : "volatile");
 }

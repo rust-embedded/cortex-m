@@ -284,6 +284,7 @@
 #![deny(warnings)]
 #![feature(asm)]
 #![feature(compiler_builtins_lib)]
+#![feature(global_asm)]
 #![feature(lang_items)]
 #![feature(linkage)]
 #![feature(naked_functions)]
@@ -371,108 +372,41 @@ unsafe extern "C" fn reset_handler() -> ! {
     }
 }
 
-#[allow(non_snake_case)]
-#[allow(private_no_mangle_fns)]
-#[cfg(target_arch = "arm")]
-#[linkage = "weak"]
-#[naked]
-#[no_mangle]
-extern "C" fn NMI() {
-    unsafe {
-        asm!("b DEFAULT_HANDLER" :::: "volatile");
-        intrinsics::unreachable();
-    }
-}
+global_asm!(r#"
+.weak NMI
+NMI = DEFAULT_HANDLER
 
-#[allow(non_snake_case)]
-#[allow(private_no_mangle_fns)]
-#[cfg(target_arch = "arm")]
-#[linkage = "weak"]
-#[naked]
-#[no_mangle]
-extern "C" fn HARD_FAULT() {
-    unsafe {
-        asm!("b DEFAULT_HANDLER" :::: "volatile");
-        intrinsics::unreachable();
-    }
-}
+.weak HARD_FAULT
+HARD_FAULT = DEFAULT_HANDLER
 
-#[allow(non_snake_case)]
-#[allow(private_no_mangle_fns)]
-#[cfg(target_arch = "arm")]
-#[linkage = "weak"]
-#[naked]
-#[no_mangle]
-extern "C" fn MEM_MANAGE() {
-    unsafe {
-        asm!("b DEFAULT_HANDLER" :::: "volatile");
-        intrinsics::unreachable();
-    }
-}
+.weak MEM_MANAGE
+MEM_MANAGE = DEFAULT_HANDLER
 
-#[allow(non_snake_case)]
-#[allow(private_no_mangle_fns)]
-#[cfg(target_arch = "arm")]
-#[linkage = "weak"]
-#[naked]
-#[no_mangle]
-extern "C" fn BUS_FAULT() {
-    unsafe {
-        asm!("b DEFAULT_HANDLER" :::: "volatile");
-        intrinsics::unreachable();
-    }
-}
+.weak BUS_FAULT
+BUS_FAULT = DEFAULT_HANDLER
 
-#[allow(non_snake_case)]
-#[allow(private_no_mangle_fns)]
-#[cfg(target_arch = "arm")]
-#[linkage = "weak"]
-#[naked]
-#[no_mangle]
-extern "C" fn USAGE_FAULT() {
-    unsafe {
-        asm!("b DEFAULT_HANDLER" :::: "volatile");
-        intrinsics::unreachable();
-    }
-}
+.weak USAGE_FAULT
+USAGE_FAULT = DEFAULT_HANDLER
 
-#[allow(non_snake_case)]
-#[allow(private_no_mangle_fns)]
-#[cfg(target_arch = "arm")]
-#[linkage = "weak"]
-#[naked]
-#[no_mangle]
-extern "C" fn SVCALL() {
-    unsafe {
-        asm!("b DEFAULT_HANDLER" :::: "volatile");
-        intrinsics::unreachable();
-    }
-}
+.weak SVCALL
+SVCALL = DEFAULT_HANDLER
 
-#[allow(non_snake_case)]
-#[allow(private_no_mangle_fns)]
-#[cfg(target_arch = "arm")]
-#[linkage = "weak"]
-#[naked]
-#[no_mangle]
-extern "C" fn PENDSV() {
-    unsafe {
-        asm!("b DEFAULT_HANDLER" :::: "volatile");
-        intrinsics::unreachable();
-    }
-}
+.weak PENDSV
+PENDSV = DEFAULT_HANDLER
 
-#[allow(non_snake_case)]
-#[allow(private_no_mangle_fns)]
-#[cfg(target_arch = "arm")]
-#[linkage = "weak"]
-#[naked]
-#[no_mangle]
-extern "C" fn SYS_TICK() {
-    unsafe {
-        asm!("b DEFAULT_HANDLER" :::: "volatile");
-        intrinsics::unreachable();
-    }
+.weak SYS_TICK
+SYS_TICK = DEFAULT_HANDLER
+"#);
+
+extern "C" {
+    fn NMI();
+    fn HARD_FAULT();
+    fn MEM_MANAGE();
+    fn BUS_FAULT();
+    fn USAGE_FAULT();
+    fn SVCALL();
+    fn PENDSV();
+    fn SYS_TICK();
 }
 
 #[cfg(target_arch = "arm")]

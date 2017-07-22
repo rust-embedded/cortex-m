@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.3.5] - 2017-07-21
+
 ### Fixed
 
 - Remove duplication of default exception handlers. This saves 32 bytes of Flash
@@ -164,7 +166,8 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/japaric/cortex-m-rt/compare/v0.3.4...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m-rt/compare/v0.3.5...HEAD
+[v0.3.5]: https://github.com/japaric/cortex-m-rt/compare/v0.3.4...v0.3.5
 [v0.3.4]: https://github.com/japaric/cortex-m-rt/compare/v0.3.3...v0.3.4
 [v0.3.3]: https://github.com/japaric/cortex-m-rt/compare/v0.3.2...v0.3.3
 [v0.3.2]: https://github.com/japaric/cortex-m-rt/compare/v0.3.1...v0.3.2

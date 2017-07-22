@@ -398,6 +398,7 @@ PENDSV = DEFAULT_HANDLER
 SYS_TICK = DEFAULT_HANDLER
 "#);
 
+#[cfg(target_arch = "arm")]
 extern "C" {
     fn NMI();
     fn HARD_FAULT();

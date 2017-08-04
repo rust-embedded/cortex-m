@@ -157,6 +157,7 @@ fn tpiu() {
     assert_eq!(address(&tpiu.cspsr), 0xE004_0004);
     assert_eq!(address(&tpiu.acpr), 0xE004_0010);
     assert_eq!(address(&tpiu.sppr), 0xE004_00F0);
+    assert_eq!(address(&tpiu.ffcr), 0xE004_0304);
     assert_eq!(address(&tpiu.lar), 0xE004_0FB0);
     assert_eq!(address(&tpiu.lsr), 0xE004_0FB4);
     assert_eq!(address(&tpiu._type), 0xE004_0FC8);

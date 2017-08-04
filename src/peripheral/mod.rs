@@ -950,12 +950,15 @@ pub struct TPIU {
     reserved1: [u32; 55],
     /// Selected Pin Control
     pub sppr: RW<u32>,
-    reserved2: [u32; 943],
+    reserved2: [u32; 132],
+    /// Formatter and Flush Control
+    pub ffcr: RW<u32>,
+    reserved3: [u32; 810],
     /// Lock Access
     pub lar: WO<u32>,
     /// Lock Status
     pub lsr: RO<u32>,
-    reserved3: [u32; 4],
+    reserved4: [u32; 4],
     /// TPIU Type
     pub _type: RO<u32>,
 }

@@ -13,6 +13,7 @@
 #![deny(warnings)]
 #![feature(asm)]
 #![feature(const_fn)]
+#![feature(const_unsafe_cell_new)]
 #![feature(naked_functions)]
 #![no_std]
 

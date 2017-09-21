@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.1.7] - 2017-09-21
+
+### Fixed
+
+- Compilation with recent nightlies
+
 ## [v0.1.6] - 2017-01-22
 
 ### Added
@@ -60,10 +66,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/japaric/rustc-cfg/compare/v0.1.6...HEAD
-[v0.1.6]: https://github.com/japaric/rustc-cfg/compare/v0.1.5...v0.1.6
-[v0.1.5]: https://github.com/japaric/rustc-cfg/compare/v0.1.4...v0.1.5
-[v0.1.4]: https://github.com/japaric/rustc-cfg/compare/v0.1.3...v0.1.4
-[v0.1.3]: https://github.com/japaric/rustc-cfg/compare/v0.1.2...v0.1.3
-[v0.1.2]: https://github.com/japaric/rustc-cfg/compare/v0.1.1...v0.1.2
-[v0.1.1]: https://github.com/japaric/rustc-cfg/compare/v0.1.0...v0.1.1
+[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.1.7...HEAD
+[v0.1.7]: https://github.com/japaric/cortex-m/compare/v0.1.6...v0.1.7
+[v0.1.6]: https://github.com/japaric/cortex-m/compare/v0.1.5...v0.1.6
+[v0.1.5]: https://github.com/japaric/cortex-m/compare/v0.1.4...v0.1.5
+[v0.1.4]: https://github.com/japaric/cortex-m/compare/v0.1.3...v0.1.4
+[v0.1.3]: https://github.com/japaric/cortex-m/compare/v0.1.2...v0.1.3
+[v0.1.2]: https://github.com/japaric/cortex-m/compare/v0.1.1...v0.1.2
+[v0.1.1]: https://github.com/japaric/cortex-m/compare/v0.1.0...v0.1.1

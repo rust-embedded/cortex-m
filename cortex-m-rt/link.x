@@ -1,5 +1,12 @@
 INCLUDE memory.x
 
+/* With multiple codegen units the rlib produced for this crate has several object files in it. */
+/* Because the linker is Smart it may not look into all the object files and not pick up the */
+/* .vector_table.exceptions section. But we want it to! To workaround the problem we create an */
+/* undefined reference to the EXCEPTIONS symbol (located in .vector_table.exceptions); this way the */
+/* linker will look at all the object of the rlib and pick up our EXCEPTIONS symbol */
+EXTERN(EXCEPTIONS);
+
 /* Create an undefined reference to the INTERRUPTS symbol. This is required to
    force the linker to *not* drop the INTERRUPTS symbol if it comes from an
    object file that's passed to the linker *before* this crate */

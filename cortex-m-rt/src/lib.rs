@@ -410,10 +410,13 @@ extern "C" {
     fn SYS_TICK();
 }
 
+#[allow(private_no_mangle_statics)]
 #[cfg(target_arch = "arm")]
-#[used]
+#[doc(hidden)]
 #[link_section = ".vector_table.exceptions"]
-static EXCEPTIONS: [Option<unsafe extern "C" fn()>; 14] = [
+#[no_mangle]
+#[used]
+pub static EXCEPTIONS: [Option<unsafe extern "C" fn()>; 14] = [
     Some(NMI),
     Some(HARD_FAULT),
     Some(MEM_MANAGE),

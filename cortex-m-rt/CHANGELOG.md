@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.3.6] - 2017-10-03
+
+### Fixed
+
+- Builds with multiple codegen units by forcing the linker to look harder for the exceptions vector
+  table.
+
 ## [v0.3.5] - 2017-07-21
 
 ### Fixed

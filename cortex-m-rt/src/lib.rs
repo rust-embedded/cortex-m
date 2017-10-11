@@ -372,6 +372,7 @@ unsafe extern "C" fn reset_handler() -> ! {
     }
 }
 
+#[cfg(target_arch = "arm")]
 global_asm!(r#"
 .weak NMI
 NMI = DEFAULT_HANDLER

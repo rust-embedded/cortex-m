@@ -8,22 +8,22 @@ use interrupt::Nr;
 #[repr(C)]
 pub struct RegisterBlock {
     /// Interrupt Set-Enable
-    pub iser: [RW<u32>; 8],
-    reserved0: [u32; 24],
+    pub iser: [RW<u32>; 16],
+    reserved0: [u32; 16],
     /// Interrupt Clear-Enable
-    pub icer: [RW<u32>; 8],
-    reserved1: [u32; 24],
+    pub icer: [RW<u32>; 16],
+    reserved1: [u32; 16],
     /// Interrupt Set-Pending
-    pub ispr: [RW<u32>; 8],
-    reserved2: [u32; 24],
+    pub ispr: [RW<u32>; 16],
+    reserved2: [u32; 16],
     /// Interrupt Clear-Pending
-    pub icpr: [RW<u32>; 8],
-    reserved3: [u32; 24],
+    pub icpr: [RW<u32>; 16],
+    reserved3: [u32; 16],
     /// Interrupt Active Bit
-    pub iabr: [RO<u32>; 8],
-    reserved4: [u32; 56],
+    pub iabr: [RO<u32>; 16],
+    reserved4: [u32; 48],
     /// Interrupt Priority
-    pub ipr: [RW<u8>; 240],
+    pub ipr: [RW<u8>; 496],
 }
 
 impl RegisterBlock {

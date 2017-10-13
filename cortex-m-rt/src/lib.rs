@@ -219,7 +219,7 @@
 //!
 //! Allocating the call stack on a different RAM region.
 //!
-//! ```
+//! ```,ignore
 //! MEMORY
 //! {
 //!   /* call stack will go here */
@@ -247,7 +247,7 @@
 //!
 //! Locate the `.text` section 1024 bytes after the start of the FLASH region.
 //!
-//! ```
+//! ```,ignore
 //! _stext = ORIGIN(FLASH) + 0x400;
 //! ```
 //!
@@ -260,7 +260,7 @@
 //!
 //! #### Example
 //!
-//! ```
+//! ```,ignore
 //! extern crate some_allocator;
 //!
 //! // Size of the heap in bytes
@@ -295,6 +295,7 @@ extern crate cortex_m;
 extern crate compiler_builtins;
 extern crate r0;
 
+#[cfg(not(test))]
 mod lang_items;
 
 #[cfg(target_arch = "arm")]

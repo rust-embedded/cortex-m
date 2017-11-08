@@ -48,9 +48,19 @@ SECTIONS
     . = ALIGN(4);
   } > FLASH
 
-  .bss : ALIGN(4)
+  /* limits of the .stack region */
+  _sstack = ORIGIN(RAM);
+  _estack = _stack_start;
+
+  /* ficticious region that represents the memory available for the stack */
+  .stack _sstack (INFO) : ALIGN(4)
   {
-    _sbss = .;
+    . += (_estack - _sstack);
+  }
+
+  PROVIDE(_sbss = ORIGIN(RAM));
+  .bss _sbss : ALIGN(4)
+  {
     *(.bss .bss.*);
     . = ALIGN(4);
     _ebss = .;

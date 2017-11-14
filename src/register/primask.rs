@@ -25,6 +25,8 @@ impl Primask {
 #[inline(always)]
 pub fn read() -> Primask {
     let r: u32;
+
+    #[cfg(target_arch = "arm")]
     unsafe {
         asm!("mrs $0, PRIMASK"
              : "=r"(r)
@@ -32,9 +34,23 @@ pub fn read() -> Primask {
              :
              : "volatile");
     }
+
+    #[cfg(not(target_arch = "arm"))]
+    { r = 0; }
+
     if r & (1 << 0) == (1 << 0) {
         Primask::Inactive
     } else {
         Primask::Active
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_should_compile() {
+        // Make sure that ARM-specific inline assembly is only included on ARM.
+        super::read();
     }
 }

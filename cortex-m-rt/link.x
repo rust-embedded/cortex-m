@@ -92,6 +92,11 @@ SECTIONS
   .debug_gdb_scripts _stext (INFO) : {
     KEEP(*(.debug_gdb_scripts))
   }
+
+  /DISCARD/ :
+  {
+    *(.ARM.exidx.*)
+  }
 }
 
 /* Do not exceed this mark in the error messages below                | */

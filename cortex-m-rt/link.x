@@ -52,7 +52,7 @@ SECTIONS
   _sstack = ORIGIN(RAM);
   _estack = _stack_start;
 
-  /* ficticious region that represents the memory available for the stack */
+  /* fictitious region that represents the memory available for the stack */
   .stack _sstack (INFO) : ALIGN(4)
   {
     . += (_estack - _sstack);
@@ -74,6 +74,17 @@ SECTIONS
     . = ALIGN(4);
     _edata = .;
   } > RAM AT > FLASH
+
+  PROVIDE(_heap_size = 0);
+
+  _sheap = _edata;
+  _eheap = _sheap + _heap_size;
+
+  /* fictitious region that represents the memory available for the heap */
+  .heap _sheap (INFO) : ALIGN(4)
+  {
+    . += _heap_size;
+  }
 
   /* fake output .got section */
   /* Dynamic relocations are unsupported. This section is only used to detect

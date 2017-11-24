@@ -270,6 +270,10 @@
 //!     }
 //! }
 //! ```
+//!
+//! [1]: https://doc.rust-lang.org/unstable-book/language-features/lang-items.html
+//! [qs]: https://docs.rs/cortex-m-quickstart/0.2.0/cortex_m_quickstart/
+//! [2]: https://sourceware.org/binutils/docs/ld/MEMORY.html
 
 #![cfg_attr(any(target_arch = "arm", feature = "abort-on-panic"), feature(core_intrinsics))]
 #![deny(missing_docs)]

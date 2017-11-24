@@ -49,8 +49,12 @@ SECTIONS
   } > FLASH
 
   /* limits of the .stack region */
-  _sstack = ORIGIN(RAM);
   _estack = _stack_start;
+  /* HACK the `true` case indicates that two RAM regions are being used and
+  /* that the stack was placed in the second region. In that case we don't know
+  /* the size of the second RAM region, or its start address, so we just assume
+  /* its zero sized */
+  _sstack = _stack_start < ORIGIN(RAM)? _stack_start : ORIGIN(RAM);
 
   /* fictitious region that represents the memory available for the stack */
   .stack _sstack (INFO) : ALIGN(4)

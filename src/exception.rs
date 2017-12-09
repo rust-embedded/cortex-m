@@ -31,8 +31,8 @@ impl Exception {
     ///
     /// Returns `None` if no exception is currently active
     pub fn active() -> Option<Exception> {
-        // NOTE(safe) atomic read
-        let icsr = unsafe { (*::peripheral::SCB.get()).icsr.read() };
+        // NOTE(safe) atomic read with no side effects
+        let icsr = unsafe { (*::peripheral::SCB::ptr()).icsr.read() };
 
         Some(match icsr as u8 {
             0 => return None,

@@ -4,7 +4,7 @@ use core::{fmt, mem, ptr, slice};
 
 use aligned::Aligned;
 
-use peripheral::Stim;
+use peripheral::itm::Stim;
 
 // NOTE assumes that `bytes` is 32-bit aligned
 unsafe fn write_words(stim: &Stim, bytes: &[u32]) {

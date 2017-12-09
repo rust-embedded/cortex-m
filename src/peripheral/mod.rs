@@ -62,23 +62,25 @@ pub struct Peripherals {
     pub TPIU: TPIU,
 }
 
+// NOTE `no_mangle` is used here to prevent linking different minor versions of this crate as that
+// would let you `take` the core peripherals more than once (one per minor version)
 #[no_mangle]
 static mut CORE_PERIPHERALS: bool = false;
 
 impl Peripherals {
     /// Returns all the core peripherals *once*
-    pub fn all() -> Option<Self> {
+    pub fn take() -> Option<Self> {
         interrupt::free(|_| {
             if unsafe { CORE_PERIPHERALS } {
                 None
             } else {
-                Some(unsafe { Peripherals::_all() })
+                Some(unsafe { Peripherals::steal() })
             }
         })
     }
 
     #[doc(hidden)]
-    pub unsafe fn _all() -> Self {
+    pub unsafe fn steal() -> Self {
         debug_assert!(!CORE_PERIPHERALS);
 
         CORE_PERIPHERALS = true;

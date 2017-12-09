@@ -80,7 +80,7 @@ impl Peripherals {
         })
     }
 
-    #[doc(hidden)]
+    /// Unchecked version of `Peripherals::steal`
     pub unsafe fn steal() -> Self {
         debug_assert!(!CORE_PERIPHERALS);
 

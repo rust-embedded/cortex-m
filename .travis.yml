@@ -16,10 +16,10 @@ matrix:
 before_install: set -e
 
 install:
-  - sh ci/install.sh
+  - bash ci/install.sh
 
 script:
-  - sh ci/script.sh
+  - bash ci/script.sh
 
 after_script: set +e
 

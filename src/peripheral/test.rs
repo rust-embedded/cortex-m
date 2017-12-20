@@ -104,17 +104,11 @@ fn nvic() {
     let nvic = unsafe { &*::peripheral::NVIC::ptr() };
 
     assert_eq!(address(&nvic.iser), 0xE000E100);
-    assert_eq!(address(&nvic.iser[7]), 0xE000E11C);
     assert_eq!(address(&nvic.icer), 0xE000E180);
-    assert_eq!(address(&nvic.icer[7]), 0xE000E19C);
     assert_eq!(address(&nvic.ispr), 0xE000E200);
-    assert_eq!(address(&nvic.ispr[7]), 0xE000E21C);
     assert_eq!(address(&nvic.icpr), 0xE000E280);
-    assert_eq!(address(&nvic.icpr[7]), 0xE000E29C);
     assert_eq!(address(&nvic.iabr), 0xE000E300);
-    assert_eq!(address(&nvic.iabr[7]), 0xE000E31C);
     assert_eq!(address(&nvic.ipr), 0xE000E400);
-    assert_eq!(address(&nvic.ipr[239]), 0xE000E4eF);
 }
 
 #[test]

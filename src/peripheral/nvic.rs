@@ -8,22 +8,48 @@ use interrupt::Nr;
 #[repr(C)]
 pub struct RegisterBlock {
     /// Interrupt Set-Enable
-    pub iser: [RW<u32>; 8],
-    reserved0: [u32; 24],
+    pub iser: [RW<u32>; 16],
+    reserved0: [u32; 16],
     /// Interrupt Clear-Enable
-    pub icer: [RW<u32>; 8],
-    reserved1: [u32; 24],
+    pub icer: [RW<u32>; 16],
+    reserved1: [u32; 16],
     /// Interrupt Set-Pending
-    pub ispr: [RW<u32>; 8],
-    reserved2: [u32; 24],
+    pub ispr: [RW<u32>; 16],
+    reserved2: [u32; 16],
     /// Interrupt Clear-Pending
-    pub icpr: [RW<u32>; 8],
-    reserved3: [u32; 24],
+    pub icpr: [RW<u32>; 16],
+    reserved3: [u32; 16],
     /// Interrupt Active Bit
-    pub iabr: [RO<u32>; 8],
-    reserved4: [u32; 56],
+    pub iabr: [RO<u32>; 16],
+    reserved4: [u32; 48],
+
+    #[cfg(not(armv6m))]
     /// Interrupt Priority
-    pub ipr: [RW<u8>; 240],
+    ///
+    /// On ARMv7-M, 124 word-sized registers are available. Each of those
+    /// contains of 4 interrupt priorities of 8 byte each.The architecture
+    /// specifically allows accessing those along byte boundaries, so they are
+    /// represented as 496 byte-sized registers, for convenience, and to allow
+    /// atomic priority updates.
+    ///
+    /// On ARMv6-M, the registers must only be accessed along word boundaries,
+    /// so convenient byte-sized representation wouldn't work on that
+    /// architecture.
+    pub ipr: [RW<u8>; 496],
+
+    #[cfg(armv6m)]
+    /// Interrupt Priority
+    ///
+    /// On ARMv7-M, 124 word-sized registers are available. Each of those
+    /// contains of 4 interrupt priorities of 8 byte each.The architecture
+    /// specifically allows accessing those along byte boundaries, so they are
+    /// represented as 496 byte-sized registers, for convenience, and to allow
+    /// atomic priority updates.
+    ///
+    /// On ARMv6-M, the registers must only be accessed along word boundaries,
+    /// so convenient byte-sized representation wouldn't work on that
+    /// architecture.
+    pub ipr: [RW<u32>; 8],
 }
 
 impl RegisterBlock {
@@ -66,9 +92,18 @@ impl RegisterBlock {
     where
         I: Nr,
     {
-        let nr = interrupt.nr();
+        #[cfg(not(armv6m))]
+        {
+            let nr = interrupt.nr();
+            self.ipr[usize::from(nr)].read()
+        }
 
-        self.ipr[usize::from(nr)].read()
+        #[cfg(armv6m)]
+        {
+            let ipr_n = self.ipr[Self::ipr_index(&interrupt)].read();
+            let prio  = (ipr_n >> Self::ipr_shift(&interrupt)) & 0x000000ff;
+            prio as u8
+        }
     }
 
     /// Is `interrupt` active or pre-empted and stacked
@@ -118,12 +153,40 @@ impl RegisterBlock {
     ///
     /// NOTE See `get_priority` method for an explanation of how NVIC priorities
     /// work.
+    ///
+    /// On ARMv6-M, updating an interrupt priority requires a read-modify-write
+    /// operation, which is not atomic. This is inherently racy, so please
+    /// ensure proper access to this method.
+    ///
+    /// On ARMv7-M, this method is atomic.
     pub unsafe fn set_priority<I>(&self, interrupt: I, prio: u8)
     where
         I: Nr,
     {
-        let nr = interrupt.nr();
+        #[cfg(not(armv6m))]
+        {
+            let nr = interrupt.nr();
+            self.ipr[usize::from(nr)].write(prio)
+        }
 
-        self.ipr[usize::from(nr)].write(prio)
+        #[cfg(armv6m)]
+        {
+            self.ipr[Self::ipr_index(&interrupt)].modify(|value| {
+                let mask = 0x000000ff << Self::ipr_shift(&interrupt);
+                let prio = u32::from(prio) << Self::ipr_shift(&interrupt);
+
+                (value & !mask) | prio
+            })
+        }
+    }
+
+    #[cfg(armv6m)]
+    fn ipr_index<I>(interrupt: &I) -> usize where I: Nr {
+        usize::from(interrupt.nr()) / 4
+    }
+
+    #[cfg(armv6m)]
+    fn ipr_shift<I>(interrupt: &I) -> usize where I: Nr {
+        (usize::from(interrupt.nr()) % 4) * 8
     }
 }

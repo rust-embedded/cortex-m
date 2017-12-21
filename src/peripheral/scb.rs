@@ -78,6 +78,11 @@ impl RegisterBlock {
     }
 
     /// Sets FPU access mode
+    ///
+    /// *IMPORTANT* Any function that runs fully or partly with the FPU disabled must *not* take any
+    /// floating-point arguments or have any floating-point local variables. Because the compiler
+    /// might inline such a function into a caller that does have floating-point arguments or
+    /// variables, any such function must be also marked #[inline(never)].
     pub fn set_fpu_access_mode(&self, mode: FpuAccessMode) {
         let mut cpacr = self.cpacr.read() & !SCB_CPACR_FPU_MASK;
         match mode {

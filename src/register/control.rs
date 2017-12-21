@@ -107,6 +107,8 @@ impl Fpca {
 #[inline(always)]
 pub fn read() -> Control {
     let r: u32;
+
+    #[cfg(target_arch = "arm")]
     unsafe {
         asm!("mrs $0, CONTROL"
              : "=r"(r)
@@ -114,5 +116,19 @@ pub fn read() -> Control {
              :
              : "volatile");
     }
+
+    #[cfg(not(target_arch = "arm"))]
+    { r = 0; }
+
     Control { bits: r }
+}
+
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_should_compile() {
+        // Make sure that ARM-specific inline assembly is only included on ARM.
+        super::read();
+    }
 }

@@ -42,6 +42,8 @@ impl Apsr {
 #[inline(always)]
 pub fn read() -> Apsr {
     let r: u32;
+
+    #[cfg(target_arch = "arm")]
     unsafe {
         asm!("mrs $0, APSR"
              : "=r"(r)
@@ -49,5 +51,19 @@ pub fn read() -> Apsr {
              :
              : "volatile");
     }
+
+    #[cfg(not(target_arch = "arm"))]
+    { r = 0; }
+
     Apsr { bits: r }
+}
+
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_should_compile() {
+        // Make sure that ARM-specific inline assembly is only included on ARM.
+        super::read();
+    }
 }

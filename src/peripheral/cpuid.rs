@@ -4,6 +4,9 @@ use volatile_register::RO;
 #[cfg(any(armv7m, test))]
 use volatile_register::RW;
 
+#[cfg(armv7m)]
+use peripheral::CPUID;
+
 /// Register block
 #[repr(C)]
 pub struct RegisterBlock {
@@ -45,14 +48,14 @@ pub enum CsselrCacheType {
 }
 
 #[cfg(armv7m)]
-impl RegisterBlock {
+impl CPUID {
     /// Selects the current CCSIDR
     ///
     /// * `level`: the required cache level minus 1, e.g. 0 for L1, 1 for L2
     /// * `ind`: select instruction cache or data/unified cache
     ///
     /// `level` is masked to be between 0 and 7.
-    pub fn select_cache(&self, level: u8, ind: CsselrCacheType) {
+    pub fn select_cache(&mut self, level: u8, ind: CsselrCacheType) {
         const CSSELR_IND_POS: u32 = 0;
         const CSSELR_IND_MASK: u32 = 1 << CSSELR_IND_POS;
         const CSSELR_LEVEL_POS: u32 = 1;
@@ -67,7 +70,7 @@ impl RegisterBlock {
     }
 
     /// Returns the number of sets and ways in the selected cache
-    pub fn cache_num_sets_ways(&self, level: u8, ind: CsselrCacheType) -> (u16, u16) {
+    pub fn cache_num_sets_ways(&mut self, level: u8, ind: CsselrCacheType) -> (u16, u16) {
         const CCSIDR_NUMSETS_POS: u32 = 13;
         const CCSIDR_NUMSETS_MASK: u32 = 0x7FFF << CCSIDR_NUMSETS_POS;
         const CCSIDR_ASSOCIATIVITY_POS: u32 = 3;

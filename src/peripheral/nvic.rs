@@ -2,6 +2,7 @@
 
 use volatile_register::{RO, RW};
 
+use peripheral::NVIC;
 use interrupt::Nr;
 
 /// Register block
@@ -52,9 +53,9 @@ pub struct RegisterBlock {
     pub ipr: [RW<u32>; 8],
 }
 
-impl RegisterBlock {
+impl NVIC {
     /// Clears `interrupt`'s pending state
-    pub fn clear_pending<I>(&self, interrupt: I)
+    pub fn clear_pending<I>(&mut self, interrupt: I)
     where
         I: Nr,
     {
@@ -64,7 +65,7 @@ impl RegisterBlock {
     }
 
     /// Disables `interrupt`
-    pub fn disable<I>(&self, interrupt: I)
+    pub fn disable<I>(&mut self, interrupt: I)
     where
         I: Nr,
     {
@@ -74,7 +75,7 @@ impl RegisterBlock {
     }
 
     /// Enables `interrupt`
-    pub fn enable<I>(&self, interrupt: I)
+    pub fn enable<I>(&mut self, interrupt: I)
     where
         I: Nr,
     {
@@ -83,64 +84,69 @@ impl RegisterBlock {
         unsafe { self.iser[usize::from(nr / 32)].write(1 << (nr % 32)) }
     }
 
-    /// Gets the "priority" of `interrupt`
+    /// Returns the NVIC priority of `interrupt`
     ///
-    /// NOTE NVIC encodes priority in the highest bits of a byte so values like
-    /// `1` and `2` have the same priority. Also for NVIC priorities, a lower
-    /// value (e.g. `16`) has higher priority than a larger value (e.g. `32`).
-    pub fn get_priority<I>(&self, interrupt: I) -> u8
+    /// *NOTE* NVIC encodes priority in the highest bits of a byte so values like `1` and `2` map
+    /// the same priority. Also for NVIC priorities, a lower value (e.g. `16`) has higher priority
+    /// (urgency) than a larger value (e.g. `32`).
+    pub fn get_priority<I>(interrupt: I) -> u8
     where
         I: Nr,
     {
         #[cfg(not(armv6m))]
         {
             let nr = interrupt.nr();
-            self.ipr[usize::from(nr)].read()
+            // NOTE(unsafe) atomic read with no side effects
+            unsafe { (*Self::ptr()).ipr[usize::from(nr)].read() }
         }
 
         #[cfg(armv6m)]
         {
-            let ipr_n = self.ipr[Self::ipr_index(&interrupt)].read();
-            let prio  = (ipr_n >> Self::ipr_shift(&interrupt)) & 0x000000ff;
+            // NOTE(unsafe) atomic read with no side effects
+            let ipr_n = (*Self::ptr()).ipr[Self::ipr_index(&interrupt)].read();
+            let prio = (ipr_n >> Self::ipr_shift(&interrupt)) & 0x000000ff;
             prio as u8
         }
     }
 
     /// Is `interrupt` active or pre-empted and stacked
-    pub fn is_active<I>(&self, interrupt: I) -> bool
+    pub fn is_active<I>(interrupt: I) -> bool
     where
         I: Nr,
     {
         let nr = interrupt.nr();
         let mask = 1 << (nr % 32);
 
-        (self.iabr[usize::from(nr / 32)].read() & mask) == mask
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { ((*Self::ptr()).iabr[usize::from(nr / 32)].read() & mask) == mask }
     }
 
     /// Checks if `interrupt` is enabled
-    pub fn is_enabled<I>(&self, interrupt: I) -> bool
+    pub fn is_enabled<I>(interrupt: I) -> bool
     where
         I: Nr,
     {
         let nr = interrupt.nr();
         let mask = 1 << (nr % 32);
 
-        (self.iser[usize::from(nr / 32)].read() & mask) == mask
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { ((*Self::ptr()).iser[usize::from(nr / 32)].read() & mask) == mask }
     }
 
     /// Checks if `interrupt` is pending
-    pub fn is_pending<I>(&self, interrupt: I) -> bool
+    pub fn is_pending<I>(interrupt: I) -> bool
     where
         I: Nr,
     {
         let nr = interrupt.nr();
         let mask = 1 << (nr % 32);
 
-        (self.ispr[usize::from(nr / 32)].read() & mask) == mask
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { ((*Self::ptr()).ispr[usize::from(nr / 32)].read() & mask) == mask }
     }
 
     /// Forces `interrupt` into pending state
-    pub fn set_pending<I>(&self, interrupt: I)
+    pub fn set_pending<I>(&mut self, interrupt: I)
     where
         I: Nr,
     {
@@ -151,15 +157,12 @@ impl RegisterBlock {
 
     /// Sets the "priority" of `interrupt` to `prio`
     ///
-    /// NOTE See `get_priority` method for an explanation of how NVIC priorities
-    /// work.
+    /// *NOTE* See [`get_priority`](struct.NVIC.html#method.get_priority) method for an explanation
+    /// of how NVIC priorities work.
     ///
-    /// On ARMv6-M, updating an interrupt priority requires a read-modify-write
-    /// operation, which is not atomic. This is inherently racy, so please
-    /// ensure proper access to this method.
-    ///
-    /// On ARMv7-M, this method is atomic.
-    pub unsafe fn set_priority<I>(&self, interrupt: I, prio: u8)
+    /// On ARMv6-M, updating an interrupt priority requires a read-modify-write operation. On
+    /// ARMv7-M, the operation is performed in a single atomic write operation.
+    pub unsafe fn set_priority<I>(&mut self, interrupt: I, prio: u8)
     where
         I: Nr,
     {
@@ -181,12 +184,18 @@ impl RegisterBlock {
     }
 
     #[cfg(armv6m)]
-    fn ipr_index<I>(interrupt: &I) -> usize where I: Nr {
+    fn ipr_index<I>(interrupt: &I) -> usize
+    where
+        I: Nr,
+    {
         usize::from(interrupt.nr()) / 4
     }
 
     #[cfg(armv6m)]
-    fn ipr_shift<I>(interrupt: &I) -> usize where I: Nr {
+    fn ipr_shift<I>(interrupt: &I) -> usize
+    where
+        I: Nr,
+    {
         (usize::from(interrupt.nr()) % 4) * 8
     }
 }

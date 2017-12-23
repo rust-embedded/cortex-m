@@ -39,15 +39,18 @@ impl Apsr {
 }
 
 /// Reads the CPU register
-#[inline(always)]
+#[inline]
 pub fn read() -> Apsr {
-    let r: u32;
-    unsafe {
-        asm!("mrs $0, APSR"
-             : "=r"(r)
-             :
-             :
-             : "volatile");
+    match () {
+        #[cfg(target_arch = "arm")]
+        () => {
+            let r: u32;
+            unsafe {
+                asm!("mrs $0, APSR" : "=r"(r) ::: "volatile");
+            }
+            Apsr { bits: r }
+        }
+        #[cfg(not(target_arch = "arm"))]
+        () => unimplemented!(),
     }
-    Apsr { bits: r }
 }

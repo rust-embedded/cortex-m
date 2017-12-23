@@ -35,7 +35,7 @@ const CBP_SW_SET_MASK: u32 = 0x1FF << CBP_SW_SET_POS;
 
 impl RegisterBlock {
     /// I-cache invalidate all to PoU
-    #[inline(always)]
+    #[inline]
     pub fn iciallu(&self) {
         unsafe {
             self.iciallu.write(0);
@@ -43,7 +43,7 @@ impl RegisterBlock {
     }
 
     /// I-cache invalidate by MVA to PoU
-    #[inline(always)]
+    #[inline]
     pub fn icimvau(&self, mva: u32) {
         unsafe {
             self.icimvau.write(mva);
@@ -51,7 +51,7 @@ impl RegisterBlock {
     }
 
     /// D-cache invalidate by MVA to PoC
-    #[inline(always)]
+    #[inline]
     pub fn dcimvac(&self, mva: u32) {
         unsafe {
             self.dcimvac.write(mva);
@@ -61,7 +61,7 @@ impl RegisterBlock {
     /// D-cache invalidate by set-way
     ///
     /// `set` is masked to be between 0 and 3, and `way` between 0 and 511.
-    #[inline(always)]
+    #[inline]
     pub fn dcisw(&self, set: u16, way: u16) {
         // The ARMv7-M Architecture Reference Manual, as of Revision E.b, says these set/way
         // operations have a register data format which depends on the implementation's
@@ -81,7 +81,7 @@ impl RegisterBlock {
     }
 
     /// D-cache clean by MVA to PoU
-    #[inline(always)]
+    #[inline]
     pub fn dccmvau(&self, mva: u32) {
         unsafe {
             self.dccmvau.write(mva);
@@ -89,7 +89,7 @@ impl RegisterBlock {
     }
 
     /// D-cache clean by MVA to PoC
-    #[inline(always)]
+    #[inline]
     pub fn dccmvac(&self, mva: u32) {
         unsafe {
             self.dccmvac.write(mva);
@@ -99,7 +99,7 @@ impl RegisterBlock {
     /// D-cache clean by set-way
     ///
     /// `set` is masked to be between 0 and 3, and `way` between 0 and 511.
-    #[inline(always)]
+    #[inline]
     pub fn dccsw(&self, set: u16, way: u16) {
         // See comment for dcisw() about the format here
         unsafe {
@@ -111,7 +111,7 @@ impl RegisterBlock {
     }
 
     /// D-cache clean and invalidate by MVA to PoC
-    #[inline(always)]
+    #[inline]
     pub fn dccimvac(&self, mva: u32) {
         unsafe {
             self.dccimvac.write(mva);
@@ -121,7 +121,7 @@ impl RegisterBlock {
     /// D-cache clean and invalidate by set-way
     ///
     /// `set` is masked to be between 0 and 3, and `way` between 0 and 511.
-    #[inline(always)]
+    #[inline]
     pub fn dccisw(&self, set: u16, way: u16) {
         // See comment for dcisw() about the format here
         unsafe {
@@ -133,7 +133,7 @@ impl RegisterBlock {
     }
 
     /// Branch predictor invalidate all
-    #[inline(always)]
+    #[inline]
     pub fn bpiall(&self) {
         unsafe {
             self.bpiall.write(0);

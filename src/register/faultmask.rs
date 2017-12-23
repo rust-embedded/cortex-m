@@ -22,19 +22,20 @@ impl Faultmask {
 }
 
 /// Reads the CPU register
-#[inline(always)]
+#[inline]
 pub fn read() -> Faultmask {
-    let r: u32;
-    unsafe {
-        asm!("mrs $0, FAULTMASK"
-             : "=r"(r)
-             :
-             :
-             : "volatile");
-    }
-    if r & (1 << 0) == (1 << 0) {
-        Faultmask::Inactive
-    } else {
-        Faultmask::Active
+    match () {
+        #[cfg(target_arch = "arm")]
+        () => {
+            let r: u32;
+            unsafe { asm!("mrs $0, FAULTMASK" : "=r"(r) ::: "volatile") }
+            if r & (1 << 0) == (1 << 0) {
+                Faultmask::Inactive
+            } else {
+                Faultmask::Active
+            }
+        }
+        #[cfg(not(target_arch = "arm"))]
+        () => unimplemented!(),
     }
 }

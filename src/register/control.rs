@@ -104,15 +104,16 @@ impl Fpca {
 }
 
 /// Reads the CPU register
-#[inline(always)]
+#[inline]
 pub fn read() -> Control {
-    let r: u32;
-    unsafe {
-        asm!("mrs $0, CONTROL"
-             : "=r"(r)
-             :
-             :
-             : "volatile");
+    match () {
+        #[cfg(target_arch = "arm")]
+        () => {
+            let r: u32;
+            unsafe { asm!("mrs $0, CONTROL" : "=r"(r) ::: "volatile") }
+            Control { bits: r }
+        }
+        #[cfg(not(target_arch = "arm"))]
+        () => unimplemented!(),
     }
-    Control { bits: r }
 }

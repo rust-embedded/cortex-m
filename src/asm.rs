@@ -7,58 +7,43 @@
 /// cause an exception
 #[inline(always)]
 pub fn bkpt() {
-    #[cfg(target_arch = "arm")]
-    unsafe {
-        asm!("bkpt"
-             :
-             :
-             :
-             : "volatile");
+    match () {
+        #[cfg(target_arch = "arm")]
+        () => unsafe { asm!("bkpt" :::: "volatile") },
+        #[cfg(not(target_arch = "arm"))]
+        () => unimplemented!(),
     }
 }
 
 /// A no-operation. Useful to prevent delay loops from being optimized away.
-#[inline(always)]
+#[inline]
 pub fn nop() {
-    unsafe {
-        asm!("nop"
-             :
-             :
-             :
-             : "volatile");
+    match () {
+        #[cfg(target_arch = "arm")]
+        () => unsafe { asm!("nop" :::: "volatile") },
+        #[cfg(not(target_arch = "arm"))]
+        () => unimplemented!(),
     }
 }
 /// Wait For Event
-#[inline(always)]
+#[inline]
 pub fn wfe() {
     match () {
         #[cfg(target_arch = "arm")]
-        () => unsafe {
-            asm!("wfe"
-                 :
-                 :
-                 :
-                 : "volatile")
-        },
+        () => unsafe { asm!("wfe" :::: "volatile") },
         #[cfg(not(target_arch = "arm"))]
-        () => {}
+        () => unimplemented!(),
     }
 }
 
 /// Wait For Interrupt
-#[inline(always)]
+#[inline]
 pub fn wfi() {
     match () {
         #[cfg(target_arch = "arm")]
-        () => unsafe{
-            asm!("wfi"
-                 :
-                 :
-                 :
-                 : "volatile")
-        },
+        () => unsafe { asm!("wfi" :::: "volatile") },
         #[cfg(not(target_arch = "arm"))]
-        () => {}
+        () => unimplemented!(),
     }
 }
 
@@ -66,15 +51,13 @@ pub fn wfi() {
 ///
 /// Flushes the pipeline in the processor, so that all instructions following the `ISB` are fetched
 /// from cache or memory, after the instruction has been completed.
-#[inline(always)]
+#[inline]
 pub fn isb() {
     match () {
         #[cfg(target_arch = "arm")]
-        () => unsafe {
-            asm!("isb 0xF" : : : "memory" : "volatile");
-        },
+        () => unsafe { asm!("isb 0xF" : : : "memory" : "volatile") },
         #[cfg(not(target_arch = "arm"))]
-        () => {}
+        () => unimplemented!(),
     }
 }
 
@@ -86,15 +69,13 @@ pub fn isb() {
 ///
 ///  * any explicit memory access made before this instruction is complete
 ///  * all cache and branch predictor maintenance operations before this instruction complete
-#[inline(always)]
+#[inline]
 pub fn dsb() {
     match () {
         #[cfg(target_arch = "arm")]
-        () => unsafe {
-            asm!("dsb 0xF" : : : "memory" : "volatile");
-        },
+        () => unsafe { asm!("dsb 0xF" : : : "memory" : "volatile") },
         #[cfg(not(target_arch = "arm"))]
-        () => {}
+        () => unimplemented!(),
     }
 }
 
@@ -103,14 +84,12 @@ pub fn dsb() {
 /// Ensures that all explicit memory accesses that appear in program order before the `DMB`
 /// instruction are observed before any explicit memory accesses that appear in program order
 /// after the `DMB` instruction.
-#[inline(always)]
+#[inline]
 pub fn dmb() {
     match () {
         #[cfg(target_arch = "arm")]
-        () => unsafe {
-            asm!("dmb 0xF" : : : "memory" : "volatile");
-        },
+        () => unsafe { asm!("dmb 0xF" : : : "memory" : "volatile") },
         #[cfg(not(target_arch = "arm"))]
-        () => {}
+        () => unimplemented!(),
     }
 }

@@ -69,7 +69,7 @@ static mut CORE_PERIPHERALS: bool = false;
 
 impl Peripherals {
     /// Returns all the core peripherals *once*
-    #[inline(always)]
+    #[inline]
     pub fn take() -> Option<Self> {
         interrupt::free(|_| {
             if unsafe { CORE_PERIPHERALS } {

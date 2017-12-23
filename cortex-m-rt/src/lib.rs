@@ -400,6 +400,12 @@ PENDSV = DEFAULT_HANDLER
 SYS_TICK = DEFAULT_HANDLER
 "#);
 
+#[cfg(not(armv6m))]
+global_asm!(r#"
+.weak DEBUG_MONITOR
+DEBUG_MONITOR = DEFAULT_HANDLER
+"#);
+
 #[cfg(target_arch = "arm")]
 extern "C" {
     fn NMI();
@@ -408,6 +414,8 @@ extern "C" {
     fn BUS_FAULT();
     fn USAGE_FAULT();
     fn SVCALL();
+    #[cfg(not(armv6m))]
+    fn DEBUG_MONITOR();
     fn PENDSV();
     fn SYS_TICK();
 }
@@ -429,7 +437,10 @@ pub static EXCEPTIONS: [Option<unsafe extern "C" fn()>; 14] = [
     None,
     None,
     Some(SVCALL),
+    #[cfg(armv6m)]
     None,
+    #[cfg(not(armv6m))]
+    Some(DEBUG_MONITOR),
     None,
     Some(PENDSV),
     Some(SYS_TICK),
@@ -520,6 +531,9 @@ pub enum Exception {
     USAGE_FAULT,
     /// System service call via SWI instruction
     SVCALL,
+    /// Debug monitor
+    #[cfg(not(armv6m))]
+    DEBUG_MONITOR,
     /// Pendable request for system service
     PENDSV,
     /// System tick timer

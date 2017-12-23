@@ -4,7 +4,10 @@ use std::io::Write;
 use std::path::PathBuf;
 
 fn main() {
-    has_fpu();
+    let target = env::var("TARGET").unwrap();
+
+    has_fpu(&target);
+    is_armv6m(&target);
 
     // Put the linker script somewhere the linker can find it
     let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
@@ -18,10 +21,14 @@ fn main() {
     println!("cargo:rerun-if-changed=link.x");
 }
 
-fn has_fpu() {
-    let target = env::var("TARGET").unwrap();
-
+fn has_fpu(target: &str) {
     if target.ends_with("eabihf") {
         println!("cargo:rustc-cfg=has_fpu");
+    }
+}
+
+fn is_armv6m(target: &str) {
+    if target.starts_with("thumbv6m-") {
+        println!("cargo:rustc-cfg=armv6m");
     }
 }

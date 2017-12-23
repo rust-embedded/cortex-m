@@ -4,13 +4,14 @@
 ///
 /// - `basepri != 0` AND `basepri::read() == 0`, OR
 /// - `basepri != 0` AND `basepri < basepri::read()`
-#[inline(always)]
-pub fn write(basepri: u8) {
-    unsafe {
-        asm!("msr BASEPRI_MAX, $0"
-             :
-             : "r"(basepri)
-             : "memory"
-             : "volatile");
+#[inline]
+pub fn write(_basepri: u8) {
+    match () {
+        #[cfg(target_arch = "arm")]
+        () => unsafe {
+            asm!("msr BASEPRI_MAX, $0" :: "r"(_basepri) : "memory" : "volatile");
+        },
+        #[cfg(not(target_arch = "arm"))]
+        () => unimplemented!(),
     }
 }

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.3.7] - 2017-12-23
+
+### Added
+
+- Support for overriding the DEBUG_MONITOR exception handler on ARMv7-M.
+
 ## [v0.3.6] - 2017-10-03
 
 ### Fixed
@@ -173,7 +179,9 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/japaric/cortex-m-rt/compare/v0.3.5...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m-rt/compare/v0.3.7...HEAD
+[v0.3.7]: https://github.com/japaric/cortex-m-rt/compare/v0.3.6...v0.3.7
+[v0.3.6]: https://github.com/japaric/cortex-m-rt/compare/v0.3.5...v0.3.6
 [v0.3.5]: https://github.com/japaric/cortex-m-rt/compare/v0.3.4...v0.3.5
 [v0.3.4]: https://github.com/japaric/cortex-m-rt/compare/v0.3.3...v0.3.4
 [v0.3.3]: https://github.com/japaric/cortex-m-rt/compare/v0.3.2...v0.3.3

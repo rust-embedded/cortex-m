@@ -278,8 +278,7 @@
 //! }
 //! ```
 
-#![cfg_attr(any(target_arch = "arm", feature = "abort-on-panic"),
-            feature(core_intrinsics))]
+#![cfg_attr(any(target_arch = "arm", feature = "abort-on-panic"), feature(core_intrinsics))]
 #![deny(missing_docs)]
 #![deny(warnings)]
 #![feature(asm)]
@@ -291,8 +290,8 @@
 #![feature(used)]
 #![no_std]
 
-extern crate cortex_m;
 extern crate compiler_builtins;
+extern crate cortex_m;
 extern crate r0;
 
 #[cfg(not(test))]
@@ -374,7 +373,8 @@ unsafe extern "C" fn reset_handler() -> ! {
 }
 
 #[cfg(target_arch = "arm")]
-global_asm!(r#"
+global_asm!(
+    r#"
 .weak NMI
 NMI = DEFAULT_HANDLER
 
@@ -398,13 +398,16 @@ PENDSV = DEFAULT_HANDLER
 
 .weak SYS_TICK
 SYS_TICK = DEFAULT_HANDLER
-"#);
+"#
+);
 
 #[cfg(not(armv6m))]
-global_asm!(r#"
+global_asm!(
+    r#"
 .weak DEBUG_MONITOR
 DEBUG_MONITOR = DEFAULT_HANDLER
-"#);
+"#
+);
 
 #[cfg(target_arch = "arm")]
 extern "C" {

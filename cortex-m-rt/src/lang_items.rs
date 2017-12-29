@@ -1,12 +1,7 @@
 /// Default panic handler
 #[cfg(feature = "abort-on-panic")]
 #[lang = "panic_fmt"]
-unsafe extern "C" fn panic_fmt(
-    _: ::core::fmt::Arguments,
-    _: &'static str,
-    _: u32,
-    _: u32,
-) -> ! {
+unsafe extern "C" fn panic_fmt(_: ::core::fmt::Arguments, _: &'static str, _: u32, _: u32) -> ! {
     ::core::intrinsics::abort()
 }
 
@@ -29,12 +24,22 @@ unsafe extern "C" fn panic_fmt(
 // has to call `rustc_main`. That's covered by the `reset_handler` function in
 // root of this crate.
 #[lang = "start"]
-extern "C" fn start(
-    main: fn(),
-    _argc: isize,
-    _argv: *const *const u8,
-) -> isize {
+extern "C" fn start<T>(main: fn() -> T, _argc: isize, _argv: *const *const u8) -> isize
+where
+    T: Termination,
+{
     main();
 
     0
+}
+
+#[lang = "termination"]
+pub trait Termination {
+    fn report(self) -> i32;
+}
+
+impl Termination for () {
+    fn report(self) -> i32 {
+        0
+    }
 }

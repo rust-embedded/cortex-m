@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.3.8] - 2017-12-29
+
+### Added
+
+- `Termination` lang item
+
+### Changed
+
+- Change the `start` lang item to match the new signature
+
 ## [v0.3.7] - 2017-12-23
 
 ### Added
@@ -179,7 +189,8 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/japaric/cortex-m-rt/compare/v0.3.7...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m-rt/compare/v0.3.8...HEAD
+[v0.3.8]: https://github.com/japaric/cortex-m-rt/compare/v0.3.7...v0.3.8
 [v0.3.7]: https://github.com/japaric/cortex-m-rt/compare/v0.3.6...v0.3.7
 [v0.3.6]: https://github.com/japaric/cortex-m-rt/compare/v0.3.5...v0.3.6
 [v0.3.5]: https://github.com/japaric/cortex-m-rt/compare/v0.3.4...v0.3.5

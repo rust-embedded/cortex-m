@@ -11,9 +11,7 @@
 //! - A `panic_fmt` implementation that just calls abort that you can opt into
 //!   through the "abort-on-panic" Cargo feature. If you don't use this feature
 //!   you'll have to provide the `panic_fmt` lang item yourself. Documentation
-//!   [here][1]
-//!
-//! [1]: https://doc.rust-lang.org/unstable-book/language-features/lang-items.html
+//!   [here](https://doc.rust-lang.org/unstable-book/language-features/lang-items.html)
 //!
 //! - A minimal `start` lang item to support the standard `fn main()`
 //!   interface. (The processor goes to sleep (`loop { asm!("wfi") }`) after
@@ -36,10 +34,8 @@
 //! # Example
 //!
 //! Creating a new bare metal project. (I recommend you use the
-//! [`cortex-m-quickstart`][qs] template as it takes of all the boilerplate
-//! shown here)
-//!
-//! [qs]: https://docs.rs/cortex-m-quickstart/0.2.0/cortex_m_quickstart/
+//! [`cortex-m-quickstart`](https://docs.rs/cortex-m-quickstart/0.2.0/cortex_m_quickstart/) template
+//! as it takes of all the boilerplate shown here)
 //!
 //! ``` text
 //! $ cargo new --bin app && cd $_
@@ -197,10 +193,8 @@
 //!
 //! The main information that this file must provide is the memory layout of
 //! the device in the form of the `MEMORY` command. The command is documented
-//! [here][2], but at a minimum you'll want to create two memory regions: one
-//! for Flash memory and another for RAM.
-//!
-//! [2]: https://sourceware.org/binutils/docs/ld/MEMORY.html
+//! [here](https://sourceware.org/binutils/docs/ld/MEMORY.html), but at a minimum you'll want to
+//! create two memory regions: one for Flash memory and another for RAM.
 //!
 //! The program instructions (the `.text` section) will be stored in the memory
 //! region named FLASH, and the program `static` variables (the sections `.bss`
@@ -255,8 +249,7 @@
 //!
 //! This symbol is located in RAM right after the `.bss` and `.data` sections.
 //! You can use the address of this symbol as the start address of a heap
-//! region. This symbol is 4 byte aligned so that address will be a multiple of
-//! 4.
+//! region. This symbol is 4 byte aligned so that address will be a multiple of 4.
 //!
 //! #### Example
 //!

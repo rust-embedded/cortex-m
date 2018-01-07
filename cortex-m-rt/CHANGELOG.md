@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.3.9] - 2018-01-07
+
+### Fixed
+
+- `cargo doc` warnings
+
 ## [v0.3.8] - 2017-12-29
 
 ### Added
@@ -189,7 +195,8 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/japaric/cortex-m-rt/compare/v0.3.8...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m-rt/compare/v0.3.9...HEAD
+[v0.3.9]: https://github.com/japaric/cortex-m-rt/compare/v0.3.8...v0.3.9
 [v0.3.8]: https://github.com/japaric/cortex-m-rt/compare/v0.3.7...v0.3.8
 [v0.3.7]: https://github.com/japaric/cortex-m-rt/compare/v0.3.6...v0.3.7
 [v0.3.6]: https://github.com/japaric/cortex-m-rt/compare/v0.3.5...v0.3.6

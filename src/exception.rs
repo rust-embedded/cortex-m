@@ -22,8 +22,7 @@ pub enum Exception {
     /// An interrupt
     Interrupt(u8),
     // Unreachable variant
-    #[doc(hidden)]
-    Reserved,
+    #[doc(hidden)] Reserved,
 }
 
 impl Exception {

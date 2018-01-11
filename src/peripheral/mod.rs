@@ -1,5 +1,66 @@
 //! Core peripherals
 //!
+//! # API
+//!
+//! To use (most of) the peripheral API first you must get an *instance* of the peripheral. All the
+//! core peripherals are modeled as singletons (there can only ever be, at most, one instance of
+//! them at any given point in time) and the only way to get an instance of them is through the
+//! [`Peripherals::take`](struct.Peripherals.html#method.take) method.
+//!
+//! ``` no_run
+//! extern crate cortex_m;
+//!
+//! use cortex_m::peripheral::Peripherals;
+//!
+//! fn main() {
+//!     let mut peripherals = Peripherals::take().unwrap();
+//!     peripherals.DWT.enable_cycle_counter();
+//! }
+//! ```
+//!
+//! This method can only be successfully called *once* -- this is why the method returns an
+//! `Option`. Subsequent calls to the method will result in a `None` value being returned.
+//!
+//! A part of the peripheral API doesn't require access to a peripheral instance. This part of the
+//! API is provided as static methods on the peripheral types. One example is the
+//! [`DWT::cyccnt`](struct.DWT.html#method.cyccnt) method.
+//!
+//! ``` no_run
+//! extern crate cortex_m;
+//!
+//! use cortex_m::peripheral::{DWT, Peripherals};
+//!
+//! fn main() {
+//!     {
+//!         let mut peripherals = Peripherals::take().unwrap();
+//!         peripherals.DWT.enable_cycle_counter();
+//!     } // all the peripheral singletons are destroyed here
+//!
+//!     // but this method can be called without a DWT instance
+//!     let cyccnt = DWT::get_cycle_count();
+//! }
+//! ```
+//!
+//! The singleton property can be *unsafely* bypassed using the `ptr` static method which is
+//! available on all the peripheral types. This method is a useful building block for implementing
+//! higher level and safe abstractions.
+//!
+//! ``` no_run
+//! extern crate cortex_m;
+//!
+//! use cortex_m::peripheral::{DWT, Peripherals};
+//!
+//! fn main() {
+//!     {
+//!         let mut peripherals = Peripherals::take().unwrap();
+//!         peripherals.DWT.enable_cycle_counter();
+//!     } // all the peripheral singletons are destroyed here
+//!
+//!     // actually safe because this is an atomic read with no side effects
+//!     let cyccnt = unsafe { (*DWT::ptr()).cyccnt.read() };
+//! }
+//! ```
+//!
 //! # References
 //!
 //! - ARMv7-M Architecture Reference Manual (Issue E.b) - Chapter B3
@@ -80,7 +141,7 @@ impl Peripherals {
         })
     }
 
-    /// Unchecked version of `Peripherals::steal`
+    /// Unchecked version of `Peripherals::take`
     pub unsafe fn steal() -> Self {
         debug_assert!(!CORE_PERIPHERALS);
 
@@ -136,6 +197,12 @@ pub struct CBP {
 
 #[cfg(armv7m)]
 impl CBP {
+    pub(crate) unsafe fn new() -> Self {
+        CBP {
+            _marker: PhantomData,
+        }
+    }
+
     /// Returns a pointer to the register block
     pub fn ptr() -> *const self::cbp::RegisterBlock {
         0xE000_EF50 as *const _

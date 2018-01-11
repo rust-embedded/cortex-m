@@ -2,10 +2,12 @@
 
 use volatile_register::RW;
 
+#[cfg(any(armv7m, has_fpu))]
+use super::{CBP, SCB};
 #[cfg(armv7m)]
-use super::CBP;
+use super::CPUID;
 #[cfg(armv7m)]
-use super::cpuid::{self, CsselrCacheType};
+use super::cpuid::CsselrCacheType;
 
 /// Register block
 #[repr(C)]
@@ -64,10 +66,22 @@ mod fpu_consts {
 use self::fpu_consts::*;
 
 #[cfg(has_fpu)]
-impl RegisterBlock {
+impl SCB {
+    /// Shorthand for `set_fpu_access_mode(FpuAccessMode::Disabled)`
+    pub fn disable_fpu(&mut self) {
+        self.set_fpu_access_mode(FpuAccessMode::Disabled)
+    }
+
+    /// Shorthand for `set_fpu_access_mode(FpuAccessMode::Enabled)`
+    pub fn enable_fpu(&mut self) {
+        self.set_fpu_access_mode(FpuAccessMode::Enabled)
+    }
+
     /// Gets FPU access mode
-    pub fn fpu_access_mode(&self) -> FpuAccessMode {
-        let cpacr = self.cpacr.read();
+    pub fn fpu_access_mode() -> FpuAccessMode {
+        // NOTE(unsafe) atomic read operation with no side effects
+        let cpacr = unsafe { (*Self::ptr()).cpacr.read() };
+
         if cpacr & SCB_CPACR_FPU_MASK == SCB_CPACR_FPU_ENABLE | SCB_CPACR_FPU_USER {
             FpuAccessMode::Enabled
         } else if cpacr & SCB_CPACR_FPU_MASK == SCB_CPACR_FPU_ENABLE {
@@ -83,7 +97,7 @@ impl RegisterBlock {
     /// floating-point arguments or have any floating-point local variables. Because the compiler
     /// might inline such a function into a caller that does have floating-point arguments or
     /// variables, any such function must be also marked #[inline(never)].
-    pub fn set_fpu_access_mode(&self, mode: FpuAccessMode) {
+    pub fn set_fpu_access_mode(&mut self, mode: FpuAccessMode) {
         let mut cpacr = self.cpacr.read() & !SCB_CPACR_FPU_MASK;
         match mode {
             FpuAccessMode::Disabled => (),
@@ -91,16 +105,6 @@ impl RegisterBlock {
             FpuAccessMode::Enabled => cpacr |= SCB_CPACR_FPU_ENABLE | SCB_CPACR_FPU_USER,
         }
         unsafe { self.cpacr.write(cpacr) }
-    }
-
-    /// Shorthand for `set_fpu_access_mode(FpuAccessMode::Enabled)`
-    pub fn enable_fpu(&self) {
-        self.set_fpu_access_mode(FpuAccessMode::Enabled)
-    }
-
-    /// Shorthand for `set_fpu_access_mode(FpuAccessMode::Disabled)`
-    pub fn disable_fpu(&self) {
-        self.set_fpu_access_mode(FpuAccessMode::Disabled)
     }
 }
 
@@ -114,17 +118,17 @@ mod scb_consts {
 use self::scb_consts::*;
 
 #[cfg(armv7m)]
-impl RegisterBlock {
+impl SCB {
     /// Enables I-Cache if currently disabled
     #[inline]
-    pub fn enable_icache(&self) {
+    pub fn enable_icache(&mut self) {
         // Don't do anything if ICache is already enabled
-        if self.icache_enabled() {
+        if Self::icache_enabled() {
             return;
         }
 
-        // All of CBP is write-only so no data races are possible
-        let cbp = unsafe { &*CBP::ptr() };
+        // NOTE(unsafe) All CBP registers are write-only and stateless
+        let mut cbp = unsafe { CBP::new() };
 
         // Invalidate I-Cache
         cbp.iciallu();
@@ -138,14 +142,14 @@ impl RegisterBlock {
 
     /// Disables I-Cache if currently enabled
     #[inline]
-    pub fn disable_icache(&self) {
+    pub fn disable_icache(&mut self) {
         // Don't do anything if ICache is already disabled
-        if !self.icache_enabled() {
+        if !Self::icache_enabled() {
             return;
         }
 
-        // All of CBP is write-only so no data races are possible
-        let cbp = unsafe { &*CBP::ptr() };
+        // NOTE(unsafe) All CBP registers are write-only and stateless
+        let mut cbp = unsafe { CBP::new() };
 
         // Disable I-Cache
         unsafe { self.ccr.modify(|r| r & !SCB_CCR_IC_MASK) };
@@ -159,17 +163,19 @@ impl RegisterBlock {
 
     /// Returns whether the I-Cache is currently enabled
     #[inline]
-    pub fn icache_enabled(&self) -> bool {
+    pub fn icache_enabled() -> bool {
         ::asm::dsb();
         ::asm::isb();
-        self.ccr.read() & SCB_CCR_IC_MASK == SCB_CCR_IC_MASK
+
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { (*Self::ptr()).ccr.read() & SCB_CCR_IC_MASK == SCB_CCR_IC_MASK }
     }
 
     /// Invalidates I-Cache
     #[inline]
-    pub fn invalidate_icache(&self) {
-        // All of CBP is write-only so no data races are possible
-        let cbp = unsafe { &*CBP::ptr() };
+    pub fn invalidate_icache(&mut self) {
+        // NOTE(unsafe) All CBP registers are write-only and stateless
+        let mut cbp = unsafe { CBP::new() };
 
         // Invalidate I-Cache
         cbp.iciallu();
@@ -180,9 +186,9 @@ impl RegisterBlock {
 
     /// Enables D-cache if currently disabled
     #[inline]
-    pub fn enable_dcache(&self, cpuid: &cpuid::RegisterBlock) {
+    pub fn enable_dcache(&mut self, cpuid: &mut CPUID) {
         // Don't do anything if DCache is already enabled
-        if self.dcache_enabled() {
+        if Self::dcache_enabled() {
             return;
         }
 
@@ -198,9 +204,9 @@ impl RegisterBlock {
 
     /// Disables D-cache if currently enabled
     #[inline]
-    pub fn disable_dcache(&self, cpuid: &cpuid::RegisterBlock) {
+    pub fn disable_dcache(&mut self, cpuid: &mut CPUID) {
         // Don't do anything if DCache is already disabled
-        if !self.dcache_enabled() {
+        if !Self::dcache_enabled() {
             return;
         }
 
@@ -213,10 +219,12 @@ impl RegisterBlock {
 
     /// Returns whether the D-Cache is currently enabled
     #[inline]
-    pub fn dcache_enabled(&self) -> bool {
+    pub fn dcache_enabled() -> bool {
         ::asm::dsb();
         ::asm::isb();
-        self.ccr.read() & SCB_CCR_DC_MASK == SCB_CCR_DC_MASK
+
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { (*Self::ptr()).ccr.read() & SCB_CCR_DC_MASK == SCB_CCR_DC_MASK }
     }
 
     /// Invalidates D-cache
@@ -225,9 +233,9 @@ impl RegisterBlock {
     /// stack, depending on optimisations, breaking returning to the call point.
     /// It's used immediately before enabling the dcache, but not exported publicly.
     #[inline]
-    fn invalidate_dcache(&self, cpuid: &cpuid::RegisterBlock) {
-        // All of CBP is write-only so no data races are possible
-        let cbp = unsafe { &*CBP::ptr() };
+    fn invalidate_dcache(&mut self, cpuid: &mut CPUID) {
+        // NOTE(unsafe) All CBP registers are write-only and stateless
+        let mut cbp = unsafe { CBP::new() };
 
         // Read number of sets and ways
         let (sets, ways) = cpuid.cache_num_sets_ways(0, CsselrCacheType::DataOrUnified);
@@ -245,9 +253,9 @@ impl RegisterBlock {
 
     /// Cleans D-cache
     #[inline]
-    pub fn clean_dcache(&self, cpuid: &cpuid::RegisterBlock) {
-        // All of CBP is write-only so no data races are possible
-        let cbp = unsafe { &*CBP::ptr() };
+    pub fn clean_dcache(&mut self, cpuid: &mut CPUID) {
+        // NOTE(unsafe) All CBP registers are write-only and stateless
+        let mut cbp = unsafe { CBP::new() };
 
         // Read number of sets and ways
         let (sets, ways) = cpuid.cache_num_sets_ways(0, CsselrCacheType::DataOrUnified);
@@ -264,9 +272,9 @@ impl RegisterBlock {
 
     /// Cleans and invalidates D-cache
     #[inline]
-    pub fn clean_invalidate_dcache(&self, cpuid: &cpuid::RegisterBlock) {
-        // All of CBP is write-only so no data races are possible
-        let cbp = unsafe { &*CBP::ptr() };
+    pub fn clean_invalidate_dcache(&mut self, cpuid: &mut CPUID) {
+        // NOTE(unsafe) All CBP registers are write-only and stateless
+        let mut cbp = unsafe { CBP::new() };
 
         // Read number of sets and ways
         let (sets, ways) = cpuid.cache_num_sets_ways(0, CsselrCacheType::DataOrUnified);
@@ -289,14 +297,14 @@ impl RegisterBlock {
     /// Invalidates cache starting from the lowest 32-byte aligned address represented by `addr`,
     /// in blocks of 32 bytes until at least `size` bytes have been invalidated.
     #[inline]
-    pub fn invalidate_dcache_by_address(&self, addr: usize, size: usize) {
+    pub fn invalidate_dcache_by_address(&mut self, addr: usize, size: usize) {
         // No-op zero sized operations
         if size == 0 {
             return;
         }
 
-        // All of CBP is write-only so no data races are possible
-        let cbp = unsafe { &*CBP::ptr() };
+        // NOTE(unsafe) All CBP registers are write-only and stateless
+        let mut cbp = unsafe { CBP::new() };
 
         ::asm::dsb();
 
@@ -323,14 +331,14 @@ impl RegisterBlock {
     /// Cleans cache starting from the lowest 32-byte aligned address represented by `addr`,
     /// in blocks of 32 bytes until at least `size` bytes have been cleaned.
     #[inline]
-    pub fn clean_dcache_by_address(&self, addr: usize, size: usize) {
+    pub fn clean_dcache_by_address(&mut self, addr: usize, size: usize) {
         // No-op zero sized operations
         if size == 0 {
             return;
         }
 
-        // All of CBP is write-only so no data races are possible
-        let cbp = unsafe { &*CBP::ptr() };
+        // NOTE(unsafe) All CBP registers are write-only and stateless
+        let mut cbp = unsafe { CBP::new() };
 
         ::asm::dsb();
 
@@ -358,14 +366,14 @@ impl RegisterBlock {
     /// by `addr`, in blocks of 32 bytes until at least `size` bytes have been cleaned and
     /// invalidated.
     #[inline]
-    pub fn clean_invalidate_dcache_by_address(&self, addr: usize, size: usize) {
+    pub fn clean_invalidate_dcache_by_address(&mut self, addr: usize, size: usize) {
         // No-op zero sized operations
         if size == 0 {
             return;
         }
 
-        // All of CBP is write-only so no data races are possible
-        let cbp = unsafe { &*CBP::ptr() };
+        // NOTE(unsafe) All CBP registers are write-only and stateless
+        let mut cbp = unsafe { CBP::new() };
 
         ::asm::dsb();
 

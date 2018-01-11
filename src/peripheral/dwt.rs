@@ -2,6 +2,8 @@
 
 use volatile_register::{RO, RW, WO};
 
+use peripheral::DWT;
+
 /// Register block
 #[repr(C)]
 pub struct RegisterBlock {
@@ -30,13 +32,6 @@ pub struct RegisterBlock {
     pub lsr: RO<u32>,
 }
 
-impl RegisterBlock {
-    /// Enables the cycle counter
-    pub fn enable_cycle_counter(&self) {
-        unsafe { self.ctrl.modify(|r| r | 1) }
-    }
-}
-
 /// Comparator
 #[repr(C)]
 pub struct Comparator {
@@ -47,4 +42,17 @@ pub struct Comparator {
     /// Comparator Function
     pub function: RW<u32>,
     reserved: u32,
+}
+
+impl DWT {
+    /// Enables the cycle counter
+    pub fn enable_cycle_counter(&mut self) {
+        unsafe { self.ctrl.modify(|r| r | 1) }
+    }
+
+    /// Returns the current clock cycle count
+    pub fn get_cycle_count() -> u32 {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { (*Self::ptr()).cyccnt.read() }
+    }
 }

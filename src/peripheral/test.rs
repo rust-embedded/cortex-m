@@ -129,7 +129,6 @@ fn scb() {
     assert_eq!(address(&scb.bfar), 0xE000_ED38);
     assert_eq!(address(&scb.afsr), 0xE000_ED3C);
     assert_eq!(address(&scb.cpacr), 0xE000_ED88);
-
 }
 
 #[test]
@@ -140,7 +139,6 @@ fn syst() {
     assert_eq!(address(&syst.rvr), 0xE000_E014);
     assert_eq!(address(&syst.cvr), 0xE000_E018);
     assert_eq!(address(&syst.calib), 0xE000_E01C);
-
 }
 
 #[test]

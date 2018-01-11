@@ -9,7 +9,7 @@
 #![allow(private_no_mangle_statics)]
 
 use core::marker::PhantomData;
-use core::ops::Deref;
+use core::ops::{Deref, DerefMut};
 
 use interrupt;
 
@@ -262,8 +262,8 @@ pub struct ITM {
 
 impl ITM {
     /// Returns a pointer to the register block
-    pub fn ptr() -> *const itm::RegisterBlock {
-        0xE000_0000 as *const _
+    pub fn ptr() -> *mut itm::RegisterBlock {
+        0xE000_0000 as *mut _
     }
 }
 
@@ -272,6 +272,12 @@ impl Deref for ITM {
 
     fn deref(&self) -> &Self::Target {
         unsafe { &*Self::ptr() }
+    }
+}
+
+impl DerefMut for ITM {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        unsafe { &mut *Self::ptr() }
     }
 }
 

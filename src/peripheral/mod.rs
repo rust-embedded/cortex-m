@@ -7,10 +7,14 @@
 //! them at any given point in time) and the only way to get an instance of them is through the
 //! [`Peripherals::take`](struct.Peripherals.html#method.take) method.
 //!
-//! ``` ignore
+//! ``` no_run
+//! extern crate cortex_m;
+//!
+//! use cortex_m::peripheral::Peripherals;
+//!
 //! fn main() {
-//!     let peripherals = Peripherals::take();
-//!     peripherals.dwt.enable_cycle_counter();
+//!     let mut peripherals = Peripherals::take().unwrap();
+//!     peripherals.DWT.enable_cycle_counter();
 //! }
 //! ```
 //!
@@ -21,15 +25,19 @@
 //! API is provided as static methods on the peripheral types. One example is the
 //! [`DWT::cyccnt`](struct.DWT.html#method.cyccnt) method.
 //!
-//! ``` ignore
+//! ``` no_run
+//! extern crate cortex_m;
+//!
+//! use cortex_m::peripheral::{DWT, Peripherals};
+//!
 //! fn main() {
 //!     {
-//!         let peripherals = Peripherals::take().unwrap();
+//!         let mut peripherals = Peripherals::take().unwrap();
 //!         peripherals.DWT.enable_cycle_counter();
 //!     } // all the peripheral singletons are destroyed here
 //!
 //!     // but this method can be called without a DWT instance
-//!     let cyccnt = DWT::cyccnt();
+//!     let cyccnt = DWT::get_cycle_count();
 //! }
 //! ```
 //!
@@ -37,10 +45,14 @@
 //! available on all the peripheral types. This method is a useful building block for implementing
 //! higher level and safe abstractions.
 //!
-//! ``` ignore
+//! ``` no_run
+//! extern crate cortex_m;
+//!
+//! use cortex_m::peripheral::{DWT, Peripherals};
+//!
 //! fn main() {
 //!     {
-//!         let peripherals = Peripherals::take().unwrap();
+//!         let mut peripherals = Peripherals::take().unwrap();
 //!         peripherals.DWT.enable_cycle_counter();
 //!     } // all the peripheral singletons are destroyed here
 //!

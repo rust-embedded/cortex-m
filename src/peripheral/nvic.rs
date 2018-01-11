@@ -87,8 +87,8 @@ impl NVIC {
     /// Returns the NVIC priority of `interrupt`
     ///
     /// *NOTE* NVIC encodes priority in the highest bits of a byte so values like `1` and `2` map
-    /// the same priority. Also for NVIC priorities, a lower value (e.g. `16`) has higher priority
-    /// (urgency) than a larger value (e.g. `32`).
+    /// to the same priority. Also for NVIC priorities, a lower value (e.g. `16`) has higher
+    /// priority (urgency) than a larger value (e.g. `32`).
     pub fn get_priority<I>(interrupt: I) -> u8
     where
         I: Nr,

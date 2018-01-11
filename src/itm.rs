@@ -7,7 +7,7 @@ use aligned::Aligned;
 use peripheral::itm::Stim;
 
 // NOTE assumes that `bytes` is 32-bit aligned
-unsafe fn write_words(stim: &Stim, bytes: &[u32]) {
+unsafe fn write_words(stim: &mut Stim, bytes: &[u32]) {
     let mut p = bytes.as_ptr();
     for _ in 0..bytes.len() {
         while !stim.is_fifo_ready() {}
@@ -16,7 +16,7 @@ unsafe fn write_words(stim: &Stim, bytes: &[u32]) {
     }
 }
 
-struct Port<'p>(&'p Stim);
+struct Port<'p>(&'p mut Stim);
 
 impl<'p> fmt::Write for Port<'p> {
     fn write_str(&mut self, s: &str) -> fmt::Result {
@@ -26,7 +26,7 @@ impl<'p> fmt::Write for Port<'p> {
 }
 
 /// Writes a `buffer` to the ITM `port`
-pub fn write_all(port: &Stim, buffer: &[u8]) {
+pub fn write_all(port: &mut Stim, buffer: &[u8]) {
     unsafe {
         let mut len = buffer.len();
         let mut ptr = buffer.as_ptr();
@@ -84,7 +84,7 @@ pub fn write_all(port: &Stim, buffer: &[u8]) {
 /// // Or equivalently
 /// itm::write_aligned(&itm.stim[0], &Aligned(*b"Hello, world!\n"));
 /// ```
-pub fn write_aligned(port: &Stim, buffer: &Aligned<u32, [u8]>) {
+pub fn write_aligned(port: &mut Stim, buffer: &Aligned<u32, [u8]>) {
     unsafe {
         let len = buffer.len();
 
@@ -120,13 +120,13 @@ pub fn write_aligned(port: &Stim, buffer: &Aligned<u32, [u8]>) {
 }
 
 /// Writes `fmt::Arguments` to the ITM `port`
-pub fn write_fmt(port: &Stim, args: fmt::Arguments) {
+pub fn write_fmt(port: &mut Stim, args: fmt::Arguments) {
     use core::fmt::Write;
 
     Port(port).write_fmt(args).ok();
 }
 
 /// Writes a string to the ITM `port`
-pub fn write_str(port: &Stim, string: &str) {
+pub fn write_str(port: &mut Stim, string: &str) {
     write_all(port, string.as_bytes())
 }

@@ -33,17 +33,17 @@ pub struct Stim {
 
 impl Stim {
     /// Writes an `u8` payload into the stimulus port
-    pub fn write_u8(&self, value: u8) {
+    pub fn write_u8(&mut self, value: u8) {
         unsafe { ptr::write_volatile(self.register.get() as *mut u8, value) }
     }
 
     /// Writes an `u16` payload into the stimulus port
-    pub fn write_u16(&self, value: u16) {
+    pub fn write_u16(&mut self, value: u16) {
         unsafe { ptr::write_volatile(self.register.get() as *mut u16, value) }
     }
 
     /// Writes an `u32` payload into the stimulus port
-    pub fn write_u32(&self, value: u32) {
+    pub fn write_u32(&mut self, value: u32) {
         unsafe { ptr::write_volatile(self.register.get(), value) }
     }
 

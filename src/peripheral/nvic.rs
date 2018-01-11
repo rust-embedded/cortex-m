@@ -103,7 +103,7 @@ impl NVIC {
         #[cfg(armv6m)]
         {
             // NOTE(unsafe) atomic read with no side effects
-            let ipr_n = (*Self::ptr()).ipr[Self::ipr_index(&interrupt)].read();
+            let ipr_n = unsafe { (*Self::ptr()).ipr[Self::ipr_index(&interrupt)].read() };
             let prio = (ipr_n >> Self::ipr_shift(&interrupt)) & 0x000000ff;
             prio as u8
         }

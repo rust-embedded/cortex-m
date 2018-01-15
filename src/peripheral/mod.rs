@@ -79,13 +79,17 @@ pub mod cbp;
 pub mod cpuid;
 pub mod dcb;
 pub mod dwt;
+#[cfg(any(armv7m, test))]
 pub mod fpb;
+#[cfg(any(has_fpu, test))]
 pub mod fpu;
+#[cfg(any(armv7m, test))]
 pub mod itm;
 pub mod mpu;
 pub mod nvic;
 pub mod scb;
 pub mod syst;
+#[cfg(any(armv7m, test))]
 pub mod tpiu;
 
 #[cfg(test)]
@@ -106,10 +110,13 @@ pub struct Peripherals {
     /// Data Watchpoint and Trace unit
     pub DWT: DWT,
     /// Flash Patch and Breakpoint unit
+    #[cfg(armv7m)]
     pub FPB: FPB,
     /// Floating Point Unit
+    #[cfg(has_fpu)]
     pub FPU: FPU,
     /// Instrumentation Trace Macrocell
+    #[cfg(armv7m)]
     pub ITM: ITM,
     /// Memory Protection Unit
     pub MPU: MPU,
@@ -120,6 +127,7 @@ pub struct Peripherals {
     /// SysTick: System Timer
     pub SYST: SYST,
     /// Trace Port Interface Unit;
+    #[cfg(armv7m)]
     pub TPIU: TPIU,
 }
 
@@ -161,12 +169,15 @@ impl Peripherals {
             DWT: DWT {
                 _marker: PhantomData,
             },
+            #[cfg(armv7m)]
             FPB: FPB {
                 _marker: PhantomData,
             },
+            #[cfg(has_fpu)]
             FPU: FPU {
                 _marker: PhantomData,
             },
+            #[cfg(armv7m)]
             ITM: ITM {
                 _marker: PhantomData,
             },
@@ -182,6 +193,7 @@ impl Peripherals {
             SYST: SYST {
                 _marker: PhantomData,
             },
+            #[cfg(armv7m)]
             TPIU: TPIU {
                 _marker: PhantomData,
             },
@@ -282,10 +294,12 @@ impl Deref for DWT {
 }
 
 /// Flash Patch and Breakpoint unit
+#[cfg(any(armv7m, test))]
 pub struct FPB {
     _marker: PhantomData<*const ()>,
 }
 
+#[cfg(any(armv7m, test))]
 impl FPB {
     /// Returns a pointer to the register block
     pub fn ptr() -> *const fpb::RegisterBlock {
@@ -293,6 +307,7 @@ impl FPB {
     }
 }
 
+#[cfg(armv7m)]
 impl Deref for FPB {
     type Target = self::fpb::RegisterBlock;
 
@@ -302,10 +317,12 @@ impl Deref for FPB {
 }
 
 /// Floating Point Unit
+#[cfg(any(has_fpu, test))]
 pub struct FPU {
     _marker: PhantomData<*const ()>,
 }
 
+#[cfg(any(has_fpu, test))]
 impl FPU {
     /// Returns a pointer to the register block
     pub fn ptr() -> *const fpu::RegisterBlock {
@@ -313,7 +330,7 @@ impl FPU {
     }
 }
 
-#[cfg(any(has_fpu, test))]
+#[cfg(has_fpu)]
 impl Deref for FPU {
     type Target = self::fpu::RegisterBlock;
 
@@ -323,10 +340,12 @@ impl Deref for FPU {
 }
 
 /// Instrumentation Trace Macrocell
+#[cfg(any(armv7m, test))]
 pub struct ITM {
     _marker: PhantomData<*const ()>,
 }
 
+#[cfg(any(armv7m, test))]
 impl ITM {
     /// Returns a pointer to the register block
     pub fn ptr() -> *mut itm::RegisterBlock {
@@ -334,6 +353,7 @@ impl ITM {
     }
 }
 
+#[cfg(armv7m)]
 impl Deref for ITM {
     type Target = self::itm::RegisterBlock;
 
@@ -342,6 +362,7 @@ impl Deref for ITM {
     }
 }
 
+#[cfg(armv7m)]
 impl DerefMut for ITM {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { &mut *Self::ptr() }
@@ -429,10 +450,12 @@ impl Deref for SYST {
 }
 
 /// Trace Port Interface Unit;
+#[cfg(any(armv7m, test))]
 pub struct TPIU {
     _marker: PhantomData<*const ()>,
 }
 
+#[cfg(any(armv7m, test))]
 impl TPIU {
     /// Returns a pointer to the register block
     pub fn ptr() -> *const tpiu::RegisterBlock {
@@ -440,6 +463,7 @@ impl TPIU {
     }
 }
 
+#[cfg(armv7m)]
 impl Deref for TPIU {
     type Target = self::tpiu::RegisterBlock;
 

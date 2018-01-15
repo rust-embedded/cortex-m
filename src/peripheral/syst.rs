@@ -39,8 +39,7 @@ const SYST_CALIB_NOREF: u32 = 1 << 31;
 impl SYST {
     /// Clears current value to 0
     ///
-    /// After calling `clear_current()`, the next call to `has_wrapped()`
-    /// will return `false`.
+    /// After calling `clear_current()`, the next call to `has_wrapped()` will return `false`.
     pub fn clear_current(&mut self) {
         unsafe { self.cvr.write(0) }
     }
@@ -56,6 +55,17 @@ impl SYST {
     }
 
     /// Enables counter
+    ///
+    /// *NOTE* The reference manual indicates that:
+    ///
+    /// "The SysTick counter reload and current value are undefined at reset, the correct
+    /// initialization sequence for the SysTick counter is:
+    ///
+    /// - Program reload value
+    /// - Clear current value
+    /// - Program Control and Status register"
+    ///
+    /// The sequence translates to `self.set_reload(x); self.clear_current(); self.enable_counter()`
     pub fn enable_counter(&mut self) {
         unsafe { self.csr.modify(|v| v | SYST_CSR_ENABLE) }
     }
@@ -153,6 +163,8 @@ impl SYST {
     /// Sets reload value
     ///
     /// Valid values are between `1` and `0x00ffffff`.
+    ///
+    /// *NOTE* To make the timer wrap every `N` ticks set the reload value to `N - 1`
     pub fn set_reload(&mut self, value: u32) {
         unsafe { self.rvr.write(value) }
     }

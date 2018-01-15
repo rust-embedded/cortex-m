@@ -379,7 +379,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.4.0...HEAD
+[v0.4.0]: https://github.com/japaric/cortex-m/compare/v0.3.1...v0.4.0
 [v0.3.1]: https://github.com/japaric/cortex-m/compare/v0.3.0...v0.3.1
 [v0.3.0]: https://github.com/japaric/cortex-m/compare/v0.2.11...v0.3.0
 [v0.2.11]: https://github.com/japaric/cortex-m/compare/v0.2.10...v0.2.11

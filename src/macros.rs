@@ -23,7 +23,7 @@ macro_rules! iprintln {
     };
 }
 
-/// Macro to create an statically allocated value
+/// Macro to create a mutable reference to a statically allocated value
 ///
 /// This macro returns a value with type `Option<&'static mut $ty>`. `Some($expr)` will be returned
 /// the first time the macro is executed; further calls will return `None`. To avoid `unwrap`ping a
@@ -32,10 +32,13 @@ macro_rules! iprintln {
 ///
 /// # Example
 ///
-/// ``` ignore
+/// ``` no_run
+/// #[macro_use(singleton)]
+/// extern crate cortex_m;
+///
 /// fn main() {
 ///     // OK if `main` is executed only once
-///     let x: &'static mut bool = static_!(: bool = false).unwrap();
+///     let x: &'static mut bool = singleton!(: bool = false).unwrap();
 ///
 ///     let y = alias();
 ///     // BAD this second call to `alias` will definitively `panic!`
@@ -43,11 +46,11 @@ macro_rules! iprintln {
 /// }
 ///
 /// fn alias() -> &'static mut bool {
-///     static_!(: bool = false).unwrap()
+///     singleton!(: bool = false).unwrap()
 /// }
 /// ```
 #[macro_export]
-macro_rules! static_ {
+macro_rules! singleton {
     (: $ty:ty = $expr:expr) => {
         $crate::interrupt::free(|_| unsafe {
             static mut USED: bool = false;

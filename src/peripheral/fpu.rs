@@ -1,4 +1,6 @@
 //! Floating Point Unit
+//!
+//! *NOTE* Available only on ARMv7E-M (`thumbv7em-none-eabihf`)
 
 use volatile_register::{RO, RW};
 

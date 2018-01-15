@@ -70,26 +70,27 @@
 #![allow(private_no_mangle_statics)]
 
 use core::marker::PhantomData;
-use core::ops::{Deref, DerefMut};
+use core::ops;
 
 use interrupt;
 
-#[cfg(armv7m)]
+#[cfg(any(armv7m, target_arch = "x86_64"))]
 pub mod cbp;
 pub mod cpuid;
 pub mod dcb;
 pub mod dwt;
-#[cfg(any(armv7m, test))]
+#[cfg(any(armv7m, target_arch = "x86_64"))]
 pub mod fpb;
-#[cfg(any(has_fpu, test))]
+#[cfg(any(has_fpu, target_arch = "x86_64"))]
 pub mod fpu;
-#[cfg(any(armv7m, test))]
+// NOTE(target_arch) is for documentation purposes
+#[cfg(any(armv7m, target_arch = "x86_64"))]
 pub mod itm;
 pub mod mpu;
 pub mod nvic;
 pub mod scb;
 pub mod syst;
-#[cfg(any(armv7m, test))]
+#[cfg(any(armv7m, target_arch = "x86_64"))]
 pub mod tpiu;
 
 #[cfg(test)]
@@ -101,7 +102,7 @@ mod test;
 #[allow(non_snake_case)]
 pub struct Peripherals {
     /// Cache and branch predictor maintenance operations
-    #[cfg(armv7m)]
+    #[cfg(any(armv7m, target_arch = "x86_64"))]
     pub CBP: CBP,
     /// CPUID
     pub CPUID: CPUID,
@@ -110,13 +111,13 @@ pub struct Peripherals {
     /// Data Watchpoint and Trace unit
     pub DWT: DWT,
     /// Flash Patch and Breakpoint unit
-    #[cfg(armv7m)]
+    #[cfg(any(armv7m, target_arch = "x86_64"))]
     pub FPB: FPB,
     /// Floating Point Unit
-    #[cfg(has_fpu)]
+    #[cfg(any(has_fpu, target_arch = "x86_64"))]
     pub FPU: FPU,
     /// Instrumentation Trace Macrocell
-    #[cfg(armv7m)]
+    #[cfg(any(armv7m, target_arch = "x86_64"))]
     pub ITM: ITM,
     /// Memory Protection Unit
     pub MPU: MPU,
@@ -127,7 +128,7 @@ pub struct Peripherals {
     /// SysTick: System Timer
     pub SYST: SYST,
     /// Trace Port Interface Unit;
-    #[cfg(armv7m)]
+    #[cfg(any(armv7m, target_arch = "x86_64"))]
     pub TPIU: TPIU,
 }
 
@@ -156,7 +157,7 @@ impl Peripherals {
         CORE_PERIPHERALS = true;
 
         Peripherals {
-            #[cfg(armv7m)]
+            #[cfg(any(armv7m, target_arch = "x86_64"))]
             CBP: CBP {
                 _marker: PhantomData,
             },
@@ -169,15 +170,15 @@ impl Peripherals {
             DWT: DWT {
                 _marker: PhantomData,
             },
-            #[cfg(armv7m)]
+            #[cfg(any(armv7m, target_arch = "x86_64"))]
             FPB: FPB {
                 _marker: PhantomData,
             },
-            #[cfg(has_fpu)]
+            #[cfg(any(has_fpu, target_arch = "x86_64"))]
             FPU: FPU {
                 _marker: PhantomData,
             },
-            #[cfg(armv7m)]
+            #[cfg(any(armv7m, target_arch = "x86_64"))]
             ITM: ITM {
                 _marker: PhantomData,
             },
@@ -193,7 +194,7 @@ impl Peripherals {
             SYST: SYST {
                 _marker: PhantomData,
             },
-            #[cfg(armv7m)]
+            #[cfg(any(armv7m, target_arch = "x86_64"))]
             TPIU: TPIU {
                 _marker: PhantomData,
             },
@@ -202,12 +203,14 @@ impl Peripherals {
 }
 
 /// Cache and branch predictor maintenance operations
-#[cfg(armv7m)]
+///
+/// *NOTE* Available only on ARMv7-M (`thumbv7*m-none-eabi*`)
+#[cfg(any(armv7m, target_arch = "x86_64"))]
 pub struct CBP {
     _marker: PhantomData<*const ()>,
 }
 
-#[cfg(armv7m)]
+#[cfg(any(armv7m, target_arch = "x86_64"))]
 impl CBP {
     pub(crate) unsafe fn new() -> Self {
         CBP {
@@ -221,11 +224,11 @@ impl CBP {
     }
 }
 
-#[cfg(armv7m)]
+#[cfg(any(armv7m, target_arch = "x86_64"))]
 unsafe impl Send for CBP {}
 
-#[cfg(armv7m)]
-impl Deref for CBP {
+#[cfg(any(armv7m, target_arch = "x86_64"))]
+impl ops::Deref for CBP {
     type Target = self::cbp::RegisterBlock;
 
     fn deref(&self) -> &Self::Target {
@@ -245,7 +248,7 @@ impl CPUID {
     }
 }
 
-impl Deref for CPUID {
+impl ops::Deref for CPUID {
     type Target = self::cpuid::RegisterBlock;
 
     fn deref(&self) -> &Self::Target {
@@ -265,7 +268,7 @@ impl DCB {
     }
 }
 
-impl Deref for DCB {
+impl ops::Deref for DCB {
     type Target = self::dcb::RegisterBlock;
 
     fn deref(&self) -> &Self::Target {
@@ -285,7 +288,7 @@ impl DWT {
     }
 }
 
-impl Deref for DWT {
+impl ops::Deref for DWT {
     type Target = self::dwt::RegisterBlock;
 
     fn deref(&self) -> &Self::Target {
@@ -294,12 +297,14 @@ impl Deref for DWT {
 }
 
 /// Flash Patch and Breakpoint unit
-#[cfg(any(armv7m, test))]
+///
+/// *NOTE* Available only on ARMv7-M (`thumbv7*m-none-eabi*`)
+#[cfg(any(armv7m, target_arch = "x86_64"))]
 pub struct FPB {
     _marker: PhantomData<*const ()>,
 }
 
-#[cfg(any(armv7m, test))]
+#[cfg(any(armv7m, target_arch = "x86_64"))]
 impl FPB {
     /// Returns a pointer to the register block
     pub fn ptr() -> *const fpb::RegisterBlock {
@@ -307,8 +312,8 @@ impl FPB {
     }
 }
 
-#[cfg(armv7m)]
-impl Deref for FPB {
+#[cfg(any(armv7m, target_arch = "x86_64"))]
+impl ops::Deref for FPB {
     type Target = self::fpb::RegisterBlock;
 
     fn deref(&self) -> &Self::Target {
@@ -317,12 +322,14 @@ impl Deref for FPB {
 }
 
 /// Floating Point Unit
-#[cfg(any(has_fpu, test))]
+///
+/// *NOTE* Available only on ARMv7E-M (`thumbv7em-none-eabihf`)
+#[cfg(any(has_fpu, target_arch = "x86_64"))]
 pub struct FPU {
     _marker: PhantomData<*const ()>,
 }
 
-#[cfg(any(has_fpu, test))]
+#[cfg(any(has_fpu, target_arch = "x86_64"))]
 impl FPU {
     /// Returns a pointer to the register block
     pub fn ptr() -> *const fpu::RegisterBlock {
@@ -330,8 +337,8 @@ impl FPU {
     }
 }
 
-#[cfg(has_fpu)]
-impl Deref for FPU {
+#[cfg(any(has_fpu, target_arch = "x86_64"))]
+impl ops::Deref for FPU {
     type Target = self::fpu::RegisterBlock;
 
     fn deref(&self) -> &Self::Target {
@@ -340,12 +347,14 @@ impl Deref for FPU {
 }
 
 /// Instrumentation Trace Macrocell
-#[cfg(any(armv7m, test))]
+///
+/// *NOTE* Available only on ARMv7-M (`thumbv7*m-none-eabi*`)
+#[cfg(any(armv7m, target_arch = "x86_64"))]
 pub struct ITM {
     _marker: PhantomData<*const ()>,
 }
 
-#[cfg(any(armv7m, test))]
+#[cfg(any(armv7m, target_arch = "x86_64"))]
 impl ITM {
     /// Returns a pointer to the register block
     pub fn ptr() -> *mut itm::RegisterBlock {
@@ -353,8 +362,8 @@ impl ITM {
     }
 }
 
-#[cfg(armv7m)]
-impl Deref for ITM {
+#[cfg(any(armv7m, target_arch = "x86_64"))]
+impl ops::Deref for ITM {
     type Target = self::itm::RegisterBlock;
 
     fn deref(&self) -> &Self::Target {
@@ -362,8 +371,8 @@ impl Deref for ITM {
     }
 }
 
-#[cfg(armv7m)]
-impl DerefMut for ITM {
+#[cfg(any(armv7m, target_arch = "x86_64"))]
+impl ops::DerefMut for ITM {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { &mut *Self::ptr() }
     }
@@ -381,7 +390,7 @@ impl MPU {
     }
 }
 
-impl Deref for MPU {
+impl ops::Deref for MPU {
     type Target = self::mpu::RegisterBlock;
 
     fn deref(&self) -> &Self::Target {
@@ -401,7 +410,7 @@ impl NVIC {
     }
 }
 
-impl Deref for NVIC {
+impl ops::Deref for NVIC {
     type Target = self::nvic::RegisterBlock;
 
     fn deref(&self) -> &Self::Target {
@@ -421,7 +430,7 @@ impl SCB {
     }
 }
 
-impl Deref for SCB {
+impl ops::Deref for SCB {
     type Target = self::scb::RegisterBlock;
 
     fn deref(&self) -> &Self::Target {
@@ -441,7 +450,7 @@ impl SYST {
     }
 }
 
-impl Deref for SYST {
+impl ops::Deref for SYST {
     type Target = self::syst::RegisterBlock;
 
     fn deref(&self) -> &Self::Target {
@@ -450,12 +459,14 @@ impl Deref for SYST {
 }
 
 /// Trace Port Interface Unit;
-#[cfg(any(armv7m, test))]
+///
+/// *NOTE* Available only on ARMv7-M (`thumbv7*m-none-eabi*`)
+#[cfg(any(armv7m, target_arch = "x86_64"))]
 pub struct TPIU {
     _marker: PhantomData<*const ()>,
 }
 
-#[cfg(any(armv7m, test))]
+#[cfg(any(armv7m, target_arch = "x86_64"))]
 impl TPIU {
     /// Returns a pointer to the register block
     pub fn ptr() -> *const tpiu::RegisterBlock {
@@ -463,8 +474,8 @@ impl TPIU {
     }
 }
 
-#[cfg(armv7m)]
-impl Deref for TPIU {
+#[cfg(any(armv7m, target_arch = "x86_64"))]
+impl ops::Deref for TPIU {
     type Target = self::tpiu::RegisterBlock;
 
     fn deref(&self) -> &Self::Target {

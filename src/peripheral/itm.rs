@@ -1,4 +1,6 @@
 //! Instrumentation Trace Macrocell
+//!
+//! *NOTE* Available only on ARMv7-M (`thumbv7*m-none-eabi*`)
 
 use core::cell::UnsafeCell;
 use core::ptr;

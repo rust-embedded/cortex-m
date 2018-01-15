@@ -24,6 +24,8 @@ mod macros;
 pub mod asm;
 pub mod exception;
 pub mod interrupt;
+// NOTE(target_arch) is for documentation purposes
+#[cfg(any(armv7m, target_arch = "x86_64"))]
 pub mod itm;
 pub mod peripheral;
 pub mod register;

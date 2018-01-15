@@ -1,4 +1,6 @@
 //! Cache and branch predictor maintenance operations
+//!
+//! *NOTE* Available only on ARMv7-M (`thumbv7*m-none-eabi*`)
 
 use volatile_register::WO;
 

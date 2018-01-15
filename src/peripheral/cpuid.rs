@@ -1,10 +1,10 @@
 //! CPUID
 
 use volatile_register::RO;
-#[cfg(any(armv7m, test))]
+#[cfg(any(armv7m, target_arch = "x86_64"))]
 use volatile_register::RW;
 
-#[cfg(armv7m)]
+#[cfg(any(armv7m, target_arch = "x86_64"))]
 use peripheral::CPUID;
 
 /// Register block
@@ -25,21 +25,21 @@ pub struct RegisterBlock {
     pub isar: [RO<u32>; 5],
     reserved1: u32,
     /// Cache Level ID
-    #[cfg(any(armv7m, test))]
+    #[cfg(any(armv7m, target_arch = "x86_64"))]
     pub clidr: RO<u32>,
     /// Cache Type
-    #[cfg(any(armv7m, test))]
+    #[cfg(any(armv7m, target_arch = "x86_64"))]
     pub ctr: RO<u32>,
     /// Cache Size ID
-    #[cfg(any(armv7m, test))]
+    #[cfg(any(armv7m, target_arch = "x86_64"))]
     pub ccsidr: RO<u32>,
     /// Cache Size Selection
-    #[cfg(any(armv7m, test))]
+    #[cfg(any(armv7m, target_arch = "x86_64"))]
     pub csselr: RW<u32>,
 }
 
 /// Type of cache to select on CSSELR writes.
-#[cfg(armv7m)]
+#[cfg(any(armv7m, target_arch = "x86_64"))]
 pub enum CsselrCacheType {
     /// Select DCache or unified cache
     DataOrUnified = 0,
@@ -47,7 +47,7 @@ pub enum CsselrCacheType {
     Instruction = 1,
 }
 
-#[cfg(armv7m)]
+#[cfg(any(armv7m, target_arch = "x86_64"))]
 impl CPUID {
     /// Selects the current CCSIDR
     ///

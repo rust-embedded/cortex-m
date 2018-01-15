@@ -1,6 +1,7 @@
 //! Floating Point Unit
+//!
+//! *NOTE* Available only on ARMv7E-M (`thumbv7em-none-eabihf`)
 
-#[cfg(any(has_fpu, test))]
 use volatile_register::{RO, RW};
 
 /// Register block
@@ -8,15 +9,11 @@ use volatile_register::{RO, RW};
 pub struct RegisterBlock {
     reserved: u32,
     /// Floating Point Context Control
-    #[cfg(any(has_fpu, test))]
     pub fpccr: RW<u32>,
     /// Floating Point Context Address
-    #[cfg(any(has_fpu, test))]
     pub fpcar: RW<u32>,
     /// Floating Point Default Status Control
-    #[cfg(any(has_fpu, test))]
     pub fpdscr: RW<u32>,
     /// Media and FP Feature
-    #[cfg(any(has_fpu, test))]
     pub mvfr: [RO<u32>; 3],
 }

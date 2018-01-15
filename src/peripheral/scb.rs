@@ -2,11 +2,11 @@
 
 use volatile_register::RW;
 
-#[cfg(any(armv7m, has_fpu))]
+#[cfg(any(armv7m, has_fpu, target_arch = "x86_64"))]
 use super::{CBP, SCB};
-#[cfg(armv7m)]
+#[cfg(any(armv7m, target_arch = "x86_64"))]
 use super::CPUID;
-#[cfg(armv7m)]
+#[cfg(any(armv7m, target_arch = "x86_64"))]
 use super::cpuid::CsselrCacheType;
 
 /// Register block
@@ -108,16 +108,16 @@ impl SCB {
     }
 }
 
-#[cfg(armv7m)]
+#[cfg(any(armv7m, target_arch = "x86_64"))]
 mod scb_consts {
     pub const SCB_CCR_IC_MASK: u32 = (1 << 17);
     pub const SCB_CCR_DC_MASK: u32 = (1 << 16);
 }
 
-#[cfg(armv7m)]
+#[cfg(any(armv7m, target_arch = "x86_64"))]
 use self::scb_consts::*;
 
-#[cfg(armv7m)]
+#[cfg(any(armv7m, target_arch = "x86_64"))]
 impl SCB {
     /// Enables I-Cache if currently disabled
     #[inline]

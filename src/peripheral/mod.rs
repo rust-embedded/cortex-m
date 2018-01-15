@@ -3,9 +3,9 @@
 //! # API
 //!
 //! To use (most of) the peripheral API first you must get an *instance* of the peripheral. All the
-//! core peripherals are modeled as singletons (there can only ever be, at most, one instance of
-//! them at any given point in time) and the only way to get an instance of them is through the
-//! [`Peripherals::take`](struct.Peripherals.html#method.take) method.
+//! core peripherals are modeled as singletons (there can only ever be, at most, one instance of any
+//! one of them at any given point in time) and the only way to get an instance of them is through
+//! the [`Peripherals::take`](struct.Peripherals.html#method.take) method.
 //!
 //! ``` no_run
 //! extern crate cortex_m;
@@ -21,9 +21,19 @@
 //! This method can only be successfully called *once* -- this is why the method returns an
 //! `Option`. Subsequent calls to the method will result in a `None` value being returned.
 //!
+//! ``` no_run
+//! extern crate cortex_m;
+//!
+//! use cortex_m::peripheral::Peripherals;
+//!
+//! fn main() {
+//!     let ok = Peripherals::take().unwrap();
+//!     let panics = Peripherals::take().unwrap();
+//! }
+//! ```
 //! A part of the peripheral API doesn't require access to a peripheral instance. This part of the
 //! API is provided as static methods on the peripheral types. One example is the
-//! [`DWT::cyccnt`](struct.DWT.html#method.cyccnt) method.
+//! [`DWT::get_cycle_count`](struct.DWT.html#method.get_cycle_count) method.
 //!
 //! ``` no_run
 //! extern crate cortex_m;
@@ -43,7 +53,7 @@
 //!
 //! The singleton property can be *unsafely* bypassed using the `ptr` static method which is
 //! available on all the peripheral types. This method is a useful building block for implementing
-//! higher level and safe abstractions.
+//! safe higher level abstractions.
 //!
 //! ``` no_run
 //! extern crate cortex_m;

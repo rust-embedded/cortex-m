@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.4.0] - 2018-01-15
+
+### Added
+
+- Formatter and Flush Control register (FFCR) accessor to the TPIU register block.
+
+- A `singleton!` macro that creates mutable reference to a statically allocated variable.
+
+- A Cargo feature, `cm7-r0p1`, to work around a silicon erratum that affects writes to BASEPRI on
+  Cortex-M7 r0p1 devices.
+
+### Changed
+
+- [breaking-change] All peripherals are now exposed as scoped singletons and they need to be `take`n
+  into scope to become accessible.
+
+- [breaking-change] The signatures of methods exposed by peripheral proxies have changed to
+  better match the new scoped singletons semantics.
+
+- All the thin wrappers around assembly instructions now panic when executed on non-ARM devices.
+
+### Removed
+
+- [breaking-change] APIs specific to ARMv7-M (`peripheral::{cbp, fpb, fpu, itm, tpiu}`, `itm`) when
+  compiling for `thumb6m-none-eabi`.
+
 ## [v0.3.1] - 2017-07-20
 
 ### Changed

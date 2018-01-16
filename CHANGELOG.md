@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.4.1] - 2018-01-16
+
+### Changed
+
+- `peripheral::Peripherals` is now re-exported at the root of the crate.
+
 ## [v0.4.0] - 2018-01-15
 
 ### Added
@@ -379,7 +385,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.4.1...HEAD
+[v0.4.1]: https://github.com/japaric/cortex-m/compare/v0.4.0...v0.4.1
 [v0.4.0]: https://github.com/japaric/cortex-m/compare/v0.3.1...v0.4.0
 [v0.3.1]: https://github.com/japaric/cortex-m/compare/v0.3.0...v0.3.1
 [v0.3.0]: https://github.com/japaric/cortex-m/compare/v0.2.11...v0.3.0

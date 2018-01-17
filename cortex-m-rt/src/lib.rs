@@ -284,7 +284,9 @@
 #![no_std]
 
 extern crate compiler_builtins;
+#[cfg(target_arch = "arm")]
 extern crate cortex_m;
+#[cfg(target_arch = "arm")]
 extern crate r0;
 
 #[cfg(not(test))]

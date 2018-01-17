@@ -7,7 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-## [v0.3.10] - 2018-01-17
+## [v0.3.11] - 2018-01-17
+
+### Changed
+
+- Dynamically support recent nightlies, which have the `termination` lang item, and
+  nightly-2017-09-22, which doesn't. That nightly version is used by the docs.rs builder. Supporting
+  that version instead of rejecting it ensures this crate and its reverse-dependencies will get
+  their documentation built by the docs.rs service.
+
+## [v0.3.10] - 2018-01-17 - YANKED
 
 ### Removed
 
@@ -203,7 +212,8 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/japaric/cortex-m-rt/compare/v0.3.10...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m-rt/compare/v0.3.11...HEAD
+[v0.3.11]: https://github.com/japaric/cortex-m-rt/compare/v0.3.10...v0.3.11
 [v0.3.10]: https://github.com/japaric/cortex-m-rt/compare/v0.3.9...v0.3.10
 [v0.3.9]: https://github.com/japaric/cortex-m-rt/compare/v0.3.8...v0.3.9
 [v0.3.8]: https://github.com/japaric/cortex-m-rt/compare/v0.3.7...v0.3.8

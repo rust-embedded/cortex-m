@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.4.2] - 2018-01-17
+
+### Fixed
+
+- Added a missing `Send` implementation to all the peripherals.
+
 ## [v0.4.1] - 2018-01-16
 
 ### Changed
@@ -385,7 +391,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.4.2...HEAD
+[v0.4.2]: https://github.com/japaric/cortex-m/compare/v0.4.1...v0.4.2
 [v0.4.1]: https://github.com/japaric/cortex-m/compare/v0.4.0...v0.4.1
 [v0.4.0]: https://github.com/japaric/cortex-m/compare/v0.3.1...v0.4.0
 [v0.3.1]: https://github.com/japaric/cortex-m/compare/v0.3.0...v0.3.1

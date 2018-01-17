@@ -221,6 +221,9 @@ pub struct CBP {
 }
 
 #[cfg(any(armv7m, target_arch = "x86_64"))]
+unsafe impl Send for CBP {}
+
+#[cfg(any(armv7m, target_arch = "x86_64"))]
 impl CBP {
     pub(crate) unsafe fn new() -> Self {
         CBP {
@@ -235,9 +238,6 @@ impl CBP {
 }
 
 #[cfg(any(armv7m, target_arch = "x86_64"))]
-unsafe impl Send for CBP {}
-
-#[cfg(any(armv7m, target_arch = "x86_64"))]
 impl ops::Deref for CBP {
     type Target = self::cbp::RegisterBlock;
 
@@ -250,6 +250,8 @@ impl ops::Deref for CBP {
 pub struct CPUID {
     _marker: PhantomData<*const ()>,
 }
+
+unsafe impl Send for CPUID {}
 
 impl CPUID {
     /// Returns a pointer to the register block
@@ -271,6 +273,8 @@ pub struct DCB {
     _marker: PhantomData<*const ()>,
 }
 
+unsafe impl Send for DCB {}
+
 impl DCB {
     /// Returns a pointer to the register block
     pub fn ptr() -> *const dcb::RegisterBlock {
@@ -290,6 +294,8 @@ impl ops::Deref for DCB {
 pub struct DWT {
     _marker: PhantomData<*const ()>,
 }
+
+unsafe impl Send for DWT {}
 
 impl DWT {
     /// Returns a pointer to the register block
@@ -313,6 +319,9 @@ impl ops::Deref for DWT {
 pub struct FPB {
     _marker: PhantomData<*const ()>,
 }
+
+#[cfg(any(armv7m, target_arch = "x86_64"))]
+unsafe impl Send for FPB {}
 
 #[cfg(any(armv7m, target_arch = "x86_64"))]
 impl FPB {
@@ -340,6 +349,9 @@ pub struct FPU {
 }
 
 #[cfg(any(has_fpu, target_arch = "x86_64"))]
+unsafe impl Send for FPU {}
+
+#[cfg(any(has_fpu, target_arch = "x86_64"))]
 impl FPU {
     /// Returns a pointer to the register block
     pub fn ptr() -> *const fpu::RegisterBlock {
@@ -363,6 +375,9 @@ impl ops::Deref for FPU {
 pub struct ITM {
     _marker: PhantomData<*const ()>,
 }
+
+#[cfg(any(armv7m, target_arch = "x86_64"))]
+unsafe impl Send for ITM {}
 
 #[cfg(any(armv7m, target_arch = "x86_64"))]
 impl ITM {
@@ -393,6 +408,8 @@ pub struct MPU {
     _marker: PhantomData<*const ()>,
 }
 
+unsafe impl Send for MPU {}
+
 impl MPU {
     /// Returns a pointer to the register block
     pub fn ptr() -> *const mpu::RegisterBlock {
@@ -412,6 +429,8 @@ impl ops::Deref for MPU {
 pub struct NVIC {
     _marker: PhantomData<*const ()>,
 }
+
+unsafe impl Send for NVIC {}
 
 impl NVIC {
     /// Returns a pointer to the register block
@@ -433,6 +452,8 @@ pub struct SCB {
     _marker: PhantomData<*const ()>,
 }
 
+unsafe impl Send for SCB {}
+
 impl SCB {
     /// Returns a pointer to the register block
     pub fn ptr() -> *const scb::RegisterBlock {
@@ -452,6 +473,8 @@ impl ops::Deref for SCB {
 pub struct SYST {
     _marker: PhantomData<*const ()>,
 }
+
+unsafe impl Send for SYST {}
 
 impl SYST {
     /// Returns a pointer to the register block
@@ -475,6 +498,9 @@ impl ops::Deref for SYST {
 pub struct TPIU {
     _marker: PhantomData<*const ()>,
 }
+
+#[cfg(any(armv7m, target_arch = "x86_64"))]
+unsafe impl Send for TPIU {}
 
 #[cfg(any(armv7m, target_arch = "x86_64"))]
 impl TPIU {

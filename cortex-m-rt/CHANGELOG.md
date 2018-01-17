@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.3.10] - 2018-01-17
+
+### Removed
+
+- The nightly date check from build script that improved error messages for users of old,
+  unsupported nightlies. Unfortunately the check was preventing this crate and reverse-dependencies
+  from getting their documentation build on docs.rs
+
 ## [v0.3.9] - 2018-01-07
 
 ### Fixed
@@ -21,7 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
-- Change the `start` lang item to match the new signature
+- The `start` lang item to match the new signature
 
 ## [v0.3.7] - 2017-12-23
 
@@ -195,7 +203,8 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/japaric/cortex-m-rt/compare/v0.3.9...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m-rt/compare/v0.3.10...HEAD
+[v0.3.10]: https://github.com/japaric/cortex-m-rt/compare/v0.3.9...v0.3.10
 [v0.3.9]: https://github.com/japaric/cortex-m-rt/compare/v0.3.8...v0.3.9
 [v0.3.8]: https://github.com/japaric/cortex-m-rt/compare/v0.3.7...v0.3.8
 [v0.3.7]: https://github.com/japaric/cortex-m-rt/compare/v0.3.6...v0.3.7

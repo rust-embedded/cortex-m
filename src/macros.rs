@@ -43,6 +43,9 @@ macro_rules! iprintln {
 ///     let y = alias();
 ///     // BAD this second call to `alias` will definitively `panic!`
 ///     let y_alias = alias();
+///
+///     # // check that the call to `uninitialized` requires unsafe
+///     # singleton!(: u8 = unsafe { std::mem::uninitialized() });
 /// }
 ///
 /// fn alias() -> &'static mut bool {
@@ -52,16 +55,17 @@ macro_rules! iprintln {
 #[macro_export]
 macro_rules! singleton {
     (: $ty:ty = $expr:expr) => {
-        $crate::interrupt::free(|_| unsafe {
+        $crate::interrupt::free(|_| {
             static mut USED: bool = false;
             static mut VAR: $crate::UntaggedOption<$ty> = $crate::UntaggedOption { none: () };
 
-            if USED {
+            if unsafe { USED } {
                 None
             } else {
-                USED = true;
-                VAR.some = $expr;
-                let var: &'static mut _ = &mut VAR.some;
+                unsafe { USED = true }
+                let expr = $expr;
+                unsafe { VAR.some = expr }
+                let var: &'static mut _ = unsafe { &mut VAR.some };
                 Some(var)
             }
         })

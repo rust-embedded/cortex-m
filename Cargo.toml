@@ -13,6 +13,7 @@ version = "0.4.2"
 aligned = "0.1.1"
 bare-metal = "0.1.0"
 volatile-register = "0.2.0"
+untagged-option = "0.1.1"
 
 [features]
 cm7-r0p1 = []

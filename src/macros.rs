@@ -43,9 +43,6 @@ macro_rules! iprintln {
 ///     let y = alias();
 ///     // BAD this second call to `alias` will definitively `panic!`
 ///     let y_alias = alias();
-///
-///     # // check that the call to `uninitialized` requires unsafe
-///     # singleton!(: u8 = unsafe { std::mem::uninitialized() });
 /// }
 ///
 /// fn alias() -> &'static mut bool {
@@ -59,15 +56,55 @@ macro_rules! singleton {
             static mut USED: bool = false;
             static mut VAR: $crate::UntaggedOption<$ty> = $crate::UntaggedOption { none: () };
 
-            if unsafe { USED } {
+
+            #[allow(unsafe_code)]
+            let used = unsafe { USED };
+            if used {
                 None
             } else {
+                #[allow(unsafe_code)]
                 unsafe { USED = true }
+
                 let expr = $expr;
+
+                #[allow(unsafe_code)]
                 unsafe { VAR.some = expr }
+
+                #[allow(unsafe_code)]
                 let var: &'static mut _ = unsafe { &mut VAR.some };
+
                 Some(var)
             }
         })
     }
 }
+
+
+/// ``` compile_fail
+/// #[macro_use(singleton)]
+/// extern crate cortex_m;
+///
+/// fn main() {}
+///
+/// fn foo() {
+///     // check that the call to `uninitialized` requires unsafe
+///     singleton!(: u8 = std::mem::uninitialized());
+/// }
+/// ```
+#[allow(dead_code)]
+const CFAIL: () = ();
+
+/// ```
+/// #![deny(unsafe_code)]
+/// #[macro_use(singleton)]
+/// extern crate cortex_m;
+///
+/// fn main() {}
+///
+/// fn foo() {
+///     // check that calls to `singleton!` don't trip the `unsafe_code` lint
+///     singleton!(: u8 = 0);
+/// }
+/// ```
+#[allow(dead_code)]
+const CPASS: () = ();

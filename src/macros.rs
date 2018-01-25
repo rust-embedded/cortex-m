@@ -52,17 +52,59 @@ macro_rules! iprintln {
 #[macro_export]
 macro_rules! singleton {
     (: $ty:ty = $expr:expr) => {
-        $crate::interrupt::free(|_| unsafe {
+        $crate::interrupt::free(|_| {
             static mut USED: bool = false;
-            static mut VAR: $ty = $expr;
+            static mut VAR: $crate::UntaggedOption<$ty> = $crate::UntaggedOption { none: () };
 
-            if USED {
+
+            #[allow(unsafe_code)]
+            let used = unsafe { USED };
+            if used {
                 None
             } else {
-                USED = true;
-                let var: &'static mut _ = &mut VAR;
+                #[allow(unsafe_code)]
+                unsafe { USED = true }
+
+                let expr = $expr;
+
+                #[allow(unsafe_code)]
+                unsafe { VAR.some = expr }
+
+                #[allow(unsafe_code)]
+                let var: &'static mut _ = unsafe { &mut VAR.some };
+
                 Some(var)
             }
         })
     }
 }
+
+
+/// ``` compile_fail
+/// #[macro_use(singleton)]
+/// extern crate cortex_m;
+///
+/// fn main() {}
+///
+/// fn foo() {
+///     // check that the call to `uninitialized` requires unsafe
+///     singleton!(: u8 = std::mem::uninitialized());
+/// }
+/// ```
+#[allow(dead_code)]
+const CFAIL: () = ();
+
+/// ```
+/// #![deny(unsafe_code)]
+/// #[macro_use(singleton)]
+/// extern crate cortex_m;
+///
+/// fn main() {}
+///
+/// fn foo() {
+///     // check that calls to `singleton!` don't trip the `unsafe_code` lint
+///     singleton!(: u8 = 0);
+/// }
+/// ```
+#[allow(dead_code)]
+const CPASS: () = ();

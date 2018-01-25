@@ -15,6 +15,7 @@
 
 extern crate aligned;
 extern crate bare_metal;
+extern crate untagged_option;
 extern crate volatile_register;
 
 #[macro_use]
@@ -31,3 +32,4 @@ pub mod peripheral;
 pub mod register;
 
 pub use peripheral::Peripherals;
+pub use untagged_option::UntaggedOption;

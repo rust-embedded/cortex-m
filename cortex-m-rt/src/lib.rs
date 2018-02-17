@@ -31,7 +31,7 @@
 //!
 //! - A `_sheap` symbol at whose address you can locate a heap.
 //!
-//! - Zero cost stack overflow protection when using the `swap-ld` linker.
+//! - Zero cost stack overflow protection when using the `cortex-m-rt-ld` linker.
 //!
 //! # Example
 //!
@@ -117,7 +117,7 @@
 //! .data                   0x0   0x20000000
 //! ```
 //!
-//! ## Zero stack overflow protection
+//! ## Zero cost stack overflow protection
 //!
 //! Consider the following variation of the previous program:
 //!
@@ -207,13 +207,13 @@
 //! sections so that the `.bss` section is near the end of the RAM region and the `.stack` comes
 //! *before* `.bss`, at a lower address.
 //!
-//! To swap the sections you can use the [`swap-ld`] linker to link the program.
+//! To swap the sections you can use the [`cortex-m-rt-ld`] linker to link the program.
 //!
 //! ``` console
-//! $ cargo install swap-ld
+//! $ cargo install cortex-m-rt-ld
 //!
 //! $ xargo rustc --target thumbv7m-none-eabi -- \
-//!       -C link-arg=-Tlink.x -C linker=swap-ld -Z linker-flavor=ld
+//!       -C link-arg=-Tlink.x -C linker=cortex-m-rt-ld -Z linker-flavor=ld
 //! ```
 //!
 //! Now you get non overlapping linker sections:
@@ -269,17 +269,17 @@
 //!
 //! The `.stack` can crash into the `.heap`, or vice versa, and you'll also get memory corruption.
 //!
-//! `swap-ld` can also be used in this case but the size of the `.heap` section must be specified
-//! in the `_heap_size` symbol in `memory.x`, or in any other linker script.
+//! `cortex-m-rt-ld` can also be used in this case but the size of the `.heap` section must be
+//! specified via the `_heap_size` symbol in `memory.x`, or in any other linker script.
 //!
 //! ``` console
-//! $ $EDITOR memory.x && tail $_
+//! $ $EDITOR memory.x && tail -n1 $_
 //! _heap_size = 0x400;
 //! ```
 //!
 //! ``` console
 //! $ xargo rustc --target thumbv7m-none-eabi -- \
-//!       -C link-arg=-Tlink.x -C linker=swap-ld -Z linker-flavor=ld
+//!       -C link-arg=-Tlink.x -C linker=cortex-m-rt-ld -Z linker-flavor=ld
 //!
 //! $ arm-none-eabi-size -Ax $(find target -name app) | head
 //! section                 size         addr
@@ -298,7 +298,7 @@
 //!   <img alt="Swapped sections when `.heap` exists" src="https://i.imgur.com/6Y5DaBp.png">
 //! </p>
 //!
-//! Now both stack overflows and dynamic memory over-allocations will generate hard fault
+//! Now both stack overflows and dynamic memory over-allocations (OOM) will generate hard fault
 //! exceptions, instead of running into each other.
 //!
 //! # Symbol interfaces
@@ -425,7 +425,7 @@
 //!
 //! ### `_heap_size`
 //!
-//! The size of the `.heap` section. Only meaningful when using `swap-ld`.
+//! The size of the `.heap` section. Only meaningful when using `cortex-m-rt-ld`.
 //!
 //! ### `_stext`
 //!
@@ -472,13 +472,13 @@
 //! }
 //! ```
 //!
-//! *NOTE* if you are using `swap-ld` and/or have defined the `_heap_size` symbol then you should
+//! *NOTE* if you are using `cortex-m-rt-ld` and/or have defined the `_heap_size` symbol then you should
 //! use the address of the `_eheap` to compute the size of the `.heap` section, instead of
 //! duplicating the value that you wrote in `memory.x`.
 //!
 //! [1]: https://doc.rust-lang.org/unstable-book/language-features/lang-items.html
 //! [qs]: https://docs.rs/cortex-m-quickstart/0.2.0/cortex_m_quickstart/
-//! [`swap-ld`]: https://crates.io/crates/swap-ld
+//! [`cortex-m-rt-ld`]: https://crates.io/crates/cortex-m-rt-ld
 //! [2]: https://sourceware.org/binutils/docs/ld/MEMORY.html
 
 #![cfg_attr(any(target_arch = "arm", feature = "abort-on-panic"), feature(core_intrinsics))]

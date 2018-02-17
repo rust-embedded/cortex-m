@@ -48,15 +48,29 @@ SECTIONS
     . = ALIGN(4);
   } > FLASH
 
-  .bss : ALIGN(4)
+  /* limits of the .stack region */
+  _estack = _stack_start;
+  /* HACK the `true` case indicates that two RAM regions are being used and
+  /* that the stack was placed in the second region. In that case we don't know
+  /* the size of the second RAM region, or its start address, so we just assume
+  /* its zero sized */
+  _sstack = _stack_start < ORIGIN(RAM)? _stack_start : ORIGIN(RAM);
+
+  /* fictitious region that represents the memory available for the stack */
+  .stack _sstack (INFO) : ALIGN(4)
   {
-    _sbss = .;
+    . += (_estack - _sstack);
+  }
+
+  PROVIDE(_sbss = ORIGIN(RAM));
+  .bss _sbss : ALIGN(4)
+  {
     *(.bss .bss.*);
     . = ALIGN(4);
     _ebss = .;
   } > RAM
 
-  .data : ALIGN(4)
+  .data _ebss : ALIGN(4)
   {
     _sidata = LOADADDR(.data);
     _sdata = .;
@@ -64,6 +78,17 @@ SECTIONS
     . = ALIGN(4);
     _edata = .;
   } > RAM AT > FLASH
+
+  PROVIDE(_heap_size = 0);
+
+  _sheap = _edata;
+  _eheap = _sheap + _heap_size;
+
+  /* fictitious region that represents the memory available for the heap */
+  .heap _sheap (INFO) : ALIGN(4)
+  {
+    . += _heap_size;
+  }
 
   /* fake output .got section */
   /* Dynamic relocations are unsupported. This section is only used to detect

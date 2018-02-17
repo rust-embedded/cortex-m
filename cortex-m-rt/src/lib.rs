@@ -31,6 +31,8 @@
 //!
 //! - A `_sheap` symbol at whose address you can locate a heap.
 //!
+//! - Zero cost stack overflow protection when using the `cortex-m-rt-ld` linker.
+//!
 //! # Example
 //!
 //! Creating a new bare metal project. (I recommend you use the
@@ -41,13 +43,13 @@
 //! $ cargo new --bin app && cd $_
 //!
 //! $ # add this crate as a dependency
-//! $ edit Cargo.toml && cat $_
+//! $ $EDITOR Cargo.toml && tail $_
 //! [dependencies.cortex-m-rt]
 //! features = ["abort-on-panic"]
 //! version = "0.3.0"
 //!
 //! $ # tell Xargo which standard crates to build
-//! $ edit Xargo.toml && cat $_
+//! $ $EDITOR Xargo.toml && cat $_
 //! [dependencies.core]
 //! stage = 0
 //!
@@ -56,7 +58,7 @@
 //! stage = 1
 //!
 //! $ # memory layout of the device
-//! $ edit memory.x && cat $_
+//! $ $EDITOR memory.x && cat $_
 //! MEMORY
 //! {
 //!   /* NOTE K = KiBi = 1024 bytes */
@@ -64,7 +66,7 @@
 //!   RAM : ORIGIN = 0x20000000, LENGTH = 8K
 //! }
 //!
-//! $ edit src/main.rs && cat $_
+//! $ $EDITOR src/main.rs && cat $_
 //! ```
 //!
 //! ``` ignore,no_run
@@ -102,7 +104,202 @@
 //!  8000400:       b580            push    {r7, lr}
 //!  8000402:       466f            mov     r7, sp
 //!  8000404:       b084            sub     sp, #8
+//!
+//!
+//! $ arm-none-eabi-size -Ax $(find target -name app) | head
+//! target/thumbv7m-none-eabi/debug/app  :
+//! section                size         addr
+//! .vector_table         0x400    0x8000000
+//! .text                 0x24a    0x8000400
+//! .rodata                 0x0    0x800064c
+//! .stack               0x2000   0x20000000
+//! .bss                    0x0   0x20000000
+//! .data                   0x0   0x20000000
 //! ```
+//!
+//! ## Zero cost stack overflow protection
+//!
+//! Consider the following variation of the previous program:
+//!
+//! ``` ignore
+//! extern crate cortex_m_rt;
+//!
+//! const N: usize = 256;
+//! static mut XS: [u32; N] = [0; N];
+//!
+//! fn main() {
+//!     #[inline(never)]
+//!     fn fib(n: u32) -> u32 {
+//!         unsafe { assert!(XS.iter().all(|x| *x == 0)) }
+//!
+//!         if n < 2 {
+//!             1
+//!         } else {
+//!             fib(n - 1) + fib(n - 2)
+//!         }
+//!     }
+//!
+//!     let x = fib(400);
+//!     unsafe { *XS.iter_mut().first().unwrap() = x }
+//! }
+//! ```
+//!
+//! This program allocates a 1KB array in `.bss`, recursively computes the 400th fibonacci number
+//! and stores the result in the head of the array. This program will hit a stack overflow at
+//! runtime because there's not enough memory to recursively call the `fib` function so many times.
+//!
+//! If you inspect the program using GDB you'll see that the assertion failed after `fib` was nested
+//! around 300 times.
+//!
+//! ``` console
+//! > continue
+//! Program received signal SIGTRAP, Trace/breakpoint trap.
+//!
+//! > backtrace
+//! #0  0x08000516 in cortex_m_rt::default_handler ()
+//! #1  <signal handler called>
+//! #2  0x0800050a in rust_begin_unwind ()
+//! #3  0x08000586 in core::panicking::panic_fmt ()
+//! #4  0x0800055c in core::panicking::panic ()
+//! #5  0x080004f6 in app::main::fib ()
+//! #6  0x080004a0 in app::main::fib ()
+//! (..)
+//! #301 0x080004a0 in app::main::fib ()
+//! #302 0x080004a0 in app::main::fib ()
+//! #303 0x08000472 in app::main ()
+//! #304 0x08000512 in cortex_m_rt::lang_items::start ()
+//! #305 0x08000460 in cortex_m_rt::reset_handler ()
+//! ```
+//!
+//! What this means is that the stack grew so much that it crashed into the `.bss` section and
+//! overwrote the memory in there. Continuing the GDB session you can confirm that the `XS` variable
+//! has been modified:
+//!
+//! ``` console
+//! > x/4 0x20000000 # start of .bss
+//! 0x20000000 <app::XS>:   0x00000000      0x00000000      0x00000000      0x00000000
+//!
+//! > x/4 0x200003f0 # end of .bss
+//! 0x200003f0 <app::XS+1008>:      0x20000400      0x080004f5      0x00000000      0x00000001
+//! ```
+//!
+//! The problem is that the stack is growing towards the `.bss` section and both sections overlap as
+//! shown below:
+//!
+//! ``` console
+//! $ arm-none-eabi-size -Ax $(find target -name app)
+//! section             size         addr
+//! .vector_table      0x400    0x8000000
+//! .text              0x186    0x8000400
+//! .rodata             0x50    0x8000590
+//! .stack            0x2000   0x20000000
+//! .bss               0x400   0x20000000
+//! .data                0x0   0x20000400
+//! ```
+//!
+//! Graphically the RAM sections look like this:
+//!
+//! <p align="center">
+//!   <img alt="Stack overflow" src="https://i.imgur.com/haJKXr4.png">
+//! </p>
+//!
+//! To prevent memory corruption due to stack overflows in this scenario it suffices to switch the
+//! sections so that the `.bss` section is near the end of the RAM region and the `.stack` comes
+//! *before* `.bss`, at a lower address.
+//!
+//! To swap the sections you can use the [`cortex-m-rt-ld`] linker to link the program.
+//!
+//! ``` console
+//! $ cargo install cortex-m-rt-ld
+//!
+//! $ xargo rustc --target thumbv7m-none-eabi -- \
+//!       -C link-arg=-Tlink.x -C linker=cortex-m-rt-ld -Z linker-flavor=ld
+//! ```
+//!
+//! Now you get non overlapping linker sections:
+//!
+//! ``` console
+//! section             size         addr
+//! .vector_table      0x400    0x8000000
+//! .text              0x186    0x8000400
+//! .rodata             0x50    0x8000590
+//! .stack            0x1c00   0x20000000
+//! .bss               0x400   0x20001c00
+//! .data                0x0   0x20002000
+//! ```
+//!
+//! Note that the `.stack` section is smaller now. Graphically, the memory layout now looks like
+//! this:
+//!
+//! <p align="center">
+//!   <img alt="Swapped sections" src="https://i.imgur.com/waOKpHw.png">
+//! </p>
+//!
+//! On stack overflows `.stack` will hit the lower boundary of the RAM region raising a hard fault
+//! exception, instead of silently corrupting the `.bss` section.
+//!
+//! You can confirm this by inspecting the program in GDB.
+//!
+//! ``` console
+//! > continue
+//! Program received signal SIGTRAP, Trace/breakpoint trap.
+//!
+//! > p $sp
+//! $1 = (void *) 0x1ffffff0
+//! ```
+//!
+//! The failure mode this time was the `.stack` crashing into the RAM boundary. The variable `XS` is
+//! unaffected this time:
+//!
+//! ``` console
+//! > x/4x app::XS
+//! 0x20001c00 <app::XS>:   0x00000000      0x00000000      0x00000000      0x00000000
+//!
+//! > x/4x app::XS+252
+//! 0x20001ff0 <app::XS+1008>:      0x00000000      0x00000000      0x00000000      0x00000000
+//! ```
+//!
+//! ## `.heap`
+//!
+//! If your program makes use of a `.heap` section a similar problem can occur:
+//!
+//! <p align="center">
+//!   <img alt="Memory layout when `.heap` exists" src="https://i.imgur.com/kFHRGiF.png">
+//! </p>
+//!
+//! The `.stack` can crash into the `.heap`, or vice versa, and you'll also get memory corruption.
+//!
+//! `cortex-m-rt-ld` can also be used in this case but the size of the `.heap` section must be
+//! specified via the `_heap_size` symbol in `memory.x`, or in any other linker script.
+//!
+//! ``` console
+//! $ $EDITOR memory.x && tail -n1 $_
+//! _heap_size = 0x400;
+//! ```
+//!
+//! ``` console
+//! $ xargo rustc --target thumbv7m-none-eabi -- \
+//!       -C link-arg=-Tlink.x -C linker=cortex-m-rt-ld -Z linker-flavor=ld
+//!
+//! $ arm-none-eabi-size -Ax $(find target -name app) | head
+//! section                 size         addr
+//! .vector_table          0x400    0x8000000
+//! .text                  0x1a8    0x8000400
+//! .rodata                 0x50    0x80005b0
+//! .stack                0x1800   0x20000000
+//! .bss                   0x400   0x20001800
+//! .data                    0x0   0x20001c00
+//! .heap                  0x400   0x20001c00
+//! ```
+//!
+//! Graphically the memory layout looks like this:
+//!
+//! <p align="center">
+//!   <img alt="Swapped sections when `.heap` exists" src="https://i.imgur.com/6Y5DaBp.png">
+//! </p>
+//!
+//! Now both stack overflows and dynamic memory over-allocations (OOM) will generate hard fault
+//! exceptions, instead of running into each other.
 //!
 //! # Symbol interfaces
 //!
@@ -213,7 +410,7 @@
 //!
 //! Allocating the call stack on a different RAM region.
 //!
-//! ```,ignore
+//! ``` ignore
 //! MEMORY
 //! {
 //!   /* call stack will go here */
@@ -225,6 +422,10 @@
 //!
 //! _stack_start = ORIGIN(CCRAM) + LENGTH(CCRAM);
 //! ```
+//!
+//! ### `_heap_size`
+//!
+//! The size of the `.heap` section. Only meaningful when using `cortex-m-rt-ld`.
 //!
 //! ### `_stext`
 //!
@@ -241,7 +442,7 @@
 //!
 //! Locate the `.text` section 1024 bytes after the start of the FLASH region.
 //!
-//! ```,ignore
+//! ``` ignore
 //! _stext = ORIGIN(FLASH) + 0x400;
 //! ```
 //!
@@ -253,7 +454,7 @@
 //!
 //! #### Example
 //!
-//! ```,ignore
+//! ``` ignore
 //! extern crate some_allocator;
 //!
 //! // Size of the heap in bytes
@@ -270,6 +471,15 @@
 //!     }
 //! }
 //! ```
+//!
+//! *NOTE* if you are using `cortex-m-rt-ld` and/or have defined the `_heap_size` symbol then you should
+//! use the address of the `_eheap` to compute the size of the `.heap` section, instead of
+//! duplicating the value that you wrote in `memory.x`.
+//!
+//! [1]: https://doc.rust-lang.org/unstable-book/language-features/lang-items.html
+//! [qs]: https://docs.rs/cortex-m-quickstart/0.2.0/cortex_m_quickstart/
+//! [`cortex-m-rt-ld`]: https://crates.io/crates/cortex-m-rt-ld
+//! [2]: https://sourceware.org/binutils/docs/ld/MEMORY.html
 
 #![cfg_attr(any(target_arch = "arm", feature = "abort-on-panic"), feature(core_intrinsics))]
 #![deny(missing_docs)]

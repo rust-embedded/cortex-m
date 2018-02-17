@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.3.13] - 2018-02-17
+
+### Added
+
+- Fictitious `.stack` and `.heap` linker sections that represent the locations of the stack and the
+  heap in RAM. You can visualize these linker sections by running `arm-none-eabi-size -Ax` over your
+  binary.
+
+- Zero cost stack overflow protection when you use the `cortex-m-rt-ld` linker. Check documentation
+  for details.
+
+- A `_heap_size` symbol that indicates how large the heap is. This symbol is only used when
+  `cortex-m-rt-ld` is used as a linker.
+
 ## [v0.3.12] - 2018-01-17
 
 ### Fixed

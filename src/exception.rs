@@ -8,7 +8,7 @@ pub enum Exception {
     /// Other type of faults and unhandled faults
     HardFault,
     /// Memory protection related fault
-    MenManage,
+    MemManage,
     /// Pre-fetch or memory access fault
     BusFault,
     /// Fault due to undefined instruction or illegal state
@@ -37,7 +37,7 @@ impl Exception {
             0 => return None,
             2 => Exception::NMI,
             3 => Exception::HardFault,
-            4 => Exception::MenManage,
+            4 => Exception::MemManage,
             5 => Exception::BusFault,
             6 => Exception::UsageFault,
             11 => Exception::SVCall,

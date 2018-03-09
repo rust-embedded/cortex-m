@@ -9,14 +9,11 @@ use std::path::PathBuf;
 use chrono::NaiveDate;
 
 fn main() {
-    let date: NaiveDate = rustc_version::version_meta()
-        .unwrap()
-        .commit_date
-        .unwrap()
-        .parse()
-        .unwrap();
-
-    if date > NaiveDate::from_ymd(2017, 12, 26) {
+    let meta = rustc_version::version_meta().unwrap();
+    if meta.channel == rustc_version::Channel::Dev
+        || meta.commit_date.unwrap().parse::<NaiveDate>().unwrap()
+            > NaiveDate::from_ymd(2017, 12, 26)
+    {
         println!("cargo:rustc-cfg=has_termination_lang")
     }
 

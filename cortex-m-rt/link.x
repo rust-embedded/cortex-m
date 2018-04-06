@@ -54,7 +54,10 @@ SECTIONS
     *(.bss .bss.*);
     . = ALIGN(4);
     _ebss = .;
-  } > RAM
+  } > RAM AT > FLASH
+  /* NOTE(AT > FLASH) without this LLD v6 produces a binary that crashes OpenOCD whereas LLD v7
+     emits a ".rodata and .bss sections overlap" error ... This hacky workaround doesn't increase
+     the binary size AFAICT */
 
   .data : ALIGN(4)
   {

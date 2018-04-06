@@ -1,28 +1,9 @@
-extern crate chrono;
-extern crate rustc_version;
-
 use std::env;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
 
-use chrono::NaiveDate;
-
 fn main() {
-    let meta = rustc_version::version_meta().unwrap();
-    let commit_date = meta.commit_date.unwrap().parse::<NaiveDate>().unwrap();
-    if meta.channel == rustc_version::Channel::Dev
-        || commit_date > NaiveDate::from_ymd(2017, 12, 26)
-    {
-        println!("cargo:rustc-cfg=has_termination_lang")
-    }
-
-    // newest nightlies don't need 'extern crate compiler_builtins'
-    if commit_date < NaiveDate::from_ymd(2018, 04, 07)
-    {
-        println!("cargo:rustc-cfg=needs_cb")
-    }
-
     let target = env::var("TARGET").unwrap();
 
     has_fpu(&target);

@@ -70,7 +70,7 @@ SECTIONS
     _ebss = .;
   } > RAM
 
-  .data _ebss : ALIGN(4)
+  .data : ALIGN(4)
   {
     _sidata = LOADADDR(.data);
     _sdata = .;

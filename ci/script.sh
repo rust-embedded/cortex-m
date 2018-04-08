@@ -3,11 +3,11 @@ set -euxo pipefail
 main() {
     case $TARGET in
         thumbv7em-none-eabi*)
-            xargo check --target $TARGET --features cm7-r0p1
-            xargo check --target $TARGET
+            cargo check --target $TARGET --features cm7-r0p1
+            cargo check --target $TARGET
             ;;
         thumbv*-none-eabi*)
-            xargo check --target $TARGET
+            cargo check --target $TARGET
             ;;
         *)
             cargo test --target $TARGET

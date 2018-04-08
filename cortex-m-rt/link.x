@@ -68,11 +68,8 @@ SECTIONS
     _edata = .;
   } > RAM AT > FLASH
 
-  PROVIDE(_heap_size = 0);
-
   /* The heap starts right after the .bss + .data section ends */
   _sheap = _edata;
-  _eheap = _sheap + _heap_size;
 
   /* fake output .got section */
   /* Dynamic relocations are unsupported. This section is only used to detect

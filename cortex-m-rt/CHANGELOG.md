@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.3.15] - 2018-04-08
+
+### Fixed
+
+- Support the newest nightly
+
 ## [v0.3.14] - 2018-04-01
 
 ### Fixed
@@ -238,7 +244,8 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/japaric/cortex-m-rt/compare/v0.3.14...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m-rt/compare/v0.3.15...HEAD
+[v0.3.15]: https://github.com/japaric/cortex-m-rt/compare/v0.3.14...v0.3.15
 [v0.3.14]: https://github.com/japaric/cortex-m-rt/compare/v0.3.13...v0.3.14
 [v0.3.13]: https://github.com/japaric/cortex-m-rt/compare/v0.3.12...v0.3.13
 [v0.3.12]: https://github.com/japaric/cortex-m-rt/compare/v0.3.11...v0.3.12

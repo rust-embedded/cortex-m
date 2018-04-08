@@ -485,7 +485,7 @@
 #![deny(missing_docs)]
 #![deny(warnings)]
 #![feature(asm)]
-#![feature(compiler_builtins_lib)]
+#![cfg_attr(needs_cb, feature(compiler_builtins_lib))]
 #![feature(global_asm)]
 #![feature(lang_items)]
 #![feature(linkage)]
@@ -493,6 +493,7 @@
 #![feature(used)]
 #![no_std]
 
+#[cfg(needs_cb)]
 extern crate compiler_builtins;
 #[cfg(target_arch = "arm")]
 extern crate cortex_m;

@@ -48,15 +48,6 @@
 //! features = ["abort-on-panic"]
 //! version = "0.3.0"
 //!
-//! $ # tell Xargo which standard crates to build
-//! $ $EDITOR Xargo.toml && cat $_
-//! [dependencies.core]
-//! stage = 0
-//!
-//! [dependencies.compiler_builtins]
-//! features = ["mem"]
-//! stage = 1
-//!
 //! $ # memory layout of the device
 //! $ $EDITOR memory.x && cat $_
 //! MEMORY
@@ -91,9 +82,9 @@
 //! ```
 //!
 //! ``` text
-//! $ cargo install xargo
+//! $ rustup target add thumbv7m-none-eabi
 //!
-//! $ xargo rustc --target thumbv7m-none-eabi -- \
+//! $ cargo rustc --target thumbv7m-none-eabi -- \
 //!       -C link-arg=-Tlink.x -C linker=arm-none-eabi-ld -Z linker-flavor=ld
 //!
 //! $ arm-none-eabi-objdump -Cd $(find target -name app) | head
@@ -212,7 +203,7 @@
 //! ``` console
 //! $ cargo install cortex-m-rt-ld
 //!
-//! $ xargo rustc --target thumbv7m-none-eabi -- \
+//! $ cargo rustc --target thumbv7m-none-eabi -- \
 //!       -C link-arg=-Tlink.x -C linker=cortex-m-rt-ld -Z linker-flavor=ld
 //! ```
 //!
@@ -278,7 +269,7 @@
 //! ```
 //!
 //! ``` console
-//! $ xargo rustc --target thumbv7m-none-eabi -- \
+//! $ cargo rustc --target thumbv7m-none-eabi -- \
 //!       -C link-arg=-Tlink.x -C linker=cortex-m-rt-ld -Z linker-flavor=ld
 //!
 //! $ arm-none-eabi-size -Ax $(find target -name app) | head

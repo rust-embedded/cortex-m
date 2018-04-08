@@ -8,11 +8,6 @@
 //!
 //! - Before main initialization of the FPU (for targets that have a FPU).
 //!
-//! - A `panic_fmt` implementation that just calls abort that you can opt into
-//!   through the "abort-on-panic" Cargo feature. If you don't use this feature
-//!   you'll have to provide the `panic_fmt` lang item yourself. Documentation
-//!   [here](https://doc.rust-lang.org/unstable-book/language-features/lang-items.html)
-//!
 //! - A minimal `start` lang item to support the standard `fn main()`
 //!   interface. (The processor goes to sleep (`loop { asm!("wfi") }`) after
 //!   returning from `main`)
@@ -41,10 +36,10 @@
 //! $ cargo new --bin app && cd $_
 //!
 //! $ # add this crate as a dependency
-//! $ $EDITOR Cargo.toml && tail $_
-//! [dependencies.cortex-m-rt]
-//! features = ["abort-on-panic"]
-//! version = "0.3.0"
+//! $ cargo add cortex-m-rt --vers 0.4.0
+//!
+//! $ # select a panicking behavior
+//! $ cargo add panic-abort
 //!
 //! $ # memory layout of the device
 //! $ $EDITOR memory.x && cat $_
@@ -63,6 +58,7 @@
 //! #![no_std]
 //!
 //! extern crate cortex_m_rt;
+//! extern crate panic_abort; // panicking behavior
 //!
 //! fn main() {
 //!     // do something here
@@ -276,7 +272,6 @@
 //! [qs]: https://docs.rs/cortex-m-quickstart/0.2.0/cortex_m_quickstart/
 //! [2]: https://sourceware.org/binutils/docs/ld/MEMORY.html
 
-#![cfg_attr(any(target_arch = "arm", feature = "abort-on-panic"), feature(core_intrinsics))]
 #![deny(missing_docs)]
 #![deny(warnings)]
 #![feature(asm)]

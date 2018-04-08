@@ -12,7 +12,7 @@ EXTERN(EXCEPTIONS);
    object file that's passed to the linker *before* this crate */
 EXTERN(INTERRUPTS);
 
-_stack_start = ORIGIN(RAM) + LENGTH(RAM);
+PROVIDE(_stack_start = ORIGIN(RAM) + LENGTH(RAM));
 
 SECTIONS
 {

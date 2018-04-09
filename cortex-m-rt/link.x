@@ -48,27 +48,16 @@ SECTIONS
     . = ALIGN(4);
   } > FLASH
 
-  /* limits of the .stack region */
-  _estack = _stack_start;
-  /* HACK the `true` case indicates that two RAM regions are being used and
-  /* that the stack was placed in the second region. In that case we don't know
-  /* the size of the second RAM region, or its start address, so we just assume
-  /* its zero sized */
-  _sstack = _stack_start < ORIGIN(RAM)? _stack_start : ORIGIN(RAM);
-
-  /* fictitious region that represents the memory available for the stack */
-  .stack _sstack (INFO) : ALIGN(4)
-  {
-    . += (_estack - _sstack);
-  }
-
   PROVIDE(_sbss = ORIGIN(RAM));
   .bss _sbss : ALIGN(4)
   {
     *(.bss .bss.*);
     . = ALIGN(4);
     _ebss = .;
-  } > RAM
+  } > RAM AT > FLASH
+  /* NOTE(AT > FLASH) without this LLD v6 produces a binary that crashes OpenOCD whereas LLD v7
+     emits a ".rodata and .bss sections overlap" error ... This hacky workaround doesn't increase
+     the binary size AFAICT */
 
   .data : ALIGN(4)
   {
@@ -79,16 +68,8 @@ SECTIONS
     _edata = .;
   } > RAM AT > FLASH
 
-  PROVIDE(_heap_size = 0);
-
+  /* The heap starts right after the .bss + .data section ends */
   _sheap = _edata;
-  _eheap = _sheap + _heap_size;
-
-  /* fictitious region that represents the memory available for the heap */
-  .heap _sheap (INFO) : ALIGN(4)
-  {
-    . += _heap_size;
-  }
 
   /* fake output .got section */
   /* Dynamic relocations are unsupported. This section is only used to detect
@@ -101,26 +82,9 @@ SECTIONS
     _egot = .;
   } > RAM AT > FLASH
 
-  /* The heap starts right after the .bss + .data section ends */
-  _sheap = _edata;
-
-  /* Due to an unfortunate combination of legacy concerns,
-     toolchain drawbacks, and insufficient attention to detail,
-     rustc has no choice but to mark .debug_gdb_scripts as allocatable.
-     We really do not want to upload it to our target, so we
-     remove the allocatable bit. Unfortunately, it appears
-     that the only way to do this in a linker script is
-     the extremely obscure "INFO" output section type specifier. */
-  /* a rustc hack will force the program to read the first byte of this section,
-     so we'll set the (fake) start address of this section to something we're
-     sure can be read at runtime: the start of the .text section */
-  .debug_gdb_scripts _stext (INFO) : {
-    KEEP(*(.debug_gdb_scripts))
-  }
-
   /DISCARD/ :
   {
-    *(.ARM.exidx.*)
+    *(.ARM.exidx.*);
   }
 }
 

@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.4.0] - 2018-04-09
+
+### Added
+
+- LLD support. The linker script provided by this crate has been tweaked to support both LLD and GNU
+  LD. To use LLD as a linker change `.cargo/config` to look like this:
+
+``` diff
+ [target.thumbv7m-none-eabi]
+ rustflags = [
+   "-C", "link-arg=-Tlink.x",
+-  "-C", "linker=arm-none-eabi-ld",
+-  "-Z", "linker-flavor=ld",
++  "-C", "linker=lld",
++  "-Z", "linker-flavor=ld.lld",
+ ]
+```
+
+### Removed
+
+- [breaking-change] Stack overflow protection has been removed. Unfortunately, supporting this
+  feature produces totally wrong `arm-none-eabi-size` reports when LLD is used to link the
+  program. If you need the stack overflow protection feature you can continue to use version
+  v0.3.13+.
+
+- [breaking-change] The "abort-on-panic" Cargo feature, which provided a `panic_fmt` implementation,
+  has been removed. If you were using this feature you can instead use a [panic implementation
+  crate][panic-impl].
+
+[panic-impl]: https://crates.io/keywords/panic-impl
+
 ## [v0.3.15] - 2018-04-08
 
 ### Fixed

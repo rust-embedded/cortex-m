@@ -38,7 +38,7 @@
 //! $ # add this crate as a dependency
 //! $ cargo add cortex-m-rt --vers 0.4.0
 //!
-//! $ # select a panicking behavior
+//! $ # select a panicking behavior (look for the panic-impl keyword on crates.io)
 //! $ cargo add panic-abort
 //!
 //! $ # memory layout of the device
@@ -151,7 +151,7 @@
 //! #[linkage = "weak"]
 //! #[naked]
 //! #[no_mangle]
-//! extern "C" fn WWDG() {
+//! extern "C" fn PVD() {
 //!     unsafe {
 //!         asm!("b DEFAULT_HANDLER" :::: "volatile");
 //!         core::intrinsics::unreachable();

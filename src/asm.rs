@@ -47,6 +47,17 @@ pub fn wfi() {
     }
 }
 
+/// Send Event
+#[inline]
+pub fn sev() {
+    match () {
+        #[cfg(target_arch = "arm")]
+        () => unsafe { asm!("sev" :::: "volatile") },
+        #[cfg(not(target_arch = "arm"))]
+        () => unimplemented!(),
+    }
+}
+
 /// Instruction Synchronization Barrier
 ///
 /// Flushes the pipeline in the processor, so that all instructions following the `ISB` are fetched

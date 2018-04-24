@@ -215,3 +215,22 @@ macro_rules! exception {
         }
     };
 }
+
+/// Macro to bind all the 240 interrupt handlers to the `DefaultHandler` exception handler.
+///
+/// The use case for this macro is writing device agnostic programs
+#[macro_export]
+macro_rules! interrupts {
+    (DefaultHandler) => {
+        #[doc(hidden)]
+        #[link_section = ".vector_table.interrupts"]
+        #[no_mangle]
+        pub static __INTERRUPTS: [Option<unsafe extern "C" fn()>; 240] = [{
+            extern "C" {
+                fn DefaultHandler();
+            }
+
+            Some(DefaultHandler)
+        }; 240];
+    };
+}

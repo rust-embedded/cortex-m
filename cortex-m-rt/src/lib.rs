@@ -104,7 +104,7 @@ macro_rules! main {
 #[doc(hidden)]
 pub enum Exception {
     NMI,
-    MenManage,
+    MemManage,
     BusFault,
     UsageFault,
     SVC,

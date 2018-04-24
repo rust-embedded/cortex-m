@@ -182,9 +182,10 @@ macro_rules! exception {
             f()
         }
     };
+
     (HardFault, $path:path) => {
         #[allow(non_snake_case)]
-        #[export_name = "HardFaultr"]
+        #[export_name = "HardFault"]
         pub unsafe extern "C" fn __impl_HardFault() {
             // XXX should we really prevent this handler from returning?
             // validate the signature of the user provided handler
@@ -193,6 +194,7 @@ macro_rules! exception {
             f()
         }
     };
+
     // NOTE Unfortunately, this will end up leaking `$exception` into the function call namespace.
     // But the damage is somewhat reduced by having `$exception` not being a `snake_case` function.
     ($ExceptionName:ident, $path:path) => {

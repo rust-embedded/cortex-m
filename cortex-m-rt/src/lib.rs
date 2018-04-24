@@ -156,30 +156,36 @@ pub static __EXCEPTIONS: [Option<unsafe extern "C" fn()>; 14] = [
 /// All exceptions are serviced by the `DefaultHandler` exception handler unless overridden using
 /// this macro. `ExceptionName` can be one of are:
 ///
-/// - `DefaultHandler` (\*)
-/// - `NMI`
-/// - `HardFault`
-/// - `MemManage`
-/// - `BusFault`
-/// - `UsageFault`
-/// - `SVC`
-/// - `DebugMon` (not available on ARMv6-M)
-/// - `PendSV`
-/// - `SysTick`
+/// - `DefaultHandler` (a) -- `fn(u8) -> !` -- the argument is the exception number (VECTACTIVE)
+/// - `NMI` -- `fn()`
+/// - `HardFault` -- `fn() -> !`
+/// - `MemManage` -- `fn()`
+/// - `BusFault` -- `fn()`
+/// - `UsageFault` -- `fn()`
+/// - `SVC` -- `fn()`
+/// - `DebugMon` (b) -- `fn()`
+/// - `PendSV` -- `fn()`
+/// - `SysTick` -- `fn()`
 ///
-/// (\*) Note that `DefaultHandler` is left undefined and *must* be defined by the user somewhere
+/// (a) Note that `DefaultHandler` is left undefined and *must* be defined by the user somewhere
 /// using this macro.
+///
+/// (b) Not available on ARMv6-M
+// XXX should we prevent the fault handlers from returning?
 #[macro_export]
 macro_rules! exception {
     (DefaultHandler, $path:path) => {
         #[allow(non_snake_case)]
         #[export_name = "DefaultHandler"]
         pub unsafe extern "C" fn __impl_DefaultHandler() {
-            // XXX should we really prevent this handler from returning?
             // validate the signature of the user provided handler
-            let f: fn() -> ! = $path;
+            let f: fn(u8) -> ! = $path;
 
-            f()
+            const SCB_ICSR: *const u32 = 0xE000_ED04 as *const u32;
+
+            // NOTE not volatile so the compiler can opt the load operation away if the value is
+            // unused
+            f(core::ptr::read(SCB_ICSR) as u8)
         }
     };
 
@@ -187,7 +193,6 @@ macro_rules! exception {
         #[allow(non_snake_case)]
         #[export_name = "HardFault"]
         pub unsafe extern "C" fn __impl_HardFault() {
-            // XXX should we really prevent this handler from returning?
             // validate the signature of the user provided handler
             let f: fn() -> ! = $path;
 

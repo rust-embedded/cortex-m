@@ -1,16 +1,25 @@
 //! Miscellaneous assembly instructions
 
-/// Puts the processor in Debug state. Debuggers can pick this up as a
-/// "breakpoint".
+/// Puts the processor in Debug state. Debuggers can pick this up as a "breakpoint".
 ///
-/// NOTE calling `bkpt` when the processor is not connected to a debugger will
-/// cause an exception
+/// **NOTE** calling `bkpt` when the processor is not connected to a debugger will cause an
+/// exception.
 #[inline(always)]
 pub fn bkpt() {
     match () {
-        #[cfg(target_arch = "arm")]
+        #[cfg(all(cortex_m, feature = "inline-asm"))]
         () => unsafe { asm!("bkpt" :::: "volatile") },
-        #[cfg(not(target_arch = "arm"))]
+
+        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
+        () => unsafe {
+            extern "C" {
+                fn __bkpt();
+            }
+
+            __bkpt();
+        },
+
+        #[cfg(not(cortex_m))]
         () => unimplemented!(),
     }
 }
@@ -19,19 +28,40 @@ pub fn bkpt() {
 #[inline]
 pub fn nop() {
     match () {
-        #[cfg(target_arch = "arm")]
+        #[cfg(all(cortex_m, feature = "inline-asm"))]
         () => unsafe { asm!("nop" :::: "volatile") },
-        #[cfg(not(target_arch = "arm"))]
+
+        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
+        () => unsafe {
+            extern "C" {
+                fn __nop();
+            }
+
+            __nop()
+        },
+
+        #[cfg(not(cortex_m))]
         () => unimplemented!(),
     }
 }
+
 /// Wait For Event
 #[inline]
 pub fn wfe() {
     match () {
-        #[cfg(target_arch = "arm")]
+        #[cfg(all(cortex_m, feature = "inline-asm"))]
         () => unsafe { asm!("wfe" :::: "volatile") },
-        #[cfg(not(target_arch = "arm"))]
+
+        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
+        () => unsafe {
+            extern "C" {
+                fn __wfe();
+            }
+
+            __wfe()
+        },
+
+        #[cfg(not(cortex_m))]
         () => unimplemented!(),
     }
 }
@@ -40,9 +70,19 @@ pub fn wfe() {
 #[inline]
 pub fn wfi() {
     match () {
-        #[cfg(target_arch = "arm")]
+        #[cfg(all(cortex_m, feature = "inline-asm"))]
         () => unsafe { asm!("wfi" :::: "volatile") },
-        #[cfg(not(target_arch = "arm"))]
+
+        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
+        () => unsafe {
+            extern "C" {
+                fn __wfi();
+            }
+
+            __wfi()
+        },
+
+        #[cfg(not(cortex_m))]
         () => unimplemented!(),
     }
 }
@@ -51,9 +91,19 @@ pub fn wfi() {
 #[inline]
 pub fn sev() {
     match () {
-        #[cfg(target_arch = "arm")]
+        #[cfg(all(cortex_m, feature = "inline-asm"))]
         () => unsafe { asm!("sev" :::: "volatile") },
-        #[cfg(not(target_arch = "arm"))]
+
+        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
+        () => unsafe {
+            extern "C" {
+                fn __sev();
+            }
+
+            __sev()
+        },
+
+        #[cfg(not(cortex_m))]
         () => unimplemented!(),
     }
 }
@@ -65,27 +115,48 @@ pub fn sev() {
 #[inline]
 pub fn isb() {
     match () {
-        #[cfg(target_arch = "arm")]
-        () => unsafe { asm!("isb 0xF" : : : "memory" : "volatile") },
-        #[cfg(not(target_arch = "arm"))]
+        #[cfg(all(cortex_m, feature = "inline-asm"))]
+        () => unsafe { asm!("isb 0xF" ::: "memory" : "volatile") },
+
+        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
+        () => unsafe {
+            extern "C" {
+                fn __isb();
+            }
+
+            __isb()
+            // XXX do we need a explicit compiler barrier here?
+        },
+
+        #[cfg(not(cortex_m))]
         () => unimplemented!(),
     }
 }
 
 /// Data Synchronization Barrier
 ///
-/// Acts as a special kind of memory barrier. No instruction in program order after this
-/// instruction can execute until this instruction completes. This instruction completes only when
-/// both:
+/// Acts as a special kind of memory barrier. No instruction in program order after this instruction
+/// can execute until this instruction completes. This instruction completes only when both:
 ///
 ///  * any explicit memory access made before this instruction is complete
 ///  * all cache and branch predictor maintenance operations before this instruction complete
 #[inline]
 pub fn dsb() {
     match () {
-        #[cfg(target_arch = "arm")]
-        () => unsafe { asm!("dsb 0xF" : : : "memory" : "volatile") },
-        #[cfg(not(target_arch = "arm"))]
+        #[cfg(all(cortex_m, feature = "inline-asm"))]
+        () => unsafe { asm!("dsb 0xF" ::: "memory" : "volatile") },
+
+        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
+        () => unsafe {
+            extern "C" {
+                fn __dsb();
+            }
+
+            __dsb()
+            // XXX do we need a explicit compiler barrier here?
+        },
+
+        #[cfg(not(cortex_m))]
         () => unimplemented!(),
     }
 }
@@ -98,9 +169,20 @@ pub fn dsb() {
 #[inline]
 pub fn dmb() {
     match () {
-        #[cfg(target_arch = "arm")]
-        () => unsafe { asm!("dmb 0xF" : : : "memory" : "volatile") },
-        #[cfg(not(target_arch = "arm"))]
+        #[cfg(all(cortex_m, feature = "inline-asm"))]
+        () => unsafe { asm!("dmb 0xF" ::: "memory" : "volatile") },
+
+        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
+        () => unsafe {
+            extern "C" {
+                fn __dmb();
+            }
+
+            __dmb()
+            // XXX do we need a explicit compiler barrier here?
+        },
+
+        #[cfg(not(cortex_m))]
         () => unimplemented!(),
     }
 }

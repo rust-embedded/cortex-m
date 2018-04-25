@@ -4,7 +4,7 @@
 #[inline]
 pub fn read() -> u8 {
     match () {
-        #[cfg(target_arch = "arm")]
+        #[cfg(all(cortex_m, feature = "inline-asm"))]
         () => {
             let r: u32;
             unsafe {
@@ -12,7 +12,17 @@ pub fn read() -> u8 {
             }
             r as u8
         }
-        #[cfg(not(target_arch = "arm"))]
+
+        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
+        () => unsafe {
+            extern "C" {
+                fn __basepri_r() -> u8;
+            }
+
+            __basepri_r()
+        },
+
+        #[cfg(not(cortex_m))]
         () => unimplemented!(),
     }
 }
@@ -21,20 +31,29 @@ pub fn read() -> u8 {
 ///
 /// **IMPORTANT** If you are using a Cortex-M7 device with revision r0p1 you MUST enable the
 /// `cm7-r0p1` Cargo feature or this function WILL misbehave.
-#[cfg_attr(not(target_arch = "arm"), allow(unused_variables))]
 #[inline]
-pub unsafe fn write(basepri: u8) {
+pub unsafe fn write(_basepri: u8) {
     match () {
-        #[cfg(target_arch = "arm")]
+        #[cfg(all(cortex_m, feature = "inline-asm"))]
         () => match () {
             #[cfg(not(feature = "cm7-r0p1"))]
-            () => asm!("msr BASEPRI, $0" :: "r"(basepri) : "memory" : "volatile"),
+            () => asm!("msr BASEPRI, $0" :: "r"(_basepri) : "memory" : "volatile"),
             #[cfg(feature = "cm7-r0p1")]
-            () => asm!("cpsid i
-                        msr BASEPRI, $0
-                        cpsie i" :: "r"(basepri) : "memory" : "volatile"),
+            () => interrupt::free(
+                |_| asm!("msr BASEPRI, $0" :: "r"(_basepri) : "memory" : "volatile"),
+            ),
         },
-        #[cfg(not(target_arch = "arm"))]
+
+        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
+        () => {
+            extern "C" {
+                fn __basepri_w(_: u8);
+            }
+
+            __basepri_w(_basepri);
+        },
+
+        #[cfg(not(cortex_m))]
         () => unimplemented!(),
     }
 }

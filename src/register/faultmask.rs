@@ -25,17 +25,35 @@ impl Faultmask {
 #[inline]
 pub fn read() -> Faultmask {
     match () {
-        #[cfg(target_arch = "arm")]
+        #[cfg(cortex_m)]
         () => {
-            let r: u32;
-            unsafe { asm!("mrs $0, FAULTMASK" : "=r"(r) ::: "volatile") }
+            let r = match () {
+                #[cfg(feature = "inline-asm")]
+                () => {
+                    let r: u32;
+                    unsafe { asm!("mrs $0, FAULTMASK" : "=r"(r) ::: "volatile") }
+                    r
+                }
+
+                #[cfg(not(feature = "inline-asm"))]
+                () => unsafe {
+                    extern "C" {
+                        fn __faultmask() -> u32;
+
+                    }
+
+                    __faultmask()
+                },
+            };
+
             if r & (1 << 0) == (1 << 0) {
                 Faultmask::Inactive
             } else {
                 Faultmask::Active
             }
         }
-        #[cfg(not(target_arch = "arm"))]
+
+        #[cfg(not(cortex_m))]
         () => unimplemented!(),
     }
 }

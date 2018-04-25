@@ -1,4 +1,6 @@
 //! Instrumentation Trace Macrocell
+//!
+//! **NOTE** This module is only available on ARMv7-M and newer
 
 use core::{fmt, mem, ptr, slice};
 

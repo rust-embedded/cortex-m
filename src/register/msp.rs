@@ -4,25 +4,44 @@
 #[inline]
 pub fn read() -> u32 {
     match () {
-        #[cfg(target_arch = "arm")]
+        #[cfg(all(cortex_m, feature = "inline-asm"))]
         () => {
             let r;
             unsafe { asm!("mrs $0,MSP" : "=r"(r) ::: "volatile") }
             r
         }
-        #[cfg(not(target_arch = "arm"))]
+
+        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
+        () => unsafe {
+            extern "C" {
+                fn __msp_r() -> u32;
+            }
+
+            __msp_r()
+        },
+
+        #[cfg(not(cortex_m))]
         () => unimplemented!(),
     }
 }
 
 /// Writes `bits` to the CPU register
-#[cfg_attr(not(target_arch = "arm"), allow(unused_variables))]
 #[inline]
-pub unsafe fn write(bits: u32) {
+pub unsafe fn write(_bits: u32) {
     match () {
-        #[cfg(target_arch = "arm")]
-        () => asm!("msr MSP,$0" :: "r"(bits) :: "volatile"),
-        #[cfg(not(target_arch = "arm"))]
+        #[cfg(all(cortex_m, feature = "inline-asm"))]
+        () => asm!("msr MSP,$0" :: "r"(_bits) :: "volatile"),
+
+        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
+        () => {
+            extern "C" {
+                fn __msp_w(_: u32);
+            }
+
+            __msp_w(_bits);
+        }
+
+        #[cfg(not(cortex_m))]
         () => unimplemented!(),
     }
 }

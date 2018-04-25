@@ -107,13 +107,30 @@ impl Fpca {
 #[inline]
 pub fn read() -> Control {
     match () {
-        #[cfg(target_arch = "arm")]
+        #[cfg(cortex_m)]
         () => {
-            let r: u32;
-            unsafe { asm!("mrs $0, CONTROL" : "=r"(r) ::: "volatile") }
+            let r = match () {
+                #[cfg(feature = "inline-asm")]
+                () => {
+                    let r: u32;
+                    unsafe { asm!("mrs $0, CONTROL" : "=r"(r) ::: "volatile") }
+                    r
+                }
+
+                #[cfg(not(feature = "inline-asm"))]
+                () => unsafe {
+                    extern "C" {
+                        fn __control() -> u32;
+                    }
+
+                    __control()
+                },
+            };
+
             Control { bits: r }
         }
-        #[cfg(not(target_arch = "arm"))]
+
+        #[cfg(not(cortex_m))]
         () => unimplemented!(),
     }
 }

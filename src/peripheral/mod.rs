@@ -84,6 +84,7 @@ use core::ops;
 
 use interrupt;
 
+// NOTE(target_arch) is for documentation purposes
 #[cfg(any(armv7m, target_arch = "x86_64"))]
 pub mod cbp;
 pub mod cpuid;
@@ -93,7 +94,6 @@ pub mod dwt;
 pub mod fpb;
 #[cfg(any(has_fpu, target_arch = "x86_64"))]
 pub mod fpu;
-// NOTE(target_arch) is for documentation purposes
 #[cfg(any(armv7m, target_arch = "x86_64"))]
 pub mod itm;
 pub mod mpu;

@@ -7,13 +7,28 @@ keywords = ["arm", "cortex-m", "register", "peripheral"]
 license = "MIT OR Apache-2.0"
 name = "cortex-m"
 repository = "https://github.com/japaric/cortex-m"
-version = "0.4.3"
+version = "0.4.4"
+
+[build-dependencies]
+cc = "1.0.10"
 
 [dependencies]
-aligned = "0.1.1"
-bare-metal = "0.1.0"
 volatile-register = "0.2.0"
-untagged-option = "0.1.1"
+
+[dependencies.aligned]
+default-features = false
+version = "0.1.2"
+
+[dependencies.bare-metal]
+default-features = false
+version = "0.1.2"
+
+[dependencies.untagged-option]
+optional = true
+version = "0.1.1"
 
 [features]
 cm7-r0p1 = []
+default = ["inline-asm", "singleton"]
+inline-asm = []
+singleton = ["untagged-option"]

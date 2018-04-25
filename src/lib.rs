@@ -9,19 +9,18 @@
 
 #![deny(missing_docs)]
 #![deny(warnings)]
-#![feature(asm)]
-#![feature(const_fn)]
+#![cfg_attr(feature = "inline-asm", feature(asm))]
 #![no_std]
 
 extern crate aligned;
 extern crate bare_metal;
+#[cfg(feature = "singleton")]
 extern crate untagged_option;
 extern crate volatile_register;
 
 #[macro_use]
 mod macros;
 
-#[macro_use]
 pub mod asm;
 pub mod exception;
 pub mod interrupt;
@@ -32,4 +31,7 @@ pub mod peripheral;
 pub mod register;
 
 pub use peripheral::Peripherals;
+
+#[cfg(feature = "singleton")]
+#[doc(hidden)]
 pub use untagged_option::UntaggedOption;

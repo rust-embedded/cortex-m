@@ -50,32 +50,23 @@ macro_rules! iprintln {
 /// }
 /// ```
 #[macro_export]
-// TODO(stable) needs stable const `mem::uninitialized` OR stable const `MaybeUninit::new()` (RFC
-// 1892)
-#[cfg(feature = "singleton")]
 macro_rules! singleton {
     (: $ty:ty = $expr:expr) => {
         $crate::interrupt::free(|_| {
-            static mut USED: bool = false;
-            static mut VAR: $crate::UntaggedOption<$ty> = $crate::UntaggedOption { none: () };
+            static mut VAR: Option<$ty> = None;
 
             #[allow(unsafe_code)]
-            let used = unsafe { USED };
+            let used = unsafe { VAR.is_some() };
             if used {
                 None
             } else {
-                #[allow(unsafe_code)]
-                unsafe { USED = true }
-
                 let expr = $expr;
 
                 #[allow(unsafe_code)]
-                unsafe { VAR.some = expr }
+                unsafe { VAR = Some(expr) }
 
                 #[allow(unsafe_code)]
-                let var: &'static mut _ = unsafe { &mut VAR.some };
-
-                Some(var)
+                unsafe { VAR.as_mut() }
             }
         })
     }
@@ -94,7 +85,6 @@ macro_rules! singleton {
 /// }
 /// ```
 #[allow(dead_code)]
-#[cfg(feature = "singleton")]
 const CFAIL: () = ();
 
 /// ```
@@ -110,5 +100,4 @@ const CFAIL: () = ();
 /// }
 /// ```
 #[allow(dead_code)]
-#[cfg(feature = "singleton")]
 const CPASS: () = ();

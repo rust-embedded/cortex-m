@@ -23,12 +23,7 @@ version = "0.1.2"
 default-features = false
 version = "0.1.2"
 
-[dependencies.untagged-option]
-optional = true
-version = "0.1.1"
-
 [features]
 cm7-r0p1 = []
-default = ["inline-asm", "singleton"]
+default = ["inline-asm"]
 inline-asm = []
-singleton = ["untagged-option"]

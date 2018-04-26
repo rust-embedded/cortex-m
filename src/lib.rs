@@ -14,8 +14,6 @@
 
 extern crate aligned;
 extern crate bare_metal;
-#[cfg(feature = "singleton")]
-extern crate untagged_option;
 extern crate volatile_register;
 
 #[macro_use]

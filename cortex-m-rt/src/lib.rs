@@ -211,6 +211,7 @@ pub static __EXCEPTIONS: [Option<unsafe extern "C" fn()>; 14] = [
 #[macro_export]
 macro_rules! exception {
     (DefaultHandler, $path:path) => {
+        #[allow(unsafe_code)]
         #[allow(non_snake_case)]
         #[export_name = "DefaultHandler"]
         pub unsafe extern "C" fn __impl_DefaultHandler() {
@@ -226,6 +227,7 @@ macro_rules! exception {
     };
 
     (HardFault, $path:path) => {
+        #[allow(unsafe_code)]
         #[allow(non_snake_case)]
         #[export_name = "UserHardFault"]
         pub unsafe extern "C" fn __impl_UserHardFault(ef: &$crate::ExceptionFrame) {
@@ -238,7 +240,24 @@ macro_rules! exception {
 
     // NOTE Unfortunately, this will end up leaking `$exception` into the function call namespace.
     // But the damage is somewhat reduced by having `$exception` not being a `snake_case` function.
+    ($ExceptionName:ident, $path:path, state: $State:ty = $init:expr) => {
+        #[allow(unsafe_code)]
+        #[no_mangle]
+        pub unsafe extern "C" fn $ExceptionName() {
+            static mut STATE: $State = $init;
+
+            // check that this exception exists
+            let _ = $crate::Exception::$ExceptionName;
+
+            // validate the signature of the user provided handler
+            let f: fn(&mut $State) = $path;
+
+            f(&mut STATE)
+        }
+    };
+
     ($ExceptionName:ident, $path:path) => {
+        #[allow(unsafe_code)]
         #[no_mangle]
         pub unsafe extern "C" fn $ExceptionName() {
             // check that this exception exists

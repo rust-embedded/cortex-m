@@ -1,35 +1,44 @@
 /* # Developer notes
 
 - Symbols that start with a double underscore (__) are considered "private"
+
 - Symbols that start with a single underscore (_) are considered "semi-public"; they can be
   overridden in a user linker script, but should not be referred from user code (e.g. `extern "C" {
   static mut __sbss }`).
+
 - `EXTERN` forces the linker to keep a symbol in the final binary. We use this to make sure a
   symbol if not dropped if it appears in or near the front of the linker arguments and "it's not
   needed" by any of the preceding objects (linker arguments)
+
 - `PROVIDE` is used to provide default values that can be overridden by a user linker script
+
 - On alignment: it's important for correctness that the VMA boundaries of both .bss and .data *and*
   the LMA of .data are all 4-byte aligned. These alignments are assumed by the RAM initialization
   routine. There's also a second benefit: 4-byte aligned boundaries means that you won't see
   "Address (..) is out of bounds" in the disassembly produced by `objdump`.
 */
 
+/* Provides information about the memory layout of the device */
+/* This will be provided by the user (see `memory.x`) or by a Board Support Crate */
 INCLUDE memory.x
+
+/* Provides weak aliases (cf. PROVIDED) for device specific interrupt handlers */
+/* This will usually be provided by a device crate generated using svd2rust (see `interrupts.x`) */
 INCLUDE interrupts.x
 
-/* # Entry point */
+/* # Entry point = reset vector */
 ENTRY(__reset);
 EXTERN(__RESET_VECTOR); /* depends on the `__reset` symbol */
-
-EXTERN(__EXCEPTIONS); /* depends on all the these PROVIDED symbols */
 
 /* # Exception vectors */
 /* This is effectively weak aliasing at the linker level */
 /* The user can override any of these aliases by defining the corresponding symbol themselves (cf.
    the `exception!` macro) */
+EXTERN(__EXCEPTIONS); /* depends on all the these PROVIDED symbols */
+
 EXTERN(DefaultHandler);
 PROVIDE(NMI = DefaultHandler);
-PROVIDE(HardFault = DefaultHandler);
+EXTERN(HardFault);
 PROVIDE(MemManage = DefaultHandler);
 PROVIDE(BusFault = DefaultHandler);
 PROVIDE(UsageFault = DefaultHandler);
@@ -39,7 +48,7 @@ PROVIDE(PendSV = DefaultHandler);
 PROVIDE(SysTick = DefaultHandler);
 
 /* # Interrupt vectors */
-EXTERN(__INTERRUPTS); /* to be provided by the device crate or equivalent */
+EXTERN(__INTERRUPTS); /* `static` variable similar to `__EXCEPTIONS` */
 
 /* # User overridable symbols I */
 /* Lets the user place the stack in a different RAM region */
@@ -57,15 +66,15 @@ SECTIONS
     LONG(_stack_start);
 
     /* Reset vector */
-    KEEP(*(.vector_table.reset_vector));
+    KEEP(*(.vector_table.reset_vector)); /* this is `__RESET_VECTOR` symbol */
     __reset_vector = ABSOLUTE(.);
 
     /* Exceptions */
-    KEEP(*(.vector_table.exceptions));
+    KEEP(*(.vector_table.exceptions)); /* this is `__EXCEPTIONS` symbol */
     __eexceptions = ABSOLUTE(.);
 
     /* Device specific interrupts */
-    KEEP(*(.vector_table.interrupts));
+    KEEP(*(.vector_table.interrupts)); /* this is `__INTERRUPTS` symbol */
     __einterrupts = ABSOLUTE(.);
   } > FLASH
 
@@ -79,7 +88,7 @@ SECTIONS
   /* ### .rodata */
   .rodata :
   {
-    . = ALIGN(4); /* 4-byte align the end (VMA) of this section */
+    . = ALIGN(4); /* 4-byte align the start (VMA) of this section */
     /* __srodata = ABSOLUTE(.); */
 
     *(.rodata .rodata.*);
@@ -187,7 +196,7 @@ Set '_stext' to an address smaller than 'ORIGIN(FLASH) + LENGTH(FLASH)");
 
 ASSERT(__sgot == __egot, "
 .got section detected in the input files. Dynamic relocations are not
-supported. If you are linking to C code compiled using the `gcc` crate
+supported. If you are linking to C code compiled using the `cc` crate
 then modify your build script to compile the C code _without_ the
--fPIC flag. See the documentation of the `gcc::Config.fpic` method for
+-fPIC flag. See the documentation of the `cc::Build.pic` method for
 details.");

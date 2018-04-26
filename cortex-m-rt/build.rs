@@ -1,3 +1,5 @@
+extern crate cc;
+
 use std::env;
 use std::fs::File;
 use std::io::Write;
@@ -8,6 +10,10 @@ fn main() {
 
     has_fpu(&target);
     is_armv6m(&target);
+
+    if target.starts_with("thumbv") {
+        cc::Build::new().file("asm.s").compile("asm");
+    }
 
     // Put the linker script somewhere the linker can find it
     let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());

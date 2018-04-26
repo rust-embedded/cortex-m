@@ -1,4 +1,16 @@
 //! Minimal startup / runtime for Cortex-M microcontrollers
+//!
+//! TODO
+//!
+//! # Example
+//!
+//! # User interface
+//!
+//! ## `memory.x`
+//!
+//! ## `interrupts.x`
+//!
+//! # Diagnostics
 
 // # Developer notes
 //
@@ -11,7 +23,32 @@
 
 extern crate r0;
 
+/// Registers stacked (pushed into the stack) during an exception
+#[derive(Clone, Copy, Debug)]
+#[repr(C)]
+pub struct ExceptionFrame {
+    /// (General purpose) Register 0
+    pub r0: u32,
+    /// (General purpose) Register 1
+    pub r1: u32,
+    /// (General purpose) Register 2
+    pub r2: u32,
+    /// (General purpose) Register 3
+    pub r3: u32,
+    /// (General purpose) Register 12
+    pub r12: u32,
+    /// Linker Register
+    pub lr: u32,
+    /// Program Counter
+    pub pc: u32,
+    /// Program Status Register
+    pub xpsr: u32,
+}
+
 /// Returns a pointer into which the heap can be placed
+///
+/// The start of the heap is guaranteed to be 4-byte aligned; that is the pointer returned by this
+/// function is a multiple of 4.
 #[inline]
 pub fn heap_start() -> *mut u32 {
     extern "C" {
@@ -153,12 +190,12 @@ pub static __EXCEPTIONS: [Option<unsafe extern "C" fn()>; 14] = [
 ///
 /// Usage: `exception!(ExceptionName, path::to::handler)`
 ///
-/// All exceptions are serviced by the `DefaultHandler` exception handler unless overridden using
-/// this macro. `ExceptionName` can be one of are:
+/// All exceptions are serviced by the `DefaultHandler` unless overridden using this macro.
+/// `ExceptionName` can be one of:
 ///
-/// - `DefaultHandler` (a) -- `fn(u8) -> !` -- the argument is the exception number (VECTACTIVE)
+/// - `DefaultHandler` (a) -- `fn(u8)` -- the argument is the exception number (VECTACTIVE)
 /// - `NMI` -- `fn()`
-/// - `HardFault` -- `fn() -> !`
+/// - `HardFault` -- `fn(&ExceptionFrame) -> !`
 /// - `MemManage` -- `fn()`
 /// - `BusFault` -- `fn()`
 /// - `UsageFault` -- `fn()`
@@ -171,7 +208,6 @@ pub static __EXCEPTIONS: [Option<unsafe extern "C" fn()>; 14] = [
 /// using this macro.
 ///
 /// (b) Not available on ARMv6-M
-// XXX should we prevent the fault handlers from returning?
 #[macro_export]
 macro_rules! exception {
     (DefaultHandler, $path:path) => {
@@ -179,7 +215,7 @@ macro_rules! exception {
         #[export_name = "DefaultHandler"]
         pub unsafe extern "C" fn __impl_DefaultHandler() {
             // validate the signature of the user provided handler
-            let f: fn(u8) -> ! = $path;
+            let f: fn(u8) = $path;
 
             const SCB_ICSR: *const u32 = 0xE000_ED04 as *const u32;
 
@@ -191,12 +227,12 @@ macro_rules! exception {
 
     (HardFault, $path:path) => {
         #[allow(non_snake_case)]
-        #[export_name = "HardFault"]
-        pub unsafe extern "C" fn __impl_HardFault() {
+        #[export_name = "UserHardFault"]
+        pub unsafe extern "C" fn __impl_UserHardFault(ef: &$crate::ExceptionFrame) {
             // validate the signature of the user provided handler
-            let f: fn() -> ! = $path;
+            let f: fn(&$crate::ExceptionFrame) -> ! = $path;
 
-            f()
+            f(ef)
         }
     };
 

@@ -1,6 +1,5 @@
-;; fn __basepri_w(u8)
-;; executed in a critical section to work around a silicon erratum
   .global __basepri_w
+  .syntax unified
 __basepri_w:
   mrs r1, PRIMASK
   cpsid i

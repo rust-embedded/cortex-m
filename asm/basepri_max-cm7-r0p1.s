@@ -1,6 +1,5 @@
-;; fn __basepri_max(u8)
-;; executed in a critical section to work around a silicon erratum
   .global __basepri_max
+  .syntax unified
 __basepri_max:
   mrs r1, PRIMASK
   cpsid i

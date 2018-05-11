@@ -17,10 +17,24 @@ fn main() {
 
     // Put the linker script somewhere the linker can find it
     let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
-    File::create(out.join("link.x"))
-        .unwrap()
-        .write_all(include_bytes!("link.x"))
-        .unwrap();
+    let link_x = include_bytes!("link.x");
+    if env::var_os("CARGO_FEATURE_DEVICE").is_some() {
+        let mut f = File::create(out.join("link.x")).unwrap();
+
+        writeln!(
+            f,
+            r#"
+/* Provides weak aliases (cf. PROVIDED) for device specific interrupt handlers */
+/* This will usually be provided by a device crate generated using svd2rust (see `device.x`) */
+INCLUDE device.x"#
+        ).unwrap();
+        f.write_all(link_x).unwrap();
+    } else {
+        File::create(out.join("link.x"))
+            .unwrap()
+            .write_all(link_x)
+            .unwrap();
+    };
     println!("cargo:rustc-link-search={}", out.display());
 
     println!("cargo:rerun-if-changed=build.rs");

@@ -22,13 +22,9 @@
 /* This will be provided by the user (see `memory.x`) or by a Board Support Crate */
 INCLUDE memory.x
 
-/* Provides weak aliases (cf. PROVIDED) for device specific interrupt handlers */
-/* This will usually be provided by a device crate generated using svd2rust (see `interrupts.x`) */
-INCLUDE interrupts.x
-
 /* # Entry point = reset vector */
-ENTRY(__reset);
-EXTERN(__RESET_VECTOR); /* depends on the `__reset` symbol */
+ENTRY(Reset);
+EXTERN(__RESET_VECTOR); /* depends on the `Reset` symbol */
 
 /* # Exception vectors */
 /* This is effectively weak aliasing at the linker level */
@@ -37,13 +33,15 @@ EXTERN(__RESET_VECTOR); /* depends on the `__reset` symbol */
 EXTERN(__EXCEPTIONS); /* depends on all the these PROVIDED symbols */
 
 EXTERN(DefaultHandler);
-PROVIDE(NMI = DefaultHandler);
+
+PROVIDE(NonMaskableInt = DefaultHandler);
 EXTERN(HardFault);
-PROVIDE(MemManage = DefaultHandler);
+PROVIDE(MemoryManagement = DefaultHandler);
 PROVIDE(BusFault = DefaultHandler);
 PROVIDE(UsageFault = DefaultHandler);
-PROVIDE(SVC = DefaultHandler);
-PROVIDE(DebugMon = DefaultHandler);
+PROVIDE(SecureFault = DefaultHandler);
+PROVIDE(SVCall = DefaultHandler);
+PROVIDE(DebugMonitor = DefaultHandler);
 PROVIDE(PendSV = DefaultHandler);
 PROVIDE(SysTick = DefaultHandler);
 

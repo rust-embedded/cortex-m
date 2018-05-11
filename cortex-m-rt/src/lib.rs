@@ -1,20 +1,330 @@
 //! Minimal startup / runtime for Cortex-M microcontrollers
 //!
-//! TODO
+//! This crate contains all the required parts to build a `no_std` application (binary crate) that
+//! targets a Cortex-M microcontroller.
+//!
+//! # Features
+//!
+//! This crates takes care of:
+//!
+//! - The memory layout of the program. In particular, it populates the vector table so the device
+//! can boot correctly, and properly dispatch exceptions and interrupts.
+//!
+//! - Initializing `static` variables before the user entry point.
+//!
+//! - Enabling the FPU before the user entry point if the target is `thumbv7em-none-eabihf`.
+//!
+//! This crate also provides a mechanism to set exception handlers: see the [`exception!`] macro.
+//!
+//! [`exception!`]: macro.exception.html
+//!
+//! # `memory.x`
+//!
+//! This crate expects the user, or some other crate, to provide the memory layout of the target
+//! device via a linker named `memory.x`. This section covers the contents of `memory.x`
+//!
+//! ## `MEMORY`
+//!
+//! The linker script must specify the memory available in the device as, at least, two `MEMORY`
+//! regions: one named `FLASH` and one named `RAM`. The `.text` and `.rodata` sections of the
+//! program will be placed in the `FLASH` region, whereas the `.bss` and `.data` sections, as well
+//! as the heap,will be placed in the `RAM` region.
+//!
+//! ``` text
+//! /* Linker script for the STM32F103C8T6 */
+//! MEMORY
+//! {
+//!   FLASH : ORIGIN = 0x08000000, LENGTH = 64K
+//!   RAM : ORIGIN = 0x20000000, LENGTH = 20K
+//! }
+//! ```
+//!
+//! ## `_stack_start`
+//!
+//! This optional symbol can be used to indicate where the call stack of the program should be
+//! placed. If this symbol is not used then the stack will be placed at the *end* of the `RAM`
+//! region -- the stack grows downwards towards smaller address. This symbol can be used to place
+//! the stack in a different memory region, for example:
+//!
+//! ``` text
+//! /* Linker script for the STM32F303VCT6 */
+//! MEMORY
+//! {
+//!     FLASH : ORIGIN = 0x08000000, LENGTH = 256K
+//!
+//!     /* .bss, .data and the heap go in this region */
+//!     RAM : ORIGIN = 0x20000000, LENGTH = 40K
+//!
+//!     /* Core coupled (faster) RAM dedicated to hold the stack */
+//!     CCRAM : ORIGIN = 0x10000000, LENGTH = 8K
+//! }
+//!
+//! _stack_start = ORIGIN(CCRAM) + LENGTH(CCRAM);
+//! ```
+//!
+//! ## `_stext`
+//!
+//! This optional symbol can be used to control where the `.text` section is placed. If omitted the
+//! `.text` section will be placed right after the vector table (which is placed at the beginning of
+//! `FLASH`). Some devices store settings like Flash configuration right after the vector table;
+//! for these devices one must place the `.text` section after this configuration section --
+//! `_stext` can be used for this purpose.
+//!
+//! ``` text
+//! MEMORY
+//! {
+//!   /* .. */
+//! }
+//!
+//! /* The device stores Flash configuration in 0x400-0x40C so we place .text after that */
+//! _stext = ORIGIN(FLASH) + 0x40C
+//! ```
 //!
 //! # Example
 //!
-//! # User interface
+//! This section presents a minimal application built on top of `cortex-m-rt`. Apart from the
+//! mandatory `memory.x` linker script describing the memory layout of the device, the hard fault
+//! handler and the default exception handler must also be defined somewhere in the dependency
+//! graph (cf. [`exception!`]). In this example we define them in the binary crate:
 //!
-//! ## `memory.x`
+//! ``` ignore
+//! // IMPORTANT the standard `main` interface is not used because it requires nightly
+//! #![no_main]
+//! #![no_std]
 //!
-//! ## `interrupts.x`
+//! #[macro_use(entry, exception)]
+//! extern crate cortex_m_rt as rt;
 //!
-//! # Diagnostics
+//! // makes `panic!` print messages to the host stderr using semihosting
+//! extern crate panic_semihosting;
+//!
+//! use rt::ExceptionFrame;
+//!
+//! // use `main` as the entry point of this application
+//! entry!(main);
+//!
+//! // `main` is not allowed to return
+//! fn main() -> ! {
+//!     // initialization
+//!
+//!     loop {
+//!         // application logic
+//!     }
+//! }
+//!
+//! // define the hard fault handler
+//! exception!(HardFault, hard_fault);
+//!
+//! fn hard_fault(ef: &ExceptionFrame) -> ! {
+//!     panic!("{:#?}", ef);
+//! }
+//!
+//! // define the default exception handler
+//! exception!(*, default_handler);
+//!
+//! fn default_handler(irqn: i16) {
+//!     panic!("unhandled exception (IRQn={})", irqn);
+//! }
+//! ```
+//!
+//! To actually build this program you need to place a `memory.x` linker script somewhere the linker
+//! can find it, e.g. in the current directory; and then link the program using `cortex-m-rt`'s
+//! linker script: `link.x`. The required steps are shown below:
+//!
+//! ``` text
+//! $ cat > memory.x <<EOF
+//! /* Linker script for the STM32F103C8T6 */
+//! MEMORY
+//! {
+//!   FLASH : ORIGIN = 0x08000000, LENGTH = 64K
+//!   RAM : ORIGIN = 0x20000000, LENGTH = 20K
+//! }
+//! EOF
+//!
+//! $ cargo rustc --target thumbv7m-none-eabi -- \
+//!       -C link-arg=-nostartfiles -C link-arg=-Tlink.x
+//!
+//! $ file target/thumbv7m-none-eabi/debug/app
+//! app: ELF 32-bit LSB executable, ARM, EABI5 version 1 (SYSV), statically linked, (..)
+//! ```
+//!
+//! # Optional features
+//!
+//! ## `device`
+//!
+//! If this feature is disabled then this crate populates the whole vector table. All the interrupts
+//! in the vector table, even the ones unused by the target device, will be bound to the default
+//! exception handler. This makes the final application device agnostic: you will be able to run it
+//! on any Cortex-M device -- provided that you correctly specified its memory layout in `memory.x`
+//! -- without hitting undefined behavior.
+//!
+//! If this feature is enabled then the interrupts section of the vector table is left unpopulated
+//! and some other crate, or the user, will have to populate it. This mode is meant to be used in
+//! conjunction with crates generated using `svd2rust`. Those *device crates* will populate the
+//! missing part of the vector table when their `"rt"` feature is enabled.
+//!
+//! # Inspection
+//!
+//! This section covers how to inspect a binary that builds on top of `cortex-m-rt`.
+//!
+//! ## Sections (`size`)
+//!
+//! `cortex-m-rt` uses standard sections like `.text`, `.rodata`, `.bss` and `.data` as one would
+//! expect. `cortex-m-rt` separates the vector table in its own section, named `.vector_table`. This
+//! lets you distinguish how much space is taking the vector table in Flash vs how much is being
+//! used by actual instructions (`.text`) and constants (`.rodata`).
+//!
+//! ```
+//! $ size -Ax target/thumbv7m-none-eabi/examples/app
+//! target/thumbv7m-none-eabi/release/examples/app  :
+//! section             size         addr
+//! .vector_table      0x400    0x8000000
+//! .text               0x88    0x8000400
+//! .rodata              0x0    0x8000488
+//! .data                0x0   0x20000000
+//! .bss                 0x0   0x20000000
+//! ```
+//!
+//! Without the `-A` argument `size` reports the sum of the sizes of `.text`, `.rodata` and
+//! `.vector_table` under "text".
+//!
+//! ```
+//! $ size target/thumbv7m-none-eabi/examples/app
+//!   text    data     bss     dec     hex filename
+//!   1160       0       0    1660     67c target/thumbv7m-none-eabi/release/app
+//! ```
+//!
+//! ## Symbols (`objdump`, `nm`)
+//!
+//! One will always find the following (unmangled) symbols in `cortex-m-rt` applications:
+//!
+//! - `Reset`. This is the reset handler. The microcontroller will executed this function upon
+//! booting. This function will call the user program entry point (cf. [`entry!`]) using the `main`
+//! symbol so you may also find that symbol in your program; if you do, `main` will contain your
+//! application code. Some other times `main` gets inlined into `Reset` so you won't find it.
+//!
+//! [`entry!`]:  macro.entry.html
+//!
+//! - `DefaultHandler`. This is the default handler. This function will contain, or call, the
+//! function you declared in the second argument of `exception!(*, ..)`.
+//!
+//! - `HardFault`. This is the hard fault handler. This function is simply a trampoline that jumps
+//! into the user defined hard fault handler: `UserHardFault`. The trampoline is required to set up
+//! the pointer to the stacked exception frame.
+//!
+//! - `UserHardFault`. This is the user defined hard fault handler. This function will contain, or
+//! call, the function you declared in the second argument of `exception!(HardFault, ..)`
+//!
+//! If you override any exception handler you'll find it as an unmangled symbol, e.g. `SysTick` or
+//! `SVCall`, in the output of `objdump`,
+//!
+//! # Incorporating device specific interrupts
+//!
+//! This section covers how an external crate can insert device specific interrupt handlers into the
+//! vector table. Most users don't need to concern themselves with these details, but if you are
+//! interested in how device crates generated using `svd2rust` integrate with `cortex-m-rt` read on.
+//!
+//! The information in this section applies when the `"device"` feature has been enabled.
+//!
+//! ## `__INTERRUPTS`
+//!
+//! The external crate must provide the interrupts portion of the vector table via a `static`
+//! variable named`__INTERRUPTS` (unmangled) that must be placed in the `.vector_table.interrupts`
+//! section of its object file.
+//!
+//! This `static` variable will be placed at `ORIGIN(FLASH) + 0x40`. This address corresponds to the
+//! spot where IRQ0 (IRQ number 0) is located.
+//!
+//! To conform to the Cortex-M ABI `__INTERRUPTS` must be an array of function pointers; some spots
+//! in this array may need to be set to 0 if they are marked as *reserved* in the data sheet /
+//! reference manual. We recommend using a `union` to set the reserved spots to `0`; `None`
+//! (`Option<fn()>`) may also work but it's not guaranteed that the `None` variant will *always* be
+//! represented by the value `0`.
+//!
+//! Let's illustrate with an artificial example where a device only has two interrupt: `Foo`, with
+//! IRQ number = 2, and `Bar`, with IRQ number = 4.
+//!
+//! ``` ignore
+//! union Vector {
+//!     handler: extern "C" fn(),
+//!     reserved: usize,
+//! }
+//!
+//! extern "C" {
+//!     fn Foo();
+//!     fn Bar();
+//! }
+//!
+//! #[link_section = ".vector_table.interrupts"]
+//! #[no_mangle]
+//! pub static __INTERRUPTS: [Vector; 5] = [
+//!     // 0-1: Reserved
+//!     Vector { reserved: 0 },
+//!     Vector { reserved: 0 },
+//!
+//!     // 2: Foo
+//!     Vector { handler: Foo },
+//!
+//!     // 3: Reserved
+//!     Vector { reserved: 0 },
+//!
+//!     // 4: Bar
+//!     Vector { handler: Bar },
+//! ];
+//! ```
+//!
+//! ## `device.x`
+//!
+//! Linking in `__INTERRUPTS` creates a bunch of undefined references. If the user doesn't set a
+//! handler for *all* the device specific interrupts then linking will fail with `"undefined
+//! reference"` errors.
+//!
+//! We want to provide a default handler for all the interrupts while still letting the user
+//! individually override each interrupt handler. In C projects, this is usually accomplished using
+//! weak aliases declared in external assembly files. In Rust, we could achieve something similar
+//! using `global_asm!`, but that's an unstable feature.
+//!
+//! A solution that doesn't require `global_asm!` or external assembly files is to use the `PROVIDE`
+//! command in a linker script to create the weak aliases. This is the approach that `cortex-m-rt`
+//! uses; when the `"device"` feature is enabled `cortex-m-rt`'s linker script (`link.x`) depends on
+//! a linker script named `device.x`. The crate that provides `__INTERRUPTS` must also provide this
+//! file.
+//!
+//! For our running example the `device.x` linker script looks like this:
+//!
+//! ``` text
+//! /* device.x */
+//! PROVIDE(Foo = DefaultHandler);
+//! PROVIDE(Bar = DefaultHandler);
+//! ```
+//!
+//! This weakly aliases both `Foo` and `Bar`. `DefaultHandler` is the default exception handler that
+//! the user provides via `exception!(*, ..)` and that the core exceptions use unless overridden.
+//!
+//! Because this linker script is provided by a dependency of the final application the dependency
+//! must contain build script that puts `device.x` somewhere the linker can find. An example of such
+//! build script is shown below:
+//!
+//! ``` ignore
+//! use std::env;
+//! use std::fs::File;
+//! use std::io::Write;
+//! use std::path::PathBuf;
+//!
+//! fn main() {
+//!     // Put the linker script somewhere the linker can find it
+//!     let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
+//!     File::create(out.join("device.x"))
+//!         .unwrap()
+//!         .write_all(include_bytes!("device.x"))
+//!         .unwrap();
+//!     println!("cargo:rustc-link-search={}", out.display());
+//! }
+//! ```
 
 // # Developer notes
 //
-// - `link_section` is used to place symbols in specific places if the final binary. The names used
+// - `link_section` is used to place symbols in specific places of the final binary. The names used
 // here will appear in the linker script (`link.x`) in conjunction with the `KEEP` command.
 
 #![deny(missing_docs)]
@@ -62,13 +372,13 @@ pub fn heap_start() -> *mut u32 {
 #[doc(hidden)]
 #[link_section = ".vector_table.reset_vector"]
 #[no_mangle]
-pub static __RESET_VECTOR: unsafe extern "C" fn() -> ! = __reset;
+pub static __RESET_VECTOR: unsafe extern "C" fn() -> ! = Reset;
 
 #[doc(hidden)]
 #[no_mangle]
-pub unsafe extern "C" fn __reset() -> ! {
+pub unsafe extern "C" fn Reset() -> ! {
     extern "C" {
-        // This symbol will be provided by the user via the `main!` macro
+        // This symbol will be provided by the user via the `entry!` macro
         fn main() -> !;
 
         // These symbols come from `link.x`
@@ -105,7 +415,7 @@ pub unsafe extern "C" fn __reset() -> ! {
             // before enabling the FPU, and that would produce a hard to diagnose hard fault at
             // runtime.
             #[inline(never)]
-            #[export_name = "__reset_trampoline"]
+            #[export_name = "ResetTrampoline"]
             fn trampoline() -> ! {
                 unsafe { main() }
             }
@@ -117,13 +427,15 @@ pub unsafe extern "C" fn __reset() -> ! {
 
 /// Macro to define the user entry point of a program
 ///
-/// Usage: `main!(path::to::user::main)`
+/// Usage: `entry!($path::to::user::entry)`
 ///
-/// This function will be called by the reset handler *after* RAM has been initialized. In the case
-/// of the `thumbv7em-none-eabihf` target the FPU will also be enabled before the user `main` is
-/// called.
+/// The specified function will be called by the reset handler *after* RAM has been initialized. In
+/// the case of the `thumbv7em-none-eabihf` target the FPU will also be enabled before the function
+/// is called.
+///
+/// The signature of the specified function must be `fn() -> !` (never ending function)
 #[macro_export]
-macro_rules! main {
+macro_rules! entry {
     ($path:path) => {
         #[export_name = "main"]
         pub extern "C" fn __impl_main() -> ! {
@@ -136,156 +448,301 @@ macro_rules! main {
 }
 
 /* Exceptions */
-// NOTE we purposefully go against Rust style here and use PascalCase for the handlers. The
-// rationale is in the definition of the `exception!` macro.
 #[doc(hidden)]
 pub enum Exception {
-    NMI,
-    MemManage,
+    NonMaskableInt,
+
+    // Not overridable
+    // HardFault,
+    #[cfg(not(armv6m))]
+    MemoryManagement,
+
+    #[cfg(not(armv6m))]
     BusFault,
+
+    #[cfg(not(armv6m))]
     UsageFault,
-    SVC,
-    DebugMon,
+
+    #[cfg(armv8m)]
+    SecureFault,
+
+    SVCall,
+
+    #[cfg(not(armv6m))]
+    DebugMonitor,
+
     PendSV,
+
     SysTick,
 }
 
 extern "C" {
-    fn NMI();
+    fn NonMaskableInt();
+
     fn HardFault();
-    fn MemManage();
-    fn BusFault();
-    fn UsageFault();
-    fn SVC();
+
     #[cfg(not(armv6m))]
-    fn DebugMon();
+    fn MemoryManagement();
+
+    #[cfg(not(armv6m))]
+    fn BusFault();
+
+    #[cfg(not(armv6m))]
+    fn UsageFault();
+
+    #[cfg(armv8m)]
+    fn SecureFault();
+
+    fn SVCall();
+
+    #[cfg(not(armv6m))]
+    fn DebugMonitor();
+
     fn PendSV();
+
     fn SysTick();
+}
+
+#[doc(hidden)]
+pub union Vector {
+    handler: unsafe extern "C" fn(),
+    reserved: usize,
 }
 
 #[doc(hidden)]
 #[link_section = ".vector_table.exceptions"]
 #[no_mangle]
-pub static __EXCEPTIONS: [Option<unsafe extern "C" fn()>; 14] = [
-    Some(NMI),
-    Some(HardFault),
-    Some(MemManage),
-    Some(BusFault),
-    Some(UsageFault),
-    None,
-    None,
-    None,
-    None,
-    Some(SVC),
-    #[cfg(armv6m)]
-    None,
+pub static __EXCEPTIONS: [Vector; 14] = [
+    // Exception 2: Non Maskable Interrupt.
+    Vector {
+        handler: NonMaskableInt,
+    },
+    // Exception 3: Hard Fault Interrupt.
+    Vector { handler: HardFault },
+    // Exception 4: Memory Management Interrupt [not on Cortex-M0 variants].
     #[cfg(not(armv6m))]
-    Some(DebugMon),
-    None,
-    Some(PendSV),
-    Some(SysTick),
+    Vector {
+        handler: MemoryManagement,
+    },
+    #[cfg(armv6m)]
+    Vector { reserved: 0 },
+    // Exception 5: Bus Fault Interrupt [not on Cortex-M0 variants].
+    #[cfg(not(armv6m))]
+    Vector { handler: BusFault },
+    #[cfg(armv6m)]
+    Vector { reserved: 0 },
+    // Exception 6: Usage Fault Interrupt [not on Cortex-M0 variants].
+    #[cfg(not(armv6m))]
+    Vector {
+        handler: UsageFault,
+    },
+    #[cfg(armv6m)]
+    Vector { reserved: 0 },
+    // Exception 7: Secure Fault Interrupt [only on Armv8-M].
+    #[cfg(armv8m)]
+    Vector {
+        handler: SecureFault,
+    },
+    #[cfg(not(armv8m))]
+    Vector { reserved: 0 },
+    // 8-10: Reserved
+    Vector { reserved: 0 },
+    Vector { reserved: 0 },
+    Vector { reserved: 0 },
+    // Exception 11: SV Call Interrupt.
+    Vector { handler: SVCall },
+    // Exception 12: Debug Monitor Interrupt [not on Cortex-M0 variants].
+    #[cfg(not(armv6m))]
+    Vector {
+        handler: DebugMonitor,
+    },
+    #[cfg(armv6m)]
+    Vector { reserved: 0 },
+    // 13: Reserved
+    Vector { reserved: 0 },
+    // Exception 14: Pend SV Interrupt [not on Cortex-M0 variants].
+    #[cfg(not(armv6m))]
+    Vector { handler: PendSV },
+    #[cfg(armv6m)]
+    Vector { reserved: 0 },
+    // Exception 15: System Tick Interrupt.
+    Vector { handler: SysTick },
 ];
 
-/// Macro to override an exception handler
+// If we are not targeting a specific device we bind all the potential device specific interrupts
+// to the default handler
+#[cfg(not(feature = "device"))]
+#[doc(hidden)]
+#[link_section = ".vector_table.interrupts"]
+#[no_mangle]
+pub static __INTERRUPTS: [unsafe extern "C" fn(); 240] = [{
+    extern "C" {
+        fn DefaultHandler();
+    }
+
+    DefaultHandler
+}; 240];
+
+/// Macro to set or override a processor core exception handler
 ///
-/// Usage: `exception!(ExceptionName, path::to::handler)`
+/// # Syntax
 ///
-/// All exceptions are serviced by the `DefaultHandler` unless overridden using this macro.
-/// `ExceptionName` can be one of:
+/// ``` ignore
+/// exception!(
+///     // Name of the exception
+///     $Name:ident,
 ///
-/// - `DefaultHandler` (a) -- `fn(u8)` -- the argument is the exception number (VECTACTIVE)
-/// - `NMI` -- `fn()`
-/// - `HardFault` -- `fn(&ExceptionFrame) -> !`
-/// - `MemManage` -- `fn()`
-/// - `BusFault` -- `fn()`
-/// - `UsageFault` -- `fn()`
-/// - `SVC` -- `fn()`
-/// - `DebugMon` (b) -- `fn()`
-/// - `PendSV` -- `fn()`
-/// - `SysTick` -- `fn()`
+///     // Path to the exception handler (a function)
+///     $handler:path,
 ///
-/// (a) Note that `DefaultHandler` is left undefined and *must* be defined by the user somewhere
-/// using this macro.
+///     // Optional, state preserved across invocations of the handler
+///     state: $State:ty = $initial_state:expr,
+/// );
+/// ```
 ///
-/// (b) Not available on ARMv6-M
+/// `$Name` can be one of:
+///
+/// - `*`
+/// - `NonMaskableInt`
+/// - `HardFault`
+/// - `MemoryManagement` (a)
+/// - `BusFault` (a)
+/// - `UsageFault` (a)
+/// - `SecureFault` (b)
+/// - `SVCall`
+/// - `DebugMonitor` (a)
+/// - `PendSV`
+/// - `SysTick`
+///
+/// (a) Not available on Cortex-M0 variants (`thumbv6m-none-eabi`)
+///
+/// (b) Only available on ARMv8-M
+///
+/// `exception!(HardFault, ..)` sets the hard fault handler. The handler must have signature
+/// `fn(&ExceptionFrame) -> !`. This handler is not allowed to return as that can cause undefined
+/// behavior. It's mandatory to set the `HardFault` handler somewhere in the dependency graph of an
+/// application.
+///
+/// `exception!(*, ..)` sets the *default* handler. All exceptions which have not been assigned a
+/// handler will be serviced by this handler. This handler must have signature `fn(irqn: i16)`.
+/// `irqn` is the IRQ number (cf. CMSIS); `irqn` will be a negative number when the handler is
+/// servicing a core exception; `irqn` will be a positive number when the handler is servicing a
+/// device specific exception (interrupt). It's mandatory to set the default handler somewhere
+/// in the dependency graph of an application.
+///
+/// `exception!($Exception, ..)` overrides the default handler for `$Exception`. All exceptions,
+/// except for `HardFault`, can be assigned some `$State`.
+///
+/// # Examples
+///
+/// Setting the `HardFault` handler
+///
+/// ```
+/// #[macro_use(exception)]
+/// extern crate cortex_m_rt as rt;
+///
+/// use rt::ExceptionFrame;
+///
+/// exception!(HardFault, hard_fault);
+///
+/// fn hard_fault(ef: &ExceptionFrame) -> ! {
+///     // prints the exception frame as a panic message
+///     panic!("{:#?}", ef);
+/// }
+///
+/// # fn main() {}
+/// ```
+///
+/// Setting the default handler
+///
+/// ```
+/// #[macro_use(exception)]
+/// extern crate cortex_m_rt as rt;
+///
+/// exception!(*, default_handler);
+///
+/// fn default_handler(irqn: i16) {
+///     println!("IRQn = {}", irqn);
+/// }
+///
+/// # fn main() {}
+/// ```
+///
+/// Overriding the `SysTick` handler
+///
+/// ```
+/// #[macro_use(exception)]
+/// extern crate cortex_m_rt as rt;
+///
+/// exception!(SysTick, sys_tick, state: u32 = 0);
+///
+/// fn sys_tick(count: &mut u32) {
+///     println!("count = {}", *count);
+///
+///     *count += 1;
+/// }
+///
+/// # fn main() {}
+/// ```
 #[macro_export]
 macro_rules! exception {
-    (DefaultHandler, $path:path) => {
+    (* , $handler:path) => {
         #[allow(unsafe_code)]
         #[allow(non_snake_case)]
         #[export_name = "DefaultHandler"]
         pub unsafe extern "C" fn __impl_DefaultHandler() {
+            extern crate core;
+
             // validate the signature of the user provided handler
-            let f: fn(u8) = $path;
+            let f: fn(i16) = $handler;
 
             const SCB_ICSR: *const u32 = 0xE000_ED04 as *const u32;
 
             // NOTE not volatile so the compiler can opt the load operation away if the value is
             // unused
-            f(core::ptr::read(SCB_ICSR) as u8)
+            f(core::ptr::read(SCB_ICSR) as i16 - 16)
         }
     };
 
-    (HardFault, $path:path) => {
+    (HardFault, $handler:path) => {
         #[allow(unsafe_code)]
         #[allow(non_snake_case)]
         #[export_name = "UserHardFault"]
         pub unsafe extern "C" fn __impl_UserHardFault(ef: &$crate::ExceptionFrame) {
             // validate the signature of the user provided handler
-            let f: fn(&$crate::ExceptionFrame) -> ! = $path;
+            let f: fn(&$crate::ExceptionFrame) -> ! = $handler;
 
             f(ef)
         }
     };
 
-    // NOTE Unfortunately, this will end up leaking `$exception` into the function call namespace.
-    // But the damage is somewhat reduced by having `$exception` not being a `snake_case` function.
-    ($ExceptionName:ident, $path:path, state: $State:ty = $init:expr) => {
+    ($Name:ident, $handler:path,state: $State:ty = $initial_state:expr) => {
         #[allow(unsafe_code)]
         #[no_mangle]
-        pub unsafe extern "C" fn $ExceptionName() {
-            static mut STATE: $State = $init;
+        pub unsafe extern "C" fn $Name() {
+            static mut STATE: $State = $initial_state;
 
             // check that this exception exists
-            let _ = $crate::Exception::$ExceptionName;
+            let _ = $crate::Exception::$Name;
 
             // validate the signature of the user provided handler
-            let f: fn(&mut $State) = $path;
+            let f: fn(&mut $State) = $handler;
 
             f(&mut STATE)
         }
     };
 
-    ($ExceptionName:ident, $path:path) => {
+    ($Name:ident, $handler:path) => {
         #[allow(unsafe_code)]
         #[no_mangle]
-        pub unsafe extern "C" fn $ExceptionName() {
+        pub unsafe extern "C" fn $Name() {
             // check that this exception exists
-            let _ = $crate::Exception::$ExceptionName;
+            let _ = $crate::Exception::$Name;
 
             // validate the signature of the user provided handler
-            let f: fn() = $path;
+            let f: fn() = $handler;
 
             f()
         }
-    };
-}
-
-/// Macro to bind all the 240 interrupt handlers to the `DefaultHandler` exception handler.
-///
-/// The use case for this macro is writing device agnostic programs
-#[macro_export]
-macro_rules! interrupts {
-    (DefaultHandler) => {
-        #[doc(hidden)]
-        #[link_section = ".vector_table.interrupts"]
-        #[no_mangle]
-        pub static __INTERRUPTS: [Option<unsafe extern "C" fn()>; 240] = [{
-            extern "C" {
-                fn DefaultHandler();
-            }
-
-            Some(DefaultHandler)
-        }; 240];
     };
 }

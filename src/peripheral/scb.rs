@@ -9,7 +9,8 @@ use super::cpuid::CsselrCacheType;
 #[cfg(any(armv7m, target_arch = "x86_64"))]
 use super::CPUID;
 #[cfg(any(armv7m, has_fpu, target_arch = "x86_64"))]
-use super::{CBP, SCB};
+use super::CBP;
+use super::SCB;
 
 /// Register block
 #[repr(C)]

@@ -571,7 +571,7 @@ pub static __EXCEPTIONS: [Vector; 14] = [
 
 // If we are not targeting a specific device we bind all the potential device specific interrupts
 // to the default handler
-#[cfg(not(feature = "device"))]
+#[cfg(all(not(feature = "device"), not(armv6m)))]
 #[doc(hidden)]
 #[link_section = ".vector_table.interrupts"]
 #[no_mangle]
@@ -582,6 +582,19 @@ pub static __INTERRUPTS: [unsafe extern "C" fn(); 240] = [{
 
     DefaultHandler
 }; 240];
+
+// ARMv6-M can only have a maximum of 32 device specific interrupts
+#[cfg(all(not(feature = "device"), armv6m))]
+#[doc(hidden)]
+#[link_section = ".vector_table.interrupts"]
+#[no_mangle]
+pub static __INTERRUPTS: [unsafe extern "C" fn(); 32] = [{
+    extern "C" {
+        fn DefaultHandler();
+    }
+
+    DefaultHandler
+}; 32];
 
 /// Macro to set or override a processor core exception handler
 ///

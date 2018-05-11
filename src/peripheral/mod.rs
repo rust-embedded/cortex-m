@@ -111,34 +111,40 @@ mod test;
 /// Core peripherals
 #[allow(non_snake_case)]
 pub struct Peripherals {
-    /// Cache and branch predictor maintenance operations
-    #[cfg(not(armv6m))]
+    /// Cache and branch predictor maintenance operations (not present on Cortex-M0 variants)
     pub CBP: CBP,
+
     /// CPUID
     pub CPUID: CPUID,
+
     /// Debug Control Block
     pub DCB: DCB,
+
     /// Data Watchpoint and Trace unit
     pub DWT: DWT,
-    /// Flash Patch and Breakpoint unit
-    #[cfg(not(armv6m))]
+
+    /// Flash Patch and Breakpoint unit (not present on Cortex-M0 variants)
     pub FPB: FPB,
-    /// Floating Point Unit
-    #[cfg(any(has_fpu, target_arch = "x86_64"))]
+
+    /// Floating Point Unit (only present on `thumbv7em-none-eabihf`)
     pub FPU: FPU,
-    /// Instrumentation Trace Macrocell
-    #[cfg(not(armv6m))]
+
+    /// Instrumentation Trace Macrocell (not present on Cortex-M0 variants)
     pub ITM: ITM,
+
     /// Memory Protection Unit
     pub MPU: MPU,
+
     /// Nested Vector Interrupt Controller
     pub NVIC: NVIC,
+
     /// System Control Block
     pub SCB: SCB,
+
     /// SysTick: System Timer
     pub SYST: SYST,
-    /// Trace Port Interface Unit;
-    #[cfg(not(armv6m))]
+
+    /// Trace Port Interface Unit (not present on Cortex-M0 variants)
     pub TPIU: TPIU,
 }
 
@@ -167,7 +173,6 @@ impl Peripherals {
         CORE_PERIPHERALS = true;
 
         Peripherals {
-            #[cfg(not(armv6m))]
             CBP: CBP {
                 _marker: PhantomData,
             },
@@ -180,15 +185,12 @@ impl Peripherals {
             DWT: DWT {
                 _marker: PhantomData,
             },
-            #[cfg(not(armv6m))]
             FPB: FPB {
                 _marker: PhantomData,
             },
-            #[cfg(any(has_fpu, target_arch = "x86_64"))]
             FPU: FPU {
                 _marker: PhantomData,
             },
-            #[cfg(not(armv6m))]
             ITM: ITM {
                 _marker: PhantomData,
             },
@@ -204,7 +206,6 @@ impl Peripherals {
             SYST: SYST {
                 _marker: PhantomData,
             },
-            #[cfg(not(armv6m))]
             TPIU: TPIU {
                 _marker: PhantomData,
             },
@@ -213,14 +214,10 @@ impl Peripherals {
 }
 
 /// Cache and branch predictor maintenance operations
-///
-/// *NOTE* Available only on ARMv7-M (`thumbv7*m-none-eabi*`)
-#[cfg(not(armv6m))]
 pub struct CBP {
     _marker: PhantomData<*const ()>,
 }
 
-#[cfg(not(armv6m))]
 unsafe impl Send for CBP {}
 
 #[cfg(not(armv6m))]
@@ -313,14 +310,10 @@ impl ops::Deref for DWT {
 }
 
 /// Flash Patch and Breakpoint unit
-///
-/// *NOTE* Available only on ARMv7-M (`thumbv7*m-none-eabi*`)
-#[cfg(not(armv6m))]
 pub struct FPB {
     _marker: PhantomData<*const ()>,
 }
 
-#[cfg(not(armv6m))]
 unsafe impl Send for FPB {}
 
 #[cfg(not(armv6m))]
@@ -341,14 +334,10 @@ impl ops::Deref for FPB {
 }
 
 /// Floating Point Unit
-///
-/// *NOTE* Available only on ARMv7E-M (`thumbv7em-none-eabihf`)
-#[cfg(any(has_fpu, target_arch = "x86_64"))]
 pub struct FPU {
     _marker: PhantomData<*const ()>,
 }
 
-#[cfg(any(has_fpu, target_arch = "x86_64"))]
 unsafe impl Send for FPU {}
 
 #[cfg(any(has_fpu, target_arch = "x86_64"))]
@@ -369,14 +358,10 @@ impl ops::Deref for FPU {
 }
 
 /// Instrumentation Trace Macrocell
-///
-/// *NOTE* Available only on ARMv7-M (`thumbv7*m-none-eabi*`)
-#[cfg(not(armv6m))]
 pub struct ITM {
     _marker: PhantomData<*const ()>,
 }
 
-#[cfg(not(armv6m))]
 unsafe impl Send for ITM {}
 
 #[cfg(not(armv6m))]
@@ -491,15 +476,11 @@ impl ops::Deref for SYST {
     }
 }
 
-/// Trace Port Interface Unit;
-///
-/// *NOTE* Available only on ARMv7-M (`thumbv7*m-none-eabi*`)
-#[cfg(not(armv6m))]
+/// Trace Port Interface Unit
 pub struct TPIU {
     _marker: PhantomData<*const ()>,
 }
 
-#[cfg(not(armv6m))]
 unsafe impl Send for TPIU {}
 
 #[cfg(not(armv6m))]

@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - [breaking-change] Some variants of the `Exception` enumeration are no longer available on
   `thumbv6m-none-eabi`. See API docs for details.
 
+- [breaking-change] Several of the variants of the `Exception` enumeration have been renamed to
+  match the CMSIS specification.
+
 - [breaking-change] fixed typo in `shcrs` field of `scb::RegisterBlock`; it was previously named
   `shpcrs`.
 

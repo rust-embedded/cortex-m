@@ -4,11 +4,11 @@ use core::ptr;
 
 use volatile_register::RW;
 
-#[cfg(any(armv7m, target_arch = "x86_64"))]
+#[cfg(not(armv6m))]
 use super::cpuid::CsselrCacheType;
-#[cfg(any(armv7m, target_arch = "x86_64"))]
+#[cfg(not(armv6m))]
 use super::CPUID;
-#[cfg(any(armv7m, has_fpu, target_arch = "x86_64"))]
+#[cfg(not(armv6m))]
 use super::CBP;
 use super::SCB;
 
@@ -172,16 +172,16 @@ impl SCB {
             0 => VectActive::ThreadMode,
             2 => VectActive::Exception(Exception::NonMaskableInt),
             3 => VectActive::Exception(Exception::HardFault),
-            #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+            #[cfg(not(armv6m))]
             4 => VectActive::Exception(Exception::MemoryManagement),
-            #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+            #[cfg(not(armv6m))]
             5 => VectActive::Exception(Exception::BusFault),
-            #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+            #[cfg(not(armv6m))]
             6 => VectActive::Exception(Exception::UsageFault),
             #[cfg(any(armv8m, target_arch = "x86_64"))]
             7 => VectActive::Exception(Exception::SecureFault),
             11 => VectActive::Exception(Exception::SVCall),
-            #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+            #[cfg(not(armv6m))]
             12 => VectActive::Exception(Exception::DebugMonitor),
             14 => VectActive::Exception(Exception::PendSV),
             15 => VectActive::Exception(Exception::SysTick),
@@ -200,15 +200,15 @@ pub enum Exception {
     HardFault,
 
     /// Memory management interrupt (not present on Cortex-M0 variants)
-    #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+    #[cfg(not(armv6m))]
     MemoryManagement,
 
     /// Bus fault interrupt (not present on Cortex-M0 variants)
-    #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+    #[cfg(not(armv6m))]
     BusFault,
 
     /// Usage fault interrupt (not present on Cortex-M0 variants)
-    #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+    #[cfg(not(armv6m))]
     UsageFault,
 
     /// Secure fault interrupt (only on ARMv8-M)
@@ -219,7 +219,7 @@ pub enum Exception {
     SVCall,
 
     /// Debug monitor interrupt (not present on Cortex-M0 variants)
-    #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+    #[cfg(not(armv6m))]
     DebugMonitor,
 
     /// Pend SV interrupt
@@ -237,16 +237,16 @@ impl Exception {
         match *self {
             Exception::NonMaskableInt => -14,
             Exception::HardFault => -13,
-            #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+            #[cfg(not(armv6m))]
             Exception::MemoryManagement => -12,
-            #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+            #[cfg(not(armv6m))]
             Exception::BusFault => -11,
-            #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+            #[cfg(not(armv6m))]
             Exception::UsageFault => -10,
             #[cfg(any(armv8m, target_arch = "x86_64"))]
             Exception::SecureFault => -9,
             Exception::SVCall => -5,
-            #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+            #[cfg(not(armv6m))]
             Exception::DebugMonitor => -4,
             Exception::PendSV => -2,
             Exception::SysTick => -1,
@@ -277,16 +277,16 @@ impl VectActive {
             0 => VectActive::ThreadMode,
             2 => VectActive::Exception(Exception::NonMaskableInt),
             3 => VectActive::Exception(Exception::HardFault),
-            #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+            #[cfg(not(armv6m))]
             4 => VectActive::Exception(Exception::MemoryManagement),
-            #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+            #[cfg(not(armv6m))]
             5 => VectActive::Exception(Exception::BusFault),
-            #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+            #[cfg(not(armv6m))]
             6 => VectActive::Exception(Exception::UsageFault),
             #[cfg(any(armv8m, target_arch = "x86_64"))]
             7 => VectActive::Exception(Exception::SecureFault),
             11 => VectActive::Exception(Exception::SVCall),
-            #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+            #[cfg(not(armv6m))]
             12 => VectActive::Exception(Exception::DebugMonitor),
             14 => VectActive::Exception(Exception::PendSV),
             15 => VectActive::Exception(Exception::SysTick),
@@ -296,16 +296,16 @@ impl VectActive {
     }
 }
 
-#[cfg(any(armv7m, target_arch = "x86_64"))]
+#[cfg(not(armv6m))]
 mod scb_consts {
     pub const SCB_CCR_IC_MASK: u32 = (1 << 17);
     pub const SCB_CCR_DC_MASK: u32 = (1 << 16);
 }
 
-#[cfg(any(armv7m, target_arch = "x86_64"))]
+#[cfg(not(armv6m))]
 use self::scb_consts::*;
 
-#[cfg(any(armv7m, target_arch = "x86_64"))]
+#[cfg(not(armv6m))]
 impl SCB {
     /// Enables I-Cache if currently disabled
     #[inline]

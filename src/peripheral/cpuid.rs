@@ -65,7 +65,7 @@ pub struct RegisterBlock {
 }
 
 /// Type of cache to select on CSSELR writes.
-#[cfg(any(armv7m, target_arch = "x86_64"))]
+#[cfg(not(armv6m))]
 pub enum CsselrCacheType {
     /// Select DCache or unified cache
     DataOrUnified = 0,

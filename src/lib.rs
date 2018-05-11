@@ -45,8 +45,7 @@ mod macros;
 
 pub mod asm;
 pub mod interrupt;
-// NOTE(target_arch = "x86_64") is used throughout this crate for documentation purposes
-#[cfg(any(armv7m, target_arch = "x86_64"))]
+#[cfg(not(armv6m))]
 pub mod itm;
 pub mod peripheral;
 pub mod register;

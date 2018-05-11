@@ -10,9 +10,9 @@
 //! - The memory layout of the program. In particular, it populates the vector table so the device
 //! can boot correctly, and properly dispatch exceptions and interrupts.
 //!
-//! - Initializing `static` variables before the user entry point.
+//! - Initializing `static` variables before the program entry point.
 //!
-//! - Enabling the FPU before the user entry point if the target is `thumbv7em-none-eabihf`.
+//! - Enabling the FPU before the program entry point if the target is `thumbv7em-none-eabihf`.
 //!
 //! This crate also provides a mechanism to set exception handlers: see the [`exception!`] macro.
 //!
@@ -214,6 +214,22 @@
 //!
 //! - `UserHardFault`. This is the user defined hard fault handler. This function will contain, or
 //! call, the function you declared in the second argument of `exception!(HardFault, ..)`
+//!
+//! - `__STACK_START`. This is the first entry in the `.vector_table` section. This symbol contains
+//! the initial value of the stack pointer; this is where the stack will be located -- the stack
+//! grows downwards towards smaller addresses.
+//!
+//! - `__RESET_VECTOR`. This is the reset vector, a pointer into the `Reset` handler. This vector is
+//! located in the `.vector_table` section after `__STACK_START`.
+//!
+//! - `__EXCEPTIONS`. This is the core exceptions portion of the vector table; it's an array of 14
+//! exception vectors, which includes exceptions like `HardFault` and `SysTick`. This array is
+//! located after `__RESET_VECTOR` in the `.vector_table` section.
+//!
+//! - `__EXCEPTIONS`. This is the device specific interrupt portion of the vector table; its exact
+//! size depends on the target device but if the `"device"` feature has not been enabled it will
+//! have a size of 32 vectors (on ARMv6-M) or 240 vectors (on ARMv7-M). This array is located after
+//! `__EXCEPTIONS` in the `.vector_table` section.
 //!
 //! If you override any exception handler you'll find it as an unmangled symbol, e.g. `SysTick` or
 //! `SVCall`, in the output of `objdump`,
@@ -669,6 +685,8 @@ pub static __INTERRUPTS: [unsafe extern "C" fn(); 32] = [{
 ///
 /// (b) Only available on ARMv8-M
 ///
+/// # Usage
+///
 /// `exception!(HardFault, ..)` sets the hard fault handler. The handler must have signature
 /// `fn(&ExceptionFrame) -> !`. This handler is not allowed to return as that can cause undefined
 /// behavior. It's mandatory to set the `HardFault` handler somewhere in the dependency graph of an
@@ -686,7 +704,7 @@ pub static __INTERRUPTS: [unsafe extern "C" fn(); 32] = [{
 ///
 /// # Examples
 ///
-/// Setting the `HardFault` handler
+/// - Setting the `HardFault` handler
 ///
 /// ```
 /// #[macro_use(exception)]
@@ -704,7 +722,7 @@ pub static __INTERRUPTS: [unsafe extern "C" fn(); 32] = [{
 /// # fn main() {}
 /// ```
 ///
-/// Setting the default handler
+/// - Setting the default handler
 ///
 /// ```
 /// #[macro_use(exception)]
@@ -719,7 +737,7 @@ pub static __INTERRUPTS: [unsafe extern "C" fn(); 32] = [{
 /// # fn main() {}
 /// ```
 ///
-/// Overriding the `SysTick` handler
+/// - Overriding the `SysTick` handler
 ///
 /// ```
 /// #[macro_use(exception)]

@@ -39,10 +39,12 @@ impl Apsr {
 }
 
 /// Reads the CPU register
+///
+/// **NOTE** This function is available if `cortex-m` is built with the `"inline-asm"` feature.
 #[inline]
 pub fn read() -> Apsr {
     match () {
-        #[cfg(target_arch = "arm")]
+        #[cfg(cortex_m)]
         () => {
             let r: u32;
             unsafe {
@@ -50,7 +52,8 @@ pub fn read() -> Apsr {
             }
             Apsr { bits: r }
         }
-        #[cfg(not(target_arch = "arm"))]
+
+        #[cfg(not(cortex_m))]
         () => unimplemented!(),
     }
 }

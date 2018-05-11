@@ -1,28 +1,33 @@
 //! Program counter
 
 /// Reads the CPU register
+///
+/// **NOTE** This function is available if `cortex-m` is built with the `"inline-asm"` feature.
 #[inline]
 pub fn read() -> u32 {
     match () {
-        #[cfg(target_arch = "arm")]
+        #[cfg(cortex_m)]
         () => {
             let r;
             unsafe { asm!("mov $0,R15" : "=r"(r) ::: "volatile") }
             r
         }
-        #[cfg(not(target_arch = "arm"))]
+
+        #[cfg(not(cortex_m))]
         () => unimplemented!(),
     }
 }
 
 /// Writes `bits` to the CPU register
-#[cfg_attr(not(target_arch = "arm"), allow(unused_variables))]
+///
+/// **NOTE** This function is available if `cortex-m` is built with the `"inline-asm"` feature.
 #[inline]
-pub unsafe fn write(bits: u32) {
+pub unsafe fn write(_bits: u32) {
     match () {
-        #[cfg(target_arch = "arm")]
-        () => asm!("mov R15,$0" :: "r"(bits) :: "volatile"),
-        #[cfg(not(target_arch = "arm"))]
+        #[cfg(cortex_m)]
+        () => asm!("mov R15,$0" :: "r"(_bits) :: "volatile"),
+
+        #[cfg(not(cortex_m))]
         () => unimplemented!(),
     }
 }

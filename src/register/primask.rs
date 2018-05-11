@@ -25,17 +25,34 @@ impl Primask {
 #[inline]
 pub fn read() -> Primask {
     match () {
-        #[cfg(target_arch = "arm")]
+        #[cfg(cortex_m)]
         () => {
-            let r: u32;
-            unsafe { asm!("mrs $0, PRIMASK" : "=r"(r) ::: "volatile") }
+            let r = match () {
+                #[cfg(feature = "inline-asm")]
+                () => {
+                    let r: u32;
+                    unsafe { asm!("mrs $0, PRIMASK" : "=r"(r) ::: "volatile") }
+                    r
+                }
+
+                #[cfg(not(feature = "inline-asm"))]
+                () => {
+                    extern "C" {
+                        fn __primask() -> u32;
+                    }
+
+                    unsafe { __primask() }
+                }
+            };
+
             if r & (1 << 0) == (1 << 0) {
                 Primask::Inactive
             } else {
                 Primask::Active
             }
         }
-        #[cfg(not(target_arch = "arm"))]
+
+        #[cfg(not(cortex_m))]
         () => unimplemented!(),
     }
 }

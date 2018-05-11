@@ -26,16 +26,30 @@
 //!
 //! - Cortex-M* Devices Generic User Guide - Section 2.1.3 Core registers
 
-pub mod apsr;
 #[cfg(not(armv6m))]
 pub mod basepri;
+
 #[cfg(not(armv6m))]
 pub mod basepri_max;
+
 pub mod control;
+
 #[cfg(not(armv6m))]
 pub mod faultmask;
-pub mod lr;
+
 pub mod msp;
-pub mod pc;
+
 pub mod primask;
+
 pub mod psp;
+
+// Accessing these registers requires inline assembly because their contents are tied to the current
+// stack frame
+#[cfg(any(feature = "inline-asm", target_arch = "x86_64"))]
+pub mod apsr;
+
+#[cfg(any(feature = "inline-asm", target_arch = "x86_64"))]
+pub mod lr;
+
+#[cfg(any(feature = "inline-asm", target_arch = "x86_64"))]
+pub mod pc;

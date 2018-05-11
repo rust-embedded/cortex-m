@@ -5,7 +5,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [v0.5.0] - 2018-05-11
+
+### Added
+
+- `DebugMonitor` and `SecureFault` variants to the `Exception` enumeration.
+
+- An optional `"inline-asm"` feature
+
+### Changed
+
+- [breaking-change] This crate now requires `arm-none-eabi-gcc` to be installed and available in
+  `$PATH` when built with the `"inline-asm"` feature disabled (which is disabled by default).
+
+- [breaking-change] The `register::{apsr,lr,pc}` modules are now behind the `"inline-asm"` feature.
+
+- [breaking-change] Some variants of the `Exception` enumeration are no longer available on
+  `thumbv6m-none-eabi`. See API docs for details.
+
+- [breaking-change] Several of the variants of the `Exception` enumeration have been renamed to
+  match the CMSIS specification.
+
+- [breaking-change] fixed typo in `shcrs` field of `scb::RegisterBlock`; it was previously named
+  `shpcrs`.
+
+- [breaking-change] removed several fields from `scb::RegisterBlock` on ARMv6-M. These registers are
+  not available on that sub-architecture.
+
+- [breaking-change] changed the type of `scb::RegisterBlock.shpr` from `RW<u8>` to `RW<u32>` on
+  ARMv6-M. These registers are word accessible only on that sub-architecture.
+
+- [breaking-change] renamed the `mmar` field of `scb::RegisterBlock` to `mmfar` to match the CMSIS
+  name.
+
+- [breaking-change] removed the `iabr` field from `scb::RegisterBlock` on ARMv6-M. This register is
+  not available on that sub-architecture.
+
+- [breaking-change] removed several fields from `cpuid::RegisterBlock` on ARMv6-M. These registers
+  are not available on that sub-architecture.
+
+### Removed
+
+- [breaking-change] The `exception` module has been removed. A replacement for `Exception::active`
+  can be found in `SCB::vect_active`. A modified version `exception::Exception` can be found in the
+  `peripheral::scb` module.
 
 ## [v0.4.3] - 2018-01-25
 

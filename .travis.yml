@@ -3,15 +3,62 @@ language: rust
 matrix:
   include:
     - env: TARGET=x86_64-unknown-linux-gnu
-      rust: nightly
+
+    - env: TARGET=thumbv6m-none-eabi
+      rust: beta
+      addons:
+        apt:
+          packages:
+            - gcc-arm-none-eabi
+
+    - env: TARGET=thumbv7m-none-eabi
+      rust: beta
+      addons:
+        apt:
+          packages:
+            - gcc-arm-none-eabi
+
+    - env: TARGET=thumbv7em-none-eabi
+      rust: beta
+      addons:
+        apt:
+          packages:
+            - gcc-arm-none-eabi
+
+    - env: TARGET=thumbv7em-none-eabihf
+      rust: beta
+      addons:
+        apt:
+          packages:
+            - gcc-arm-none-eabi
+
     - env: TARGET=thumbv6m-none-eabi
       rust: nightly
+      addons:
+        apt:
+          packages:
+            - gcc-arm-none-eabi
+
     - env: TARGET=thumbv7m-none-eabi
       rust: nightly
+      addons:
+        apt:
+          packages:
+            - gcc-arm-none-eabi
+
     - env: TARGET=thumbv7em-none-eabi
       rust: nightly
+      addons:
+        apt:
+          packages:
+            - gcc-arm-none-eabi
+
     - env: TARGET=thumbv7em-none-eabihf
       rust: nightly
+      addons:
+        apt:
+          packages:
+            - gcc-arm-none-eabi
 
 before_install: set -e
 

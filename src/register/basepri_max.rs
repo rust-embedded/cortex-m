@@ -7,22 +7,31 @@
 ///
 /// **IMPORTANT** If you are using a Cortex-M7 device with revision r0p1 you MUST enable the
 /// `cm7-r0p1` Cargo feature or this function WILL misbehave.
-#[cfg_attr(not(target_arch = "arm"), allow(unused_variables))]
 #[inline]
-pub fn write(basepri: u8) {
+pub fn write(_basepri: u8) {
     match () {
-        #[cfg(target_arch = "arm")]
+        #[cfg(all(cortex_m, feature = "inline-asm"))]
         () => unsafe {
             match () {
                 #[cfg(not(feature = "cm7-r0p1"))]
-                () => asm!("msr BASEPRI_MAX, $0" :: "r"(basepri) : "memory" : "volatile"),
+                () => asm!("msr BASEPRI_MAX, $0" :: "r"(_basepri) : "memory" : "volatile"),
                 #[cfg(feature = "cm7-r0p1")]
-                () => asm!("cpsid i
-                            msr BASEPRI_MAX, $0
-                            cpsie i" :: "r"(basepri) : "memory" : "volatile"),
+                () => ::interrupt::free(
+                    |_| asm!("msr BASEPRI_MAX, $0" :: "r"(_basepri) : "memory" : "volatile"),
+                ),
             }
         },
-        #[cfg(not(target_arch = "arm"))]
+
+        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
+        () => unsafe {
+            extern "C" {
+                fn __basepri_max(_: u8);
+            }
+
+            __basepri_max(_basepri)
+        },
+
+        #[cfg(not(cortex_m))]
         () => unimplemented!(),
     }
 }

@@ -1,46 +1,101 @@
 //! System Control Block
 
+use core::ptr;
+
 use volatile_register::RW;
 
-#[cfg(any(armv7m, has_fpu, target_arch = "x86_64"))]
-use super::{CBP, SCB};
-#[cfg(any(armv7m, target_arch = "x86_64"))]
-use super::CPUID;
-#[cfg(any(armv7m, target_arch = "x86_64"))]
+#[cfg(not(armv6m))]
 use super::cpuid::CsselrCacheType;
+#[cfg(not(armv6m))]
+use super::CPUID;
+#[cfg(not(armv6m))]
+use super::CBP;
+use super::SCB;
 
 /// Register block
 #[repr(C)]
 pub struct RegisterBlock {
     /// Interrupt Control and State
     pub icsr: RW<u32>,
-    /// Vector Table Offset
+
+    /// Vector Table Offset (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
     pub vtor: RW<u32>,
+    #[cfg(armv6m)]
+    _reserved0: u32,
+
     /// Application Interrupt and Reset Control
     pub aircr: RW<u32>,
+
     /// System Control
     pub scr: RW<u32>,
+
     /// Configuration and Control
     pub ccr: RW<u32>,
-    /// System Handler Priority
+
+    /// System Handler Priority (word accessible only on Cortex-M0 variants)
+    ///
+    /// On ARMv7-M, `shpr[0]` points to SHPR1
+    ///
+    /// On ARMv6-M, `shpr[0]` points to SHPR2
+    #[cfg(not(armv6m))]
     pub shpr: [RW<u8>; 12],
+    #[cfg(armv6m)]
+    _reserved1: u32,
+    /// System Handler Priority (word accessible only on Cortex-M0 variants)
+    ///
+    /// On ARMv7-M, `shpr[0]` points to SHPR1
+    ///
+    /// On ARMv6-M, `shpr[0]` points to SHPR2
+    #[cfg(armv6m)]
+    pub shpr: [RW<u32>; 2],
+
     /// System Handler Control and State
-    pub shpcrs: RW<u32>,
-    /// Configurable Fault Status
+    pub shcrs: RW<u32>,
+
+    /// Configurable Fault Status (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
     pub cfsr: RW<u32>,
-    /// HardFault Status
+    #[cfg(armv6m)]
+    _reserved2: u32,
+
+    /// HardFault Status (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
     pub hfsr: RW<u32>,
-    /// Debug Fault Status
+    #[cfg(armv6m)]
+    _reserved3: u32,
+
+    /// Debug Fault Status (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
     pub dfsr: RW<u32>,
-    /// MemManage Fault Address
-    pub mmar: RW<u32>,
-    /// BusFault Address
+    #[cfg(armv6m)]
+    _reserved4: u32,
+
+    /// MemManage Fault Address (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
+    pub mmfar: RW<u32>,
+    #[cfg(armv6m)]
+    _reserved5: u32,
+
+    /// BusFault Address (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
     pub bfar: RW<u32>,
-    /// Auxiliary Fault Status
+    #[cfg(armv6m)]
+    _reserved6: u32,
+
+    /// Auxiliary Fault Status (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
     pub afsr: RW<u32>,
-    reserved: [u32; 18],
-    /// Coprocessor Access Control
+    #[cfg(armv6m)]
+    _reserved7: u32,
+
+    _reserved8: [u32; 18],
+
+    /// Coprocessor Access Control (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
     pub cpacr: RW<u32>,
+    #[cfg(armv6m)]
+    _reserved9: u32,
 }
 
 /// FPU access mode
@@ -108,16 +163,149 @@ impl SCB {
     }
 }
 
-#[cfg(any(armv7m, target_arch = "x86_64"))]
+impl SCB {
+    /// Returns the active exception number
+    pub fn vect_active() -> VectActive {
+        let icsr = unsafe { ptr::read(&(*SCB::ptr()).icsr as *const _ as *const u32) };
+
+        match icsr as u8 {
+            0 => VectActive::ThreadMode,
+            2 => VectActive::Exception(Exception::NonMaskableInt),
+            3 => VectActive::Exception(Exception::HardFault),
+            #[cfg(not(armv6m))]
+            4 => VectActive::Exception(Exception::MemoryManagement),
+            #[cfg(not(armv6m))]
+            5 => VectActive::Exception(Exception::BusFault),
+            #[cfg(not(armv6m))]
+            6 => VectActive::Exception(Exception::UsageFault),
+            #[cfg(any(armv8m, target_arch = "x86_64"))]
+            7 => VectActive::Exception(Exception::SecureFault),
+            11 => VectActive::Exception(Exception::SVCall),
+            #[cfg(not(armv6m))]
+            12 => VectActive::Exception(Exception::DebugMonitor),
+            14 => VectActive::Exception(Exception::PendSV),
+            15 => VectActive::Exception(Exception::SysTick),
+            irqn => VectActive::Interrupt { irqn: irqn - 16 },
+        }
+    }
+}
+
+/// Processor core exceptions (internal interrupts)
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Exception {
+    /// Non maskable interrupt
+    NonMaskableInt,
+
+    /// Hard fault interrupt
+    HardFault,
+
+    /// Memory management interrupt (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
+    MemoryManagement,
+
+    /// Bus fault interrupt (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
+    BusFault,
+
+    /// Usage fault interrupt (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
+    UsageFault,
+
+    /// Secure fault interrupt (only on ARMv8-M)
+    #[cfg(any(armv8m, target_arch = "x86_64"))]
+    SecureFault,
+
+    /// SV call interrupt
+    SVCall,
+
+    /// Debug monitor interrupt (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
+    DebugMonitor,
+
+    /// Pend SV interrupt
+    PendSV,
+
+    /// System Tick interrupt
+    SysTick,
+}
+
+impl Exception {
+    /// Returns the IRQ number of this `Exception`
+    ///
+    /// The return value is always within the closed range `[-1, -14]`
+    pub fn irqn(&self) -> i8 {
+        match *self {
+            Exception::NonMaskableInt => -14,
+            Exception::HardFault => -13,
+            #[cfg(not(armv6m))]
+            Exception::MemoryManagement => -12,
+            #[cfg(not(armv6m))]
+            Exception::BusFault => -11,
+            #[cfg(not(armv6m))]
+            Exception::UsageFault => -10,
+            #[cfg(any(armv8m, target_arch = "x86_64"))]
+            Exception::SecureFault => -9,
+            Exception::SVCall => -5,
+            #[cfg(not(armv6m))]
+            Exception::DebugMonitor => -4,
+            Exception::PendSV => -2,
+            Exception::SysTick => -1,
+        }
+    }
+}
+
+/// Active exception number
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum VectActive {
+    /// Thread mode
+    ThreadMode,
+
+    /// Processor core exception (internal interrupts)
+    Exception(Exception),
+
+    /// Device specific exception (external interrupts)
+    Interrupt {
+        /// Interrupt number. This number is always within half open range `[0, 240)`
+        irqn: u8,
+    },
+}
+
+impl VectActive {
+    /// Converts a `byte` into `VectActive`
+    pub fn from(vect_active: u8) -> Option<Self> {
+        Some(match vect_active {
+            0 => VectActive::ThreadMode,
+            2 => VectActive::Exception(Exception::NonMaskableInt),
+            3 => VectActive::Exception(Exception::HardFault),
+            #[cfg(not(armv6m))]
+            4 => VectActive::Exception(Exception::MemoryManagement),
+            #[cfg(not(armv6m))]
+            5 => VectActive::Exception(Exception::BusFault),
+            #[cfg(not(armv6m))]
+            6 => VectActive::Exception(Exception::UsageFault),
+            #[cfg(any(armv8m, target_arch = "x86_64"))]
+            7 => VectActive::Exception(Exception::SecureFault),
+            11 => VectActive::Exception(Exception::SVCall),
+            #[cfg(not(armv6m))]
+            12 => VectActive::Exception(Exception::DebugMonitor),
+            14 => VectActive::Exception(Exception::PendSV),
+            15 => VectActive::Exception(Exception::SysTick),
+            irqn if irqn >= 16 => VectActive::Interrupt { irqn },
+            _ => return None,
+        })
+    }
+}
+
+#[cfg(not(armv6m))]
 mod scb_consts {
     pub const SCB_CCR_IC_MASK: u32 = (1 << 17);
     pub const SCB_CCR_DC_MASK: u32 = (1 << 16);
 }
 
-#[cfg(any(armv7m, target_arch = "x86_64"))]
+#[cfg(not(armv6m))]
 use self::scb_consts::*;
 
-#[cfg(any(armv7m, target_arch = "x86_64"))]
+#[cfg(not(armv6m))]
 impl SCB {
     /// Enables I-Cache if currently disabled
     #[inline]

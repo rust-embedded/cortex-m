@@ -1,28 +1,42 @@
 //! Nested Vector Interrupt Controller
 
-use volatile_register::{RO, RW};
+#[cfg(not(armv6m))]
+use volatile_register::RO;
+use volatile_register::RW;
 
-use peripheral::NVIC;
 use interrupt::Nr;
+use peripheral::NVIC;
 
 /// Register block
 #[repr(C)]
 pub struct RegisterBlock {
     /// Interrupt Set-Enable
     pub iser: [RW<u32>; 16],
-    reserved0: [u32; 16],
+
+    _reserved0: [u32; 16],
+
     /// Interrupt Clear-Enable
     pub icer: [RW<u32>; 16],
-    reserved1: [u32; 16],
+
+    _reserved1: [u32; 16],
+
     /// Interrupt Set-Pending
     pub ispr: [RW<u32>; 16],
-    reserved2: [u32; 16],
+
+    _reserved2: [u32; 16],
+
     /// Interrupt Clear-Pending
     pub icpr: [RW<u32>; 16],
-    reserved3: [u32; 16],
-    /// Interrupt Active Bit
+
+    _reserved3: [u32; 16],
+
+    /// Interrupt Active Bit (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
     pub iabr: [RO<u32>; 16],
-    reserved4: [u32; 48],
+    #[cfg(armv6m)]
+    _reserved4: [u32; 16],
+
+    _reserved5: [u32; 48],
 
     #[cfg(not(armv6m))]
     /// Interrupt Priority
@@ -110,6 +124,7 @@ impl NVIC {
     }
 
     /// Is `interrupt` active or pre-empted and stacked
+    #[cfg(not(armv6m))]
     pub fn is_active<I>(interrupt: I) -> bool
     where
         I: Nr,

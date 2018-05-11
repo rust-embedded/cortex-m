@@ -53,32 +53,28 @@ macro_rules! iprintln {
 macro_rules! singleton {
     (: $ty:ty = $expr:expr) => {
         $crate::interrupt::free(|_| {
-            static mut USED: bool = false;
-            static mut VAR: $crate::UntaggedOption<$ty> = $crate::UntaggedOption { none: () };
-
+            static mut VAR: Option<$ty> = None;
 
             #[allow(unsafe_code)]
-            let used = unsafe { USED };
+            let used = unsafe { VAR.is_some() };
             if used {
                 None
             } else {
-                #[allow(unsafe_code)]
-                unsafe { USED = true }
-
                 let expr = $expr;
 
                 #[allow(unsafe_code)]
-                unsafe { VAR.some = expr }
+                unsafe {
+                    VAR = Some(expr)
+                }
 
                 #[allow(unsafe_code)]
-                let var: &'static mut _ = unsafe { &mut VAR.some };
-
-                Some(var)
+                unsafe {
+                    VAR.as_mut()
+                }
             }
         })
-    }
+    };
 }
-
 
 /// ``` compile_fail
 /// #[macro_use(singleton)]

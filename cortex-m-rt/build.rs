@@ -9,7 +9,7 @@ fn main() {
     let target = env::var("TARGET").unwrap();
 
     has_fpu(&target);
-    is_armv6m(&target);
+    let is_armv6m = is_armv6m(&target);
 
     if target.starts_with("thumbv") {
         cc::Build::new().file("asm.s").compile("asm");
@@ -17,8 +17,8 @@ fn main() {
 
     // Put the linker script somewhere the linker can find it
     let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
-    let link_x = include_bytes!("link.x");
-    if env::var_os("CARGO_FEATURE_DEVICE").is_some() {
+    let link_x = include_bytes!("link.x.in");
+    let mut f = if env::var_os("CARGO_FEATURE_DEVICE").is_some() {
         let mut f = File::create(out.join("link.x")).unwrap();
 
         writeln!(
@@ -29,12 +29,28 @@ fn main() {
 INCLUDE device.x"#
         ).unwrap();
         f.write_all(link_x).unwrap();
+        f
     } else {
-        File::create(out.join("link.x"))
-            .unwrap()
-            .write_all(link_x)
-            .unwrap();
+        let mut f = File::create(out.join("link.x")).unwrap();
+        f.write_all(link_x).unwrap();
+        f
     };
+
+    let max_int_handlers = if is_armv6m { 32 } else { 240 };
+
+    // checking the size of the interrupts portion of the vector table is sub-architecture dependent
+    writeln!(
+        f,
+        r#"
+ASSERT(__einterrupts - __eexceptions <= 0x{:x}, "
+There can't be more than {} interrupt handlers. This may be a bug in
+your device crate, or you may have registered more than 240 interrupt
+handlers.");
+"#,
+        max_int_handlers * 4,
+        max_int_handlers
+    ).unwrap();
+
     println!("cargo:rustc-link-search={}", out.display());
 
     println!("cargo:rerun-if-changed=build.rs");
@@ -47,8 +63,11 @@ fn has_fpu(target: &str) {
     }
 }
 
-fn is_armv6m(target: &str) {
+fn is_armv6m(target: &str) -> bool {
     if target.starts_with("thumbv6m-") {
         println!("cargo:rustc-cfg=armv6m");
+        true
+    } else {
+        false
     }
 }

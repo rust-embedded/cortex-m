@@ -155,7 +155,7 @@ __sheap = __edata;
 
 /* Do not exceed this mark in the error messages below                | */
 ASSERT(__reset_vector == ORIGIN(FLASH) + 0x8,
-"Reset vector is missing. This is a cortex-m-rt bug.
+"The reset vector is missing. This is a cortex-m-rt bug.
 Please file a bug report at:
 https://github.com/japaric/cortex-m-rt/issues");
 
@@ -169,14 +169,9 @@ The interrupt handlers are missing. If you are not linking to a device
 crate then you supply the interrupt handlers yourself. Check the
 documentation.");
 
-ASSERT(__einterrupts - __eexceptions <= 0x3c0, "
-There can't be more than 240 interrupt handlers. This may be a bug in
-your device crate, or you may have registered more than 240 interrupt
-handlers.");
-
 ASSERT(__einterrupts <= _stext, "
 The '.text' section can't be placed inside '.vector_table' section.
-Set '_stext' to an address greater than '__einterrupts'");
+Set '_stext' to an address greater than '__einterrupts' (cf. `nm`)");
 
 ASSERT(_stext < ORIGIN(FLASH) + LENGTH(FLASH), "
 The '.text' section must be placed inside the FLASH memory
@@ -193,8 +188,9 @@ Set '_stext' to an address smaller than 'ORIGIN(FLASH) + LENGTH(FLASH)");
 /* __sidata is not 4-byte aligned. This is a cortex-m-rt bug."); */
 
 ASSERT(__sgot == __egot, "
-.got section detected in the input files. Dynamic relocations are not
-supported. If you are linking to C code compiled using the `cc` crate
-then modify your build script to compile the C code _without_ the
--fPIC flag. See the documentation of the `cc::Build.pic` method for
-details.");
+.got section detected in the input object files. Dynamic relocations
+are not supported. If you are linking to C code compiled using the
+`cc` crate then modify your build script to compile the C code
+_without_ the -fPIC flag. See the documentation of the
+`cc::Build.pic` method for details.");
+/* Do not exceed this mark in the error messages above                | */

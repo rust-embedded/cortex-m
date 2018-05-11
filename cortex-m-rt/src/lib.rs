@@ -21,7 +21,7 @@
 //! # `memory.x`
 //!
 //! This crate expects the user, or some other crate, to provide the memory layout of the target
-//! device via a linker named `memory.x`. This section covers the contents of `memory.x`
+//! device via a linker script named `memory.x`. This section covers the contents of `memory.x`
 //!
 //! ## `MEMORY`
 //!
@@ -65,8 +65,8 @@
 //! ## `_stext`
 //!
 //! This optional symbol can be used to control where the `.text` section is placed. If omitted the
-//! `.text` section will be placed right after the vector table (which is placed at the beginning of
-//! `FLASH`). Some devices store settings like Flash configuration right after the vector table;
+//! `.text` section will be placed right after the vector table, which is placed at the beginning of
+//! `FLASH`. Some devices store settings like Flash configuration right after the vector table;
 //! for these devices one must place the `.text` section after this configuration section --
 //! `_stext` can be used for this purpose.
 //!
@@ -218,7 +218,42 @@
 //! If you override any exception handler you'll find it as an unmangled symbol, e.g. `SysTick` or
 //! `SVCall`, in the output of `objdump`,
 //!
-//! # Incorporating device specific interrupts
+//! If you are targeting the `thumbv7em-none-eabihf` target you'll also see a `ResetTrampoline`
+//! symbol in the output. To avoid the compiler placing FPU instructions before the FPU has been
+//! enabled (cf. `vpush`) `Reset` calls the function `ResetTrampoline` which is marked as
+//! `#[inline(never)]` and `ResetTrampoline` calls `main`. The compiler is free to inline `main`
+//! into `ResetTrampoline` but it can't inline `ResetTrampoline` into `Reset` -- the FPU is enabled
+//! in `Reset`.
+//!
+//! # Advanced usage
+//!
+//! ## Setting the program entry point
+//!
+//! This section describes how `entry!` is implemented. This information is useful to developers who
+//! want to provide an alternative to `entry!` that provides extra guarantees.
+//!
+//! The `Reset` handler will call a symbol named `main` (unmangled) *after* initializing `.bss` and
+//! `.data`, and enabling the FPU (if the target is `thumbv7em-none-eabihf`). `entry!` provides this
+//! symbol in its expansion:
+//!
+//! ``` ignore
+//! entry!(path::to::main);
+//!
+//! // expands into
+//!
+//! #[export_name = "main"]
+//! pub extern "C" fn __impl_main() -> ! {
+//!     // validate the signature of the program entry point
+//!     let f: fn() -> ! = path::to::main;
+//!
+//!     f()
+//! }
+//! ```
+//!
+//! The unmangled `main` symbol must have signature `extern "C" fn() -> !` or its invocation from
+//! `Reset`  will result in undefined behavior.
+//!
+//! ## Incorporating device specific interrupts
 //!
 //! This section covers how an external crate can insert device specific interrupt handlers into the
 //! vector table. Most users don't need to concern themselves with these details, but if you are
@@ -226,7 +261,7 @@
 //!
 //! The information in this section applies when the `"device"` feature has been enabled.
 //!
-//! ## `__INTERRUPTS`
+//! ### `__INTERRUPTS`
 //!
 //! The external crate must provide the interrupts portion of the vector table via a `static`
 //! variable named`__INTERRUPTS` (unmangled) that must be placed in the `.vector_table.interrupts`
@@ -273,7 +308,7 @@
 //! ];
 //! ```
 //!
-//! ## `device.x`
+//! ### `device.x`
 //!
 //! Linking in `__INTERRUPTS` creates a bunch of undefined references. If the user doesn't set a
 //! handler for *all* the device specific interrupts then linking will fail with `"undefined
@@ -425,9 +460,12 @@ pub unsafe extern "C" fn Reset() -> ! {
     }
 }
 
-/// Macro to define the user entry point of a program
+/// Macro to define the entry point of the program
 ///
-/// Usage: `entry!($path::to::user::entry)`
+/// **NOTE** This macro must be invoked once and must be invoked from an accessible module, ideally
+/// from the root of the crate.
+///
+/// Usage: `entry!(path::to::entry::point)`
 ///
 /// The specified function will be called by the reset handler *after* RAM has been initialized. In
 /// the case of the `thumbv7em-none-eabihf` target the FPU will also be enabled before the function
@@ -439,7 +477,7 @@ macro_rules! entry {
     ($path:path) => {
         #[export_name = "main"]
         pub extern "C" fn __impl_main() -> ! {
-            // validate the signature of the user provide `main`
+            // validate the signature of the program entry point
             let f: fn() -> ! = $path;
 
             f()
@@ -561,10 +599,7 @@ pub static __EXCEPTIONS: [Vector; 14] = [
     // 13: Reserved
     Vector { reserved: 0 },
     // Exception 14: Pend SV Interrupt [not on Cortex-M0 variants].
-    #[cfg(not(armv6m))]
     Vector { handler: PendSV },
-    #[cfg(armv6m)]
-    Vector { reserved: 0 },
     // Exception 15: System Tick Interrupt.
     Vector { handler: SysTick },
 ];
@@ -598,6 +633,9 @@ pub static __INTERRUPTS: [unsafe extern "C" fn(); 32] = [{
 
 /// Macro to set or override a processor core exception handler
 ///
+/// **NOTE** This macro must be invoked from an accessible module, ideally from the root of the
+/// crate.
+///
 /// # Syntax
 ///
 /// ``` ignore
@@ -613,7 +651,7 @@ pub static __INTERRUPTS: [unsafe extern "C" fn(); 32] = [{
 /// );
 /// ```
 ///
-/// `$Name` can be one of:
+/// where `$Name` can be one of:
 ///
 /// - `*`
 /// - `NonMaskableInt`
@@ -701,9 +739,9 @@ pub static __INTERRUPTS: [unsafe extern "C" fn(); 32] = [{
 macro_rules! exception {
     (* , $handler:path) => {
         #[allow(unsafe_code)]
-        #[allow(non_snake_case)]
-        #[export_name = "DefaultHandler"]
-        pub unsafe extern "C" fn __impl_DefaultHandler() {
+        #[deny(private_no_mangle_fns)] // raise an error if this item is not accessible
+        #[no_mangle]
+        pub unsafe extern "C" fn DefaultHandler() {
             extern crate core;
 
             // validate the signature of the user provided handler
@@ -719,9 +757,9 @@ macro_rules! exception {
 
     (HardFault, $handler:path) => {
         #[allow(unsafe_code)]
-        #[allow(non_snake_case)]
-        #[export_name = "UserHardFault"]
-        pub unsafe extern "C" fn __impl_UserHardFault(ef: &$crate::ExceptionFrame) {
+        #[deny(private_no_mangle_fns)] // raise an error if this item is not accessible
+        #[no_mangle]
+        pub unsafe extern "C" fn UserHardFault(ef: &$crate::ExceptionFrame) {
             // validate the signature of the user provided handler
             let f: fn(&$crate::ExceptionFrame) -> ! = $handler;
 
@@ -731,6 +769,7 @@ macro_rules! exception {
 
     ($Name:ident, $handler:path,state: $State:ty = $initial_state:expr) => {
         #[allow(unsafe_code)]
+        #[deny(private_no_mangle_fns)] // raise an error if this item is not accessible
         #[no_mangle]
         pub unsafe extern "C" fn $Name() {
             static mut STATE: $State = $initial_state;
@@ -747,6 +786,7 @@ macro_rules! exception {
 
     ($Name:ident, $handler:path) => {
         #[allow(unsafe_code)]
+        #[deny(private_no_mangle_fns)] // raise an error if this item is not accessible
         #[no_mangle]
         pub unsafe extern "C" fn $Name() {
             // check that this exception exists

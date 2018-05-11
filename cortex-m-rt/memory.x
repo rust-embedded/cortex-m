@@ -16,4 +16,4 @@ MEMORY
 
 /* The location of the .text section can be overridden using the `_stext` symbol.
    By default it will place after .vector_table */
-/* _stext = ORIGIN(FLASH) + 0x100; */
+/* _stext = ORIGIN(FLASH) + 0x40c; */

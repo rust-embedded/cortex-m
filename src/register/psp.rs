@@ -18,7 +18,7 @@ pub fn read() -> u32 {
             }
 
             __psp_r()
-        }
+        },
 
         #[cfg(not(cortex_m))]
         () => unimplemented!(),

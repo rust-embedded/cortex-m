@@ -2,8 +2,8 @@
 
 use volatile_register::{RO, RW};
 
-use peripheral::NVIC;
 use interrupt::Nr;
+use peripheral::NVIC;
 
 /// Register block
 #[repr(C)]

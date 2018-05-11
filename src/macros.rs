@@ -63,15 +63,18 @@ macro_rules! singleton {
                 let expr = $expr;
 
                 #[allow(unsafe_code)]
-                unsafe { VAR = Some(expr) }
+                unsafe {
+                    VAR = Some(expr)
+                }
 
                 #[allow(unsafe_code)]
-                unsafe { VAR.as_mut() }
+                unsafe {
+                    VAR.as_mut()
+                }
             }
         })
-    }
+    };
 }
-
 
 /// ``` compile_fail
 /// #[macro_use(singleton)]

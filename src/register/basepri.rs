@@ -51,7 +51,7 @@ pub unsafe fn write(_basepri: u8) {
             }
 
             __basepri_w(_basepri);
-        },
+        }
 
         #[cfg(not(cortex_m))]
         () => unimplemented!(),

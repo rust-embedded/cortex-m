@@ -153,9 +153,7 @@ impl SYST {
     /// Sets clock source
     pub fn set_clock_source(&mut self, clk_source: SystClkSource) {
         match clk_source {
-            SystClkSource::External => unsafe {
-                self.csr.modify(|v| v & !SYST_CSR_CLKSOURCE)
-            },
+            SystClkSource::External => unsafe { self.csr.modify(|v| v & !SYST_CSR_CLKSOURCE) },
             SystClkSource::Core => unsafe { self.csr.modify(|v| v | SYST_CSR_CLKSOURCE) },
         }
     }
@@ -168,5 +166,4 @@ impl SYST {
     pub fn set_reload(&mut self, value: u32) {
         unsafe { self.rvr.write(value) }
     }
-
 }

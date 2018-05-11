@@ -1,13 +1,15 @@
 //! System Control Block
 
+use core::ptr;
+
 use volatile_register::RW;
 
-#[cfg(any(armv7m, has_fpu, target_arch = "x86_64"))]
-use super::{CBP, SCB};
-#[cfg(any(armv7m, target_arch = "x86_64"))]
-use super::CPUID;
 #[cfg(any(armv7m, target_arch = "x86_64"))]
 use super::cpuid::CsselrCacheType;
+#[cfg(any(armv7m, target_arch = "x86_64"))]
+use super::CPUID;
+#[cfg(any(armv7m, has_fpu, target_arch = "x86_64"))]
+use super::{CBP, SCB};
 
 /// Register block
 #[repr(C)]
@@ -105,6 +107,139 @@ impl SCB {
             FpuAccessMode::Enabled => cpacr |= SCB_CPACR_FPU_ENABLE | SCB_CPACR_FPU_USER,
         }
         unsafe { self.cpacr.write(cpacr) }
+    }
+}
+
+impl SCB {
+    /// Returns the active exception number
+    pub fn vect_active() -> VectActive {
+        let icsr = unsafe { ptr::read(&(*SCB::ptr()).icsr as *const _ as *const u32) };
+
+        match icsr as u8 {
+            0 => VectActive::ThreadMode,
+            2 => VectActive::Exception(Exception::NonMaskableInt),
+            3 => VectActive::Exception(Exception::HardFault),
+            #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+            4 => VectActive::Exception(Exception::MemoryManagement),
+            #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+            5 => VectActive::Exception(Exception::BusFault),
+            #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+            6 => VectActive::Exception(Exception::UsageFault),
+            #[cfg(any(armv8m, target_arch = "x86_64"))]
+            7 => VectActive::Exception(Exception::SecureFault),
+            11 => VectActive::Exception(Exception::SVCall),
+            #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+            12 => VectActive::Exception(Exception::DebugMonitor),
+            14 => VectActive::Exception(Exception::PendSV),
+            15 => VectActive::Exception(Exception::SysTick),
+            irqn => VectActive::Interrupt { irqn: irqn - 16 },
+        }
+    }
+}
+
+/// Processor core exceptions (internal interrupts)
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Exception {
+    /// Non maskable interrupt
+    NonMaskableInt,
+
+    /// Hard fault interrupt
+    HardFault,
+
+    /// Memory management interrupt (not present on Cortex-M0 variants)
+    #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+    MemoryManagement,
+
+    /// Bus fault interrupt (not present on Cortex-M0 variants)
+    #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+    BusFault,
+
+    /// Usage fault interrupt (not present on Cortex-M0 variants)
+    #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+    UsageFault,
+
+    /// Secure fault interrupt (only on ARMv8-M)
+    #[cfg(any(armv8m, target_arch = "x86_64"))]
+    SecureFault,
+
+    /// SV call interrupt
+    SVCall,
+
+    /// Debug monitor interrupt (not present on Cortex-M0 variants)
+    #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+    DebugMonitor,
+
+    /// Pend SV interrupt
+    PendSV,
+
+    /// System Tick interrupt
+    SysTick,
+}
+
+impl Exception {
+    /// Returns the IRQ number of this `Exception`
+    ///
+    /// The return value is always within the closed range `[-1, -14]`
+    pub fn irqn(&self) -> i8 {
+        match *self {
+            Exception::NonMaskableInt => -14,
+            Exception::HardFault => -13,
+            #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+            Exception::MemoryManagement => -12,
+            #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+            Exception::BusFault => -11,
+            #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+            Exception::UsageFault => -10,
+            #[cfg(any(armv8m, target_arch = "x86_64"))]
+            Exception::SecureFault => -9,
+            Exception::SVCall => -5,
+            #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+            Exception::DebugMonitor => -4,
+            Exception::PendSV => -2,
+            Exception::SysTick => -1,
+        }
+    }
+}
+
+/// Active exception number
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum VectActive {
+    /// Thread mode
+    ThreadMode,
+
+    /// Processor core exception (internal interrupts)
+    Exception(Exception),
+
+    /// Device specific exception (external interrupts)
+    Interrupt {
+        /// Interrupt number. This number is always within half open range `[0, 240)`
+        irqn: u8,
+    },
+}
+
+impl VectActive {
+    /// Converts a `byte` into `VectActive`
+    pub fn from(vect_active: u8) -> Option<Self> {
+        Some(match vect_active {
+            0 => VectActive::ThreadMode,
+            2 => VectActive::Exception(Exception::NonMaskableInt),
+            3 => VectActive::Exception(Exception::HardFault),
+            #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+            4 => VectActive::Exception(Exception::MemoryManagement),
+            #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+            5 => VectActive::Exception(Exception::BusFault),
+            #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+            6 => VectActive::Exception(Exception::UsageFault),
+            #[cfg(any(armv8m, target_arch = "x86_64"))]
+            7 => VectActive::Exception(Exception::SecureFault),
+            11 => VectActive::Exception(Exception::SVCall),
+            #[cfg(any(not(armv6m), target_arch = "x86_64"))]
+            12 => VectActive::Exception(Exception::DebugMonitor),
+            14 => VectActive::Exception(Exception::PendSV),
+            15 => VectActive::Exception(Exception::SysTick),
+            irqn if irqn >= 16 => VectActive::Interrupt { irqn },
+            _ => return None,
+        })
     }
 }
 

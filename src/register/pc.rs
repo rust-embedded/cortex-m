@@ -1,6 +1,8 @@
 //! Program counter
 
 /// Reads the CPU register
+///
+/// **NOTE** This function is available if `cortex-m` is built with the `"inline-asm"` feature.
 #[inline]
 pub fn read() -> u32 {
     match () {
@@ -17,6 +19,8 @@ pub fn read() -> u32 {
 }
 
 /// Writes `bits` to the CPU register
+///
+/// **NOTE** This function is available if `cortex-m` is built with the `"inline-asm"` feature.
 #[inline]
 pub unsafe fn write(_bits: u32) {
     match () {

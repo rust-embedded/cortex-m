@@ -45,11 +45,11 @@ pub mod psp;
 
 // Accessing these registers requires inline assembly because their contents are tied to the current
 // stack frame
-#[cfg(feature = "nightly")]
+#[cfg(any(feature = "inline-asm", target_arch = "x86_64"))]
 pub mod apsr;
 
-#[cfg(feature = "nightly")]
+#[cfg(any(feature = "inline-asm", target_arch = "x86_64"))]
 pub mod lr;
 
-#[cfg(feature = "nightly")]
+#[cfg(any(feature = "inline-asm", target_arch = "x86_64"))]
 pub mod pc;

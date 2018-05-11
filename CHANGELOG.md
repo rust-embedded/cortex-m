@@ -23,6 +23,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - [breaking-change] Some variants of the `Exception` enumeration are no longer available on
   `thumbv6m-none-eabi`. See API docs for details.
 
+- [breaking-change] fixed typo in `shcrs` field of `scb::RegisterBlock`; it was previously named
+  `shpcrs`.
+
+- [breaking-change] removed several fields from `scb::RegisterBlock` on ARMv6-M. These registers are
+  not available on that sub-architecture.
+
+- [breaking-change] changed the type of `scb::RegisterBlock.shpr` from `RW<u8>` to `RW<u32>` on
+  ARMv6-M. These registers are word accessible only on that sub-architecture.
+
+- [breaking-change] renamed the `mmar` field of `scb::RegisterBlock` to `mmfar` to match the CMSIS
+  name.
+
+- [breaking-change] removed the `iabr` field from `scb::RegisterBlock` on ARMv6-M. This register is
+  not available on that sub-architecture.
+
 ### Removed
 
 - [breaking-change] The `exception` module has been removed. A replacement for `Exception::active`

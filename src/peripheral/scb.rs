@@ -17,33 +17,85 @@ use super::SCB;
 pub struct RegisterBlock {
     /// Interrupt Control and State
     pub icsr: RW<u32>,
-    /// Vector Table Offset
+
+    /// Vector Table Offset (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
     pub vtor: RW<u32>,
+    #[cfg(armv6m)]
+    _reserved0: u32,
+
     /// Application Interrupt and Reset Control
     pub aircr: RW<u32>,
+
     /// System Control
     pub scr: RW<u32>,
+
     /// Configuration and Control
     pub ccr: RW<u32>,
-    /// System Handler Priority
+
+    /// System Handler Priority (word accessible only on Cortex-M0 variants)
+    ///
+    /// On ARMv7-M, `shpr[0]` points to SHPR1
+    ///
+    /// On ARMv6-M, `shpr[0]` points to SHPR2
+    #[cfg(not(armv6m))]
     pub shpr: [RW<u8>; 12],
+    #[cfg(armv6m)]
+    _reserved1: u32,
+    /// System Handler Priority (word accessible only on Cortex-M0 variants)
+    ///
+    /// On ARMv7-M, `shpr[0]` points to SHPR1
+    ///
+    /// On ARMv6-M, `shpr[0]` points to SHPR2
+    #[cfg(armv6m)]
+    pub shpr: [RW<u32>; 2],
+
     /// System Handler Control and State
-    pub shpcrs: RW<u32>,
-    /// Configurable Fault Status
+    pub shcrs: RW<u32>,
+
+    /// Configurable Fault Status (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
     pub cfsr: RW<u32>,
-    /// HardFault Status
+    #[cfg(armv6m)]
+    _reserved2: u32,
+
+    /// HardFault Status (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
     pub hfsr: RW<u32>,
-    /// Debug Fault Status
+    #[cfg(armv6m)]
+    _reserved3: u32,
+
+    /// Debug Fault Status (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
     pub dfsr: RW<u32>,
-    /// MemManage Fault Address
-    pub mmar: RW<u32>,
-    /// BusFault Address
+    #[cfg(armv6m)]
+    _reserved4: u32,
+
+    /// MemManage Fault Address (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
+    pub mmfar: RW<u32>,
+    #[cfg(armv6m)]
+    _reserved5: u32,
+
+    /// BusFault Address (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
     pub bfar: RW<u32>,
-    /// Auxiliary Fault Status
+    #[cfg(armv6m)]
+    _reserved6: u32,
+
+    /// Auxiliary Fault Status (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
     pub afsr: RW<u32>,
-    reserved: [u32; 18],
-    /// Coprocessor Access Control
+    #[cfg(armv6m)]
+    _reserved7: u32,
+
+    _reserved8: [u32; 18],
+
+    /// Coprocessor Access Control (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
     pub cpacr: RW<u32>,
+    #[cfg(armv6m)]
+    _reserved9: u32,
 }
 
 /// FPU access mode

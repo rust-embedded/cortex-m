@@ -38,6 +38,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - [breaking-change] removed the `iabr` field from `scb::RegisterBlock` on ARMv6-M. This register is
   not available on that sub-architecture.
 
+- [breaking-change] removed several fields from `cpuid::RegisterBlock` on ARMv6-M. These registers
+  are not available on that sub-architecture.
+
 ### Removed
 
 - [breaking-change] The `exception` module has been removed. A replacement for `Exception::active`

@@ -1,10 +1,10 @@
 //! CPUID
 
 use volatile_register::RO;
-#[cfg(any(armv7m, target_arch = "x86_64"))]
+#[cfg(not(armv6m))]
 use volatile_register::RW;
 
-#[cfg(any(armv7m, target_arch = "x86_64"))]
+#[cfg(not(armv6m))]
 use peripheral::CPUID;
 
 /// Register block
@@ -12,29 +12,55 @@ use peripheral::CPUID;
 pub struct RegisterBlock {
     /// CPUID base
     pub base: RO<u32>,
-    reserved0: [u32; 15],
-    /// Processor Feature
+
+    _reserved0: [u32; 15],
+
+    /// Processor Feature (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
     pub pfr: [RO<u32>; 2],
-    /// Debug Feature
+    #[cfg(armv6m)]
+    _reserved1: [u32; 2],
+
+    /// Debug Feature (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
     pub dfr: RO<u32>,
-    /// Auxiliary Feature
+    #[cfg(armv6m)]
+    _reserved2: u32,
+
+    /// Auxiliary Feature (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
     pub afr: RO<u32>,
-    /// Memory Model Feature
+    #[cfg(armv6m)]
+    _reserved3: u32,
+
+    /// Memory Model Feature (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
     pub mmfr: [RO<u32>; 4],
-    /// Instruction Set Attribute
+    #[cfg(armv6m)]
+    _reserved4: [u32; 4],
+
+    /// Instruction Set Attribute (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
     pub isar: [RO<u32>; 5],
-    reserved1: u32,
-    /// Cache Level ID
-    #[cfg(any(armv7m, target_arch = "x86_64"))]
+    #[cfg(armv6m)]
+    _reserved5: [u32; 5],
+
+    _reserved6: u32,
+
+    /// Cache Level ID (only present on Cortex-M7)
+    #[cfg(not(armv6m))]
     pub clidr: RO<u32>,
-    /// Cache Type
-    #[cfg(any(armv7m, target_arch = "x86_64"))]
+
+    /// Cache Type (only present on Cortex-M7)
+    #[cfg(not(armv6m))]
     pub ctr: RO<u32>,
-    /// Cache Size ID
-    #[cfg(any(armv7m, target_arch = "x86_64"))]
+
+    /// Cache Size ID (only present on Cortex-M7)
+    #[cfg(not(armv6m))]
     pub ccsidr: RO<u32>,
-    /// Cache Size Selection
-    #[cfg(any(armv7m, target_arch = "x86_64"))]
+
+    /// Cache Size Selection (only present on Cortex-M7)
+    #[cfg(not(armv6m))]
     pub csselr: RW<u32>,
 }
 
@@ -47,7 +73,7 @@ pub enum CsselrCacheType {
     Instruction = 1,
 }
 
-#[cfg(any(armv7m, target_arch = "x86_64"))]
+#[cfg(not(armv6m))]
 impl CPUID {
     /// Selects the current CCSIDR
     ///

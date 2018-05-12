@@ -149,7 +149,7 @@ PROVIDE(_stext = __einterrupts);
 /* Place `.bss` at the start of the RAM region */
 __sidata = LOADADDR(.data);
 /* Place the heap right after `.bss` and `.data` */
-__sheap = __edata;
+__sheap = __ebss;
 
 /* # Sanity checks */
 

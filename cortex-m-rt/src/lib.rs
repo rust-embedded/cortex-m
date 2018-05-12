@@ -769,7 +769,7 @@ macro_rules! exception {
 
             // NOTE not volatile so the compiler can opt the load operation away if the value is
             // unused
-            f(core::ptr::read(SCB_ICSR) as i16 - 16)
+            f(core::ptr::read(SCB_ICSR) as u8 as i16 - 16)
         }
     };
 

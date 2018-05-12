@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.5.0] - 2018-05-12
+
+### Added
+
+- An `entry!` macro to set the entry point of the program.
+
+- A `heap_start` function that returns a pointer into the start of the heap region.
+
+- A `device` feature. When disabled this crate provides the interrupt vectors; when enabled the
+  interrupt vectors are expected to be provided by another crate. Read the documentation for
+  details.
+
+### Changed
+
+- This crate now compiles on the beta and stable channels.
+
+- [breaking-change] this crate now requires `arm-none-eabi-gcc` to be installed and available in
+  `$PATH` to compile.
+
+- [breaking-change] the `start` lang item has been removed. The standard `main` interface won't
+  work. Instead use `#![no_main]` and the `entry!` macro. See documentation for details.
+
+- [breaking-change] the `default_handler!` macro has been merged into the `exception!` macro. Use
+  `exception!(*, ..)` to set the default exception handler.
+
+- [breaking-change] there's no weak default handler so a default handler must be defined by the
+  application, or one of its dependencies.
+
+- [breaking-change] the syntax of the third argument of the `exception!` handler has changed. See
+  the documentation of the macro for details.
+
+- [breaking-change] the exception names that the `exception!` macro accepts has changed to match the
+  CMSIS specification. See the documentation of the macro for the list of names it accepts.
+
+- [breaking-change] The number of symbol interfaces has been reduced. Check the advanced section of
+  the documentation for details.
+
 ## [v0.4.0] - 2018-04-09
 
 ### Added

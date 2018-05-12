@@ -183,7 +183,7 @@ cortex-m-rt: The '.text' section can't be placed inside the '.vector_table' sect
 '_stext' to an address greater than '__einterrupts' (cf. `nm` output)");
 
 ASSERT(_stext < ORIGIN(FLASH) + LENGTH(FLASH), "
-cortex-m-rt The '.text' section must be placed inside the FLASH memory.Set '_stext' to an
+cortex-m-rt The '.text' section must be placed inside the FLASH memory. Set '_stext' to an
 address smaller than 'ORIGIN(FLASH) + LENGTH(FLASH)");
 
 /* This has been temporarily omitted because it's not supported by LLD */

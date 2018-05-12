@@ -18,12 +18,18 @@
 //!
 //! [`exception!`]: macro.exception.html
 //!
-//! # `memory.x`
+//! # Requirements
+//!
+//! ## `arm-none-eabi-gcc`
+//!
+//! This crate requires `arm-none-eabi-gcc` to be installed and available in `$PATH`.
+//!
+//! ## `memory.x`
 //!
 //! This crate expects the user, or some other crate, to provide the memory layout of the target
 //! device via a linker script named `memory.x`. This section covers the contents of `memory.x`
 //!
-//! ## `MEMORY`
+//! ### `MEMORY`
 //!
 //! The linker script must specify the memory available in the device as, at least, two `MEMORY`
 //! regions: one named `FLASH` and one named `RAM`. The `.text` and `.rodata` sections of the
@@ -39,7 +45,7 @@
 //! }
 //! ```
 //!
-//! ## `_stack_start`
+//! ### `_stack_start`
 //!
 //! This optional symbol can be used to indicate where the call stack of the program should be
 //! placed. If this symbol is not used then the stack will be placed at the *end* of the `RAM`
@@ -62,7 +68,7 @@
 //! _stack_start = ORIGIN(CCRAM) + LENGTH(CCRAM);
 //! ```
 //!
-//! ## `_stext`
+//! ### `_stext`
 //!
 //! This optional symbol can be used to control where the `.text` section is placed. If omitted the
 //! `.text` section will be placed right after the vector table, which is placed at the beginning of
@@ -80,7 +86,7 @@
 //! _stext = ORIGIN(FLASH) + 0x40C
 //! ```
 //!
-//! # Example
+//! # An example
 //!
 //! This section presents a minimal application built on top of `cortex-m-rt`. Apart from the
 //! mandatory `memory.x` linker script describing the memory layout of the device, the hard fault
@@ -436,10 +442,9 @@ impl fmt::Debug for ExceptionFrame {
     }
 }
 
-/// Returns a pointer into which the heap can be placed
+/// Returns a pointer to the start of the heap
 ///
-/// The start of the heap is guaranteed to be 4-byte aligned; that is the pointer returned by this
-/// function is a multiple of 4.
+/// The returned pointer is guaranteed to be 4-byte aligned.
 #[inline]
 pub fn heap_start() -> *mut u32 {
     extern "C" {

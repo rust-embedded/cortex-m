@@ -159,12 +159,20 @@ cortex-m-rt: The reset vector is missing. This is a bug in cortex-m-rt. Please f
 report at: https://github.com/japaric/cortex-m-rt/issues");
 
 ASSERT(__eexceptions - ORIGIN(FLASH) == 0x40, "
-cortex-m-rt: The exception handlers are missing. This is a bug in cortex-m-rt. Please file
+cortex-m-rt: The exception vectors are missing. This is a bug in cortex-m-rt. Please file
 a bug report at: https://github.com/japaric/cortex-m-rt/issues");
 
+ASSERT(__sheap >= __ebss, "
+cortex-m-rt: The heap overlaps with the .bss section. This is a bug in cortex-m-rt. Please
+file a bug report at: https://github.com/japaric/cortex-m-rt/issues");
+
+ASSERT(__sheap >= __edata, "
+cortex-m-rt: The heap overlaps with the .data section. This is a bug in cortex-m-rt.
+Please file a bug report at: https://github.com/japaric/cortex-m-rt/issues");
+
 ASSERT(__einterrupts - __eexceptions > 0, "
-cortex-m-rt: The interrupt handlers are missing. Possible fixes, from most likely to less
-likely:
+cortex-m-rt: The interrupt vectors are missing. Possible solutions, from most likely to
+less likely:
 - Link to a device crate
 - Disable the 'device' feature of cortex-m-rt to build a generic application (a dependency
   may be enabling it)

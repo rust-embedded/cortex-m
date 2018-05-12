@@ -153,29 +153,30 @@ __sheap = __edata;
 
 /* # Sanity checks */
 
-/* Do not exceed this mark in the error messages below                | */
-ASSERT(__reset_vector == ORIGIN(FLASH) + 0x8,
-"The reset vector is missing. This is a cortex-m-rt bug.
-Please file a bug report at:
-https://github.com/japaric/cortex-m-rt/issues");
+/* Do not exceed this mark in the error messages below                                    | */
+ASSERT(__reset_vector == ORIGIN(FLASH) + 0x8, "
+cortex-m-rt: The reset vector is missing. This is a bug in cortex-m-rt. Please file a bug
+report at: https://github.com/japaric/cortex-m-rt/issues");
 
 ASSERT(__eexceptions - ORIGIN(FLASH) == 0x40, "
-The exception handlers are missing. This is a cortex-m-rt bug.
-Please file a bug report at:
-https://github.com/japaric/cortex-m-rt/issues");
+cortex-m-rt: The exception handlers are missing. This is a bug in cortex-m-rt. Please file
+a bug report at: https://github.com/japaric/cortex-m-rt/issues");
 
 ASSERT(__einterrupts - __eexceptions > 0, "
-The interrupt handlers are missing. If you are not linking to a device
-crate then you supply the interrupt handlers yourself. Check the
-documentation.");
+cortex-m-rt: The interrupt handlers are missing. Possible fixes, from most likely to less
+likely:
+- Link to a device crate
+- Disable the 'device' feature of cortex-m-rt to build a generic application (a dependency
+  may be enabling it)
+- Supply the interrupt handlers yourself. Check the documentation for details.");
 
 ASSERT(__einterrupts <= _stext, "
-The '.text' section can't be placed inside '.vector_table' section.
-Set '_stext' to an address greater than '__einterrupts' (cf. `nm`)");
+cortex-m-rt: The '.text' section can't be placed inside the '.vector_table' section. Set
+'_stext' to an address greater than '__einterrupts' (cf. `nm` output)");
 
 ASSERT(_stext < ORIGIN(FLASH) + LENGTH(FLASH), "
-The '.text' section must be placed inside the FLASH memory
-Set '_stext' to an address smaller than 'ORIGIN(FLASH) + LENGTH(FLASH)");
+cortex-m-rt The '.text' section must be placed inside the FLASH memory.Set '_stext' to an
+address smaller than 'ORIGIN(FLASH) + LENGTH(FLASH)");
 
 /* This has been temporarily omitted because it's not supported by LLD */
 /* ASSERT(__sbss % 4 == 0 && __ebss % 4 == 0, " */
@@ -188,9 +189,8 @@ Set '_stext' to an address smaller than 'ORIGIN(FLASH) + LENGTH(FLASH)");
 /* __sidata is not 4-byte aligned. This is a cortex-m-rt bug."); */
 
 ASSERT(__sgot == __egot, "
-.got section detected in the input object files. Dynamic relocations
-are not supported. If you are linking to C code compiled using the
-`cc` crate then modify your build script to compile the C code
-_without_ the -fPIC flag. See the documentation of the
+.got section detected in the input object files. Dynamic relocations are not supported.
+If you are linking to C code compiled using the `cc` crate then modify your build script
+to compile the C code _without_ the -fPIC flag. See the documentation of the
 `cc::Build.pic` method for details.");
-/* Do not exceed this mark in the error messages above                | */
+/* Do not exceed this mark in the error messages above                                    | */

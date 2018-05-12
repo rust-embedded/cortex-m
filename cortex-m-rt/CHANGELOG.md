@@ -312,7 +312,8 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/japaric/cortex-m-rt/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m-rt/compare/v0.5.0...HEAD
+[v0.5.0]: https://github.com/japaric/cortex-m-rt/compare/v0.4.0...v0.3.0
 [v0.4.0]: https://github.com/japaric/cortex-m-rt/compare/v0.3.15...v0.4.0
 [v0.3.15]: https://github.com/japaric/cortex-m-rt/compare/v0.3.14...v0.3.15
 [v0.3.14]: https://github.com/japaric/cortex-m-rt/compare/v0.3.13...v0.3.14

@@ -4,7 +4,7 @@ main() {
     cargo check --target $TARGET
 
     if [ $TRAVIS_RUST_VERSION = nightly ]; then
-        cargo check --target $TARGET --features inline-asm
+        cargo check --target $TARGET --features 'const-fn inline-asm'
     fi
 
     case $TARGET in
@@ -12,7 +12,7 @@ main() {
             cargo check --target $TARGET --features cm7-r0p1
 
             if [ $TRAVIS_RUST_VERSION = nightly ]; then
-                cargo check --target $TARGET --features 'cm7-r0p1 inline-asm'
+                cargo check --target $TARGET --features 'cm7-r0p1 const-fn inline-asm'
             fi
             ;;
 

@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [v0.5.1] - 2018-05-13
+
+### Added
+
+- An opt-in `"const-fn"` feature that makes `Mutex.new` constructor into a `const fn`. This feature
+  requires a nightly toolchain.
+
 ## [v0.5.0] - 2018-05-11
 
 ### Added
@@ -43,6 +50,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - [breaking-change] removed several fields from `cpuid::RegisterBlock` on ARMv6-M. These registers
   are not available on that sub-architecture.
+
+- [breaking-change] The `Mutex.new` constructor is not a `const fn` by default. To make it a `const
+  fn` you have to opt into the `"const-fn"` feature, which was added in v0.5.1, and switch to a
+  nightly compiler.
 
 ### Removed
 

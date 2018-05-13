@@ -30,6 +30,12 @@
 //! API docs for details.
 //!
 //! The disadvantage is that `inline-asm` requires a nightly toolchain.
+//!
+//! ## `const-fn`
+//!
+//! Enabling this feature turns the `Mutex.new` constructor into a `const fn`.
+//!
+//! This feature requires a nightly toolchain.
 
 #![cfg_attr(feature = "inline-asm", feature(asm))]
 #![deny(missing_docs)]

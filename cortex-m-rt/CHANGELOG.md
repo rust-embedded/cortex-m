@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.5.1] - 2018-05-14
+
+### Fixed
+
+- A recompilation problem where this `cortex-m-rt` would be recompiled every time `cargo build` is
+  invoked.
+
 ## [v0.5.0] - 2018-05-12
 
 ### Added

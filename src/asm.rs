@@ -24,6 +24,41 @@ pub fn bkpt() {
     }
 }
 
+/// Blocks the program for *at least* `n` instruction cycles
+///
+/// This is implemented in assembly so its execution time is the same regardless of the optimization
+/// level.
+///
+/// NOTE that the delay can take much longer if interrupts are serviced during its execution.
+#[inline]
+pub fn delay(_n: u32) {
+    match () {
+        #[cfg(all(cortex_m, feature = "inline-asm"))]
+        () => unsafe {
+            asm!("1:
+                  nop
+                  subs $0, $$1
+                  bne.n 1b"
+                 : "+r"(_n / 4 + 1)
+                 :
+                 :
+                 : "volatile");
+        },
+
+        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
+        () => unsafe {
+            extern "C" {
+                fn __delay(n: u32);
+            }
+
+            __delay(_n / 4 + 1);
+        },
+
+        #[cfg(not(cortex_m))]
+        () => unimplemented!(),
+    }
+}
+
 /// A no-operation. Useful to prevent delay loops from being optimized away.
 #[inline]
 pub fn nop() {

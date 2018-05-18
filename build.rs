@@ -15,6 +15,7 @@ fn main() {
             .file("asm/control.s")
             .file("asm/cpsid.s")
             .file("asm/cpsie.s")
+            .file("asm/delay.s")
             .file("asm/dmb.s")
             .file("asm/dsb.s")
             .file("asm/faultmask.s")

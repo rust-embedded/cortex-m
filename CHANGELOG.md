@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [v0.5.2] - 2018-05-18
+
+### Added
+
+- `SCB` gained a pair of safe methods to set / clear the DEEPSLEEP bit.
+
+- `asm::delay`, delay loops whose execution time doesn't depend on the optimization level.
+
 ## [v0.5.1] - 2018-05-13
 
 ### Added
@@ -452,7 +460,9 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.5.2...HEAD
+[v0.5.2]: https://github.com/japaric/cortex-m/compare/v0.5.1...v0.5.2
+[v0.5.1]: https://github.com/japaric/cortex-m/compare/v0.5.0...v0.5.1
 [v0.5.0]: https://github.com/japaric/cortex-m/compare/v0.4.3...v0.5.0
 [v0.4.3]: https://github.com/japaric/cortex-m/compare/v0.4.2...v0.4.3
 [v0.4.2]: https://github.com/japaric/cortex-m/compare/v0.4.1...v0.4.2

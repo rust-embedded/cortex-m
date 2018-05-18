@@ -32,6 +32,7 @@ pub fn bkpt() {
 /// NOTE that the delay can take much longer if interrupts are serviced during its execution.
 #[inline]
 pub fn delay(_n: u32) {
+    // NOTE(divide by 4) is easier to compute than `/ 3` is it's just a shift (`>> 2`).
     match () {
         #[cfg(all(cortex_m, feature = "inline-asm"))]
         () => unsafe {

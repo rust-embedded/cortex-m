@@ -16,7 +16,7 @@ cc = "1.0.10"
 r0 = "0.2.1"
 
 [dev-dependencies]
-panic-semihosting = "0.2.0"
+panic-semihosting = "0.3.0"
 
 [features]
 device = []

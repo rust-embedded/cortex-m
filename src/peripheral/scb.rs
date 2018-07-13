@@ -51,7 +51,7 @@ pub struct RegisterBlock {
     pub shpr: [RW<u32>; 2],
 
     /// System Handler Control and State
-    pub shcrs: RW<u32>,
+    pub shcsr: RW<u32>,
 
     /// Configurable Fault Status (not present on Cortex-M0 variants)
     #[cfg(not(armv6m))]

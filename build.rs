@@ -10,7 +10,6 @@ fn main() {
         // able to discard the unused routines
         let mut build = cc::Build::new();
         build
-            .file("asm/basepri_r.s")
             .file("asm/bkpt.s")
             .file("asm/control.s")
             .file("asm/cpsid.s")
@@ -18,7 +17,6 @@ fn main() {
             .file("asm/delay.s")
             .file("asm/dmb.s")
             .file("asm/dsb.s")
-            .file("asm/faultmask.s")
             .file("asm/isb.s")
             .file("asm/msp_r.s")
             .file("asm/msp_w.s")
@@ -30,12 +28,17 @@ fn main() {
             .file("asm/wfe.s")
             .file("asm/wfi.s");
 
-        if env::var_os("CARGO_FEATURE_CM7_R0P1").is_some() {
-            build.file("asm/basepri_max-cm7-r0p1.s");
-            build.file("asm/basepri_w-cm7-r0p1.s");
-        } else {
-            build.file("asm/basepri_max.s");
-            build.file("asm/basepri_w.s");
+        if target.starts_with("thumbv7m-") || target.starts_with("thumbv7em-") {
+            build.file("asm/basepri_r.s");
+            build.file("asm/faultmask.s");
+
+            if env::var_os("CARGO_FEATURE_CM7_R0P1").is_some() {
+                build.file("asm/basepri_max-cm7-r0p1.s");
+                build.file("asm/basepri_w-cm7-r0p1.s");
+            } else {
+                build.file("asm/basepri_max.s");
+                build.file("asm/basepri_w.s");
+            }
         }
 
         build.compile("asm");

@@ -169,6 +169,13 @@
 //! conjunction with crates generated using `svd2rust`. Those *device crates* will populate the
 //! missing part of the vector table when their `"rt"` feature is enabled.
 //!
+//! ## `pre_init`
+//!
+//! If this feature is enabled then a user-defined function will be run at the start of the reset
+//! handler, before RAM is initialized. If this feature is enabled then the macro `pre_init!` needs
+//! to be called to set the function to be run. This feature is intended to perform actions that
+//! cannot wait the time it takes for RAM to be initialized, such as disabling a watchdog.
+//!
 //! # Inspection
 //!
 //! This section covers how to inspect a binary that builds on top of `cortex-m-rt`.
@@ -474,7 +481,13 @@ pub unsafe extern "C" fn Reset() -> ! {
         static mut __sdata: u32;
         static mut __edata: u32;
         static __sidata: u32;
+
+        #[cfg(feature = "pre_init")]
+        fn _pre_init();
     }
+
+    #[cfg(feature = "pre_init")]
+    _pre_init();
 
     // Initialize RAM
     r0::zero_bss(&mut __sbss, &mut __ebss);
@@ -871,4 +884,37 @@ macro_rules! exception {
             f()
         }
     };
+}
+
+/// Macro to set the function to be called at the beginning of the reset handler.
+///
+/// The function must have the signature of `unsafe fn()`.
+///
+/// The function passed will be called before static variables are initialized. Any access of static
+/// variables will result in undefined behavior.
+///
+/// # Examples
+///
+/// ``` ignore
+/// pre_init!(foo::bar);
+///
+/// mod foo {
+///     pub unsafe fn bar() {
+///         // do something here
+///     }
+/// }
+/// ```
+#[cfg(feature = "pre_init")]
+#[macro_export]
+macro_rules! pre_init {
+    ($handler:path) => {
+        #[allow(unsafe_code)]
+        #[deny(private_no_mangle_fns)] // raise an error if this item is not accessible
+        #[no_mangle]
+        pub unsafe extern "C" fn _pre_init() {
+            // validate user handler
+            let f: unsafe fn() = $handler;
+            f();
+        }
+    }
 }

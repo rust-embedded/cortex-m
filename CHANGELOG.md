@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [v0.5.3] - 2018-08-02
+
+### Fixed
+
+- Don't assemble basepri*.s and faultmask.s for ARMv6-M. This fix the build when using `clang` as
+  the assembler.
+
 ## [v0.5.2] - 2018-05-18
 
 ### Added
@@ -460,7 +467,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.5.2...HEAD
+[Unreleased]: https://github.com/japaric/cortex-m/compare/v0.5.3...HEAD
+[v0.5.3]: https://github.com/japaric/cortex-m/compare/v0.5.2...v0.5.3
 [v0.5.2]: https://github.com/japaric/cortex-m/compare/v0.5.1...v0.5.2
 [v0.5.1]: https://github.com/japaric/cortex-m/compare/v0.5.0...v0.5.1
 [v0.5.0]: https://github.com/japaric/cortex-m/compare/v0.4.3...v0.5.0

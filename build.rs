@@ -5,12 +5,13 @@ use std::env;
 fn main() {
     let target = env::var("TARGET").unwrap();
 
+    let is_v6 = target.starts_with("thumbv6m-");
+
     if target.starts_with("thumb") && env::var_os("CARGO_FEATURE_INLINE_ASM").is_none() {
         // NOTE we need to place each routine in a separate assembly file or the linker won't be
         // able to discard the unused routines
         let mut build = cc::Build::new();
         build
-            .file("asm/basepri_r.s")
             .file("asm/bkpt.s")
             .file("asm/control.s")
             .file("asm/cpsid.s")
@@ -18,7 +19,6 @@ fn main() {
             .file("asm/delay.s")
             .file("asm/dmb.s")
             .file("asm/dsb.s")
-            .file("asm/faultmask.s")
             .file("asm/isb.s")
             .file("asm/msp_r.s")
             .file("asm/msp_w.s")
@@ -30,12 +30,16 @@ fn main() {
             .file("asm/wfe.s")
             .file("asm/wfi.s");
 
-        if env::var_os("CARGO_FEATURE_CM7_R0P1").is_some() {
-            build.file("asm/basepri_max-cm7-r0p1.s");
-            build.file("asm/basepri_w-cm7-r0p1.s");
-        } else {
-            build.file("asm/basepri_max.s");
-            build.file("asm/basepri_w.s");
+        if !is_v6 {
+            build.file("asm/basepri_r.s").file("asm/faultmask.s");
+
+            if env::var_os("CARGO_FEATURE_CM7_R0P1").is_some() {
+                build.file("asm/basepri_max-cm7-r0p1.s");
+                build.file("asm/basepri_w-cm7-r0p1.s");
+            } else {
+                build.file("asm/basepri_max.s");
+                build.file("asm/basepri_w.s");
+            }
         }
 
         build.compile("asm");

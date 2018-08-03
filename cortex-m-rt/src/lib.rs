@@ -525,7 +525,7 @@ pub unsafe extern "C" fn Reset() -> ! {
 /// The signature of the specified function must be `fn() -> !` (never ending function)
 #[macro_export]
 macro_rules! entry {
-    ($path:path) => {
+    ($path:expr) => {
         #[export_name = "main"]
         pub extern "C" fn __impl_main() -> ! {
             // validate the signature of the program entry point
@@ -695,7 +695,7 @@ pub static __INTERRUPTS: [unsafe extern "C" fn(); 32] = [{
 ///     $Name:ident,
 ///
 ///     // Path to the exception handler (a function)
-///     $handler:path,
+///     $handler:expr,
 ///
 ///     // Optional, state preserved across invocations of the handler
 ///     state: $State:ty = $initial_state:expr,
@@ -790,7 +790,7 @@ pub static __INTERRUPTS: [unsafe extern "C" fn(); 32] = [{
 /// ```
 #[macro_export]
 macro_rules! exception {
-    (* , $handler:path) => {
+    (* , $handler:expr) => {
         #[allow(unsafe_code)]
         #[deny(private_no_mangle_fns)] // raise an error if this item is not accessible
         #[no_mangle]
@@ -808,7 +808,7 @@ macro_rules! exception {
         }
     };
 
-    (HardFault, $handler:path) => {
+    (HardFault, $handler:expr) => {
         #[allow(unsafe_code)]
         #[deny(private_no_mangle_fns)] // raise an error if this item is not accessible
         #[no_mangle]
@@ -820,7 +820,7 @@ macro_rules! exception {
         }
     };
 
-    ($Name:ident, $handler:path,state: $State:ty = $initial_state:expr) => {
+    ($Name:ident, $handler:expr,state: $State:ty = $initial_state:expr) => {
         #[allow(unsafe_code)]
         #[deny(private_no_mangle_fns)] // raise an error if this item is not accessible
         #[no_mangle]
@@ -837,7 +837,7 @@ macro_rules! exception {
         }
     };
 
-    ($Name:ident, $handler:path) => {
+    ($Name:ident, $handler:expr) => {
         #[allow(unsafe_code)]
         #[deny(private_no_mangle_fns)] // raise an error if this item is not accessible
         #[no_mangle]

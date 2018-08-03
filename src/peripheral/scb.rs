@@ -613,6 +613,8 @@ impl SCB {
             SCB_AIRCR_SYSRESETREQ // set the bit
         ) };
         ::asm::dsb();
-        loop {} // wait for the reset
+        loop { // wait for the reset
+            ::asm::nop(); // avoid rust-lang/rust#28728
+        }
     }
 }

@@ -5,32 +5,44 @@ matrix:
     - env: TARGET=x86_64-unknown-linux-gnu
 
     - env: TARGET=thumbv6m-none-eabi
-      rust: beta
+      rust: stable
       addons:
         apt:
           packages:
             - gcc-arm-none-eabi
+
+    - env: TARGET=thumbv6m-none-eabi CC=clang
+      rust: stable
 
     - env: TARGET=thumbv7m-none-eabi
-      rust: beta
+      rust: stable
       addons:
         apt:
           packages:
             - gcc-arm-none-eabi
+
+    - env: TARGET=thumbv7m-none-eabi CC=clang
+      rust: stable
 
     - env: TARGET=thumbv7em-none-eabi
-      rust: beta
+      rust: stable
       addons:
         apt:
           packages:
             - gcc-arm-none-eabi
 
+    - env: TARGET=thumbv7em-none-eabi CC=clang
+      rust: stable
+
     - env: TARGET=thumbv7em-none-eabihf
-      rust: beta
+      rust: stable
       addons:
         apt:
           packages:
             - gcc-arm-none-eabi
+
+    - env: TARGET=thumbv7em-none-eabihf CC=clang
+      rust: stable
 
     - env: TARGET=thumbv6m-none-eabi
       rust: nightly

@@ -51,6 +51,11 @@ PROVIDE(UserHardFault = DefaultUserHardFault);
 /* # Interrupt vectors */
 EXTERN(__INTERRUPTS); /* `static` variable similar to `__EXCEPTIONS` */
 
+/* # Pre-initialization function */
+/* If the user overrides this using the `pre_init!` macro or by creating a `__pre_init` function,
+   then the function this points to will be called before the RAM is initialized. */
+PROVIDE(__pre_init = 0);
+
 /* # Sections */
 SECTIONS
 {

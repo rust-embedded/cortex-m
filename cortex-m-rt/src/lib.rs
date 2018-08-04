@@ -169,13 +169,6 @@
 //! conjunction with crates generated using `svd2rust`. Those *device crates* will populate the
 //! missing part of the vector table when their `"rt"` feature is enabled.
 //!
-//! ## `pre_init`
-//!
-//! If this feature is enabled then a user-defined function will be run at the start of the reset
-//! handler, before RAM is initialized. If this feature is enabled then the macro `pre_init!` needs
-//! to be called to set the function to be run. This feature is intended to perform actions that
-//! cannot wait the time it takes for RAM to be initialized, such as disabling a watchdog.
-//!
 //! # Inspection
 //!
 //! This section covers how to inspect a binary that builds on top of `cortex-m-rt`.
@@ -243,6 +236,10 @@
 //! size depends on the target device but if the `"device"` feature has not been enabled it will
 //! have a size of 32 vectors (on ARMv6-M) or 240 vectors (on ARMv7-M). This array is located after
 //! `__EXCEPTIONS` in the `.vector_table` section.
+//!
+//! - `__pre_init`. This is a function to be run before RAM is initialized. It defaults pointing at
+//! `0` and if not changed to point to another address, usually by calling the `pre_init!` macro,
+//! the `_pre_init` function is skipped.
 //!
 //! If you override any exception handler you'll find it as an unmangled symbol, e.g. `SysTick` or
 //! `SVCall`, in the output of `objdump`,
@@ -385,6 +382,14 @@
 //!     println!("cargo:rustc-link-search={}", out.display());
 //! }
 //! ```
+//!
+//! ## `pre_init!`
+//!
+//! A user-defined function can be run at the start of the reset handler, before RAM is
+//! initialized. The macro `pre_init!` can be called to set the function to be run. The function is
+//! intended to perform actions that cannot wait the time it takes for RAM to be initialized, such
+//! as disabling a watchdog. As the function is called before RAM is initialized, any access of
+//! static variables will result in undefined behavior.
 
 // # Developer notes
 //
@@ -482,12 +487,13 @@ pub unsafe extern "C" fn Reset() -> ! {
         static mut __edata: u32;
         static __sidata: u32;
 
-        #[cfg(feature = "pre_init")]
-        fn _pre_init();
+        fn __pre_init();
     }
 
-    #[cfg(feature = "pre_init")]
-    _pre_init();
+    let pre_init: unsafe extern "C" fn() = __pre_init;
+    if pre_init as usize != 0 {
+        pre_init();
+    }
 
     // Initialize RAM
     r0::zero_bss(&mut __sbss, &mut __ebss);
@@ -904,14 +910,13 @@ macro_rules! exception {
 ///     }
 /// }
 /// ```
-#[cfg(feature = "pre_init")]
 #[macro_export]
 macro_rules! pre_init {
     ($handler:path) => {
         #[allow(unsafe_code)]
         #[deny(private_no_mangle_fns)] // raise an error if this item is not accessible
         #[no_mangle]
-        pub unsafe extern "C" fn _pre_init() {
+        pub unsafe extern "C" fn __pre_init() {
             // validate user handler
             let f: unsafe fn() = $handler;
             f();

@@ -21,4 +21,3 @@ panic-abort = "0.2.0"
 
 [features]
 device = []
-pre_init = []

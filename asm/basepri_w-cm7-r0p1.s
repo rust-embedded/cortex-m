@@ -1,5 +1,6 @@
   .global __basepri_w
   .syntax unified
+  .thumb_func
 __basepri_w:
   mrs r1, PRIMASK
   cpsid i

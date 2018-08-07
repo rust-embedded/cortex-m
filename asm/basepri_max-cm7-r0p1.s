@@ -1,5 +1,6 @@
   .global __basepri_max
   .syntax unified
+  .thumb_func
 __basepri_max:
   mrs r1, PRIMASK
   cpsid i

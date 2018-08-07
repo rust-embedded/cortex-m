@@ -7,10 +7,7 @@ matrix:
 
     - env: TARGET=thumbv6m-none-eabi
       rust: stable
-      addons:
-        apt:
-          packages:
-            - gcc-arm-none-eabi
+      sudo: true
       if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
 
     - env: TARGET=thumbv6m-none-eabi CC=clang
@@ -19,10 +16,7 @@ matrix:
 
     - env: TARGET=thumbv7m-none-eabi
       rust: stable
-      addons:
-        apt:
-          packages:
-            - gcc-arm-none-eabi
+      sudo: true
       if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
 
     - env: TARGET=thumbv7m-none-eabi CC=clang
@@ -31,10 +25,7 @@ matrix:
 
     - env: TARGET=thumbv7em-none-eabi
       rust: stable
-      addons:
-        apt:
-          packages:
-            - gcc-arm-none-eabi
+      sudo: true
       if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
 
     - env: TARGET=thumbv7em-none-eabi CC=clang
@@ -43,10 +34,7 @@ matrix:
 
     - env: TARGET=thumbv7em-none-eabihf
       rust: stable
-      addons:
-        apt:
-          packages:
-            - gcc-arm-none-eabi
+      sudo: true
       if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
 
     - env: TARGET=thumbv7em-none-eabihf CC=clang
@@ -55,34 +43,22 @@ matrix:
 
     - env: TARGET=thumbv6m-none-eabi
       rust: nightly
-      addons:
-        apt:
-          packages:
-            - gcc-arm-none-eabi
+      sudo: true
       if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
 
     - env: TARGET=thumbv7m-none-eabi
       rust: nightly
-      addons:
-        apt:
-          packages:
-            - gcc-arm-none-eabi
+      sudo: true
       if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
 
     - env: TARGET=thumbv7em-none-eabi
       rust: nightly
-      addons:
-        apt:
-          packages:
-            - gcc-arm-none-eabi
+      sudo: true
       if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
 
     - env: TARGET=thumbv7em-none-eabihf
       rust: nightly
-      addons:
-        apt:
-          packages:
-            - gcc-arm-none-eabi
+      sudo: true
       if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
 
 before_install: set -e

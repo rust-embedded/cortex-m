@@ -42,12 +42,12 @@ INCLUDE device.x"#
     writeln!(
         f,
         r#"
-ASSERT(__einterrupts - __eexceptions <= 0x{:x}, "
-There can't be more than {} interrupt handlers. This may be a bug in
-your device crate, or you may have registered more than 240 interrupt
+ASSERT(SIZEOF(.vector_table) <= 0x{:x}, "
+There can't be more than {1} interrupt handlers. This may be a bug in
+your device crate, or you may have registered more than {1} interrupt
 handlers.");
 "#,
-        max_int_handlers * 4,
+        max_int_handlers * 4 + 0x40,
         max_int_handlers
     ).unwrap();
 

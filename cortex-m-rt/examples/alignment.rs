@@ -1,0 +1,45 @@
+//! This is not an example; this is a link-pass test
+
+#![deny(warnings)]
+#![no_main]
+#![no_std]
+
+#[macro_use(entry, exception)]
+extern crate cortex_m_rt as rt;
+extern crate panic_abort;
+
+use core::ptr;
+
+use rt::ExceptionFrame;
+
+entry!(main);
+
+static mut BSS1: u16 = 0;
+static mut BSS2: u8 = 0;
+static mut DATA1: u8 = 1;
+static mut DATA2: u16 = 1;
+static RODATA1: &[u8; 3] = b"012";
+static RODATA2: &[u8; 2] = b"34";
+
+fn main() -> ! {
+    unsafe {
+        let _bss1 = ptr::read_volatile(&BSS1);
+        let _bss2 = ptr::read_volatile(&BSS2);
+        let _data1 = ptr::read_volatile(&DATA1);
+        let _data2 = ptr::read_volatile(&DATA2);
+        let _rodata1 = ptr::read_volatile(&RODATA1);
+        let _rodata2 = ptr::read_volatile(&RODATA2);
+    }
+
+    loop {}
+}
+
+exception!(HardFault, hard_fault);
+
+fn hard_fault(_ef: &ExceptionFrame) -> ! {
+    loop {}
+}
+
+exception!(*, default_handler);
+
+fn default_handler(_irqn: i16) {}

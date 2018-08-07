@@ -390,7 +390,7 @@
 
 extern crate r0;
 
-use core::fmt;
+use core::{fmt, ptr};
 
 /// Registers stacked (pushed into the stack) during an exception
 #[derive(Clone, Copy)]
@@ -508,6 +508,26 @@ pub unsafe extern "C" fn Reset() -> ! {
 
             trampoline()
         }
+    }
+}
+
+#[doc(hidden)]
+#[no_mangle]
+pub unsafe extern "C" fn DefaultDefaultHandler() {
+    loop {
+        // add some side effect to prevent this from turning into a UDF instruction
+        // see rust-lang/rust#28728
+        ptr::read_volatile(&0u8);
+    }
+}
+
+#[doc(hidden)]
+#[no_mangle]
+pub unsafe extern "C" fn DefaultUserHardFault() {
+    loop {
+        // add some side effect to prevent this from turning into a UDF instruction
+        // see rust-lang/rust#28728
+        ptr::read_volatile(&0u8);
     }
 }
 

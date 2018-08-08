@@ -45,6 +45,9 @@ PROVIDE(DebugMonitor = DefaultHandler);
 PROVIDE(PendSV = DefaultHandler);
 PROVIDE(SysTick = DefaultHandler);
 
+PROVIDE(DefaultHandler = DefaultDefaultHandler);
+PROVIDE(UserHardFault = DefaultUserHardFault);
+
 /* # Interrupt vectors */
 EXTERN(__INTERRUPTS); /* `static` variable similar to `__EXCEPTIONS` */
 

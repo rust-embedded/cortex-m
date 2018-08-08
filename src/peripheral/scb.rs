@@ -19,10 +19,7 @@ pub struct RegisterBlock {
     pub icsr: RW<u32>,
 
     /// Vector Table Offset (not present on Cortex-M0 variants)
-    #[cfg(not(armv6m))]
     pub vtor: RW<u32>,
-    #[cfg(armv6m)]
-    _reserved0: u32,
 
     /// Application Interrupt and Reset Control
     pub aircr: RW<u32>,

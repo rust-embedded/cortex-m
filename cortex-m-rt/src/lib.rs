@@ -238,8 +238,10 @@
 //! `__EXCEPTIONS` in the `.vector_table` section.
 //!
 //! - `__pre_init`. This is a function to be run before RAM is initialized. It defaults pointing at
-//! `0` and if not changed to point to another address, usually by calling the `pre_init!` macro,
-//! the `_pre_init` function is skipped.
+//! `1` and if not changed to point to another address, usually by calling the `pre_init!` macro,
+//! the `_pre_init` function is skipped. The function cannot default to `0` as the compiler
+//! optimizes out the check for `0` under the assumption that a function pointer cannot point to
+//! `0`.
 //!
 //! If you override any exception handler you'll find it as an unmangled symbol, e.g. `SysTick` or
 //! `SVCall`, in the output of `objdump`,

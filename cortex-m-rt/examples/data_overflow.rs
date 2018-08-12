@@ -5,13 +5,11 @@
 #![no_main]
 #![no_std]
 
-#[macro_use(entry, exception)]
+#[macro_use(entry)]
 extern crate cortex_m_rt as rt;
 extern crate panic_abort;
 
 use core::ptr;
-
-use rt::ExceptionFrame;
 
 entry!(main);
 
@@ -30,13 +28,3 @@ fn main() -> ! {
 
     loop {}
 }
-
-exception!(HardFault, hard_fault);
-
-fn hard_fault(_ef: &ExceptionFrame) -> ! {
-    loop {}
-}
-
-exception!(*, default_handler);
-
-fn default_handler(_irqn: i16) {}

@@ -491,7 +491,7 @@ pub unsafe extern "C" fn Reset() -> ! {
     }
 
     let pre_init: unsafe extern "C" fn() = __pre_init;
-    if pre_init as usize != 0 {
+    if pre_init as usize != 1 {
         pre_init();
     }
 

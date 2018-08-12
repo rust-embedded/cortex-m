@@ -237,11 +237,10 @@
 //! have a size of 32 vectors (on ARMv6-M) or 240 vectors (on ARMv7-M). This array is located after
 //! `__EXCEPTIONS` in the `.vector_table` section.
 //!
-//! - `__pre_init`. This is a function to be run before RAM is initialized. It defaults pointing at
-//! `1` and if not changed to point to another address, usually by calling the `pre_init!` macro,
-//! the `_pre_init` function is skipped. The function cannot default to `0` as the compiler
-//! optimizes out the check for `0` under the assumption that a function pointer cannot point to
-//! `0`.
+//! - `__pre_init`. This is a function to be run before RAM is initialized. It defaults to an empty
+//! function. The function called can be changed by calling the `pre_init!` macro. The empty
+//! function is not optimized out by default, but if an empty function is passed to `pre_init!` the
+//! function call will be optimized out.
 //!
 //! If you override any exception handler you'll find it as an unmangled symbol, e.g. `SysTick` or
 //! `SVCall`, in the output of `objdump`,
@@ -493,9 +492,7 @@ pub unsafe extern "C" fn Reset() -> ! {
     }
 
     let pre_init: unsafe extern "C" fn() = __pre_init;
-    if pre_init as usize != 1 {
-        pre_init();
-    }
+    pre_init();
 
     // Initialize RAM
     r0::zero_bss(&mut __sbss, &mut __ebss);
@@ -551,6 +548,10 @@ pub unsafe extern "C" fn DefaultUserHardFault() {
         ptr::read_volatile(&0u8);
     }
 }
+
+#[doc(hidden)]
+#[no_mangle]
+pub unsafe extern "C" fn DefaultPreInit() {}
 
 /// Macro to define the entry point of the program
 ///

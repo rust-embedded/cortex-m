@@ -9,6 +9,7 @@ main() {
         alignment
         minimal
         main
+        override-exception
         state
     )
     if [ $TRAVIS_RUST_VERSION = nightly ]; then

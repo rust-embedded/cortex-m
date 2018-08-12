@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.5.2] - 2018-08-11
+
+### Changed
+
+- The `entry!` and `exception!` macros now also accept a closure instead of a path.
+
+- `DefaultHandler` and `UserHardFault` now default to an infinite loop if left undefined.
+
 ## [v0.5.1] - 2018-05-14
 
 ### Fixed
@@ -319,30 +327,32 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/japaric/cortex-m-rt/compare/v0.5.0...HEAD
-[v0.5.0]: https://github.com/japaric/cortex-m-rt/compare/v0.4.0...v0.3.0
-[v0.4.0]: https://github.com/japaric/cortex-m-rt/compare/v0.3.15...v0.4.0
-[v0.3.15]: https://github.com/japaric/cortex-m-rt/compare/v0.3.14...v0.3.15
-[v0.3.14]: https://github.com/japaric/cortex-m-rt/compare/v0.3.13...v0.3.14
-[v0.3.13]: https://github.com/japaric/cortex-m-rt/compare/v0.3.12...v0.3.13
-[v0.3.12]: https://github.com/japaric/cortex-m-rt/compare/v0.3.11...v0.3.12
-[v0.3.11]: https://github.com/japaric/cortex-m-rt/compare/v0.3.10...v0.3.11
-[v0.3.10]: https://github.com/japaric/cortex-m-rt/compare/v0.3.9...v0.3.10
-[v0.3.9]: https://github.com/japaric/cortex-m-rt/compare/v0.3.8...v0.3.9
-[v0.3.8]: https://github.com/japaric/cortex-m-rt/compare/v0.3.7...v0.3.8
-[v0.3.7]: https://github.com/japaric/cortex-m-rt/compare/v0.3.6...v0.3.7
-[v0.3.6]: https://github.com/japaric/cortex-m-rt/compare/v0.3.5...v0.3.6
-[v0.3.5]: https://github.com/japaric/cortex-m-rt/compare/v0.3.4...v0.3.5
-[v0.3.4]: https://github.com/japaric/cortex-m-rt/compare/v0.3.3...v0.3.4
-[v0.3.3]: https://github.com/japaric/cortex-m-rt/compare/v0.3.2...v0.3.3
-[v0.3.2]: https://github.com/japaric/cortex-m-rt/compare/v0.3.1...v0.3.2
-[v0.3.1]: https://github.com/japaric/cortex-m-rt/compare/v0.3.0...v0.3.1
-[v0.3.0]: https://github.com/japaric/cortex-m-rt/compare/v0.2.4...v0.3.0
-[v0.2.4]: https://github.com/japaric/cortex-m-rt/compare/v0.2.3...v0.2.4
-[v0.2.3]: https://github.com/japaric/cortex-m-rt/compare/v0.2.2...v0.2.3
-[v0.2.2]: https://github.com/japaric/cortex-m-rt/compare/v0.2.1...v0.2.2
-[v0.2.1]: https://github.com/japaric/cortex-m-rt/compare/v0.2.0...v0.2.1
-[v0.2.0]: https://github.com/japaric/cortex-m-rt/compare/v0.1.3...v0.2.0
-[v0.1.3]: https://github.com/japaric/cortex-m-rt/compare/v0.1.2...v0.1.3
-[v0.1.2]: https://github.com/japaric/cortex-m-rt/compare/v0.1.1...v0.1.2
-[v0.1.1]: https://github.com/japaric/cortex-m-rt/compare/v0.1.0...v0.1.1
+[Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.5.2...HEAD
+[v0.5.2]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.5.1...v0.5.2
+[v0.5.1]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.5.0...v0.5.1
+[v0.5.0]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.4.0...v0.5.0
+[v0.4.0]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.3.15...v0.4.0
+[v0.3.15]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.3.14...v0.3.15
+[v0.3.14]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.3.13...v0.3.14
+[v0.3.13]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.3.12...v0.3.13
+[v0.3.12]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.3.11...v0.3.12
+[v0.3.11]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.3.10...v0.3.11
+[v0.3.10]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.3.9...v0.3.10
+[v0.3.9]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.3.8...v0.3.9
+[v0.3.8]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.3.7...v0.3.8
+[v0.3.7]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.3.6...v0.3.7
+[v0.3.6]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.3.5...v0.3.6
+[v0.3.5]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.3.4...v0.3.5
+[v0.3.4]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.3.3...v0.3.4
+[v0.3.3]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.3.2...v0.3.3
+[v0.3.2]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.3.1...v0.3.2
+[v0.3.1]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.3.0...v0.3.1
+[v0.3.0]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.2.4...v0.3.0
+[v0.2.4]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.2.3...v0.2.4
+[v0.2.3]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.2.2...v0.2.3
+[v0.2.2]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.2.1...v0.2.2
+[v0.2.1]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.2.0...v0.2.1
+[v0.2.0]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.1.3...v0.2.0
+[v0.1.3]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.1.2...v0.1.3
+[v0.1.2]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.1.1...v0.1.2
+[v0.1.1]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.1.0...v0.1.1

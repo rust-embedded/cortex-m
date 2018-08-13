@@ -9,6 +9,7 @@ main() {
         alignment
         minimal
         main
+        pre_init
         state
     )
     local fail_examples=(

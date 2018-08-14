@@ -1,8 +1,8 @@
 //! Nested Vector Interrupt Controller
 
 #[cfg(not(armv6m))]
-use volatile_register::RO;
-use volatile_register::{RW, WO};
+use volatile_register::{RO, WO};
+use volatile_register::RW;
 
 use interrupt::Nr;
 use peripheral::NVIC;
@@ -78,6 +78,7 @@ pub struct RegisterBlock {
 }
 
 impl NVIC {
+    #[cfg(not(armv6m))]
     /// Request an IRQ in software
     ///
     /// Writing a value to the INTID field is the same as manually pending an interrupt by setting

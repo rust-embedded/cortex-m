@@ -9,6 +9,7 @@ main() {
         alignment
         minimal
         main
+        override-exception
         pre_init
         state
     )

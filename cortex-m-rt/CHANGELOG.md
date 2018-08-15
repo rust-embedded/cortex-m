@@ -9,11 +9,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [v0.5.2] - 2018-08-11
 
+### Added
+
+* A `pre_init!` macro and related functionality to run a function immediately 
+  after reset, before memory initialisation
+
 ### Changed
 
 - The `entry!` and `exception!` macros now also accept a closure instead of a path.
 
 - `DefaultHandler` and `UserHardFault` now default to an infinite loop if left undefined.
+
+### Fixed
+
+* Linked script modified to correctly detect `FLASH` overflow caused by `.data`
 
 ## [v0.5.1] - 2018-05-14
 

@@ -18,7 +18,7 @@ r0 = "0.2.1"
 [dev-dependencies]
 panic-semihosting = "0.3.0"
 panic-abort = "0.2.0"
-cortex-m = "0.5.3"
+cortex-m = "0.5.4"
 
 [features]
 device = []

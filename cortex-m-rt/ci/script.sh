@@ -10,7 +10,11 @@ main() {
         minimal
         main
         override-exception
+        pre_init
         state
+    )
+    local fail_examples=(
+        data_overflow
     )
     if [ $TRAVIS_RUST_VERSION = nightly ]; then
         # linking with GNU LD
@@ -20,6 +24,15 @@ main() {
                   -C link-arg=-Wl,-Tlink.x
 
             cargo rustc --target $TARGET --example $ex --release -- \
+                  -C link-arg=-nostartfiles \
+                  -C link-arg=-Wl,-Tlink.x
+        done
+        for ex in "${fail_examples[@]}"; do
+            ! cargo rustc --target $TARGET --example $ex -- \
+                  -C link-arg=-nostartfiles \
+                  -C link-arg=-Wl,-Tlink.x
+
+            ! cargo rustc --target $TARGET --example $ex --release -- \
                   -C link-arg=-nostartfiles \
                   -C link-arg=-Wl,-Tlink.x
         done
@@ -40,6 +53,17 @@ main() {
                   -C link-arg=-Tlink.x
 
             cargo rustc --target $TARGET --example $ex --release -- \
+                  -C linker=rust-lld \
+                  -Z linker-flavor=ld.lld \
+                  -C link-arg=-Tlink.x
+        done
+        for ex in "${fail_examples[@]}"; do
+            ! cargo rustc --target $TARGET --example $ex -- \
+                  -C linker=rust-lld \
+                  -Z linker-flavor=ld.lld \
+                  -C link-arg=-Tlink.x
+
+            ! cargo rustc --target $TARGET --example $ex --release -- \
                   -C linker=rust-lld \
                   -Z linker-flavor=ld.lld \
                   -C link-arg=-Tlink.x

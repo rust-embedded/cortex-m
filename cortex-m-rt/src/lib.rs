@@ -237,6 +237,11 @@
 //! have a size of 32 vectors (on ARMv6-M) or 240 vectors (on ARMv7-M). This array is located after
 //! `__EXCEPTIONS` in the `.vector_table` section.
 //!
+//! - `__pre_init`. This is a function to be run before RAM is initialized. It defaults to an empty
+//! function. The function called can be changed by calling the `pre_init!` macro. The empty
+//! function is not optimized out by default, but if an empty function is passed to `pre_init!` the
+//! function call will be optimized out.
+//!
 //! If you override any exception handler you'll find it as an unmangled symbol, e.g. `SysTick` or
 //! `SVCall`, in the output of `objdump`,
 //!
@@ -378,6 +383,14 @@
 //!     println!("cargo:rustc-link-search={}", out.display());
 //! }
 //! ```
+//!
+//! ## `pre_init!`
+//!
+//! A user-defined function can be run at the start of the reset handler, before RAM is
+//! initialized. The macro `pre_init!` can be called to set the function to be run. The function is
+//! intended to perform actions that cannot wait the time it takes for RAM to be initialized, such
+//! as disabling a watchdog. As the function is called before RAM is initialized, any access of
+//! static variables will result in undefined behavior.
 
 // # Developer notes
 //
@@ -474,7 +487,12 @@ pub unsafe extern "C" fn Reset() -> ! {
         static mut __sdata: u32;
         static mut __edata: u32;
         static __sidata: u32;
+
+        fn __pre_init();
     }
+
+    let pre_init: unsafe extern "C" fn() = __pre_init;
+    pre_init();
 
     // Initialize RAM
     r0::zero_bss(&mut __sbss, &mut __ebss);
@@ -530,6 +548,10 @@ pub unsafe extern "C" fn DefaultUserHardFault() {
         ptr::read_volatile(&0u8);
     }
 }
+
+#[doc(hidden)]
+#[no_mangle]
+pub unsafe extern "C" fn DefaultPreInit() {}
 
 /// Macro to define the entry point of the program
 ///
@@ -871,4 +893,36 @@ macro_rules! exception {
             f()
         }
     };
+}
+
+/// Macro to set the function to be called at the beginning of the reset handler.
+///
+/// The function must have the signature of `unsafe fn()`.
+///
+/// The function passed will be called before static variables are initialized. Any access of static
+/// variables will result in undefined behavior.
+///
+/// # Examples
+///
+/// ``` ignore
+/// pre_init!(foo::bar);
+///
+/// mod foo {
+///     pub unsafe fn bar() {
+///         // do something here
+///     }
+/// }
+/// ```
+#[macro_export]
+macro_rules! pre_init {
+    ($handler:path) => {
+        #[allow(unsafe_code)]
+        #[deny(private_no_mangle_fns)] // raise an error if this item is not accessible
+        #[no_mangle]
+        pub unsafe extern "C" fn __pre_init() {
+            // validate user handler
+            let f: unsafe fn() = $handler;
+            f();
+        }
+    }
 }

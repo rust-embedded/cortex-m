@@ -13,7 +13,6 @@
 #![deny(warnings)]
 #![feature(asm)]
 #![feature(const_fn)]
-#![feature(const_unsafe_cell_new)]
 #![no_std]
 
 extern crate volatile_register;

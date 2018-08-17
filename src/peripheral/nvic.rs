@@ -84,6 +84,8 @@ impl NVIC {
     /// Writing a value to the INTID field is the same as manually pending an interrupt by setting
     /// the corresponding interrupt bit in an Interrupt Set Pending Register. This is similar to
     /// `set_pending`.
+    ///
+    /// This method is not available on ARMv6-M chips.
     pub fn request<I>(&mut self, interrupt: I)
     where
         I: Nr,

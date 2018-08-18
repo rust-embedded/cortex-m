@@ -1,0 +1,17 @@
+[package]
+name = "cortex-m-rt-macros"
+version = "0.1.0"
+authors = ["Jorge Aparicio <jorge@japaric.io>"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = "0.6.6"
+
+[dependencies.syn]
+features = ["extra-traits", "full"]
+version = "0.14.8"
+
+[dev-dependencies]
+cortex-m-rt = { path = ".." }

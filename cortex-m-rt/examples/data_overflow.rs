@@ -5,13 +5,12 @@
 #![no_main]
 #![no_std]
 
-#[macro_use(entry)]
 extern crate cortex_m_rt as rt;
 extern crate panic_abort;
 
 use core::ptr;
 
-entry!(main);
+use rt::entry;
 
 // This large static array uses most of .rodata
 static RODATA: [u8; 48*1024] = [1u8; 48*1024];
@@ -20,6 +19,7 @@ static RODATA: [u8; 48*1024] = [1u8; 48*1024];
 // without also overflowing RAM.
 static mut DATA: [u8; 16*1024] = [1u8; 16*1024];
 
+#[entry]
 fn main() -> ! {
     unsafe {
         let _bigdata = ptr::read_volatile(&RODATA as *const u8);

@@ -4,13 +4,12 @@
 #![no_main]
 #![no_std]
 
-#[macro_use(entry)]
 extern crate cortex_m_rt as rt;
 extern crate panic_abort;
 
 use core::ptr;
 
-entry!(main);
+use rt::entry;
 
 static mut BSS1: u16 = 0;
 static mut BSS2: u8 = 0;
@@ -19,6 +18,7 @@ static mut DATA2: u16 = 1;
 static RODATA1: &[u8; 3] = b"012";
 static RODATA2: &[u8; 2] = b"34";
 
+#[entry]
 fn main() -> ! {
     unsafe {
         let _bss1 = ptr::read_volatile(&BSS1);

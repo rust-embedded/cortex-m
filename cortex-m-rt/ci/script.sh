@@ -5,6 +5,8 @@ main() {
 
     cargo check --target $TARGET --features device
 
+    ( cd macros && cargo check && cargo test )
+
     local examples=(
         alignment
         minimal

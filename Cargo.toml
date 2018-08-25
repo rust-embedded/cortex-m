@@ -9,9 +9,6 @@ name = "cortex-m"
 repository = "https://github.com/japaric/cortex-m"
 version = "0.5.4"
 
-[build-dependencies]
-cc = "1.0.10"
-
 [dependencies]
 aligned = "0.2.0"
 bare-metal = "0.2.0"

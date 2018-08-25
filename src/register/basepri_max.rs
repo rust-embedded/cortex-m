@@ -24,11 +24,24 @@ pub fn write(_basepri: u8) {
 
         #[cfg(all(cortex_m, not(feature = "inline-asm")))]
         () => unsafe {
-            extern "C" {
-                fn __basepri_max(_: u8);
-            }
+            match () {
+                #[cfg(not(feature = "cm7-r0p1"))]
+                () => {
+                    extern "C" {
+                        fn __basepri_max(_: u8);
+                    }
 
-            __basepri_max(_basepri)
+                    __basepri_max(_basepri)
+                }
+                #[cfg(feature = "cm7-r0p1")]
+                () => {
+                    extern "C" {
+                        fn __basepri_max_cm7_r0p1(_: u8);
+                    }
+
+                    __basepri_max_cm7_r0p1(_basepri)
+                }
+            }
         },
 
         #[cfg(not(cortex_m))]

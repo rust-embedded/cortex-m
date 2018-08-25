@@ -73,6 +73,10 @@ main() {
               -C linker=rust-lld \
               -C link-arg=-Tlink.x
     fi
+
+    if [ $TARGET = x86_64-unknown-linux-gnu ]; then
+        ./check-blobs.sh
+    fi
 }
 
 main

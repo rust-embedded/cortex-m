@@ -403,7 +403,8 @@
 
 extern crate r0;
 
-use core::{fmt, ptr};
+use core::fmt;
+use core::sync::atomic::{self, Ordering};
 
 /// Registers stacked (pushed into the stack) during an exception
 #[derive(Clone, Copy)]
@@ -529,23 +530,24 @@ pub unsafe extern "C" fn Reset() -> ! {
     }
 }
 
+#[allow(unused_variables)]
 #[doc(hidden)]
 #[no_mangle]
-pub unsafe extern "C" fn DefaultDefaultHandler() {
+pub unsafe extern "C" fn UserHardFault_(ef: &ExceptionFrame) -> ! {
     loop {
         // add some side effect to prevent this from turning into a UDF instruction
-        // see rust-lang/rust#28728
-        ptr::read_volatile(&0u8);
+        // see rust-lang/rust#28728 for details
+        atomic::compiler_fence(Ordering::SeqCst);
     }
 }
 
 #[doc(hidden)]
 #[no_mangle]
-pub unsafe extern "C" fn DefaultUserHardFault() {
+pub unsafe extern "C" fn DefaultHandler_() -> ! {
     loop {
         // add some side effect to prevent this from turning into a UDF instruction
-        // see rust-lang/rust#28728
-        ptr::read_volatile(&0u8);
+        // see rust-lang/rust#28728 for details
+        atomic::compiler_fence(Ordering::SeqCst);
     }
 }
 
@@ -924,5 +926,5 @@ macro_rules! pre_init {
             let f: unsafe fn() = $handler;
             f();
         }
-    }
+    };
 }

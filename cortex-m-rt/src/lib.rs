@@ -530,9 +530,20 @@ pub unsafe extern "C" fn Reset() -> ! {
     }
 }
 
+#[allow(unused_variables)]
 #[doc(hidden)]
 #[no_mangle]
-pub unsafe extern "C" fn EndlessLoop() -> ! {
+pub unsafe extern "C" fn UserHardFault_(ef: &ExceptionFrame) -> ! {
+    loop {
+        // add some side effect to prevent this from turning into a UDF instruction
+        // see rust-lang/rust#28728 for details
+        atomic::compiler_fence(Ordering::SeqCst);
+    }
+}
+
+#[doc(hidden)]
+#[no_mangle]
+pub unsafe extern "C" fn DefaultHandler_() -> ! {
     loop {
         // add some side effect to prevent this from turning into a UDF instruction
         // see rust-lang/rust#28728 for details

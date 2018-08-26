@@ -1,48 +1,19 @@
-extern crate cc;
-
-use std::env;
+use std::path::PathBuf;
+use std::{env, fs};
 
 fn main() {
     let target = env::var("TARGET").unwrap();
-
-    let is_v6 = target.starts_with("thumbv6m-");
+    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let name = env::var("CARGO_PKG_NAME").unwrap();
 
     if target.starts_with("thumb") && env::var_os("CARGO_FEATURE_INLINE_ASM").is_none() {
-        // NOTE we need to place each routine in a separate assembly file or the linker won't be
-        // able to discard the unused routines
-        let mut build = cc::Build::new();
-        build
-            .file("asm/bkpt.s")
-            .file("asm/control.s")
-            .file("asm/cpsid.s")
-            .file("asm/cpsie.s")
-            .file("asm/delay.s")
-            .file("asm/dmb.s")
-            .file("asm/dsb.s")
-            .file("asm/isb.s")
-            .file("asm/msp_r.s")
-            .file("asm/msp_w.s")
-            .file("asm/nop.s")
-            .file("asm/primask.s")
-            .file("asm/psp_r.s")
-            .file("asm/psp_w.s")
-            .file("asm/sev.s")
-            .file("asm/wfe.s")
-            .file("asm/wfi.s");
+        fs::copy(
+            format!("bin/{}.a", target),
+            out_dir.join(format!("lib{}.a", name)),
+        ).unwrap();
 
-        if !is_v6 {
-            build.file("asm/basepri_r.s").file("asm/faultmask.s");
-
-            if env::var_os("CARGO_FEATURE_CM7_R0P1").is_some() {
-                build.file("asm/basepri_max-cm7-r0p1.s");
-                build.file("asm/basepri_w-cm7-r0p1.s");
-            } else {
-                build.file("asm/basepri_max.s");
-                build.file("asm/basepri_w.s");
-            }
-        }
-
-        build.compile("asm");
+        println!("cargo:rustc-link-lib=static={}", name);
+        println!("cargo:rustc-link-search={}", out_dir.display());
     }
 
     if target.starts_with("thumbv6m-") {

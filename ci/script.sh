@@ -23,9 +23,10 @@ main() {
             cargo test --target $TARGET
             ;;
     esac
+
+    if [ $TARGET = x86_64-unknown-linux-gnu ]; then
+        ./check-blobs.sh
+    fi
 }
 
-# NOTE See the NOTE in `install.sh`
-if [ $TRAVIS_BRANCH != master ] || [ $TRAVIS_EVENT_TYPE = cron ]; then
-    main
-fi
+main

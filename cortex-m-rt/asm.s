@@ -1,3 +1,4 @@
+  .section .text.HardFault
   .global HardFault
   .thumb_func
 HardFault:

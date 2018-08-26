@@ -1,18 +1,21 @@
-extern crate cc;
-
 use std::env;
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::Write;
 use std::path::PathBuf;
 
 fn main() {
     let target = env::var("TARGET").unwrap();
+    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
     has_fpu(&target);
     let is_armv6m = is_armv6m(&target);
 
     if target.starts_with("thumbv") {
-        cc::Build::new().file("asm.s").compile("asm");
+        fs::copy(
+            format!("bin/{}.a", target),
+            out_dir.join("libcortex-m-rt.a"),
+        ).unwrap();
+        println!("cargo:rustc-link-lib=static=cortex-m-rt");
     }
 
     // Put the linker script somewhere the linker can find it

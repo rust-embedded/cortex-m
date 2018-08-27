@@ -6,6 +6,9 @@ set -euxo pipefail
 
 crate=cortex-m
 
+# remove existing blobs because otherwise this will append object files to the old blobs
+rm -f bin/*.a
+
 arm-none-eabi-as -march=armv6s-m asm.s -o bin/$crate.o
 ar crs bin/thumbv6m-none-eabi.a bin/$crate.o
 

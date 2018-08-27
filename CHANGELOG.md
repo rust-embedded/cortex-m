@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-## [v0.5.5] - 2018-08-27
+## [v0.5.6] - 2018-08-27
+
+### Fixed
+
+- Removed duplicated symbols from binary blobs
+
+- The check-blobs.sh script
+
+## [v0.5.5] - 2018-08-27 - YANKED
 
 ### Changed
 
@@ -489,7 +497,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.5.5...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.5.6...HEAD
+[v0.5.6]: https://github.com/rust-embedded/cortex-m/compare/v0.5.5...v0.5.6
 [v0.5.5]: https://github.com/rust-embedded/cortex-m/compare/v0.5.4...v0.5.5
 [v0.5.4]: https://github.com/rust-embedded/cortex-m/compare/v0.5.3...v0.5.4
 [v0.5.3]: https://github.com/rust-embedded/cortex-m/compare/v0.5.2...v0.5.3

@@ -20,10 +20,6 @@
 //!
 //! # Requirements
 //!
-//! ## `arm-none-eabi-gcc`
-//!
-//! This crate requires `arm-none-eabi-gcc` to be installed and available in `$PATH`.
-//!
 //! ## `memory.x`
 //!
 //! This crate expects the user, or some other crate, to provide the memory layout of the target

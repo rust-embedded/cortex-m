@@ -7,24 +7,17 @@
 //! - Interrupt manipulation mechanisms
 //! - Safe wrappers around Cortex-M specific instructions like `bkpt`
 //!
-//! # Requirements
-//!
-//! To use this crate on the stable or beta channel `arm-none-eabi-gcc` needs to be installed and
-//! available in your `$PATH`.
-//!
 //! # Optional features
 //!
 //! ## `inline-asm`
 //!
 //! When this feature is enabled the implementation of all the functions inside the `asm` and
 //! `register` modules use inline assembly (`asm!`) instead of external assembly (FFI into separate
-//! assembly files compiled using `arm-none-eabi-gcc`). The advantages the enabling `inline-asm`
+//! assembly files pre-compiled using `arm-none-eabi-gcc`). The advantages of enabling `inline-asm`
 //! are:
 //!
 //! - Reduced overhead. FFI eliminates the possibility of inlining so all operations include a
 //! function call overhead when `inline-asm` is not enabled.
-//!
-//! - `arm-none-eabi-gcc` is not required for building this crate.
 //!
 //! - Some of the `register` API only becomes available only when `inline-asm` is enabled. Check the
 //! API docs for details.

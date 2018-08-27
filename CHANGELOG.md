@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.5.5] - 2018-08-27
+
+### Changed
+
+- This crate no longer depends on `arm-none-eabi-gcc`.
+
 ## [v0.5.4] - 2018-08-11
 
 ### Added
@@ -483,7 +489,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.5.4...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.5.5...HEAD
+[v0.5.5]: https://github.com/rust-embedded/cortex-m/compare/v0.5.4...v0.5.5
 [v0.5.4]: https://github.com/rust-embedded/cortex-m/compare/v0.5.3...v0.5.4
 [v0.5.3]: https://github.com/rust-embedded/cortex-m/compare/v0.5.2...v0.5.3
 [v0.5.2]: https://github.com/rust-embedded/cortex-m/compare/v0.5.1...v0.5.2

@@ -1,19 +1,15 @@
-// #![deny(warnings)]
-#![allow(warnings)]
+#![deny(warnings)]
 
 extern crate proc_macro;
 extern crate rand;
 #[macro_use]
 extern crate quote;
-#[macro_use]
-extern crate syn;
 extern crate proc_macro2;
+extern crate syn;
 
 use proc_macro2::Span;
 use rand::Rng;
-use syn::synom::Synom;
-use syn::token::{Colon, Comma, Eq, Static};
-use syn::{Expr, FnArg, Ident, Item, ItemFn, ReturnType, Stmt, Type, Visibility};
+use syn::{FnArg, Ident, Item, ItemFn, ReturnType, Stmt, Type, Visibility};
 
 use proc_macro::TokenStream;
 
@@ -80,44 +76,6 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
         #(#attrs)*
         pub fn #ident() -> ! #block
     ).into()
-}
-
-struct ExceptionArgs {
-    first: Ident,
-    second: Option<State>,
-}
-
-impl Synom for ExceptionArgs {
-    named!(parse -> Self, do_parse!(
-        first: syn!(Ident) >>
-            second: option!(syn!(State)) >> (
-                ExceptionArgs { first, second }
-            )
-    ));
-}
-
-struct State {
-    _comma: Comma,
-    _static: Static,
-    ident: Ident,
-    _colon: Colon,
-    ty: Type,
-    _eq: Eq,
-    expr: Expr,
-}
-
-impl Synom for State {
-    named!(parse -> Self, do_parse!(
-        _comma: punct!(,) >>
-            _static: syn!(Static) >>
-            ident: syn!(Ident) >>
-            _colon: punct!(:) >>
-            ty: syn!(Type) >>
-            _eq: punct!(=) >>
-            expr: syn!(Expr) >> (
-                State { _comma, _static, ident, _colon, ty, _eq, expr }
-            )
-    ));
 }
 
 /// Attribute to declare an exception handler

@@ -50,29 +50,23 @@ main() {
         # linking with rustc's LLD
         for ex in "${examples[@]}"; do
             cargo rustc --target $TARGET --example $ex -- \
-                  -C linker=rust-lld \
                   -C link-arg=-Tlink.x
 
             cargo rustc --target $TARGET --example $ex --release -- \
-                  -C linker=rust-lld \
                   -C link-arg=-Tlink.x
         done
         for ex in "${fail_examples[@]}"; do
             ! cargo rustc --target $TARGET --example $ex -- \
-                  -C linker=rust-lld \
                   -C link-arg=-Tlink.x
 
             ! cargo rustc --target $TARGET --example $ex --release -- \
-                  -C linker=rust-lld \
                   -C link-arg=-Tlink.x
         done
 
         cargo rustc --target $TARGET --example device --features device -- \
-              -C linker=rust-lld \
               -C link-arg=-Tlink.x
 
         cargo rustc --target $TARGET --example device --features device --release -- \
-              -C linker=rust-lld \
               -C link-arg=-Tlink.x
     fi
 

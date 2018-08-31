@@ -1,14 +1,19 @@
-#![deny(warnings)]
+// #![deny(warnings)]
+#![allow(warnings)]
 
 extern crate proc_macro;
+extern crate rand;
 #[macro_use]
 extern crate quote;
 #[macro_use]
 extern crate syn;
+extern crate proc_macro2;
 
+use proc_macro2::Span;
+use rand::Rng;
 use syn::synom::Synom;
 use syn::token::{Colon, Comma, Eq, Static};
-use syn::{Expr, FnArg, Ident, ItemFn, ReturnType, Type, Visibility};
+use syn::{Expr, FnArg, Ident, Item, ItemFn, ReturnType, Stmt, Type, Visibility};
 
 use proc_macro::TokenStream;
 
@@ -124,15 +129,15 @@ impl Synom for State {
 ///
 /// ```
 /// # use cortex_m_rt_macros::exception;
-/// #[exception(SysTick, static COUNT: u32 = 0)]
-/// fn handler() {
+/// #[exception]
+/// fn SysTick() {
 ///     // ..
 /// }
 ///
 /// # fn main() {}
 /// ```
 ///
-/// where the first argument can be one of:
+/// where the name of the function must be one of:
 ///
 /// - `DefaultHandler`
 /// - `NonMaskableInt`
@@ -146,25 +151,29 @@ impl Synom for State {
 /// - `PendSV`
 /// - `SysTick`
 ///
-/// and the second is optional.
-///
 /// (a) Not available on Cortex-M0 variants (`thumbv6m-none-eabi`)
 ///
 /// (b) Only available on ARMv8-M
 ///
 /// # Usage
 ///
-/// `#[exception(HardFault)]` sets the hard fault handler. The handler must have signature
+/// `#[exception] fn HardFault(..` sets the hard fault handler. The handler must have signature
 /// `fn(&ExceptionFrame) -> !`. This handler is not allowed to return as that can cause undefined
 /// behavior.
 ///
-/// `#[exception(DefaultHandler)]` sets the *default* handler. All exceptions which have not been
-/// assigned a handler will be serviced by this handler. This handler must have signature `fn(irqn:
-/// i16)`. `irqn` is the IRQ number (See CMSIS); `irqn` will be a negative number when the handler
-/// is servicing a core exception; `irqn` will be a positive number when the handler is servicing a
-/// device specific exception (interrupt).
+/// `#[exception] fn DefaultHandler(..` sets the *default* handler. All exceptions which have not
+/// been assigned a handler will be serviced by this handler. This handler must have signature
+/// `fn(irqn: i16)`. `irqn` is the IRQ number (See CMSIS); `irqn` will be a negative number when the
+/// handler is servicing a core exception; `irqn` will be a positive number when the handler is
+/// servicing a device specific exception (interrupt).
 ///
-/// `#[exception(Name)]` overrides the default handler for the exception with the given `Name`.
+/// `#[exception] fn Name(..` overrides the default handler for the exception with the given `Name`.
+/// When overriding these other exception it's possible to add state to them by declaring `static
+/// mut` variables at the beginning of the body of the function. These variables will be safe to
+/// access from the function body.
+///
+/// Exception handlers can only be called by the hardware. Other parts of the program can't refer to
+/// the exception handler much less invoke them as if they were functions.
 ///
 /// # Examples
 ///
@@ -174,8 +183,8 @@ impl Synom for State {
 /// # extern crate cortex_m_rt;
 /// # extern crate cortex_m_rt_macros;
 /// # use cortex_m_rt_macros::exception;
-/// #[exception(HardFault)]
-/// fn hard_fault(ef: &cortex_m_rt::ExceptionFrame) -> ! {
+/// #[exception]
+/// fn HardFault(ef: &cortex_m_rt::ExceptionFrame) -> ! {
 ///     // prints the exception frame as a panic message
 ///     panic!("{:#?}", ef);
 /// }
@@ -187,8 +196,8 @@ impl Synom for State {
 ///
 /// ```
 /// # use cortex_m_rt_macros::exception;
-/// #[exception(DefaultHandler)]
-/// fn default_handler(irqn: i16) {
+/// #[exception]
+/// fn DefaultHandler(irqn: i16) {
 ///     println!("IRQn = {}", irqn);
 /// }
 ///
@@ -202,8 +211,11 @@ impl Synom for State {
 ///
 /// use rt::exception;
 ///
-/// #[exception(SysTick, static COUNT: i32 = 0)]
-/// fn sys_tick() {
+/// #[exception]
+/// fn SysTick() {
+///     static mut COUNT: i32 = 0;
+///
+///     // `COUNT` is safe to access and has type `&mut i32`
 ///     *COUNT += 1;
 ///
 ///     println!("{}", COUNT);
@@ -214,12 +226,14 @@ impl Synom for State {
 #[proc_macro_attribute]
 pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
     let f: ItemFn = syn::parse(input).expect("`#[exception]` must be applied to a function");
-    let args: ExceptionArgs = syn::parse(args).expect(
-        "`exception` attribute expects the exception name as its argument. \
-         e.g. `#[exception(HardFault)]`",
+
+    assert_eq!(
+        args.to_string(),
+        "",
+        "`exception` attribute must have no arguments"
     );
-    let name = args.first;
-    let name_s = name.to_string();
+
+    let ident = f.ident;
 
     enum Exception {
         DefaultHandler,
@@ -227,22 +241,32 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
         Other,
     }
 
-    // first validation of the exception name
-    let exn = match &*name_s {
+    let ident_s = ident.to_string();
+    let exn = match &*ident_s {
         "DefaultHandler" => Exception::DefaultHandler,
         "HardFault" => Exception::HardFault,
         // NOTE that at this point we don't check if the exception is available on the target (e.g.
         // MemoryManagement is not available on Cortex-M0)
         "NonMaskableInt" | "MemoryManagement" | "BusFault" | "UsageFault" | "SecureFault"
         | "SVCall" | "DebugMonitor" | "PendSV" | "SysTick" => Exception::Other,
-        _ => panic!("{} is not a valid exception name", name_s),
+        _ => panic!("{} is not a valid exception name", ident_s),
     };
 
     // XXX should we blacklist other attributes?
     let attrs = f.attrs;
-    let ident = f.ident;
     let block = f.block;
-    let stmts = &block.stmts;
+    let stmts = block.stmts;
+
+    let mut rng = rand::thread_rng();
+    let hash = (0..16)
+        .map(|i| {
+            if i == 0 || rng.gen() {
+                ('a' as u8 + rng.gen::<u8>() % 25) as char
+            } else {
+                ('0' as u8 + rng.gen::<u8>() % 10) as char
+            }
+        }).collect::<String>();
+    let hash = Ident::new(&hash, Span::call_site());
 
     match exn {
         Exception::DefaultHandler => {
@@ -262,12 +286,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                             _ => false,
                         },
                     },
-                "`#[exception(DefaultHandler)]` function must have signature `fn(i16)`"
-            );
-
-            assert!(
-                args.second.is_none(),
-                "`#[exception(DefaultHandler)]` takes no additional arguments"
+                "`#DefaultHandler` function must have signature `fn(i16)`"
             );
 
             let arg = match f.decl.inputs[0] {
@@ -276,9 +295,9 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             };
 
             quote!(
-                #[export_name = #name_s]
+                #[export_name = #ident_s]
                 #(#attrs)*
-                pub fn #ident() {
+                pub extern "C" fn #hash() {
                     extern crate core;
 
                     const SCB_ICSR: *const u32 = 0xE000_ED04 as *const u32;
@@ -318,11 +337,6 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                 "`#[exception(HardFault)]` function must have signature `fn(&ExceptionFrame) -> !`"
             );
 
-            assert!(
-                args.second.is_none(),
-                "`#[exception(HardFault)]` takes no additional arguments"
-            );
-
             let arg = match f.decl.inputs[0] {
                 FnArg::Captured(ref arg) => arg,
                 _ => unreachable!(),
@@ -333,7 +347,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             quote!(
                 #[export_name = "UserHardFault"]
                 #(#attrs)*
-                pub unsafe extern "C" fn #ident(#arg) -> ! {
+                pub extern "C" fn #hash(#arg) -> ! {
                     extern crate cortex_m_rt;
 
                     // further type check of the input argument
@@ -360,43 +374,66 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                             _ => false,
                         },
                     },
-                "`#[exception]` functions must have signature `fn()`"
+                "`#[exception]` functions other than `DefaultHandler` and `HardFault` must \
+                 have signature `fn()`"
             );
 
-            if let Some(second) = args.second {
-                let ty = second.ty;
-                let expr = second.expr;
-                let state = second.ident;
+            // Collect all the `static mut` at the beginning of the function body. We'll make them
+            // safe
+            let mut istmts = stmts.into_iter();
 
-                quote!(
-                    #[export_name = #name_s]
-                    #(#attrs)*
-                    pub fn #ident() {
-                        extern crate cortex_m_rt;
-
-                        cortex_m_rt::Exception::#name;
-
-                        static mut __STATE__: #ty = #expr;
-
-                        #[allow(non_snake_case)]
-                        let #state: &mut #ty = unsafe { &mut __STATE__ };
-
-                        #(#stmts)*
+            let mut statics = vec![];
+            let mut stmts = vec![];
+            while let Some(stmt) = istmts.next() {
+                match stmt {
+                    Stmt::Item(Item::Static(var)) => if var.mutability.is_some() {
+                        statics.push(var);
+                    } else {
+                        stmts.push(Stmt::Item(Item::Static(var)));
+                    },
+                    _ => {
+                        stmts.push(stmt);
+                        break;
                     }
-                ).into()
-            } else {
-                quote!(
-                    #[export_name = #name_s]
-                    #(#attrs)*
-                    pub fn #ident() {
-                        extern crate cortex_m_rt;
-
-                        cortex_m_rt::Exception::#name;
-
-                        #(#stmts)*
-                    }
-                ).into()
+                }
             }
+
+            stmts.extend(istmts);
+
+            let vars = statics
+                .into_iter()
+                .map(|var| {
+                    let ident = var.ident;
+                    // `let` can't shadow a `static mut` so we must give the `static` a different
+                    // name. We'll create a new name by appending an underscore to the original name
+                    // of the `static`.
+                    let mut ident_ = ident.to_string();
+                    ident_.push('_');
+                    let ident_ = Ident::new(&ident_, Span::call_site());
+                    let ty = var.ty;
+                    let expr = var.expr;
+
+                    quote!(
+                    static mut #ident_: #ty = #expr;
+                    #[allow(non_snake_case, unsafe_code)]
+                    let #ident: &mut #ty = unsafe { &mut #ident_ };
+                )
+                }).collect::<Vec<_>>();
+
+            quote!(
+                #[export_name = #ident_s]
+                #(#attrs)*
+                pub fn #hash() {
+                    extern crate cortex_m_rt;
+
+                    // check that this exception actually exists
+                    cortex_m_rt::Exception::#ident;
+
+                    #(#vars)*
+
+                    #(#stmts)*
+                }
+            ).into()
         }
     }
 }

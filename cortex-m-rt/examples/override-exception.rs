@@ -17,13 +17,13 @@ fn main() -> ! {
     loop {}
 }
 
-#[exception(DefaultHandler)]
-fn default_handler(_irqn: i16) {
+#[exception]
+fn DefaultHandler(_irqn: i16) {
     asm::bkpt();
 }
 
-#[exception(HardFault)]
-fn hard_fault(_ef: &ExceptionFrame) -> ! {
+#[exception]
+fn HardFault(_ef: &ExceptionFrame) -> ! {
     asm::bkpt();
 
     loop {}

@@ -16,7 +16,9 @@ fn main() -> ! {
 }
 
 // exception handler with state
-#[exception(SysTick, static STATE: u32 = 0)]
-fn sys_tick() {
+#[exception]
+fn SysTick() {
+    static mut STATE: u32 = 0;
+
     *STATE += 1;
 }

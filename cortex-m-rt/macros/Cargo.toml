@@ -8,6 +8,8 @@ proc-macro = true
 
 [dependencies]
 quote = "0.6.6"
+rand = "0.5.5"
+proc-macro2 = "0.4.15"
 
 [dependencies.syn]
 features = ["extra-traits", "full"]

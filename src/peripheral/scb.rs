@@ -615,3 +615,29 @@ impl SCB {
         }
     }
 }
+
+const SCB_ICSR_PENDSVSET: u32 = 1 << 28;
+const SCB_ICSR_PENDSVCLR: u32 = 1 << 27;
+
+impl SCB {
+    /// Set the PENDSVSET bit in the ICSR register which will pend the PendSV interrupt
+    pub fn set_pendsv() {
+        unsafe {
+            (*Self::ptr()).icsr.write(SCB_ICSR_PENDSVSET);
+        }
+    }
+
+    /// Check if PENDSVSET bit in the ICSR register is set meaning PendSV interrupt is pending
+    pub fn is_pendsv_pending() -> bool {
+        unsafe {
+            (*Self::ptr()).icsr.read() & SCB_ICSR_PENDSVSET == SCB_ICSR_PENDSVSET
+        }
+    }
+
+    /// Set the PENDSVCLR bit in the ICSR register which will clear a pending PendSV interrupt
+    pub fn clear_pendsv() {
+        unsafe {
+            (*Self::ptr()).icsr.write(SCB_ICSR_PENDSVCLR);
+        }
+    }
+}

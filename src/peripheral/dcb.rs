@@ -23,11 +23,13 @@ impl DCB {
     /// As by STM documentation, this flag is not reset on
     /// soft-reset, only on power reset.
     pub fn enable_trace(&mut self) {
-        unsafe { self.demcr.modify(|w| w | 0x01000000); }
+        // set bit 24 / TRACENA
+        unsafe { self.demcr.modify(|w| w | (0x01 << 24)); }
     }
     
     /// Disables TRACE. See `DCB::enable_trace()` for more details
     pub fn disable_trace(&mut self) {
-        unsafe { self.demcr.modify(|w| w & !0x01000000); }
+        // unset bit 24 / TRACENA
+        unsafe { self.demcr.modify(|w| w & !(0x01 << 24)); }
     }
 }

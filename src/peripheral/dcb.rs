@@ -34,13 +34,16 @@ impl DCB {
         // unset bit 24 / TRCENA
         unsafe { self.demcr.modify(|w| w & !DCB_DEMCR_TRCENA); }
 
-    /// Is there a debugger attached? (see note)
+    /// Is there a debugger attached? (see notes)
     ///
-    /// N.B. This function is [reported not to
+    /// Note 1: This function is [reported not to
     /// work](http://web.archive.org/web/20180821191012/https://community.nxp.com/thread/424925#comment-782843)
     /// on Cortex-M0 devices. Per the ARM v6-M Architecture Reference Manual, "Access to the DHCSR
     /// from software running on the processor is IMPLEMENTATION DEFINED". Indeed, from the
     /// [Cortex-M0+ r0p1 Technical Reference Manual](http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0484c/BABJHEIG.html), "Note Software cannot access the debug registers."
+    ///
+    /// Note 2: This function reads the DHCSR register, and therefore clears S_RESET_ST and
+    /// S_RETIRE_ST.
     pub fn is_debugger_attached() -> bool {
         unsafe { (*Self::ptr()).dhcsr.read() & 0x1 == 1 }
     }

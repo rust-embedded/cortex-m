@@ -9,7 +9,7 @@ extern crate syn;
 
 use proc_macro2::Span;
 use rand::Rng;
-use syn::{FnArg, Ident, Item, ItemFn, ReturnType, Stmt, Type, Visibility};
+use syn::{FnArg, Ident, Item, ItemFn, ItemStatic, ReturnType, Stmt, Type, Visibility};
 
 use proc_macro::TokenStream;
 
@@ -24,13 +24,45 @@ use proc_macro::TokenStream;
 ///
 /// The type of the specified function must be `fn() -> !` (never ending function)
 ///
+/// # Properties
+///
+/// The entry point will be called by the reset handler. The program can't reference to the entry
+/// point, much less invoke it.
+///
+/// `static mut` variables declared within the entry point are safe to access. The compiler can't
+/// prove this is safe so the attribute will help by making a transformation to the source code: for
+/// this reason a variable like `static mut FOO: u32` will become `let FOO: &'static mut u32;`. Note
+/// that `&'static mut` references have move semantics.
+///
 /// # Examples
+///
+/// - Simple entry point
 ///
 /// ``` no_run
 /// # #![no_main]
 /// # use cortex_m_rt_macros::entry;
 /// #[entry]
 /// fn main() -> ! {
+///     loop {
+///         /* .. */
+///     }
+/// }
+/// ```
+///
+/// - `static mut` variables local to the entry point are safe to modify.
+///
+/// ``` no_run
+/// # #![no_main]
+/// # use cortex_m_rt_macros::entry;
+/// #[entry]
+/// fn main() -> ! {
+///     static mut FOO: u32 = 0;
+///
+///     let foo: &'static mut u32 = FOO;
+///     assert_eq!(*foo, 0);
+///     *foo = 1;
+///     assert_eq!(*foo, 1);
+///
 ///     loop {
 ///         /* .. */
 ///     }
@@ -69,12 +101,36 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
     // XXX should we blacklist other attributes?
     let attrs = f.attrs;
     let ident = f.ident;
-    let block = f.block;
+    let (statics, stmts) = extract_static_muts(f.block.stmts);
+
+    let vars = statics
+        .into_iter()
+        .map(|var| {
+            let ident = var.ident;
+            // `let` can't shadow a `static mut` so we must give the `static` a different
+            // name. We'll create a new name by appending an underscore to the original name
+            // of the `static`.
+            let mut ident_ = ident.to_string();
+            ident_.push('_');
+            let ident_ = Ident::new(&ident_, Span::call_site());
+            let ty = var.ty;
+            let expr = var.expr;
+
+            quote!(
+                static mut #ident_: #ty = #expr;
+                #[allow(non_snake_case, unsafe_code)]
+                let #ident: &'static mut #ty = unsafe { &mut #ident_ };
+            )
+        }).collect::<Vec<_>>();
 
     quote!(
         #[export_name = "main"]
         #(#attrs)*
-        pub fn #ident() -> ! #block
+        pub fn #ident() -> ! {
+            #(#vars)*
+
+            #(#stmts)*
+        }
     ).into()
 }
 
@@ -130,8 +186,15 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
 /// mut` variables at the beginning of the body of the function. These variables will be safe to
 /// access from the function body.
 ///
+/// # Properties
+///
 /// Exception handlers can only be called by the hardware. Other parts of the program can't refer to
-/// the exception handler much less invoke them as if they were functions.
+/// the exception handlers, much less invoke them as if they were functions.
+///
+/// `static mut` variables declared within an exception handler are safe to access and can be used
+/// to preserve state across invocations of the handler. The compiler can't prove this is safe so
+/// the attribute will help by making a transformation to the source code: for this reason a
+/// variable like `static mut FOO: u32` will become `let FOO: &mut u32;`.
 ///
 /// # Examples
 ///
@@ -215,17 +278,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
     let block = f.block;
     let stmts = block.stmts;
 
-    let mut rng = rand::thread_rng();
-    let hash = (0..16)
-        .map(|i| {
-            if i == 0 || rng.gen() {
-                ('a' as u8 + rng.gen::<u8>() % 25) as char
-            } else {
-                ('0' as u8 + rng.gen::<u8>() % 10) as char
-            }
-        }).collect::<String>();
-    let hash = Ident::new(&hash, Span::call_site());
-
+    let hash = random_ident();
     match exn {
         Exception::DefaultHandler => {
             assert!(
@@ -336,27 +389,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                  have signature `fn()`"
             );
 
-            // Collect all the `static mut` at the beginning of the function body. We'll make them
-            // safe
-            let mut istmts = stmts.into_iter();
-
-            let mut statics = vec![];
-            let mut stmts = vec![];
-            while let Some(stmt) = istmts.next() {
-                match stmt {
-                    Stmt::Item(Item::Static(var)) => if var.mutability.is_some() {
-                        statics.push(var);
-                    } else {
-                        stmts.push(Stmt::Item(Item::Static(var)));
-                    },
-                    _ => {
-                        stmts.push(stmt);
-                        break;
-                    }
-                }
-            }
-
-            stmts.extend(istmts);
+            let (statics, stmts) = extract_static_muts(stmts);
 
             let vars = statics
                 .into_iter()
@@ -454,4 +487,45 @@ pub fn pre_init(args: TokenStream, input: TokenStream) -> TokenStream {
         #(#attrs)*
         pub unsafe fn #ident() #block
     ).into()
+}
+
+// Creates a random identifier
+fn random_ident() -> Ident {
+    let mut rng = rand::thread_rng();
+    Ident::new(
+        &(0..16)
+            .map(|i| {
+                if i == 0 || rng.gen() {
+                    ('a' as u8 + rng.gen::<u8>() % 25) as char
+                } else {
+                    ('0' as u8 + rng.gen::<u8>() % 10) as char
+                }
+            }).collect::<String>(),
+        Span::call_site(),
+    )
+}
+
+/// Extracts `static mut` vars from the beginning of the given statements
+fn extract_static_muts(stmts: Vec<Stmt>) -> (Vec<ItemStatic>, Vec<Stmt>) {
+    let mut istmts = stmts.into_iter();
+
+    let mut statics = vec![];
+    let mut stmts = vec![];
+    while let Some(stmt) = istmts.next() {
+        match stmt {
+            Stmt::Item(Item::Static(var)) => if var.mutability.is_some() {
+                statics.push(var);
+            } else {
+                stmts.push(Stmt::Item(Item::Static(var)));
+            },
+            _ => {
+                stmts.push(stmt);
+                break;
+            }
+        }
+    }
+
+    stmts.extend(istmts);
+
+    (statics, stmts)
 }

@@ -14,9 +14,16 @@
 //!
 //! - Enabling the FPU before the program entry point if the target is `thumbv7em-none-eabihf`.
 //!
-//! This crate also provides a mechanism to set exception handlers: see the [`exception!`] macro.
+//! This crate also provides the following attributes:
 //!
-//! [`exception!`]: macro.exception.html
+//! - [`#[entry]`] to declare the entry point of the program
+//! - [`#[exception]`] to override an exception handler. If not overridden all exception handlers
+//!   default to an infinite loop.
+//! - [`#[pre_init]`] to run code *before* `static` variables are initialized
+//!
+//! [`#[entry]`]: ../cortex_m_rt_macros/fn.entry.html
+//! [`#[exception]`]: ../cortex_m_rt_macros/fn.exception.html
+//! [`#[pre_init]`]: ../cortex_m_rt_macros/fn.pre_init.html
 //!
 //! # Requirements
 //!
@@ -87,7 +94,7 @@
 //! This section presents a minimal application built on top of `cortex-m-rt`. Apart from the
 //! mandatory `memory.x` linker script describing the memory layout of the device, the hard fault
 //! handler and the default exception handler must also be defined somewhere in the dependency
-//! graph (cf. [`exception!`]). In this example we define them in the binary crate:
+//! graph (see [`#[exception]`]). In this example we define them in the binary crate:
 //!
 //! ``` ignore
 //! // IMPORTANT the standard `main` interface is not used because it requires nightly
@@ -191,15 +198,15 @@
 //!
 //! [`entry!`]:  macro.entry.html
 //!
-//! - `DefaultHandler`. This is the default handler. This function will contain, or call, the
-//! function you declared in the second argument of `exception!(*, ..)`.
+//! - `DefaultHandler`. This is the default handler. If not overridden using `#[exception] fn
+//! DefaultHandler(..` this will be an infinite loop.
 //!
 //! - `HardFault`. This is the hard fault handler. This function is simply a trampoline that jumps
-//! into the user defined hard fault handler: `UserHardFault`. The trampoline is required to set up
-//! the pointer to the stacked exception frame.
+//! into the user defined hard fault handler named `UserHardFault`. The trampoline is required to
+//! set up the pointer to the stacked exception frame.
 //!
-//! - `UserHardFault`. This is the user defined hard fault handler. This function will contain, or
-//! call, the function you declared in the second argument of `exception!(HardFault, ..)`
+//! - `UserHardFault`. This is the user defined hard fault handler. If not overridden using
+//! `#[exception] fn HardFault(..` this will be an infinite loop.
 //!
 //! - `__STACK_START`. This is the first entry in the `.vector_table` section. This symbol contains
 //! the initial value of the stack pointer; this is where the stack will be located -- the stack
@@ -340,8 +347,8 @@
 //! PROVIDE(Bar = DefaultHandler);
 //! ```
 //!
-//! This weakly aliases both `Foo` and `Bar`. `DefaultHandler` is the default exception handler that
-//! the user provides via `exception!(*, ..)` and that the core exceptions use unless overridden.
+//! This weakly aliases both `Foo` and `Bar`. `DefaultHandler` is the default exception handler and
+//! that the core exceptions use unless overridden.
 //!
 //! Because this linker script is provided by a dependency of the final application the dependency
 //! must contain build script that puts `device.x` somewhere the linker can find. An example of such

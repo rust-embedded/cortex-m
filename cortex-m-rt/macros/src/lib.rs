@@ -118,6 +118,7 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
 
             quote!(
                 static mut #ident_: #ty = #expr;
+                #[allow(non_snake_case)]
                 let #ident: &'static mut #ty = unsafe { &mut #ident_ };
             )
         }).collect::<Vec<_>>();
@@ -407,6 +408,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
 
                     quote!(
                     static mut #ident_: #ty = #expr;
+                    #[allow(non_snake_case)]
                     let #ident: &mut #ty = unsafe { &mut #ident_ };
                 )
                 }).collect::<Vec<_>>();

@@ -4,7 +4,7 @@ use volatile_register::{RW, WO};
 
 use peripheral::DCB;
 
-const BIT_TRCENA: u32 = 0x01 << 24;
+const DCB_DEMCR_TRCENA: u32 = 1 << 24;
 
 /// Register block
 #[repr(C)]
@@ -26,12 +26,12 @@ impl DCB {
     /// soft-reset, only on power reset.
     pub fn enable_trace(&mut self) {
         // set bit 24 / TRCENA
-        unsafe { self.demcr.modify(|w| w | BIT_TRCENA); }
+        unsafe { self.demcr.modify(|w| w | DCB_DEMCR_TRCENA); }
     }
     
     /// Disables TRACE. See `DCB::enable_trace()` for more details
     pub fn disable_trace(&mut self) {
         // unset bit 24 / TRCENA
-        unsafe { self.demcr.modify(|w| w & !BIT_TRCENA); }
+        unsafe { self.demcr.modify(|w| w & !DCB_DEMCR_TRCENA); }
     }
 }

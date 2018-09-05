@@ -13,12 +13,18 @@ main() {
 
     local examples=(
         alignment
+        divergent-default-handler
+        divergent-exception
         entry-static
         main
         minimal
         override-exception
         pre_init
         state
+        unsafe-default-handler
+        unsafe-hard-fault
+        unsafe-entry
+        unsafe-exception
     )
     local fail_examples=(
         data_overflow

@@ -1,3 +1,4 @@
+#![deny(warnings)]
 #![no_main]
 #![no_std]
 
@@ -11,8 +12,7 @@ fn foo() -> ! {
     loop {}
 }
 
-#[exception] //~ ERROR custom attribute panicked
-//~^ HELP `HardFault` exception must have signature `fn(&ExceptionFrame) -> !`
+#[exception]
 unsafe fn HardFault(_ef: &ExceptionFrame) -> ! {
     loop {}
 }

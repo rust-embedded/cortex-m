@@ -12,5 +12,5 @@ fn foo() -> ! {
 }
 
 #[exception] //~ ERROR custom attribute panicked
-//~^ HELP `DefaultHandler` exception must have signature `fn(i16)`
+//~^ HELP `DefaultHandler` exception must have signature `[unsafe] fn(i16) [-> !]`
 fn DefaultHandler(_irqn: i16, undef: u32) {}

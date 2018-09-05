@@ -7,7 +7,7 @@ extern crate panic_semihosting;
 use cortex_m_rt::entry;
 
 #[entry] //~ ERROR custom attribute panicked
-//~^ HELP `#[entry]` function must have signature `fn() -> !`
-unsafe fn foo() -> ! {
+//~^ HELP `#[entry]` function must have signature `[unsafe] fn() -> !`
+extern "C" fn foo() -> ! {
     loop {}
 }

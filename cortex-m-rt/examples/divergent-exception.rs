@@ -1,3 +1,4 @@
+#![deny(warnings)]
 #![no_main]
 #![no_std]
 
@@ -11,8 +12,7 @@ fn foo() -> ! {
     loop {}
 }
 
-#[exception] //~ ERROR custom attribute panicked
-//~^ HELP `#[exception]` functions other than `DefaultHandler` and `HardFault` must have signature `fn()`
+#[exception]
 fn SysTick() -> ! {
     loop {}
 }

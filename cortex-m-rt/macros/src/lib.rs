@@ -22,7 +22,7 @@ use proc_macro::TokenStream;
 /// the case of the `thumbv7em-none-eabihf` target the FPU will also be enabled before the function
 /// is called.
 ///
-/// The type of the specified function must be `fn() -> !` (never ending function)
+/// The type of the specified function must be `[unsafe] fn() -> !` (never ending function)
 ///
 /// # Properties
 ///
@@ -76,7 +76,6 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
     assert!(
         f.constness.is_none()
             && f.vis == Visibility::Inherited
-            && f.unsafety.is_none()
             && f.abi.is_none()
             && f.decl.inputs.is_empty()
             && f.decl.generics.params.is_empty()
@@ -89,7 +88,7 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
                     _ => false,
                 },
             },
-        "`#[entry]` function must have signature `fn() -> !`"
+        "`#[entry]` function must have signature `[unsafe] fn() -> !`"
     );
 
     assert!(
@@ -173,19 +172,19 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
 /// # Usage
 ///
 /// `#[exception] fn HardFault(..` sets the hard fault handler. The handler must have signature
-/// `fn(&ExceptionFrame) -> !`. This handler is not allowed to return as that can cause undefined
-/// behavior.
+/// `[unsafe] fn(&ExceptionFrame) -> !`. This handler is not allowed to return as that can cause
+/// undefined behavior.
 ///
 /// `#[exception] fn DefaultHandler(..` sets the *default* handler. All exceptions which have not
 /// been assigned a handler will be serviced by this handler. This handler must have signature
-/// `fn(irqn: i16)`. `irqn` is the IRQ number (See CMSIS); `irqn` will be a negative number when the
-/// handler is servicing a core exception; `irqn` will be a positive number when the handler is
-/// servicing a device specific exception (interrupt).
+/// `[unsafe] fn(irqn: i16) [-> !]`. `irqn` is the IRQ number (See CMSIS); `irqn` will be a negative
+/// number when the handler is servicing a core exception; `irqn` will be a positive number when the
+/// handler is servicing a device specific exception (interrupt).
 ///
 /// `#[exception] fn Name(..` overrides the default handler for the exception with the given `Name`.
-/// When overriding these other exception it's possible to add state to them by declaring `static
-/// mut` variables at the beginning of the body of the function. These variables will be safe to
-/// access from the function body.
+/// These handlers must have signature `[unsafe] fn() [-> !]`. When overriding these other exception
+/// it's possible to add state to them by declaring `static mut` variables at the beginning of the
+/// body of the function. These variables will be safe to access from the function body.
 ///
 /// # Properties
 ///
@@ -284,7 +283,6 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             assert!(
                 f.constness.is_none()
                     && f.vis == Visibility::Inherited
-                    && f.unsafety.is_none()
                     && f.abi.is_none()
                     && f.decl.inputs.len() == 1
                     && f.decl.generics.params.is_empty()
@@ -294,10 +292,11 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                         ReturnType::Default => true,
                         ReturnType::Type(_, ref ty) => match **ty {
                             Type::Tuple(ref tuple) => tuple.elems.is_empty(),
+                            Type::Never(..) => true,
                             _ => false,
                         },
                     },
-                "`DefaultHandler` exception must have signature `fn(i16)`"
+                "`DefaultHandler` exception must have signature `[unsafe] fn(i16) [-> !]`"
             );
 
             let arg = match f.decl.inputs[0] {
@@ -323,7 +322,6 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             assert!(
                 f.constness.is_none()
                     && f.vis == Visibility::Inherited
-                    && f.unsafety.is_none()
                     && f.abi.is_none()
                     && f.decl.inputs.len() == 1
                     && match f.decl.inputs[0] {
@@ -345,7 +343,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                             _ => false,
                         },
                     },
-                "`HardFault` exception must have signature `fn(&ExceptionFrame) -> !`"
+                "`HardFault` exception must have signature `[unsafe] fn(&ExceptionFrame) -> !`"
             );
 
             let arg = match f.decl.inputs[0] {
@@ -372,7 +370,6 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             assert!(
                 f.constness.is_none()
                     && f.vis == Visibility::Inherited
-                    && f.unsafety.is_none()
                     && f.abi.is_none()
                     && f.decl.inputs.is_empty()
                     && f.decl.generics.params.is_empty()
@@ -382,11 +379,12 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                         ReturnType::Default => true,
                         ReturnType::Type(_, ref ty) => match **ty {
                             Type::Tuple(ref tuple) => tuple.elems.is_empty(),
+                            Type::Never(..) => true,
                             _ => false,
                         },
                     },
                 "`#[exception]` functions other than `DefaultHandler` and `HardFault` must \
-                 have signature `fn()`"
+                 have signature `[unsafe] fn() [-> !]`"
             );
 
             let (statics, stmts) = extract_static_muts(stmts);

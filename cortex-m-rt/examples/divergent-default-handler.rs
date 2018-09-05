@@ -1,3 +1,5 @@
+#![deny(unsafe_code)]
+#![deny(warnings)]
 #![no_main]
 #![no_std]
 
@@ -11,8 +13,7 @@ fn foo() -> ! {
     loop {}
 }
 
-#[exception] //~ ERROR custom attribute panicked
-//~^ HELP `DefaultHandler` exception must have signature `fn(i16)`
+#[exception]
 fn DefaultHandler(_irqn: i16) -> ! {
     loop {}
 }

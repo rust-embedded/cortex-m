@@ -4,7 +4,7 @@ use volatile_register::{RW, WO};
 
 use peripheral::DCB;
 
-const BIT_TRACENA: u32 = 0x01 << 24;
+const BIT_TRCENA: u32 = 0x01 << 24;
 
 /// Register block
 #[repr(C)]
@@ -25,13 +25,13 @@ impl DCB {
     /// As by STM documentation, this flag is not reset on
     /// soft-reset, only on power reset.
     pub fn enable_trace(&mut self) {
-        // set bit 24 / TRACENA
-        unsafe { self.demcr.modify(|w| w | BIT_TRACENA); }
+        // set bit 24 / TRCENA
+        unsafe { self.demcr.modify(|w| w | BIT_TRCENA); }
     }
     
     /// Disables TRACE. See `DCB::enable_trace()` for more details
     pub fn disable_trace(&mut self) {
-        // unset bit 24 / TRACENA
-        unsafe { self.demcr.modify(|w| w & !BIT_TRACENA); }
+        // unset bit 24 / TRCENA
+        unsafe { self.demcr.modify(|w| w & !BIT_TRCENA); }
     }
 }

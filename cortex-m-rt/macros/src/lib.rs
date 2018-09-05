@@ -92,9 +92,8 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
         "`#[entry]` function must have signature `fn() -> !`"
     );
 
-    assert_eq!(
-        args.to_string(),
-        "",
+    assert!(
+        args.to_string() == "",
         "`entry` attribute must have no arguments"
     );
 
@@ -250,9 +249,8 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
 pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
     let f: ItemFn = syn::parse(input).expect("`#[exception]` must be applied to a function");
 
-    assert_eq!(
-        args.to_string(),
-        "",
+    assert!(
+        args.to_string() == "",
         "`exception` attribute must have no arguments"
     );
 
@@ -473,9 +471,8 @@ pub fn pre_init(args: TokenStream, input: TokenStream) -> TokenStream {
         "`#[pre_init]` function must have signature `unsafe fn()`"
     );
 
-    assert_eq!(
-        args.to_string(),
-        "",
+    assert!(
+        args.to_string() == "",
         "`pre_init` attribute must have no arguments"
     );
 

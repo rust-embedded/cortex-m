@@ -13,8 +13,9 @@ main() {
 
     local examples=(
         alignment
-        minimal
+        entry-static
         main
+        minimal
         override-exception
         pre_init
         state

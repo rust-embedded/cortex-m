@@ -5,7 +5,11 @@ main() {
 
     cargo check --target $TARGET --features device
 
-    ( cd macros && cargo check && cargo test )
+    if [ $TARGET = x86_64-unknown-linux-gnu ]; then
+        ( cd macros && cargo check && cargo test )
+
+        cargo test --test compiletest
+    fi
 
     local examples=(
         alignment
@@ -18,7 +22,7 @@ main() {
     local fail_examples=(
         data_overflow
     )
-    if [ $TRAVIS_RUST_VERSION = nightly ]; then
+    if [ $TARGET != x86_64-unknown-linux-gnu ]; then
         # linking with GNU LD
         for ex in "${examples[@]}"; do
             cargo rustc --target $TARGET --example $ex -- \

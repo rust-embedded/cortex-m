@@ -124,6 +124,8 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
         }).collect::<Vec<_>>();
 
     quote!(
+        // TODO(forbid) see tests/compile-fail/entry-hidden.rs
+        // #[forbid(dead_code)]
         #[export_name = "main"]
         #(#attrs)*
         pub fn #ident() -> ! {
@@ -297,7 +299,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                             _ => false,
                         },
                     },
-                "`#DefaultHandler` function must have signature `fn(i16)`"
+                "`DefaultHandler` exception must have signature `fn(i16)`"
             );
 
             let arg = match f.decl.inputs[0] {
@@ -345,7 +347,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                             _ => false,
                         },
                     },
-                "`#[exception(HardFault)]` function must have signature `fn(&ExceptionFrame) -> !`"
+                "`HardFault` exception must have signature `fn(&ExceptionFrame) -> !`"
             );
 
             let arg = match f.decl.inputs[0] {

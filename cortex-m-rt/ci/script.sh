@@ -20,11 +20,12 @@ main() {
         minimal
         override-exception
         pre_init
+        rand
         state
         unsafe-default-handler
-        unsafe-hard-fault
         unsafe-entry
         unsafe-exception
+        unsafe-hard-fault
     )
     local fail_examples=(
         data_overflow

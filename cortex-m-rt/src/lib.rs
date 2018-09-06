@@ -14,9 +14,16 @@
 //!
 //! - Enabling the FPU before the program entry point if the target is `thumbv7em-none-eabihf`.
 //!
-//! This crate also provides a mechanism to set exception handlers: see the [`exception!`] macro.
+//! This crate also provides the following attributes:
 //!
-//! [`exception!`]: macro.exception.html
+//! - [`#[entry]`] to declare the entry point of the program
+//! - [`#[exception]`] to override an exception handler. If not overridden all exception handlers
+//!   default to an infinite loop.
+//! - [`#[pre_init]`] to run code *before* `static` variables are initialized
+//!
+//! [`#[entry]`]: ../cortex_m_rt_macros/fn.entry.html
+//! [`#[exception]`]: ../cortex_m_rt_macros/fn.exception.html
+//! [`#[pre_init]`]: ../cortex_m_rt_macros/fn.pre_init.html
 //!
 //! # Requirements
 //!
@@ -87,45 +94,29 @@
 //! This section presents a minimal application built on top of `cortex-m-rt`. Apart from the
 //! mandatory `memory.x` linker script describing the memory layout of the device, the hard fault
 //! handler and the default exception handler must also be defined somewhere in the dependency
-//! graph (cf. [`exception!`]). In this example we define them in the binary crate:
+//! graph (see [`#[exception]`]). In this example we define them in the binary crate:
 //!
 //! ``` ignore
 //! // IMPORTANT the standard `main` interface is not used because it requires nightly
 //! #![no_main]
 //! #![no_std]
 //!
-//! #[macro_use(entry, exception)]
 //! extern crate cortex_m_rt as rt;
 //!
 //! // makes `panic!` print messages to the host stderr using semihosting
 //! extern crate panic_semihosting;
 //!
-//! use rt::ExceptionFrame;
+//! use rt::entry;
 //!
 //! // use `main` as the entry point of this application
-//! entry!(main);
-//!
 //! // `main` is not allowed to return
+//! #[entry]
 //! fn main() -> ! {
 //!     // initialization
 //!
 //!     loop {
 //!         // application logic
 //!     }
-//! }
-//!
-//! // define the hard fault handler
-//! exception!(HardFault, hard_fault);
-//!
-//! fn hard_fault(ef: &ExceptionFrame) -> ! {
-//!     panic!("{:#?}", ef);
-//! }
-//!
-//! // define the default exception handler
-//! exception!(*, default_handler);
-//!
-//! fn default_handler(irqn: i16) {
-//!     panic!("unhandled exception (IRQn={})", irqn);
 //! }
 //! ```
 //!
@@ -207,15 +198,15 @@
 //!
 //! [`entry!`]:  macro.entry.html
 //!
-//! - `DefaultHandler`. This is the default handler. This function will contain, or call, the
-//! function you declared in the second argument of `exception!(*, ..)`.
+//! - `DefaultHandler`. This is the default handler. If not overridden using `#[exception] fn
+//! DefaultHandler(..` this will be an infinite loop.
 //!
 //! - `HardFault`. This is the hard fault handler. This function is simply a trampoline that jumps
-//! into the user defined hard fault handler: `UserHardFault`. The trampoline is required to set up
-//! the pointer to the stacked exception frame.
+//! into the user defined hard fault handler named `UserHardFault`. The trampoline is required to
+//! set up the pointer to the stacked exception frame.
 //!
-//! - `UserHardFault`. This is the user defined hard fault handler. This function will contain, or
-//! call, the function you declared in the second argument of `exception!(HardFault, ..)`
+//! - `UserHardFault`. This is the user defined hard fault handler. If not overridden using
+//! `#[exception] fn HardFault(..` this will be an infinite loop.
 //!
 //! - `__STACK_START`. This is the first entry in the `.vector_table` section. This symbol contains
 //! the initial value of the stack pointer; this is where the stack will be located -- the stack
@@ -356,8 +347,8 @@
 //! PROVIDE(Bar = DefaultHandler);
 //! ```
 //!
-//! This weakly aliases both `Foo` and `Bar`. `DefaultHandler` is the default exception handler that
-//! the user provides via `exception!(*, ..)` and that the core exceptions use unless overridden.
+//! This weakly aliases both `Foo` and `Bar`. `DefaultHandler` is the default exception handler and
+//! that the core exceptions use unless overridden.
 //!
 //! Because this linker script is provided by a dependency of the final application the dependency
 //! must contain build script that puts `device.x` somewhere the linker can find. An example of such
@@ -397,10 +388,13 @@
 #![deny(warnings)]
 #![no_std]
 
+extern crate cortex_m_rt_macros as macros;
 extern crate r0;
 
 use core::fmt;
 use core::sync::atomic::{self, Ordering};
+
+pub use macros::{entry, exception, pre_init};
 
 /// Registers stacked (pushed into the stack) during an exception
 #[derive(Clone, Copy)]
@@ -474,8 +468,6 @@ pub static __RESET_VECTOR: unsafe extern "C" fn() -> ! = Reset;
 #[no_mangle]
 pub unsafe extern "C" fn Reset() -> ! {
     extern "C" {
-        // This symbol will be provided by the user via the `entry!` macro
-        fn main() -> !;
 
         // These symbols come from `link.x`
         static mut __sbss: u32;
@@ -485,11 +477,17 @@ pub unsafe extern "C" fn Reset() -> ! {
         static mut __edata: u32;
         static __sidata: u32;
 
+    }
+
+    extern "Rust" {
+        // This symbol will be provided by the user via `#[entry]`
+        fn main() -> !;
+
+        // This symbol will be provided by the user via `#[pre_init]`
         fn __pre_init();
     }
 
-    let pre_init: unsafe extern "C" fn() = __pre_init;
-    pre_init();
+    __pre_init();
 
     // Initialize RAM
     r0::zero_bss(&mut __sbss, &mut __ebss);
@@ -550,31 +548,6 @@ pub unsafe extern "C" fn DefaultHandler_() -> ! {
 #[doc(hidden)]
 #[no_mangle]
 pub unsafe extern "C" fn DefaultPreInit() {}
-
-/// Macro to define the entry point of the program
-///
-/// **NOTE** This macro must be invoked once and must be invoked from an accessible module, ideally
-/// from the root of the crate.
-///
-/// Usage: `entry!(path::to::entry::point)`
-///
-/// The specified function will be called by the reset handler *after* RAM has been initialized. In
-/// the case of the `thumbv7em-none-eabihf` target the FPU will also be enabled before the function
-/// is called.
-///
-/// The signature of the specified function must be `fn() -> !` (never ending function)
-#[macro_export]
-macro_rules! entry {
-    ($path:expr) => {
-        #[export_name = "main"]
-        pub extern "C" fn __impl_main() -> ! {
-            // validate the signature of the program entry point
-            let f: fn() -> ! = $path;
-
-            f()
-        }
-    };
-}
 
 /* Exceptions */
 #[doc(hidden)]
@@ -721,206 +694,3 @@ pub static __INTERRUPTS: [unsafe extern "C" fn(); 32] = [{
 
     DefaultHandler
 }; 32];
-
-/// Macro to set or override a processor core exception handler
-///
-/// **NOTE** This macro must be invoked from an accessible module, ideally from the root of the
-/// crate.
-///
-/// # Syntax
-///
-/// ``` ignore
-/// exception!(
-///     // Name of the exception
-///     $Name:ident,
-///
-///     // Path to the exception handler (a function)
-///     $handler:expr,
-///
-///     // Optional, state preserved across invocations of the handler
-///     state: $State:ty = $initial_state:expr,
-/// );
-/// ```
-///
-/// where `$Name` can be one of:
-///
-/// - `*`
-/// - `NonMaskableInt`
-/// - `HardFault`
-/// - `MemoryManagement` (a)
-/// - `BusFault` (a)
-/// - `UsageFault` (a)
-/// - `SecureFault` (b)
-/// - `SVCall`
-/// - `DebugMonitor` (a)
-/// - `PendSV`
-/// - `SysTick`
-///
-/// (a) Not available on Cortex-M0 variants (`thumbv6m-none-eabi`)
-///
-/// (b) Only available on ARMv8-M
-///
-/// # Usage
-///
-/// `exception!(HardFault, ..)` sets the hard fault handler. The handler must have signature
-/// `fn(&ExceptionFrame) -> !`. This handler is not allowed to return as that can cause undefined
-/// behavior. It's mandatory to set the `HardFault` handler somewhere in the dependency graph of an
-/// application.
-///
-/// `exception!(*, ..)` sets the *default* handler. All exceptions which have not been assigned a
-/// handler will be serviced by this handler. This handler must have signature `fn(irqn: i16)`.
-/// `irqn` is the IRQ number (cf. CMSIS); `irqn` will be a negative number when the handler is
-/// servicing a core exception; `irqn` will be a positive number when the handler is servicing a
-/// device specific exception (interrupt). It's mandatory to set the default handler somewhere
-/// in the dependency graph of an application.
-///
-/// `exception!($Exception, ..)` overrides the default handler for `$Exception`. All exceptions,
-/// except for `HardFault`, can be assigned some `$State`.
-///
-/// # Examples
-///
-/// - Setting the `HardFault` handler
-///
-/// ```
-/// #[macro_use(exception)]
-/// extern crate cortex_m_rt as rt;
-///
-/// use rt::ExceptionFrame;
-///
-/// exception!(HardFault, hard_fault);
-///
-/// fn hard_fault(ef: &ExceptionFrame) -> ! {
-///     // prints the exception frame as a panic message
-///     panic!("{:#?}", ef);
-/// }
-///
-/// # fn main() {}
-/// ```
-///
-/// - Setting the default handler
-///
-/// ```
-/// #[macro_use(exception)]
-/// extern crate cortex_m_rt as rt;
-///
-/// exception!(*, default_handler);
-///
-/// fn default_handler(irqn: i16) {
-///     println!("IRQn = {}", irqn);
-/// }
-///
-/// # fn main() {}
-/// ```
-///
-/// - Overriding the `SysTick` handler
-///
-/// ```
-/// #[macro_use(exception)]
-/// extern crate cortex_m_rt as rt;
-///
-/// exception!(SysTick, sys_tick, state: u32 = 0);
-///
-/// fn sys_tick(count: &mut u32) {
-///     println!("count = {}", *count);
-///
-///     *count += 1;
-/// }
-///
-/// # fn main() {}
-/// ```
-#[macro_export]
-macro_rules! exception {
-    (* , $handler:expr) => {
-        #[allow(unsafe_code)]
-        #[deny(private_no_mangle_fns)] // raise an error if this item is not accessible
-        #[no_mangle]
-        pub unsafe extern "C" fn DefaultHandler() {
-            extern crate core;
-
-            // validate the signature of the user provided handler
-            let f: fn(i16) = $handler;
-
-            const SCB_ICSR: *const u32 = 0xE000_ED04 as *const u32;
-
-            // NOTE not volatile so the compiler can opt the load operation away if the value is
-            // unused
-            f(core::ptr::read(SCB_ICSR) as u8 as i16 - 16)
-        }
-    };
-
-    (HardFault, $handler:expr) => {
-        #[allow(unsafe_code)]
-        #[deny(private_no_mangle_fns)] // raise an error if this item is not accessible
-        #[no_mangle]
-        pub unsafe extern "C" fn UserHardFault(ef: &$crate::ExceptionFrame) {
-            // validate the signature of the user provided handler
-            let f: fn(&$crate::ExceptionFrame) -> ! = $handler;
-
-            f(ef)
-        }
-    };
-
-    ($Name:ident, $handler:expr,state: $State:ty = $initial_state:expr) => {
-        #[allow(unsafe_code)]
-        #[deny(private_no_mangle_fns)] // raise an error if this item is not accessible
-        #[no_mangle]
-        pub unsafe extern "C" fn $Name() {
-            static mut STATE: $State = $initial_state;
-
-            // check that this exception exists
-            let _ = $crate::Exception::$Name;
-
-            // validate the signature of the user provided handler
-            let f: fn(&mut $State) = $handler;
-
-            f(&mut STATE)
-        }
-    };
-
-    ($Name:ident, $handler:expr) => {
-        #[allow(unsafe_code)]
-        #[deny(private_no_mangle_fns)] // raise an error if this item is not accessible
-        #[no_mangle]
-        pub unsafe extern "C" fn $Name() {
-            // check that this exception exists
-            let _ = $crate::Exception::$Name;
-
-            // validate the signature of the user provided handler
-            let f: fn() = $handler;
-
-            f()
-        }
-    };
-}
-
-/// Macro to set the function to be called at the beginning of the reset handler.
-///
-/// The function must have the signature of `unsafe fn()`.
-///
-/// The function passed will be called before static variables are initialized. Any access of static
-/// variables will result in undefined behavior.
-///
-/// # Examples
-///
-/// ``` ignore
-/// pre_init!(foo::bar);
-///
-/// mod foo {
-///     pub unsafe fn bar() {
-///         // do something here
-///     }
-/// }
-/// ```
-#[macro_export]
-macro_rules! pre_init {
-    ($handler:path) => {
-        #[allow(unsafe_code)]
-        #[deny(private_no_mangle_fns)] // raise an error if this item is not accessible
-        #[no_mangle]
-        pub unsafe extern "C" fn __pre_init() {
-            // validate user handler
-            let f: unsafe fn() = $handler;
-            f();
-        }
-    };
-}

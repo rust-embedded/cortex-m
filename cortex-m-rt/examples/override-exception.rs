@@ -6,29 +6,24 @@
 #![no_std]
 
 extern crate cortex_m;
-#[macro_use(entry, exception)]
 extern crate cortex_m_rt as rt;
 extern crate panic_semihosting;
 
 use cortex_m::asm;
-use rt::ExceptionFrame;
+use rt::{entry, exception, ExceptionFrame};
 
-// the program entry point
-entry!(main);
-
+#[entry]
 fn main() -> ! {
     loop {}
 }
 
-exception!(*, default_handler);
-
-fn default_handler(_irqn: i16) {
+#[exception]
+fn DefaultHandler(_irqn: i16) {
     asm::bkpt();
 }
 
-exception!(HardFault, hard_fault);
-
-fn hard_fault(_ef: &ExceptionFrame) -> ! {
+#[exception]
+fn HardFault(_ef: &ExceptionFrame) -> ! {
     asm::bkpt();
 
     loop {}

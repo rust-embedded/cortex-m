@@ -3,24 +3,29 @@ language: rust
 matrix:
   include:
     - env: TARGET=x86_64-unknown-linux-gnu
-      rust: stable
+      # TODO switch to 1.30-beta
+      rust: nightly
       if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
 
-    - env: TARGET=thumbv6m-none-eabi
-      rust: stable
-      if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
+      # TODO enable when 1.30-beta is out
+    # - env: TARGET=thumbv6m-none-eabi
+    #   rust: beta
+    #   if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
 
-    - env: TARGET=thumbv7m-none-eabi
-      rust: stable
-      if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
+      # TODO enable when 1.30-beta is out
+    # - env: TARGET=thumbv7m-none-eabi
+    #   rust: beta
+    #   if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
 
-    - env: TARGET=thumbv7em-none-eabi
-      rust: stable
-      if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
+      # TODO enable when 1.30-beta is out
+    # - env: TARGET=thumbv7em-none-eabi
+    #   rust: beta
+    #   if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
 
-    - env: TARGET=thumbv7em-none-eabihf
-      rust: stable
-      if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
+      # TODO enable when 1.30-beta is out
+    # - env: TARGET=thumbv7em-none-eabihf
+    #   rust: beta
+    #   if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
 
     - env: TARGET=thumbv6m-none-eabi
       rust: nightly

@@ -1,4 +1,4 @@
-//! Minimal `cortex-m-rt` based program
+//! `static mut` variables local to the entry point are safe to use
 
 #![deny(unsafe_code)]
 #![deny(warnings)]
@@ -10,8 +10,11 @@ extern crate panic_semihosting;
 
 use rt::entry;
 
-// the program entry point
 #[entry]
 fn main() -> ! {
-    loop {}
+    static mut COUNT: u32 = 0;
+
+    loop {
+        *COUNT += 1;
+    }
 }

@@ -5,13 +5,12 @@
 #![no_main]
 #![no_std]
 
-#[macro_use(entry)]
 extern crate cortex_m_rt as rt;
 extern crate panic_semihosting;
 
-// the program entry point
-entry!(main);
+use rt::entry;
 
+#[entry]
 fn main() -> ! {
     loop {}
 }

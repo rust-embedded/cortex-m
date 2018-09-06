@@ -5,18 +5,31 @@ main() {
 
     cargo check --target $TARGET --features device
 
+    if [ $TARGET = x86_64-unknown-linux-gnu ]; then
+        ( cd macros && cargo check && cargo test )
+
+        cargo test --test compiletest
+    fi
+
     local examples=(
         alignment
-        minimal
+        divergent-default-handler
+        divergent-exception
+        entry-static
         main
+        minimal
         override-exception
         pre_init
         state
+        unsafe-default-handler
+        unsafe-hard-fault
+        unsafe-entry
+        unsafe-exception
     )
     local fail_examples=(
         data_overflow
     )
-    if [ $TRAVIS_RUST_VERSION = nightly ]; then
+    if [ $TARGET != x86_64-unknown-linux-gnu ]; then
         # linking with GNU LD
         for ex in "${examples[@]}"; do
             cargo rustc --target $TARGET --example $ex -- \
@@ -48,29 +61,23 @@ main() {
         # linking with rustc's LLD
         for ex in "${examples[@]}"; do
             cargo rustc --target $TARGET --example $ex -- \
-                  -C linker=rust-lld \
                   -C link-arg=-Tlink.x
 
             cargo rustc --target $TARGET --example $ex --release -- \
-                  -C linker=rust-lld \
                   -C link-arg=-Tlink.x
         done
         for ex in "${fail_examples[@]}"; do
             ! cargo rustc --target $TARGET --example $ex -- \
-                  -C linker=rust-lld \
                   -C link-arg=-Tlink.x
 
             ! cargo rustc --target $TARGET --example $ex --release -- \
-                  -C linker=rust-lld \
                   -C link-arg=-Tlink.x
         done
 
         cargo rustc --target $TARGET --example device --features device -- \
-              -C linker=rust-lld \
               -C link-arg=-Tlink.x
 
         cargo rustc --target $TARGET --example device --features device --release -- \
-              -C linker=rust-lld \
               -C link-arg=-Tlink.x
     fi
 

@@ -1,7 +1,13 @@
 [package]
-name = "cortex-m-rt-macros"
-version = "0.1.0"
 authors = ["Jorge Aparicio <jorge@japaric.io>"]
+categories = ["embedded", "no-std"]
+description = "Attributes re-exported in `cortex-m-rt`"
+documentation = "https://rust-embedded.github.io/cortex-m-rt"
+keywords = ["arm", "cortex-m", "runtime", "startup"]
+license = "MIT OR Apache-2.0"
+name = "cortex-m-rt-macros"
+repository = "https://github.com/japaric/cortex-m-rt"
+version = "0.1.0"
 
 [lib]
 proc-macro = true
@@ -16,4 +22,4 @@ features = ["extra-traits", "full"]
 version = "0.14.8"
 
 [dev-dependencies]
-cortex-m-rt = { path = ".." }
+cortex-m-rt = { path = "..", version = "0.6.0" }

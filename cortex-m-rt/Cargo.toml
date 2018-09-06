@@ -2,11 +2,11 @@
 authors = ["Jorge Aparicio <jorge@japaric.io>"]
 categories = ["embedded", "no-std"]
 description = "Minimal runtime / startup for Cortex-M microcontrollers"
-documentation = "https://docs.rs/cortex-m-rt"
-readme = "README.md"
+documentation = "https://rust-embedded.github.io/cortex-m-rt/"
 keywords = ["arm", "cortex-m", "runtime", "startup"]
 license = "MIT OR Apache-2.0"
 name = "cortex-m-rt"
+readme = "README.md"
 repository = "https://github.com/japaric/cortex-m-rt"
 version = "0.6.0"
 

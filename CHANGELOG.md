@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - `DCB::enable_trace()` and `DCB::disable_trace()`
 
+### Changed
+
+- `iprintln!` no longer depends on `iprint!`. `cortex_m::iprintln!` will work
+  even if `cortex_m::iprint` has not been imported.
+
 ## [v0.5.6] - 2018-08-27
 
 ### Fixed

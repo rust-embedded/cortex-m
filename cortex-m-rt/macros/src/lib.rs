@@ -99,7 +99,7 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
 
     // XXX should we blacklist other attributes?
     let attrs = f.attrs;
-    let ident = f.ident;
+    let hash = random_ident();
     let (statics, stmts) = extract_static_muts(f.block.stmts);
 
     let vars = statics
@@ -123,11 +123,9 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
         }).collect::<Vec<_>>();
 
     quote!(
-        // TODO(forbid) see tests/compile-fail/entry-hidden.rs
-        // #[forbid(dead_code)]
         #[export_name = "main"]
         #(#attrs)*
-        pub fn #ident() -> ! {
+        pub fn #hash() -> ! {
             #(#vars)*
 
             #(#stmts)*

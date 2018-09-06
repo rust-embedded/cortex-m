@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.6.0] - 2018-09-06
+
+### Changed
+
+- [breaking-change] the `entry!`, `pre_init!` and `exception!` macros have been
+  replaced with attributes: `#[entry]`, `#[pre_init]` and `#[exception]`,
+  respectively. This also changes the toolchain requirement to 1.30-beta or
+  newer.
+
 ## [v0.5.3] - 2018-08-27
 
 ### Changed

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.6.1] - 2018-09-06
+
+### Changed
+
+- Produce a better error message if two (or more) copies of `cortex-m-rt` are
+  going to be linked into a binary.
+
 ## [v0.6.0] - 2018-09-06
 
 ### Changed
@@ -351,7 +358,9 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.5.3...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.1...HEAD
+[v0.6.1]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.0...v0.6.1
+[v0.6.0]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.5.3...v0.6.0
 [v0.5.3]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.5.2...v0.5.3
 [v0.5.2]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.5.1...v0.5.2
 [v0.5.1]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.5.0...v0.5.1

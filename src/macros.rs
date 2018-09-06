@@ -13,13 +13,13 @@ macro_rules! iprint {
 #[macro_export]
 macro_rules! iprintln {
     ($channel:expr) => {
-        iprint!($channel, "\n");
+        $crate::itm::write_str($channel, "\n");
     };
     ($channel:expr, $fmt:expr) => {
-        iprint!($channel, concat!($fmt, "\n"));
+        $crate::itm::write_str($channel, concat!($fmt, "\n"));
     };
     ($channel:expr, $fmt:expr, $($arg:tt)*) => {
-        iprint!($channel, concat!($fmt, "\n"), $($arg)*);
+        $crate::itm::write_fmt($channel, format_args!(concat!($fmt, "\n"), $($arg)*));
     };
 }
 

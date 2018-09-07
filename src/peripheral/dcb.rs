@@ -33,6 +33,7 @@ impl DCB {
     pub fn disable_trace(&mut self) {
         // unset bit 24 / TRCENA
         unsafe { self.demcr.modify(|w| w & !DCB_DEMCR_TRCENA); }
+    }
 
     /// Is there a debugger attached? (see notes)
     ///

@@ -109,6 +109,7 @@ fn nvic() {
     assert_eq!(address(&nvic.icpr), 0xE000E280);
     assert_eq!(address(&nvic.iabr), 0xE000E300);
     assert_eq!(address(&nvic.ipr), 0xE000E400);
+    #[cfg(not(armv6m))]
     assert_eq!(address(&nvic.stir), 0xE000EF00);
 }
 

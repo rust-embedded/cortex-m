@@ -1,4 +1,4 @@
-//! Minimal startup / runtime for Cortex-M microcontrollers
+//! Startup code and minimal runtime for Cortex-M microcontrollers
 //!
 //! This crate contains all the required parts to build a `no_std` application (binary crate) that
 //! targets a Cortex-M microcontroller.

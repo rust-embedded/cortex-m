@@ -3,11 +3,11 @@
 
 # `cortex-m-rt`
 
-> Minimal runtime / startup for Cortex-M microcontrollers
+> Startup code and minimal runtime for Cortex-M microcontrollers
 
 This project is developed and maintained by the [Cortex-M team][team].
 
-# [Documentation](https://docs.rs/cortex-m-rt)
+# [Documentation](https://rust-embedded.github.io/cortex-m-rt)
 
 # License
 

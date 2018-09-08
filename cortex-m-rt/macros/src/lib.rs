@@ -4,12 +4,18 @@ extern crate proc_macro;
 extern crate rand;
 #[macro_use]
 extern crate quote;
+extern crate core;
 extern crate proc_macro2;
 extern crate syn;
 
 use proc_macro2::Span;
 use rand::Rng;
+use rand::SeedableRng;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::time::{SystemTime, UNIX_EPOCH};
 use syn::{FnArg, Ident, Item, ItemFn, ItemStatic, ReturnType, Stmt, Type, Visibility};
+
+static CALL_COUNT: AtomicUsize = AtomicUsize::new(0);
 
 use proc_macro::TokenStream;
 
@@ -492,7 +498,23 @@ pub fn pre_init(args: TokenStream, input: TokenStream) -> TokenStream {
 
 // Creates a random identifier
 fn random_ident() -> Ident {
-    let mut rng = rand::thread_rng();
+    let secs = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+
+    let count: u64 = CALL_COUNT.fetch_add(1, Ordering::SeqCst) as u64;
+    let mut seed: [u8; 16] = [0; 16];
+
+    for (i, v) in seed.iter_mut().take(8).enumerate() {
+        *v = ((secs >> (i * 8)) & 0xFF) as u8
+    }
+
+    for (i, v) in seed.iter_mut().skip(8).enumerate() {
+        *v = ((count >> (i * 8)) & 0xFF) as u8
+    }
+
+    let mut rng = rand::rngs::SmallRng::from_seed(seed);
     Ident::new(
         &(0..16)
             .map(|i| {

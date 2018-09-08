@@ -14,12 +14,15 @@ proc-macro = true
 
 [dependencies]
 quote = "0.6.6"
-rand = "0.5.5"
 proc-macro2 = "0.4.15"
 
 [dependencies.syn]
 features = ["extra-traits", "full"]
 version = "0.14.8"
+
+[dependencies.rand]
+version = "0.5.5"
+default-features = false
 
 [dev-dependencies]
 cortex-m-rt = { path = "..", version = "0.6.0" }

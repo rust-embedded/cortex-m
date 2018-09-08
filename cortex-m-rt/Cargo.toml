@@ -19,6 +19,10 @@ cortex-m = "0.5.4"
 panic-abort = "0.3.0"
 panic-semihosting = "0.4.0"
 
+[dev-dependencies.rand]
+default-features = false
+version = "0.5.5"
+
 [target.'cfg(not(target_os = "none"))'.dev-dependencies]
 compiletest_rs = "0.3.14"
 

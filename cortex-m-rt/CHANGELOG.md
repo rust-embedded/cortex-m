@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.6.2] - 2018-09-09
+
+### Fixed
+
+- Worked around a Cargo limitation that broke builds that depend on `rand`.
+
+- Updated the documentation link in the README to point to working docs.
+
 ## [v0.6.1] - 2018-09-06
 
 ### Changed
@@ -358,7 +366,8 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.1...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.2...HEAD
+[v0.6.2]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.1...v0.6.2
 [v0.6.1]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.0...v0.6.1
 [v0.6.0]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.5.3...v0.6.0
 [v0.5.3]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.5.2...v0.5.3

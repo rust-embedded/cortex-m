@@ -394,6 +394,8 @@ extern crate r0;
 use core::fmt;
 use core::sync::atomic::{self, Ordering};
 
+#[cfg(feature = "device")]
+pub use macros::interrupt;
 pub use macros::{entry, exception, pre_init};
 
 #[export_name = "error: cortex-m-rt appears more than once in the dependency graph"]
@@ -674,7 +676,7 @@ pub static __EXCEPTIONS: [Vector; 14] = [
 
 // If we are not targeting a specific device we bind all the potential device specific interrupts
 // to the default handler
-#[cfg(all(not(feature = "device"), not(armv6m)))]
+#[cfg(all(any(not(feature = "device"), test), not(armv6m)))]
 #[doc(hidden)]
 #[link_section = ".vector_table.interrupts"]
 #[no_mangle]

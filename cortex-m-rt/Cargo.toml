@@ -18,6 +18,7 @@ cortex-m-rt-macros = { path = "macros", version = "0.1.1" }
 cortex-m = "0.5.4"
 panic-abort = "0.3.0"
 panic-semihosting = "0.4.0"
+panic-halt = "0.2.0"
 
 [dev-dependencies.rand]
 default-features = false

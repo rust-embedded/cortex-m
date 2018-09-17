@@ -8,7 +8,7 @@ main() {
     if [ $TARGET = x86_64-unknown-linux-gnu ]; then
         ( cd macros && cargo check && cargo test )
 
-        cargo test --test compiletest
+        cargo test --features device --test compiletest
     fi
 
     local examples=(

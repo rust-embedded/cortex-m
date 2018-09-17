@@ -418,7 +418,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             quote!(
                 #[export_name = #ident_s]
                 #(#attrs)*
-                pub fn #hash() {
+                pub extern "C" fn #hash() {
                     extern crate cortex_m_rt;
 
                     // check that this exception actually exists

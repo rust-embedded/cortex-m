@@ -24,6 +24,11 @@ fn main() {
     let mut f = if env::var_os("CARGO_FEATURE_DEVICE").is_some() {
         let mut f = File::create(out.join("link.x")).unwrap();
 
+        f.write_all(link_x).unwrap();
+
+        // *IMPORTANT*: The weak aliases (i.e. `PROVIDED`) must come *after* `EXTERN(__INTERRUPTS)`.
+        // Otherwise the linker will ignore user defined interrupts and always populate the table
+        // with the weak aliases.
         writeln!(
             f,
             r#"
@@ -31,7 +36,6 @@ fn main() {
 /* This will usually be provided by a device crate generated using svd2rust (see `device.x`) */
 INCLUDE device.x"#
         ).unwrap();
-        f.write_all(link_x).unwrap();
         f
     } else {
         let mut f = File::create(out.join("link.x")).unwrap();

@@ -518,6 +518,7 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
     let attrs = f.attrs;
     let block = f.block;
     let stmts = block.stmts;
+    let unsafety = f.unsafety;
 
     assert!(
         f.constness.is_none()
@@ -564,7 +565,7 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
     quote!(
         #[export_name = #ident_s]
         #(#attrs)*
-        pub extern "C" fn #hash() {
+        pub #unsafety extern "C" fn #hash() {
             interrupt::#ident;
 
             #(#vars)*

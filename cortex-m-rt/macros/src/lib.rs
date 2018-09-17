@@ -105,6 +105,7 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
 
     // XXX should we blacklist other attributes?
     let attrs = f.attrs;
+    let unsafety = f.unsafety;
     let hash = random_ident();
     let (statics, stmts) = extract_static_muts(f.block.stmts);
 
@@ -131,7 +132,7 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
     quote!(
         #[export_name = "main"]
         #(#attrs)*
-        pub fn #hash() -> ! {
+        pub #unsafety fn #hash() -> ! {
             #(#vars)*
 
             #(#stmts)*
@@ -282,6 +283,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
     let attrs = f.attrs;
     let block = f.block;
     let stmts = block.stmts;
+    let unsafety = f.unsafety;
 
     let hash = random_ident();
     match exn {
@@ -313,7 +315,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             quote!(
                 #[export_name = #ident_s]
                 #(#attrs)*
-                pub extern "C" fn #hash() {
+                pub #unsafety extern "C" fn #hash() {
                     extern crate core;
 
                     const SCB_ICSR: *const u32 = 0xE000_ED04 as *const u32;
@@ -362,7 +364,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             quote!(
                 #[export_name = "UserHardFault"]
                 #(#attrs)*
-                pub extern "C" fn #hash(#arg) -> ! {
+                pub #unsafety extern "C" fn #hash(#arg) -> ! {
                     extern crate cortex_m_rt;
 
                     // further type check of the input argument
@@ -418,7 +420,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             quote!(
                 #[export_name = #ident_s]
                 #(#attrs)*
-                pub extern "C" fn #hash() {
+                pub #unsafety extern "C" fn #hash() {
                     extern crate cortex_m_rt;
 
                     // check that this exception actually exists

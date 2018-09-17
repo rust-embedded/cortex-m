@@ -6,7 +6,7 @@
 #![no_std]
 
 extern crate cortex_m_rt as rt;
-extern crate panic_semihosting;
+extern crate panic_halt;
 
 use rt::entry;
 

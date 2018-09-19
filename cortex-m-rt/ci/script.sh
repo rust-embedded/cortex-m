@@ -5,7 +5,7 @@ main() {
 
     cargo check --target $TARGET --features device
 
-    if [ $TARGET = x86_64-unknown-linux-gnu ]; then
+    if [ $TARGET = x86_64-unknown-linux-gnu ] && [ $TRAVIS_RUST_VERSION = nightly ]; then
         ( cd macros && cargo check && cargo test )
 
         cargo test --test compiletest

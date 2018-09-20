@@ -1,5 +1,5 @@
 [package]
-authors = ["Jorge Aparicio <jorge@japaric.io>"]
+authors = ["Jorge Aparicio <jorge@japaric.io>", "Hideki Sekine <sekineh@me.com>"]
 categories = ["embedded", "no-std"]
 description = "Minimal runtime / startup for Cortex-M microcontrollers"
 documentation = "https://rust-embedded.github.io/cortex-m-rt/"

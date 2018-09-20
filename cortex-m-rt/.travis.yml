@@ -1,5 +1,10 @@
 language: rust
 
+addons:
+  apt:
+    packages:
+    - qemu-system-arm
+
 matrix:
   include:
     - env: TARGET=x86_64-unknown-linux-gnu

@@ -1,0 +1,3 @@
+[target.thumbv7m-none-eabi]
+# uncomment this to make `cargo run` execute programs on QEMU
+runner = "qemu-system-arm -cpu cortex-m3 -machine lm3s6965evb -semihosting-config enable=on,target=native -nographic -kernel"

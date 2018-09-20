@@ -1,30 +1,30 @@
-#![feature(stdsimd)]
+// #![feature(stdsimd)]
 #![no_main]
 #![no_std]
 
 extern crate cortex_m;
 
-#[macro_use(entry, exception)]
 extern crate cortex_m_rt as rt;
 extern crate cortex_m_semihosting as semihosting;
-extern crate panic_abort;
+extern crate panic_semihosting;
 extern crate unreachable;
 
-use core::arch::arm;
 use core::fmt::Write;
-use rt::ExceptionFrame;
+use cortex_m::asm;
+use rt::{entry, exception, ExceptionFrame};
 
-entry!(main);
-
+#[entry]
 fn main() -> ! {
     let x = 42;
 
     loop {
-        unsafe { arm::__NOP() }
+        asm::nop();
 
         // write something through semihosting interface
         let mut hstdout = semihosting::hio::hstdout().unwrap();
         write!(hstdout, "x = {}\n", x);
+
+        asm::nop();
 
         // exit from qemu
         semihosting::debug::exit(semihosting::debug::EXIT_SUCCESS);
@@ -36,18 +36,20 @@ fn main() -> ! {
     }
 }
 
-// define the hard fault handler
-exception!(HardFault, hard_fault);
-
+#[exception]
 #[inline(always)]
-fn hard_fault(_ef: &ExceptionFrame) -> ! {
+fn HardFault(_ef: &ExceptionFrame) -> ! {
     loop {
-        unsafe { arm::__NOP() }
+        asm::nop()
     }
 }
 
-// define the default exception handler
-exception!(*, default_handler);
-
+#[exception]
 #[inline(always)]
-fn default_handler(_irqn: i16) {}
+fn DefaultHandler(_irqn: i16) {}
+
+// use core::panic::PanicInfo;
+// #[panic_handler]
+// fn panic(_info: &PanicInfo) -> ! {{
+//     semihosting::debug::exit(semihosting::debug::EXIT_SUCCESS)}
+// }

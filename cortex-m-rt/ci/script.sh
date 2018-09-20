@@ -36,51 +36,51 @@ main() {
         for ex in "${examples[@]}"; do
             cargo rustc --target $TARGET --example $ex -- \
                   -C linker=arm-none-eabi-ld \
-                  -C link-arg=-Tlink.x
+                  #-C link-arg=-Tlink.x
 
             cargo rustc --target $TARGET --example $ex --release -- \
                   -C linker=arm-none-eabi-ld \
-                  -C link-arg=-Tlink.x
+                  #-C link-arg=-Tlink.x
         done
         for ex in "${fail_examples[@]}"; do
             ! cargo rustc --target $TARGET --example $ex -- \
                   -C linker=arm-none-eabi-ld \
-                  -C link-arg=-Tlink.x
+                  #-C link-arg=-Tlink.x
 
             ! cargo rustc --target $TARGET --example $ex --release -- \
                   -C linker=arm-none-eabi-ld \
-                  -C link-arg=-Tlink.x
+                  #-C link-arg=-Tlink.x
         done
 
         cargo rustc --target $TARGET --example device --features device -- \
               -C linker=arm-none-eabi-ld \
-              -C link-arg=-Tlink.x
+              #-C link-arg=-Tlink.x
 
         cargo rustc --target $TARGET --example device --features device --release -- \
               -C linker=arm-none-eabi-ld \
-              -C link-arg=-Tlink.x
+              #-C link-arg=-Tlink.x
 
         # linking with rustc's LLD
         for ex in "${examples[@]}"; do
             cargo rustc --target $TARGET --example $ex -- \
-                  -C link-arg=-Tlink.x
+                  #-C link-arg=-Tlink.x
 
             cargo rustc --target $TARGET --example $ex --release -- \
-                  -C link-arg=-Tlink.x
+                  #-C link-arg=-Tlink.x
         done
         for ex in "${fail_examples[@]}"; do
             ! cargo rustc --target $TARGET --example $ex -- \
-                  -C link-arg=-Tlink.x
+                  #-C link-arg=-Tlink.x
 
             ! cargo rustc --target $TARGET --example $ex --release -- \
-                  -C link-arg=-Tlink.x
+                  #-C link-arg=-Tlink.x
         done
 
         cargo rustc --target $TARGET --example device --features device -- \
-              -C link-arg=-Tlink.x
+              #-C link-arg=-Tlink.x
 
         cargo rustc --target $TARGET --example device --features device --release -- \
-              -C link-arg=-Tlink.x
+              #-C link-arg=-Tlink.x
     fi
 
     case $TARGET in

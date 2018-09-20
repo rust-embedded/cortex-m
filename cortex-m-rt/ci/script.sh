@@ -20,6 +20,7 @@ main() {
         minimal
         override-exception
         pre_init
+        qemu
         rand
         state
         unsafe-default-handler
@@ -81,6 +82,13 @@ main() {
         cargo rustc --target $TARGET --example device --features device --release -- \
               -C link-arg=-Tlink.x
     fi
+
+    case $TARGET in
+        thumbv6m-none-eabi|thumbv7m-none-eabi)
+            cargo run --target $TARGET --example qemu | grep "x = 42"
+            cargo run --target $TARGET --example qemu --release | grep "x = 42"
+            ;;
+    esac
 
     if [ $TARGET = x86_64-unknown-linux-gnu ]; then
         ./check-blobs.sh

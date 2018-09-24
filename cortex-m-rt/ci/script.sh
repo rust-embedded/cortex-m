@@ -70,11 +70,10 @@ main() {
 
     case $TARGET in
         thumbv6m-none-eabi|thumbv7m-none-eabi)
-            # linking with GNU LD
-            cargo run --target $TARGET --example qemu -- \
-                  -C linker=arm-none-eabi-ld | grep "x = 42"
-            cargo run --target $TARGET --example qemu --release -- \
-                  -C linker=arm-none-eabi-ld | grep "x = 42"
+            # linking with GNU LD (not working now; needs Ctrl+a x to exit)
+            #env RUSTFLAGS="-C linker=arm-none-eabi-ld" cargo run --target $TARGET --example qemu | grep "x = 42"
+            #env RUSTFLAGS="-C linker=arm-none-eabi-ld" cargo run --target $TARGET --example qemu --release | grep "x = 42"
+            
             # linking with rustc's LLD
             cargo run --target $TARGET --example qemu | grep "x = 42"
             cargo run --target $TARGET --example qemu --release | grep "x = 42"

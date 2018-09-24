@@ -297,6 +297,12 @@ impl VectActive {
 mod scb_consts {
     pub const SCB_CCR_IC_MASK: u32 = (1 << 17);
     pub const SCB_CCR_DC_MASK: u32 = (1 << 16);
+
+    pub const SCB_ICSR_PENDSVSET_MASK: u32 = 1 << 28;
+    pub const SCB_ICSR_PENDSVCLR_MASK: u32 = 1 << 27;
+
+    pub const SCB_ICSR_PENDSTSET_MASK: u32 = 1 << 26;
+    pub const SCB_ICSR_PENDSTCLR_MASK: u32 = 1 << 25;
 }
 
 #[cfg(not(armv6m))]
@@ -575,6 +581,56 @@ impl SCB {
 
         ::asm::dsb();
         ::asm::isb();
+    }
+
+    /// Pending SV Flag
+    ///
+    /// return     true if PendSV exception is pending, otherwise false
+    #[inline]
+    pub fn is_pendsv() -> bool {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { (*Self::ptr()).icsr.read() & SCB_ICSR_PENDSVSET_MASK != 0 }
+    }
+
+    /// Changes PendSV exception state to pending Set Pending SV Flag
+    #[inline]
+    pub fn set_pendsv(&mut self) {
+        unsafe {
+            self.icsr.write(SCB_ICSR_PENDSVSET_MASK);
+        }
+    }
+
+    /// Removes the pending state from the PendSV exception
+    #[inline]
+    pub fn clear_pendsv(&mut self) {
+        unsafe {
+            self.icsr.write(SCB_ICSR_PENDSVCLR_MASK);
+        }
+    }
+
+    /// ICSR SysTick flag
+    ///
+    /// return      true if SysTick exception is pending, otherwise false
+    #[inline]
+    pub fn is_systick_pending() -> bool {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { (*Self::ptr()).icsr.read() & SCB_ICSR_PENDSTSET_MASK != 0 }
+    }
+
+    /// Changes SysTick exception state to pending
+    #[inline]
+    pub fn set_systick_pending(&mut self) {
+        unsafe {
+            self.icsr.write(SCB_ICSR_PENDSTSET_MASK);
+        }
+    }
+
+    /// Removes the pending state from the SysTick exception
+    #[inline]
+    pub fn clear_systick_pending(&mut self) {
+        unsafe {
+            self.icsr.write(SCB_ICSR_PENDSTCLR_MASK);
+        }
     }
 }
 

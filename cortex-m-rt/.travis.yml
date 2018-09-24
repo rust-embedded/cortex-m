@@ -46,7 +46,7 @@ before_install: set -e
 
 install:
   - bash ci/install.sh
-  - export PATH="$PATH:$PWD/gcc/bin"
+  - export PATH="$PATH:$PWD/gcc/bin:$PWD/qemu"
 
 script:
   - bash ci/script.sh

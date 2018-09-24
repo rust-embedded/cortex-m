@@ -1,5 +1,5 @@
 [package]
-authors = ["Jorge Aparicio <jorge@japaric.io>"]
+authors = ["Jorge Aparicio <jorge@japaric.io>", "Hideki Sekine <sekineh@me.com>"]
 categories = ["embedded", "no-std"]
 description = "Minimal runtime / startup for Cortex-M microcontrollers"
 documentation = "https://rust-embedded.github.io/cortex-m-rt/"
@@ -17,6 +17,7 @@ cortex-m-rt-macros = { path = "macros", version = "0.1.1" }
 [dev-dependencies]
 cortex-m = "0.5.4"
 panic-halt = "0.2.0"
+cortex-m-semihosting = "0.3.1"
 
 [dev-dependencies.rand]
 default-features = false

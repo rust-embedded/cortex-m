@@ -646,7 +646,7 @@ impl SCB {
 
     /// Set the PENDSTCLR bit in the ICSR register which will clear a pending SysTick interrupt
     #[inline]
-    pub fn set_systick(&mut self) {
+    pub fn set_pendst() {
         unsafe {
             (*Self::ptr()).icsr.write(SCB_ICSR_PENDSTSET);
         }
@@ -654,7 +654,7 @@ impl SCB {
 
     /// Check if PENDSTSET bit in the ICSR register is set meaning SysTick interrupt is pending
     #[inline]
-    pub fn is_systick_pending() -> bool {
+    pub fn is_pendst_pending() -> bool {
         unsafe {
             (*Self::ptr()).icsr.read() & SCB_ICSR_PENDSTSET == SCB_ICSR_PENDSTSET
         }
@@ -663,7 +663,7 @@ impl SCB {
     
     /// Set the PENDSTCLR bit in the ICSR register which will clear a pending SysTick interrupt
     #[inline]
-    pub fn clear_systick_pending(&mut self) {
+    pub fn clear_pendst() {
         unsafe {
             (*Self::ptr()).icsr.write(SCB_ICSR_PENDSTCLR);
         }

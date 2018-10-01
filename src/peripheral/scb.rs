@@ -660,7 +660,6 @@ impl SCB {
         }
     }
 
-    
     /// Set the PENDSTCLR bit in the ICSR register which will clear a pending SysTick interrupt
     #[inline]
     pub fn clear_pendst() {

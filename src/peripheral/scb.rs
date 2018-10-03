@@ -7,9 +7,9 @@ use volatile_register::RW;
 #[cfg(not(armv6m))]
 use super::cpuid::CsselrCacheType;
 #[cfg(not(armv6m))]
-use super::CPUID;
-#[cfg(not(armv6m))]
 use super::CBP;
+#[cfg(not(armv6m))]
+use super::CPUID;
 use super::SCB;
 
 /// Register block
@@ -604,13 +604,18 @@ impl SCB {
     /// Initiate a system reset request to reset the MCU
     pub fn system_reset(&mut self) -> ! {
         ::asm::dsb();
-        unsafe { self.aircr.modify(|r|
-            SCB_AIRCR_VECTKEY | // otherwise the write is ignored
+        unsafe {
+            self.aircr.modify(
+                |r| {
+                    SCB_AIRCR_VECTKEY | // otherwise the write is ignored
             r & SCB_AIRCR_PRIGROUP_MASK | // keep priority group unchanged
-            SCB_AIRCR_SYSRESETREQ // set the bit
-        ) };
+            SCB_AIRCR_SYSRESETREQ
+                }, // set the bit
+            )
+        };
         ::asm::dsb();
-        loop { // wait for the reset
+        loop {
+            // wait for the reset
             ::asm::nop(); // avoid rust-lang/rust#28728
         }
     }
@@ -618,6 +623,9 @@ impl SCB {
 
 const SCB_ICSR_PENDSVSET: u32 = 1 << 28;
 const SCB_ICSR_PENDSVCLR: u32 = 1 << 27;
+
+const SCB_ICSR_PENDSTSET: u32 = 1 << 26;
+const SCB_ICSR_PENDSTCLR: u32 = 1 << 25;
 
 impl SCB {
     /// Set the PENDSVSET bit in the ICSR register which will pend the PendSV interrupt
@@ -629,15 +637,35 @@ impl SCB {
 
     /// Check if PENDSVSET bit in the ICSR register is set meaning PendSV interrupt is pending
     pub fn is_pendsv_pending() -> bool {
-        unsafe {
-            (*Self::ptr()).icsr.read() & SCB_ICSR_PENDSVSET == SCB_ICSR_PENDSVSET
-        }
+        unsafe { (*Self::ptr()).icsr.read() & SCB_ICSR_PENDSVSET == SCB_ICSR_PENDSVSET }
     }
 
     /// Set the PENDSVCLR bit in the ICSR register which will clear a pending PendSV interrupt
     pub fn clear_pendsv() {
         unsafe {
             (*Self::ptr()).icsr.write(SCB_ICSR_PENDSVCLR);
+        }
+    }
+
+    /// Set the PENDSTCLR bit in the ICSR register which will clear a pending SysTick interrupt
+    #[inline]
+    pub fn set_pendst() {
+        unsafe {
+            (*Self::ptr()).icsr.write(SCB_ICSR_PENDSTSET);
+        }
+    }
+
+    /// Check if PENDSTSET bit in the ICSR register is set meaning SysTick interrupt is pending
+    #[inline]
+    pub fn is_pendst_pending() -> bool {
+        unsafe { (*Self::ptr()).icsr.read() & SCB_ICSR_PENDSTSET == SCB_ICSR_PENDSTSET }
+    }
+
+    /// Set the PENDSTCLR bit in the ICSR register which will clear a pending SysTick interrupt
+    #[inline]
+    pub fn clear_pendst() {
+        unsafe {
+            (*Self::ptr()).icsr.write(SCB_ICSR_PENDSTCLR);
         }
     }
 }

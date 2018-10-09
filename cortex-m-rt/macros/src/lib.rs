@@ -412,10 +412,10 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                     let expr = var.expr;
 
                     quote!(
-                    static mut #ident_: #ty = #expr;
-                    #[allow(non_snake_case)]
-                    let #ident: &mut #ty = unsafe { &mut #ident_ };
-                )
+                        static mut #ident_: #ty = #expr;
+                        #[allow(non_snake_case)]
+                        let #ident: &mut #ty = unsafe { &mut #ident_ };
+                    )
                 }).collect::<Vec<_>>();
 
             quote!(
@@ -434,6 +434,146 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             ).into()
         }
     }
+}
+
+/// Attribute to declare an interrupt (AKA device-specific exception) handler
+///
+/// **IMPORTANT**: This attribute must be used on reachable items (i.e. there must be no private
+/// modules between the item and the root of the crate). If the item is in the root of the crate
+/// you'll be fine.
+///
+/// **NOTE**: This attribute is exposed by `cortex-m-rt` only when the `device` feature is enabled.
+/// However, that export is not meant to be used directly -- using it will result in a compilation
+/// error. You should instead use the device crate (usually generated using `svd2rust`) re-export of
+/// that attribute. You need to use the re-export to have the compiler check that the interrupt
+/// exists on the target device.
+///
+/// # Syntax
+///
+/// ``` ignore
+/// extern crate device;
+///
+/// // the attribute comes from the device crate not from cortex-m-rt
+/// use device::interrupt;
+///
+/// #[interrupt]
+/// fn USART1() {
+///     // ..
+/// }
+/// ```
+///
+/// where the name of the function must be one of the device interrupts.
+///
+/// # Usage
+///
+/// `#[interrupt] fn Name(..` overrides the default handler for the interrupt with the given `Name`.
+/// These handlers must have signature `[unsafe] fn() [-> !]`. It's possible to add state to these
+/// handlers by declaring `static mut` variables at the beginning of the body of the function. These
+/// variables will be safe to access from the function body.
+///
+/// If the interrupt handler has not been overridden it will be dispatched by the default exception
+/// handler (`DefaultHandler`).
+///
+/// # Properties
+///
+/// Interrupts handlers can only be called by the hardware. Other parts of the program can't refer
+/// to the interrupt handlers, much less invoke them as if they were functions.
+///
+/// `static mut` variables declared within an interrupt handler are safe to access and can be used
+/// to preserve state across invocations of the handler. The compiler can't prove this is safe so
+/// the attribute will help by making a transformation to the source code: for this reason a
+/// variable like `static mut FOO: u32` will become `let FOO: &mut u32;`.
+///
+/// # Examples
+///
+/// - Using state within an interrupt handler
+///
+/// ``` ignore
+/// extern crate device;
+///
+/// use device::interrupt;
+///
+/// #[interrupt]
+/// fn TIM2() {
+///     static mut COUNT: i32 = 0;
+///
+///     // `COUNT` is safe to access and has type `&mut i32`
+///     *COUNT += 1;
+///
+///     println!("{}", COUNT);
+/// }
+/// ```
+#[proc_macro_attribute]
+pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
+    let f: ItemFn = syn::parse(input).expect("`#[interrupt]` must be applied to a function");
+
+    assert!(
+        args.to_string() == "",
+        "`interrupt` attribute must have no arguments"
+    );
+
+    let ident = f.ident;
+    let ident_s = ident.to_string();
+
+    // XXX should we blacklist other attributes?
+    let attrs = f.attrs;
+    let block = f.block;
+    let stmts = block.stmts;
+    let unsafety = f.unsafety;
+
+    assert!(
+        f.constness.is_none()
+            && f.vis == Visibility::Inherited
+            && f.abi.is_none()
+            && f.decl.inputs.is_empty()
+            && f.decl.generics.params.is_empty()
+            && f.decl.generics.where_clause.is_none()
+            && f.decl.variadic.is_none()
+            && match f.decl.output {
+                ReturnType::Default => true,
+                ReturnType::Type(_, ref ty) => match **ty {
+                    Type::Tuple(ref tuple) => tuple.elems.is_empty(),
+                    Type::Never(..) => true,
+                    _ => false,
+                },
+            },
+        "`#[interrupt]` functions must have signature `[unsafe] fn() [-> !]`"
+    );
+
+    let (statics, stmts) = extract_static_muts(stmts);
+
+    let vars = statics
+        .into_iter()
+        .map(|var| {
+            let ident = var.ident;
+            // `let` can't shadow a `static mut` so we must give the `static` a different
+            // name. We'll create a new name by appending an underscore to the original name
+            // of the `static`.
+            let mut ident_ = ident.to_string();
+            ident_.push('_');
+            let ident_ = Ident::new(&ident_, Span::call_site());
+            let ty = var.ty;
+            let expr = var.expr;
+
+            quote!(
+                static mut #ident_: #ty = #expr;
+                #[allow(non_snake_case)]
+                let #ident: &mut #ty = unsafe { &mut #ident_ };
+            )
+        }).collect::<Vec<_>>();
+
+    let hash = random_ident();
+    quote!(
+        #[export_name = #ident_s]
+        #(#attrs)*
+        pub #unsafety extern "C" fn #hash() {
+            interrupt::#ident;
+
+            #(#vars)*
+
+            #(#stmts)*
+        }
+    ).into()
 }
 
 /// Attribute to mark which function will be called at the beginning of the reset handler.

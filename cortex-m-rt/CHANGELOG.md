@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.6.4] - 2018-09-25
+
+### Changed
+
+- (macros) Improved the error message when any of the attribute is used on the
+  wrong kind of item.
+
+### Fixed
+
+- (macros) The expansion of the `exception` attribute now uses the `extern "C"`
+  ABI which is what the hardware expects.
+
+- (macros) `entry` and `exception` now respect the declared unsafety. That is
+  `#[entry] unsafe main() -> !` won't require `unsafe` blocks to use `unsafe`
+  API.
+
 ## [v0.6.3] - 2018-09-09
 
 ### Fixed
@@ -372,7 +388,9 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.2...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.4...HEAD
+[v0.6.4]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.3...v0.6.4
+[v0.6.3]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.2...v0.6.3
 [v0.6.2]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.1...v0.6.2
 [v0.6.1]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.0...v0.6.1
 [v0.6.0]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.5.3...v0.6.0

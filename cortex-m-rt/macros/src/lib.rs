@@ -6,6 +6,7 @@ extern crate rand;
 extern crate quote;
 extern crate core;
 extern crate proc_macro2;
+#[macro_use]
 extern crate syn;
 
 use proc_macro2::Span;
@@ -77,7 +78,7 @@ use proc_macro::TokenStream;
 /// ```
 #[proc_macro_attribute]
 pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
-    let f: ItemFn = syn::parse(input).expect("`#[entry]` must be applied to a function");
+    let f = parse_macro_input!(input as ItemFn);
 
     // check the function signature
     assert!(
@@ -253,7 +254,7 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
 /// ```
 #[proc_macro_attribute]
 pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
-    let f: ItemFn = syn::parse(input).expect("`#[exception]` must be applied to a function");
+    let f = parse_macro_input!(input as ItemFn);
 
     assert!(
         args.to_string() == "",
@@ -599,7 +600,7 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
 /// ```
 #[proc_macro_attribute]
 pub fn pre_init(args: TokenStream, input: TokenStream) -> TokenStream {
-    let f: ItemFn = syn::parse(input).expect("`#[pre_init]` must be applied to a function");
+    let f = parse_macro_input!(input as ItemFn);
 
     // check the function signature
     assert!(

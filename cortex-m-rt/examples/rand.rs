@@ -7,7 +7,7 @@
 extern crate cortex_m_rt as rt;
 use rt::entry;
 
-extern crate panic_semihosting;
+extern crate panic_halt;
 
 extern crate rand;
 use rand::Rng;

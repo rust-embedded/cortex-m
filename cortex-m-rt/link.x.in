@@ -129,6 +129,12 @@ SECTIONS
   /* Place the heap right after `.bss` */
   __sheap = ADDR(.bss) + SIZEOF(.bss);
 
+  /* Stack usage metadata emitted by LLVM */
+  .stack_sizes (INFO) :
+  {
+    KEEP(*(.stack_sizes));
+  }
+
   /* ## .got */
   /* Dynamic relocations are unsupported. This section is only used to detect relocatable code in
      the input files and raise an error if relocatable code is found */

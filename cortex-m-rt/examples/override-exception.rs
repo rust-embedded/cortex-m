@@ -7,7 +7,7 @@
 
 extern crate cortex_m;
 extern crate cortex_m_rt as rt;
-extern crate panic_semihosting;
+extern crate panic_halt;
 
 use cortex_m::asm;
 use rt::{entry, exception, ExceptionFrame};

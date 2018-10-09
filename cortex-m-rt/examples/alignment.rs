@@ -5,7 +5,7 @@
 #![no_std]
 
 extern crate cortex_m_rt as rt;
-extern crate panic_abort;
+extern crate panic_halt;
 
 use core::ptr;
 

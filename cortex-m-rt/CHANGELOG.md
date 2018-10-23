@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.6.5] - 2018-10-23
+
+### Changed
+
+- We now keep `.stack_sizes` by default, for use with external tooling.
+- (macros) New `#[interrupt]` attribute added, similar to `#[exception]` for
+  use with device-specific interrupt handlers.
+
+### Fixed
+
+- GDB can now unwind HardFault callstacks
+
 ## [v0.6.4] - 2018-09-25
 
 ### Changed
@@ -388,7 +400,8 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.4...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.5...HEAD
+[v0.6.5]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.4...v0.6.5
 [v0.6.4]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.3...v0.6.4
 [v0.6.3]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.2...v0.6.3
 [v0.6.2]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.1...v0.6.2

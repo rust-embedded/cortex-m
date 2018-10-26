@@ -114,19 +114,16 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
         .into_iter()
         .map(|var| {
             let ident = var.ident;
-            // `let` can't shadow a `static mut` so we must give the `static` a different
-            // name. We'll create a new name by appending an underscore to the original name
-            // of the `static`.
-            let mut ident_ = ident.to_string();
-            ident_.push('_');
-            let ident_ = Ident::new(&ident_, Span::call_site());
             let ty = var.ty;
             let expr = var.expr;
 
             quote!(
-                static mut #ident_: #ty = #expr;
                 #[allow(non_snake_case)]
-                let #ident: &'static mut #ty = unsafe { &mut #ident_ };
+                let #ident: &'static mut #ty = unsafe {
+                    static mut #ident: #ty = #expr;
+
+                    &mut #ident
+                };
             )
         }).collect::<Vec<_>>();
 
@@ -402,19 +399,16 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                 .into_iter()
                 .map(|var| {
                     let ident = var.ident;
-                    // `let` can't shadow a `static mut` so we must give the `static` a different
-                    // name. We'll create a new name by appending an underscore to the original name
-                    // of the `static`.
-                    let mut ident_ = ident.to_string();
-                    ident_.push('_');
-                    let ident_ = Ident::new(&ident_, Span::call_site());
                     let ty = var.ty;
                     let expr = var.expr;
 
                     quote!(
-                        static mut #ident_: #ty = #expr;
                         #[allow(non_snake_case)]
-                        let #ident: &mut #ty = unsafe { &mut #ident_ };
+                        let #ident: &mut #ty = unsafe {
+                            static mut #ident: #ty = #expr;
+
+                            &mut #ident
+                        };
                     )
                 }).collect::<Vec<_>>();
 
@@ -546,19 +540,16 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
         .into_iter()
         .map(|var| {
             let ident = var.ident;
-            // `let` can't shadow a `static mut` so we must give the `static` a different
-            // name. We'll create a new name by appending an underscore to the original name
-            // of the `static`.
-            let mut ident_ = ident.to_string();
-            ident_.push('_');
-            let ident_ = Ident::new(&ident_, Span::call_site());
             let ty = var.ty;
             let expr = var.expr;
 
             quote!(
-                static mut #ident_: #ty = #expr;
                 #[allow(non_snake_case)]
-                let #ident: &mut #ty = unsafe { &mut #ident_ };
+                let #ident: &mut #ty = unsafe {
+                    static mut #ident: #ty = #expr;
+
+                    &mut #ident
+                };
             )
         }).collect::<Vec<_>>();
 

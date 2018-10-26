@@ -365,6 +365,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
 
             quote!(
                 #[export_name = "UserHardFault"]
+                #[link_section = ".UserHardFault"]
                 #(#attrs)*
                 pub #unsafety extern "C" fn #hash(#arg) -> ! {
                     extern crate cortex_m_rt;

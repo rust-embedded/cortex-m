@@ -11,6 +11,5 @@ fn foo() -> ! {
     loop {}
 }
 
-#[exception(SysTick)] //~ ERROR custom attribute panicked
-//~^ HELP `exception` attribute must have no arguments
+#[exception(SysTick)] //~ ERROR This attribute accepts no arguments
 fn SysTick() {}

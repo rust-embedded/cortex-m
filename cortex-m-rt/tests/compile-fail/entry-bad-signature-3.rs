@@ -6,8 +6,8 @@ extern crate panic_halt;
 
 use cortex_m_rt::entry;
 
-#[entry] //~ ERROR custom attribute panicked
-//~^ HELP `#[entry]` function must have signature `[unsafe] fn() -> !`
+#[entry]
 extern "C" fn foo() -> ! {
+    //~^ ERROR `#[entry]` function must have signature `[unsafe] fn() -> !`
     loop {}
 }

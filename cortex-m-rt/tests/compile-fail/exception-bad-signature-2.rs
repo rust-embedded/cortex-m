@@ -11,8 +11,8 @@ fn foo() -> ! {
     loop {}
 }
 
-#[exception] //~ ERROR custom attribute panicked
-//~^ HELP `#[exception]` functions other than `DefaultHandler` and `HardFault` must have signature `[unsafe] fn() [-> !]`
+#[exception]
 fn SysTick() -> u32 {
+    //~^ ERROR `#[exception]` handlers other than `DefaultHandler` and `HardFault` must have signature `[unsafe] fn() [-> !]`
     0
 }

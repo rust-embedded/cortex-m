@@ -11,8 +11,8 @@ fn foo() -> ! {
     loop {}
 }
 
-#[exception] //~ ERROR custom attribute panicked
-//~^ HELP `HardFault` exception must have signature `[unsafe] fn(&ExceptionFrame) -> !`
+#[exception]
 fn HardFault(_ef: &ExceptionFrame, undef: u32) -> ! {
+    //~^ ERROR `HardFault` handler must have signature `[unsafe] fn(&ExceptionFrame) -> !`
     loop {}
 }

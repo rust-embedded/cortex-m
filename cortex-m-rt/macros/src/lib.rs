@@ -14,7 +14,10 @@ use rand::Rng;
 use rand::SeedableRng;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
-use syn::{FnArg, Ident, Item, ItemFn, ItemStatic, ReturnType, Stmt, Type, Visibility};
+use syn::{
+    parse, spanned::Spanned, FnArg, Ident, Item, ItemFn, ItemStatic, ReturnType, Stmt, Type,
+    Visibility,
+};
 
 static CALL_COUNT: AtomicUsize = AtomicUsize::new(0);
 
@@ -82,28 +85,35 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
     let f = parse_macro_input!(input as ItemFn);
 
     // check the function signature
-    assert!(
-        f.constness.is_none()
-            && f.vis == Visibility::Inherited
-            && f.abi.is_none()
-            && f.decl.inputs.is_empty()
-            && f.decl.generics.params.is_empty()
-            && f.decl.generics.where_clause.is_none()
-            && f.decl.variadic.is_none()
-            && match f.decl.output {
-                ReturnType::Default => false,
-                ReturnType::Type(_, ref ty) => match **ty {
-                    Type::Never(_) => true,
-                    _ => false,
-                },
+    let valid_signature = f.constness.is_none()
+        && f.vis == Visibility::Inherited
+        && f.abi.is_none()
+        && f.decl.inputs.is_empty()
+        && f.decl.generics.params.is_empty()
+        && f.decl.generics.where_clause.is_none()
+        && f.decl.variadic.is_none()
+        && match f.decl.output {
+            ReturnType::Default => false,
+            ReturnType::Type(_, ref ty) => match **ty {
+                Type::Never(_) => true,
+                _ => false,
             },
-        "`#[entry]` function must have signature `[unsafe] fn() -> !`"
-    );
+        };
 
-    assert!(
-        args.to_string() == "",
-        "`entry` attribute must have no arguments"
-    );
+    if !valid_signature {
+        return parse::Error::new(
+            f.span(),
+            "`#[entry]` function must have signature `[unsafe] fn() -> !`",
+        )
+        .to_compile_error()
+        .into();
+    }
+
+    if !args.is_empty() {
+        return parse::Error::new(Span::call_site(), "This attribute accepts no arguments")
+            .to_compile_error()
+            .into();
+    }
 
     // XXX should we blacklist other attributes?
     let attrs = f.attrs;
@@ -128,7 +138,8 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
                     &mut #ident
                 };
             )
-        }).collect::<Vec<_>>();
+        })
+        .collect::<Vec<_>>();
 
     quote!(
         #[export_name = "main"]
@@ -138,7 +149,8 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
 
             #(#stmts)*
         }
-    ).into()
+    )
+    .into()
 }
 
 /// Attribute to declare an exception handler
@@ -257,11 +269,13 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
 pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
     let f = parse_macro_input!(input as ItemFn);
 
-    assert!(
-        args.to_string() == "",
-        "`exception` attribute must have no arguments"
-    );
+    if !args.is_empty() {
+        return parse::Error::new(Span::call_site(), "This attribute accepts no arguments")
+            .to_compile_error()
+            .into();
+    }
 
+    let fspan = f.span();
     let ident = f.ident;
 
     enum Exception {
@@ -278,7 +292,11 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
         // MemoryManagement is not available on Cortex-M0)
         "NonMaskableInt" | "MemoryManagement" | "BusFault" | "UsageFault" | "SecureFault"
         | "SVCall" | "DebugMonitor" | "PendSV" | "SysTick" => Exception::Other,
-        _ => panic!("{} is not a valid exception name", ident_s),
+        _ => {
+            return parse::Error::new(ident.span(), "This is not a valid exception name")
+                .to_compile_error()
+                .into();
+        }
     };
 
     // XXX should we blacklist other attributes?
@@ -290,24 +308,30 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
     let hash = random_ident();
     match exn {
         Exception::DefaultHandler => {
-            assert!(
-                f.constness.is_none()
-                    && f.vis == Visibility::Inherited
-                    && f.abi.is_none()
-                    && f.decl.inputs.len() == 1
-                    && f.decl.generics.params.is_empty()
-                    && f.decl.generics.where_clause.is_none()
-                    && f.decl.variadic.is_none()
-                    && match f.decl.output {
-                        ReturnType::Default => true,
-                        ReturnType::Type(_, ref ty) => match **ty {
-                            Type::Tuple(ref tuple) => tuple.elems.is_empty(),
-                            Type::Never(..) => true,
-                            _ => false,
-                        },
+            let valid_signature = f.constness.is_none()
+                && f.vis == Visibility::Inherited
+                && f.abi.is_none()
+                && f.decl.inputs.len() == 1
+                && f.decl.generics.params.is_empty()
+                && f.decl.generics.where_clause.is_none()
+                && f.decl.variadic.is_none()
+                && match f.decl.output {
+                    ReturnType::Default => true,
+                    ReturnType::Type(_, ref ty) => match **ty {
+                        Type::Tuple(ref tuple) => tuple.elems.is_empty(),
+                        Type::Never(..) => true,
+                        _ => false,
                     },
-                "`DefaultHandler` exception must have signature `[unsafe] fn(i16) [-> !]`"
-            );
+                };
+
+            if !valid_signature {
+                return parse::Error::new(
+                    fspan,
+                    "`DefaultHandler` must have signature `[unsafe] fn(i16) [-> !]`",
+                )
+                .to_compile_error()
+                .into();
+            }
 
             let arg = match f.decl.inputs[0] {
                 FnArg::Captured(ref arg) => arg,
@@ -326,35 +350,40 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
 
                     #(#stmts)*
                 }
-            ).into()
+            )
+            .into()
         }
         Exception::HardFault => {
-            assert!(
-                f.constness.is_none()
-                    && f.vis == Visibility::Inherited
-                    && f.abi.is_none()
-                    && f.decl.inputs.len() == 1
-                    && match f.decl.inputs[0] {
-                        FnArg::Captured(ref arg) => match arg.ty {
-                            Type::Reference(ref r) => {
-                                r.lifetime.is_none() && r.mutability.is_none()
-                            }
-                            _ => false,
-                        },
+            let valid_signature = f.constness.is_none()
+                && f.vis == Visibility::Inherited
+                && f.abi.is_none()
+                && f.decl.inputs.len() == 1
+                && match f.decl.inputs[0] {
+                    FnArg::Captured(ref arg) => match arg.ty {
+                        Type::Reference(ref r) => r.lifetime.is_none() && r.mutability.is_none(),
                         _ => false,
-                    }
-                    && f.decl.generics.params.is_empty()
-                    && f.decl.generics.where_clause.is_none()
-                    && f.decl.variadic.is_none()
-                    && match f.decl.output {
-                        ReturnType::Default => false,
-                        ReturnType::Type(_, ref ty) => match **ty {
-                            Type::Never(_) => true,
-                            _ => false,
-                        },
                     },
-                "`HardFault` exception must have signature `[unsafe] fn(&ExceptionFrame) -> !`"
-            );
+                    _ => false,
+                }
+                && f.decl.generics.params.is_empty()
+                && f.decl.generics.where_clause.is_none()
+                && f.decl.variadic.is_none()
+                && match f.decl.output {
+                    ReturnType::Default => false,
+                    ReturnType::Type(_, ref ty) => match **ty {
+                        Type::Never(_) => true,
+                        _ => false,
+                    },
+                };
+
+            if !valid_signature {
+                return parse::Error::new(
+                    fspan,
+                    "`HardFault` handler must have signature `[unsafe] fn(&ExceptionFrame) -> !`",
+                )
+                .to_compile_error()
+                .into();
+            }
 
             let arg = match f.decl.inputs[0] {
                 FnArg::Captured(ref arg) => arg,
@@ -374,28 +403,35 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
 
                     #(#stmts)*
                 }
-            ).into()
+            )
+            .into()
         }
         Exception::Other => {
-            assert!(
-                f.constness.is_none()
-                    && f.vis == Visibility::Inherited
-                    && f.abi.is_none()
-                    && f.decl.inputs.is_empty()
-                    && f.decl.generics.params.is_empty()
-                    && f.decl.generics.where_clause.is_none()
-                    && f.decl.variadic.is_none()
-                    && match f.decl.output {
-                        ReturnType::Default => true,
-                        ReturnType::Type(_, ref ty) => match **ty {
-                            Type::Tuple(ref tuple) => tuple.elems.is_empty(),
-                            Type::Never(..) => true,
-                            _ => false,
-                        },
+            let valid_signature = f.constness.is_none()
+                && f.vis == Visibility::Inherited
+                && f.abi.is_none()
+                && f.decl.inputs.is_empty()
+                && f.decl.generics.params.is_empty()
+                && f.decl.generics.where_clause.is_none()
+                && f.decl.variadic.is_none()
+                && match f.decl.output {
+                    ReturnType::Default => true,
+                    ReturnType::Type(_, ref ty) => match **ty {
+                        Type::Tuple(ref tuple) => tuple.elems.is_empty(),
+                        Type::Never(..) => true,
+                        _ => false,
                     },
-                "`#[exception]` functions other than `DefaultHandler` and `HardFault` must \
-                 have signature `[unsafe] fn() [-> !]`"
-            );
+                };
+
+            if !valid_signature {
+                return parse::Error::new(
+                    fspan,
+                    "`#[exception]` handlers other than `DefaultHandler` and `HardFault` must have \
+                     signature `[unsafe] fn() [-> !]`",
+                )
+                .to_compile_error()
+                .into();
+            }
 
             let (statics, stmts) = extract_static_muts(stmts);
 
@@ -416,7 +452,8 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                             &mut #ident
                         };
                     )
-                }).collect::<Vec<_>>();
+                })
+                .collect::<Vec<_>>();
 
             quote!(
                 #[export_name = #ident_s]
@@ -431,7 +468,8 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
 
                     #(#stmts)*
                 }
-            ).into()
+            )
+            .into()
         }
     }
 }
@@ -508,11 +546,13 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
 pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
     let f: ItemFn = syn::parse(input).expect("`#[interrupt]` must be applied to a function");
 
-    assert!(
-        args.to_string() == "",
-        "`interrupt` attribute must have no arguments"
-    );
+    if !args.is_empty() {
+        return parse::Error::new(Span::call_site(), "This attribute accepts no arguments")
+            .to_compile_error()
+            .into();
+    }
 
+    let fspan = f.span();
     let ident = f.ident;
     let ident_s = ident.to_string();
 
@@ -522,24 +562,30 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
     let stmts = block.stmts;
     let unsafety = f.unsafety;
 
-    assert!(
-        f.constness.is_none()
-            && f.vis == Visibility::Inherited
-            && f.abi.is_none()
-            && f.decl.inputs.is_empty()
-            && f.decl.generics.params.is_empty()
-            && f.decl.generics.where_clause.is_none()
-            && f.decl.variadic.is_none()
-            && match f.decl.output {
-                ReturnType::Default => true,
-                ReturnType::Type(_, ref ty) => match **ty {
-                    Type::Tuple(ref tuple) => tuple.elems.is_empty(),
-                    Type::Never(..) => true,
-                    _ => false,
-                },
+    let valid_signature = f.constness.is_none()
+        && f.vis == Visibility::Inherited
+        && f.abi.is_none()
+        && f.decl.inputs.is_empty()
+        && f.decl.generics.params.is_empty()
+        && f.decl.generics.where_clause.is_none()
+        && f.decl.variadic.is_none()
+        && match f.decl.output {
+            ReturnType::Default => true,
+            ReturnType::Type(_, ref ty) => match **ty {
+                Type::Tuple(ref tuple) => tuple.elems.is_empty(),
+                Type::Never(..) => true,
+                _ => false,
             },
-        "`#[interrupt]` functions must have signature `[unsafe] fn() [-> !]`"
-    );
+        };
+
+    if !valid_signature {
+        return parse::Error::new(
+            fspan,
+            "`#[interrupt]` handlers must have signature `[unsafe] fn() [-> !]`",
+        )
+        .to_compile_error()
+        .into();
+    }
 
     let (statics, stmts) = extract_static_muts(stmts);
 
@@ -560,7 +606,8 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
                     &mut #ident
                 };
             )
-        }).collect::<Vec<_>>();
+        })
+        .collect::<Vec<_>>();
 
     let hash = random_ident();
     quote!(
@@ -573,7 +620,8 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
 
             #(#stmts)*
         }
-    ).into()
+    )
+    .into()
 }
 
 /// Attribute to mark which function will be called at the beginning of the reset handler.
@@ -605,29 +653,36 @@ pub fn pre_init(args: TokenStream, input: TokenStream) -> TokenStream {
     let f = parse_macro_input!(input as ItemFn);
 
     // check the function signature
-    assert!(
-        f.constness.is_none()
-            && f.vis == Visibility::Inherited
-            && f.unsafety.is_some()
-            && f.abi.is_none()
-            && f.decl.inputs.is_empty()
-            && f.decl.generics.params.is_empty()
-            && f.decl.generics.where_clause.is_none()
-            && f.decl.variadic.is_none()
-            && match f.decl.output {
-                ReturnType::Default => true,
-                ReturnType::Type(_, ref ty) => match **ty {
-                    Type::Tuple(ref tuple) => tuple.elems.is_empty(),
-                    _ => false,
-                },
+    let valid_signature = f.constness.is_none()
+        && f.vis == Visibility::Inherited
+        && f.unsafety.is_some()
+        && f.abi.is_none()
+        && f.decl.inputs.is_empty()
+        && f.decl.generics.params.is_empty()
+        && f.decl.generics.where_clause.is_none()
+        && f.decl.variadic.is_none()
+        && match f.decl.output {
+            ReturnType::Default => true,
+            ReturnType::Type(_, ref ty) => match **ty {
+                Type::Tuple(ref tuple) => tuple.elems.is_empty(),
+                _ => false,
             },
-        "`#[pre_init]` function must have signature `unsafe fn()`"
-    );
+        };
 
-    assert!(
-        args.to_string() == "",
-        "`pre_init` attribute must have no arguments"
-    );
+    if !valid_signature {
+        return parse::Error::new(
+            f.span(),
+            "`#[pre_init]` function must have signature `unsafe fn()`",
+        )
+        .to_compile_error()
+        .into();
+    }
+
+    if !args.is_empty() {
+        return parse::Error::new(Span::call_site(), "This attribute accepts no arguments")
+            .to_compile_error()
+            .into();
+    }
 
     // XXX should we blacklist other attributes?
     let attrs = f.attrs;
@@ -638,7 +693,8 @@ pub fn pre_init(args: TokenStream, input: TokenStream) -> TokenStream {
         #[export_name = "__pre_init"]
         #(#attrs)*
         pub unsafe fn #ident() #block
-    ).into()
+    )
+    .into()
 }
 
 // Creates a random identifier
@@ -668,7 +724,8 @@ fn random_ident() -> Ident {
                 } else {
                     ('0' as u8 + rng.gen::<u8>() % 10) as char
                 }
-            }).collect::<String>(),
+            })
+            .collect::<String>(),
         Span::call_site(),
     )
 }
@@ -681,11 +738,13 @@ fn extract_static_muts(stmts: Vec<Stmt>) -> (Vec<ItemStatic>, Vec<Stmt>) {
     let mut stmts = vec![];
     while let Some(stmt) = istmts.next() {
         match stmt {
-            Stmt::Item(Item::Static(var)) => if var.mutability.is_some() {
-                statics.push(var);
-            } else {
-                stmts.push(Stmt::Item(Item::Static(var)));
-            },
+            Stmt::Item(Item::Static(var)) => {
+                if var.mutability.is_some() {
+                    statics.push(var);
+                } else {
+                    stmts.push(Stmt::Item(Item::Static(var)));
+                }
+            }
             _ => {
                 stmts.push(stmt);
                 break;

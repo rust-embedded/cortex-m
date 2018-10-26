@@ -15,6 +15,6 @@ enum interrupt {
     USART1,
 }
 
-#[interrupt] //~ ERROR custom attribute panicked
-//~^ HELP `#[interrupt]` functions must have signature `[unsafe] fn() [-> !]`
+#[interrupt]
 fn USART1(undef: i32) {}
+//~^ ERROR `#[interrupt]` handlers must have signature `[unsafe] fn() [-> !]`

@@ -669,3 +669,115 @@ impl SCB {
         }
     }
 }
+
+/// System handlers, exceptions with configurable priority
+#[allow(non_camel_case_types)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum SystemHandler {
+    // NonMaskableInt, // priority is fixed
+    // HardFault, // priority is fixed
+    /// Memory management interrupt (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
+    MemoryManagement,
+
+    /// Bus fault interrupt (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
+    BusFault,
+
+    /// Usage fault interrupt (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
+    UsageFault,
+
+    /// Secure fault interrupt (only on ARMv8-M)
+    #[cfg(any(armv8m, target_arch = "x86_64"))]
+    SecureFault,
+
+    /// SV call interrupt
+    SVCall,
+
+    /// Debug monitor interrupt (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
+    DebugMonitor,
+
+    /// Pend SV interrupt
+    PendSV,
+
+    /// System Tick interrupt
+    SysTick,
+}
+
+impl SystemHandler {
+    fn index(&self) -> u8 {
+        match *self {
+            #[cfg(not(armv6m))]
+            SystemHandler::MemoryManagement => 4,
+            #[cfg(not(armv6m))]
+            SystemHandler::BusFault => 5,
+            #[cfg(not(armv6m))]
+            SystemHandler::UsageFault => 6,
+            #[cfg(any(armv8m, target_arch = "x86_64"))]
+            SystemHandler::SecureFault => 7,
+            SystemHandler::SVCall => 11,
+            #[cfg(not(armv6m))]
+            SystemHandler::DebugMonitor => 12,
+            SystemHandler::PendSV => 14,
+            SystemHandler::SysTick => 15,
+        }
+    }
+}
+
+impl SCB {
+    /// Returns the hardware priority of `system_handler`
+    ///
+    /// *NOTE*: Hardware priority does not exactly match logical priority levels. See
+    /// [`NVIC.get_priority`](struct.NVIC.html#method.get_priority) for more details.
+    pub fn get_priority(system_handler: SystemHandler) -> u8 {
+        let index = system_handler.index();
+
+        #[cfg(not(armv6m))]
+        {
+            // NOTE(unsafe) atomic read with no side effects
+            unsafe { (*Self::ptr()).shpr[usize::from(index - 4)].read() }
+        }
+
+        #[cfg(armv6m)]
+        {
+            // NOTE(unsafe) atomic read with no side effects
+            let shpr = unsafe { (*Self::ptr()).shpr[usize::from((index - 8) / 4)].read() };
+            let prio = (shpr >> (8 * (index % 4))) & 0x000000ff;
+            prio as u8
+        }
+    }
+
+    /// Sets the hardware priority of `system_handler` to `prio`
+    ///
+    /// *NOTE*: Hardware priority does not exactly match logical priority levels. See
+    /// [`NVIC.get_priority`](struct.NVIC.html#method.get_priority) for more details.
+    ///
+    /// On ARMv6-M, updating a system handler priority requires a read-modify-write operation. On
+    /// ARMv7-M, the operation is performed in a single, atomic write operation.
+    ///
+    /// # Unsafety
+    ///
+    /// Changing priority levels can break priority-based critical sections (see
+    /// [`register::basepri`](../register/basepri/index.html)) and compromise memory safety.
+    pub unsafe fn set_priority(&mut self, system_handler: SystemHandler, prio: u8) {
+        let index = system_handler.index();
+
+        #[cfg(not(armv6m))]
+        {
+            self.shpr[usize::from(index - 4)].write(prio)
+        }
+
+        #[cfg(armv6m)]
+        {
+            self.shpr[usize::from((index - 8) / 4)].modify(|value| {
+                let shift = 8 * (index % 4);
+                let mask = 0x000000ff << shift;
+                let prio = u32::from(prio) << shift;
+
+                (value & !mask) | prio
+            });
+        }
+    }
+}

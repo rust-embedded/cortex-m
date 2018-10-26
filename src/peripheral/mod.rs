@@ -77,7 +77,6 @@
 
 // TODO stand-alone registers: ICTR, ACTLR and STIR
 
-#![allow(private_no_mangle_statics)]
 
 use core::marker::PhantomData;
 use core::ops;

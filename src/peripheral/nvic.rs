@@ -177,6 +177,11 @@ impl NVIC {
     ///
     /// On ARMv6-M, updating an interrupt priority requires a read-modify-write operation. On
     /// ARMv7-M, the operation is performed in a single atomic write operation.
+    ///
+    /// # Unsafety
+    ///
+    /// Changing priority levels can break priority-based critical sections (see
+    /// [`register::basepri`](../register/basepri/index.html)) and compromise memory safety.
     pub unsafe fn set_priority<I>(&mut self, interrupt: I, prio: u8)
     where
         I: Nr,

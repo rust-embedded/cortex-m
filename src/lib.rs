@@ -32,7 +32,6 @@
 
 #![cfg_attr(feature = "inline-asm", feature(asm))]
 #![deny(missing_docs)]
-#![deny(warnings)]
 #![no_std]
 
 extern crate aligned;

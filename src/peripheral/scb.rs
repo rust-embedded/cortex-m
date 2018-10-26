@@ -695,8 +695,10 @@ pub enum SystemHandler {
     /// SV call interrupt
     SVCall,
 
-    // #[cfg(not(armv6m))]
-    // DebugMonitor, // unclear whether this has configurable priority
+    /// Debug monitor interrupt (not present on Cortex-M0 variants)
+    #[cfg(not(armv6m))]
+    DebugMonitor,
+
     /// Pend SV interrupt
     PendSV,
 
@@ -720,6 +722,8 @@ impl SystemHandler {
             #[cfg(any(armv8m, target_arch = "x86_64"))]
             SystemHandler::SecureFault => 7,
             SystemHandler::SVCall => 11,
+            #[cfg(not(armv6m))]
+            SystemHandler::DebugMonitor => 12,
             SystemHandler::PendSV => 14,
             SystemHandler::SysTick => 15,
             SystemHandler::__DO_NOT_MATCH_AGAINST_THIS_VARIANT__ => unreachable!(),

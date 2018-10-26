@@ -22,9 +22,10 @@ use proc_macro::TokenStream;
 
 /// Attribute to declare the entry point of the program
 ///
-/// **IMPORTANT**: This attribute must be used once in the dependency graph and must be used on a
-/// reachable item (i.e. there must be no private modules between the item and the root of the
-/// crate). If the item is in the root of the crate you'll be fine.
+/// **IMPORTANT**: This attribute must appear exactly *once* in the dependency graph. Also, if you
+/// are using Rust 1.30 the attribute must be used on a reachable item (i.e. there must be no
+/// private modules between the item and the root of the crate); if the item is in the root of the
+/// crate you'll be fine. This reachability restriction doesn't apply to Rust 1.31 and newer releases.
 ///
 /// The specified function will be called by the reset handler *after* RAM has been initialized. In
 /// the case of the `thumbv7em-none-eabihf` target the FPU will also be enabled before the function
@@ -142,9 +143,10 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
 
 /// Attribute to declare an exception handler
 ///
-/// **IMPORTANT**: This attribute must be used on reachable items (i.e. there must be no private
-/// modules between the item and the root of the crate). If the item is in the root of the crate
-/// you'll be fine.
+/// **IMPORTANT**: If you are using Rust 1.30 this attribute must be used on reachable items (i.e.
+/// there must be no private modules between the item and the root of the crate); if the item is in
+/// the root of the crate you'll be fine. This reachability restriction doesn't apply to Rust 1.31
+/// and newer releases.
 ///
 /// # Syntax
 ///
@@ -436,9 +438,10 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
 
 /// Attribute to declare an interrupt (AKA device-specific exception) handler
 ///
-/// **IMPORTANT**: This attribute must be used on reachable items (i.e. there must be no private
-/// modules between the item and the root of the crate). If the item is in the root of the crate
-/// you'll be fine.
+/// **IMPORTANT**: If you are using Rust 1.30 this attribute must be used on reachable items (i.e.
+/// there must be no private modules between the item and the root of the crate); if the item is in
+/// the root of the crate you'll be fine. This reachability restriction doesn't apply to Rust 1.31
+/// and newer releases.
 ///
 /// **NOTE**: This attribute is exposed by `cortex-m-rt` only when the `device` feature is enabled.
 /// However, that export is not meant to be used directly -- using it will result in a compilation
@@ -575,9 +578,11 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
 
 /// Attribute to mark which function will be called at the beginning of the reset handler.
 ///
-/// **IMPORTANT**: This attribute must be used once in the dependency graph and must be used on a
-/// reachable item (i.e. there must be no private modules between the item and the root of the
-/// crate). If the item is in the root of the crate you'll be fine.
+/// **IMPORTANT**: This attribute can appear at most *once* in the dependency graph. Also, if you
+/// are using Rust 1.30 the attribute must be used on a reachable item (i.e. there must be no
+/// private modules between the item and the root of the crate); if the item is in the root of the
+/// crate you'll be fine. This reachability restriction doesn't apply to Rust 1.31 and newer
+/// releases.
 ///
 /// The function must have the signature of `unsafe fn()`.
 ///

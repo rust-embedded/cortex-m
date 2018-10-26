@@ -6,9 +6,9 @@ extern crate panic_halt;
 
 use cortex_m_rt::{entry, pre_init};
 
-#[pre_init] //~ ERROR custom attribute panicked
-//~^ HELP `#[pre_init]` function must have signature `unsafe fn()`
+#[pre_init]
 fn foo() {}
+//~^ ERROR `#[pre_init]` function must have signature `unsafe fn()`
 
 #[entry]
 fn bar() -> ! {

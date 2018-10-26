@@ -6,8 +6,7 @@ extern crate panic_halt;
 
 use cortex_m_rt::entry;
 
-#[entry(foo)] //~ ERROR custom attribute panicked
-//~^ HELP `entry` attribute must have no arguments
+#[entry(foo)] //~ ERROR This attribute accepts no arguments
 fn foo() -> ! {
     loop {}
 }

@@ -6,8 +6,7 @@ extern crate panic_halt;
 
 use cortex_m_rt::{entry, pre_init};
 
-#[pre_init(foo)] //~ ERROR custom attribute panicked
-//~^ HELP `pre_init` attribute must have no arguments
+#[pre_init(foo)] //~ ERROR This attribute accepts no arguments
 unsafe fn foo() {}
 
 #[entry]

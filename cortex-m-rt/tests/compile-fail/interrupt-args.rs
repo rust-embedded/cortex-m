@@ -15,6 +15,5 @@ enum interrupt {
     USART1,
 }
 
-#[interrupt(true)] //~ ERROR custom attribute panicked
-//~^ HELP `interrupt` attribute must have no arguments
+#[interrupt(true)] //~ ERROR This attribute accepts no arguments
 fn USART1() {}

@@ -113,6 +113,7 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
     let vars = statics
         .into_iter()
         .map(|var| {
+            let attrs = var.attrs;
             let ident = var.ident;
             let ty = var.ty;
             let expr = var.expr;
@@ -120,6 +121,7 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
             quote!(
                 #[allow(non_snake_case)]
                 let #ident: &'static mut #ty = unsafe {
+                    #(#attrs)*
                     static mut #ident: #ty = #expr;
 
                     &mut #ident
@@ -398,6 +400,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             let vars = statics
                 .into_iter()
                 .map(|var| {
+                    let attrs = var.attrs;
                     let ident = var.ident;
                     let ty = var.ty;
                     let expr = var.expr;
@@ -405,6 +408,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                     quote!(
                         #[allow(non_snake_case)]
                         let #ident: &mut #ty = unsafe {
+                            #(#attrs)*
                             static mut #ident: #ty = #expr;
 
                             &mut #ident
@@ -539,6 +543,7 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
     let vars = statics
         .into_iter()
         .map(|var| {
+            let attrs = var.attrs;
             let ident = var.ident;
             let ty = var.ty;
             let expr = var.expr;
@@ -546,6 +551,7 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
             quote!(
                 #[allow(non_snake_case)]
                 let #ident: &mut #ty = unsafe {
+                    #(#attrs)*
                     static mut #ident: #ty = #expr;
 
                     &mut #ident

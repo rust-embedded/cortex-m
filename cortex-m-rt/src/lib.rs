@@ -532,6 +532,7 @@ pub unsafe extern "C" fn Reset() -> ! {
 
 #[allow(unused_variables)]
 #[doc(hidden)]
+#[link_section = ".UserHardFault"]
 #[no_mangle]
 pub unsafe extern "C" fn UserHardFault_(ef: &ExceptionFrame) -> ! {
     loop {

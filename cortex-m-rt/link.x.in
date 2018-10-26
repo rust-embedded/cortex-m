@@ -86,6 +86,8 @@ SECTIONS
   .text _stext :
   {
     *(.text .text.*);
+    *(.HardFault);
+    *(.UserHardFault);
   } > FLASH
 
   /* ### .rodata */

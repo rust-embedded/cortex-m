@@ -704,10 +704,6 @@ pub enum SystemHandler {
 
     /// System Tick interrupt
     SysTick,
-
-    // Make this enum extensible
-    #[doc(hidden)]
-    __DO_NOT_MATCH_AGAINST_THIS_VARIANT__,
 }
 
 impl SystemHandler {
@@ -726,7 +722,6 @@ impl SystemHandler {
             SystemHandler::DebugMonitor => 12,
             SystemHandler::PendSV => 14,
             SystemHandler::SysTick => 15,
-            SystemHandler::__DO_NOT_MATCH_AGAINST_THIS_VARIANT__ => unreachable!(),
         }
     }
 }

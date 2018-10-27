@@ -35,7 +35,7 @@ EXTERN(__EXCEPTIONS); /* depends on all the these PROVIDED symbols */
 EXTERN(DefaultHandler);
 
 PROVIDE(NonMaskableInt = DefaultHandler);
-EXTERN(HardFault);
+EXTERN(HardFaultTrampoline);
 PROVIDE(MemoryManagement = DefaultHandler);
 PROVIDE(BusFault = DefaultHandler);
 PROVIDE(UsageFault = DefaultHandler);
@@ -46,7 +46,7 @@ PROVIDE(PendSV = DefaultHandler);
 PROVIDE(SysTick = DefaultHandler);
 
 PROVIDE(DefaultHandler = DefaultHandler_);
-PROVIDE(UserHardFault = UserHardFault_);
+PROVIDE(HardFault = HardFault_);
 
 /* # Interrupt vectors */
 EXTERN(__INTERRUPTS); /* `static` variable similar to `__EXCEPTIONS` */
@@ -86,8 +86,8 @@ SECTIONS
   .text _stext :
   {
     *(.text .text.*);
-    *(.HardFault);
-    *(.UserHardFault);
+    *(.HardFaultTrampoline);
+    *(.HardFault.*);
   } > FLASH
 
   /* ### .rodata */

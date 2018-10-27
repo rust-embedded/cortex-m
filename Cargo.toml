@@ -8,7 +8,7 @@ license = "MIT OR Apache-2.0"
 name = "cortex-m"
 readme = "README.md"
 repository = "https://github.com/japaric/cortex-m"
-version = "0.5.7"
+version = "0.5.8"
 
 [dependencies]
 aligned = "0.2.0"

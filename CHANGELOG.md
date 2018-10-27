@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.5.8] - 2018-10-27
+
+### Added
+
+- `SCB` gained methods to set, clear and check the pending state of the PendSV
+  exception.
+
+- `SCB` gained methods to set, clear and check the pending state of the SysTick
+  exception.
+
+- `SCB` gained methods to set and get the priority of system handlers like
+  SVCall and SysTick.
+
+- `NVIC` gained *static* methods, `pend` and `unpend`, to set and clear the
+  pending state of interrupts.
+
+### Changed
+
+- The `NVIC.{clear,set}_pending` methods have been deprecated in favor of
+  `NVIC::{unpend,pend}`.
+
 ## [v0.5.7] - 2018-09-06
 
 ### Added
@@ -508,7 +529,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.5.7...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.5.8...HEAD
+[v0.5.8]: https://github.com/rust-embedded/cortex-m/compare/v0.5.7...v0.5.8
 [v0.5.7]: https://github.com/rust-embedded/cortex-m/compare/v0.5.6...v0.5.7
 [v0.5.6]: https://github.com/rust-embedded/cortex-m/compare/v0.5.5...v0.5.6
 [v0.5.5]: https://github.com/rust-embedded/cortex-m/compare/v0.5.4...v0.5.5

@@ -69,13 +69,12 @@ pub struct RegisterBlock {
 
 impl NVIC {
     /// Clears `interrupt`'s pending state
+    #[deprecated(since = "0.5.8", note = "Use `NVIC::unpend`")]
     pub fn clear_pending<I>(&mut self, interrupt: I)
     where
         I: Nr,
     {
-        let nr = interrupt.nr();
-
-        unsafe { self.icpr[usize::from(nr / 32)].write(1 << (nr % 32)) }
+        Self::unpend(interrupt)
     }
 
     /// Disables `interrupt`
@@ -161,13 +160,23 @@ impl NVIC {
     }
 
     /// Forces `interrupt` into pending state
-    pub fn set_pending<I>(&mut self, interrupt: I)
+    pub fn pend<I>(interrupt: I)
     where
         I: Nr,
     {
         let nr = interrupt.nr();
 
-        unsafe { self.ispr[usize::from(nr / 32)].write(1 << (nr % 32)) }
+        // NOTE(unsafe) atomic stateless write; ICPR doesn't store any state
+        unsafe { (*Self::ptr()).ispr[usize::from(nr / 32)].write(1 << (nr % 32)) }
+    }
+
+    /// Forces `interrupt` into pending state
+    #[deprecated(since = "0.5.8", note = "Use `NVIC::pend`")]
+    pub fn set_pending<I>(&mut self, interrupt: I)
+    where
+        I: Nr,
+    {
+        Self::pend(interrupt)
     }
 
     /// Sets the "priority" of `interrupt` to `prio`
@@ -201,6 +210,17 @@ impl NVIC {
                 (value & !mask) | prio
             })
         }
+    }
+
+    /// Clears `interrupt`'s pending state
+    pub fn unpend<I>(interrupt: I)
+    where
+        I: Nr,
+    {
+        let nr = interrupt.nr();
+
+        // NOTE(unsafe) atomic stateless write; ICPR doesn't store any state
+        unsafe { (*Self::ptr()).icpr[usize::from(nr / 32)].write(1 << (nr % 32)) }
     }
 
     #[cfg(armv6m)]

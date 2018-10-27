@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 
 - The `NVIC.{clear,set}_pending` methods have been deprecated in favor of
-  `NVIC::{,un}pend`.
+  `NVIC::{unpend,pend}`.
 
 ## [v0.5.7] - 2018-09-06
 

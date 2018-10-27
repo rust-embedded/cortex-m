@@ -20,6 +20,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `SCB` gained methods to set and get the priority of system handlers like
   SVCall and SysTick.
 
+- `NVIC` gained *static* methods, `pend` and `unpend`, to set and clear the
+  pending state of interrupts.
+
+### Changed
+
+- The `NVIC.{clear,set}_pending` methods have been deprecated in favor of
+  `NVIC::{,un}pend`.
+
 ## [v0.5.7] - 2018-09-06
 
 ### Added

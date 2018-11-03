@@ -25,6 +25,10 @@
 //! [`#[exception]`]: ../cortex_m_rt_macros/fn.exception.html
 //! [`#[pre_init]`]: ../cortex_m_rt_macros/fn.pre_init.html
 //!
+//! This crate also implements a related attribute called `#[interrupt]`, which allows you
+//! to define interrupt handlers. However, since which interrupts are available depends on the
+//! microcontroller in use, this attribute should be re-exported and used from a device crate.
+//!
 //! # Requirements
 //!
 //! ## `memory.x`

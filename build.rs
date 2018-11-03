@@ -26,6 +26,9 @@ fn main() {
         println!("cargo:rustc-cfg=cortex_m");
         println!("cargo:rustc-cfg=armv7m");
         //println!("cargo:rustc-cfg=armv7em");
+    } else if target.starts_with("thumbv8m") {
+        println!("cargo:rustc-cfg=cortex_m");
+        println!("cargo:rustc-cfg=armv8m");
     }
 
     if target.ends_with("-eabihf") {

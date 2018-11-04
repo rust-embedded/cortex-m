@@ -12,6 +12,7 @@ extern crate syn;
 use proc_macro2::Span;
 use rand::Rng;
 use rand::SeedableRng;
+use std::collections::HashSet;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 use syn::{
@@ -119,7 +120,10 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
     let attrs = f.attrs;
     let unsafety = f.unsafety;
     let hash = random_ident();
-    let (statics, stmts) = extract_static_muts(f.block.stmts);
+    let (statics, stmts) = match extract_static_muts(f.block.stmts) {
+        Err(e) => return e.to_compile_error().into(),
+        Ok(x) => x,
+    };
 
     let vars = statics
         .into_iter()
@@ -434,7 +438,10 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                 .into();
             }
 
-            let (statics, stmts) = extract_static_muts(stmts);
+            let (statics, stmts) = match extract_static_muts(stmts) {
+                Err(e) => return e.to_compile_error().into(),
+                Ok(x) => x,
+            };
 
             let vars = statics
                 .into_iter()
@@ -588,7 +595,10 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
         .into();
     }
 
-    let (statics, stmts) = extract_static_muts(stmts);
+    let (statics, stmts) = match extract_static_muts(stmts) {
+        Err(e) => return e.to_compile_error().into(),
+        Ok(x) => x,
+    };
 
     let vars = statics
         .into_iter()
@@ -732,15 +742,24 @@ fn random_ident() -> Ident {
 }
 
 /// Extracts `static mut` vars from the beginning of the given statements
-fn extract_static_muts(stmts: Vec<Stmt>) -> (Vec<ItemStatic>, Vec<Stmt>) {
+fn extract_static_muts(stmts: Vec<Stmt>) -> Result<(Vec<ItemStatic>, Vec<Stmt>), parse::Error> {
     let mut istmts = stmts.into_iter();
 
+    let mut seen = HashSet::new();
     let mut statics = vec![];
     let mut stmts = vec![];
     while let Some(stmt) = istmts.next() {
         match stmt {
             Stmt::Item(Item::Static(var)) => {
                 if var.mutability.is_some() {
+                    if seen.contains(&var.ident) {
+                        return Err(parse::Error::new(
+                            var.ident.span(),
+                            format!("the name `{}` is defined multiple times", var.ident),
+                        ));
+                    }
+
+                    seen.insert(var.ident.clone());
                     statics.push(var);
                 } else {
                     stmts.push(Stmt::Item(Item::Static(var)));
@@ -755,5 +774,5 @@ fn extract_static_muts(stmts: Vec<Stmt>) -> (Vec<ItemStatic>, Vec<Stmt>) {
 
     stmts.extend(istmts);
 
-    (statics, stmts)
+    Ok((statics, stmts))
 }

@@ -19,4 +19,7 @@ arm-none-eabi-as -march=armv7e-m asm.s -o bin/$crate.o
 ar crs bin/thumbv7em-none-eabi.a bin/$crate.o
 ar crs bin/thumbv7em-none-eabihf.a bin/$crate.o
 
+arm-none-eabi-as -march=armv8-m.base asm.s -o bin/$crate.o
+ar crs bin/thumbv8m.base-none-eabi.a bin/$crate.o
+
 rm bin/$crate.o

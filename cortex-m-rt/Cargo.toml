@@ -2,7 +2,7 @@
 authors = ["Jorge Aparicio <jorge@japaric.io>", "Hideki Sekine <sekineh@me.com>"]
 categories = ["embedded", "no-std"]
 description = "Minimal runtime / startup for Cortex-M microcontrollers"
-documentation = "https://rust-embedded.github.io/cortex-m-rt/"
+documentation = "https://docs.rs/cortex-m-rt/"
 keywords = ["arm", "cortex-m", "runtime", "startup"]
 license = "MIT OR Apache-2.0"
 name = "cortex-m-rt"
@@ -33,3 +33,6 @@ required-features = ["device"]
 
 [features]
 device = []
+
+[package.metadata.docs.rs]
+features = ["device"]

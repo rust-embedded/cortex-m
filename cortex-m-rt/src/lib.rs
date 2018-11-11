@@ -19,7 +19,6 @@
 //! - `#[entry]` to declare the entry point of the program
 //! - `#[exception]` to override an exception handler. If not overridden all exception handlers
 //!   default to an infinite loop.
-//!   default to an infinite loop.
 //! - `#[pre_init]` to run code *before* `static` variables are initialized
 //!
 //! This crate also implements a related attribute called `#[interrupt]`, which allows you

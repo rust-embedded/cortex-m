@@ -16,18 +16,16 @@
 //!
 //! This crate also provides the following attributes:
 //!
-//! - [`#[entry]`] to declare the entry point of the program
-//! - [`#[exception]`] to override an exception handler. If not overridden all exception handlers
+//! - `#[entry]` to declare the entry point of the program
+//! - `#[exception]` to override an exception handler. If not overridden all exception handlers
 //!   default to an infinite loop.
-//! - [`#[pre_init]`] to run code *before* `static` variables are initialized
-//!
-//! [`#[entry]`]: ../cortex_m_rt_macros/fn.entry.html
-//! [`#[exception]`]: ../cortex_m_rt_macros/fn.exception.html
-//! [`#[pre_init]`]: ../cortex_m_rt_macros/fn.pre_init.html
+//! - `#[pre_init]` to run code *before* `static` variables are initialized
 //!
 //! This crate also implements a related attribute called `#[interrupt]`, which allows you
 //! to define interrupt handlers. However, since which interrupts are available depends on the
 //! microcontroller in use, this attribute should be re-exported and used from a device crate.
+//!
+//! The documentation for these attributes can be found in the [Reexports](#reexports) section.
 //!
 //! # Requirements
 //!

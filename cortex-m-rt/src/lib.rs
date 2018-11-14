@@ -203,12 +203,12 @@
 //! - `DefaultHandler`. This is the default handler. If not overridden using `#[exception] fn
 //! DefaultHandler(..` this will be an infinite loop.
 //!
-//! - `HardFault`. This is the hard fault handler. This function is simply a trampoline that jumps
-//! into the user defined hard fault handler named `UserHardFault`. The trampoline is required to
-//! set up the pointer to the stacked exception frame.
+//! - `HardFaultTrampoline`. This is the real hard fault handler. This function is simply a
+//! trampoline that jumps into the user defined hard fault handler named `HardFault`. The
+//! trampoline is required to set up the pointer to the stacked exception frame.
 //!
-//! - `UserHardFault`. This is the user defined hard fault handler. If not overridden using
-//! `#[exception] fn HardFault(..` this will be an infinite loop.
+//! - `HardFault`. This is the user defined hard fault handler. If not overridden using
+//! `#[exception] fn HardFault(..` it will default to an infinite loop.
 //!
 //! - `__STACK_START`. This is the first entry in the `.vector_table` section. This symbol contains
 //! the initial value of the stack pointer; this is where the stack will be located -- the stack
@@ -534,9 +534,9 @@ pub unsafe extern "C" fn Reset() -> ! {
 
 #[allow(unused_variables)]
 #[doc(hidden)]
-#[link_section = ".UserHardFault"]
+#[link_section = ".HardFault.default"]
 #[no_mangle]
-pub unsafe extern "C" fn UserHardFault_(ef: &ExceptionFrame) -> ! {
+pub unsafe extern "C" fn HardFault_(ef: &ExceptionFrame) -> ! {
     loop {
         // add some side effect to prevent this from turning into a UDF instruction
         // see rust-lang/rust#28728 for details
@@ -590,7 +590,7 @@ pub enum Exception {
 extern "C" {
     fn NonMaskableInt();
 
-    fn HardFault();
+    fn HardFaultTrampoline();
 
     #[cfg(not(armv6m))]
     fn MemoryManagement();
@@ -629,7 +629,7 @@ pub static __EXCEPTIONS: [Vector; 14] = [
         handler: NonMaskableInt,
     },
     // Exception 3: Hard Fault Interrupt.
-    Vector { handler: HardFault },
+    Vector { handler: HardFaultTrampoline },
     // Exception 4: Memory Management Interrupt [not on Cortex-M0 variants].
     #[cfg(not(armv6m))]
     Vector {

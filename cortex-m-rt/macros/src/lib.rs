@@ -397,8 +397,8 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             let pat = &arg.pat;
 
             quote!(
-                #[export_name = "UserHardFault"]
-                #[link_section = ".UserHardFault"]
+                #[export_name = "HardFault"]
+                #[link_section = ".HardFault.user"]
                 #(#attrs)*
                 pub #unsafety extern "C" fn #hash(#arg) -> ! {
                     extern crate cortex_m_rt;

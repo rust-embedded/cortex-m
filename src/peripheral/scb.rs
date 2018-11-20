@@ -596,6 +596,24 @@ impl SCB {
     }
 }
 
+const SCB_SCR_SLEEPONEXIT: u32 = 0x1 << 1;
+
+impl SCB {
+    /// Set the SLEEPONEXIT bit in the SCR register
+    pub fn set_sleeponexit(&mut self) {
+        unsafe {
+            self.scr.modify(|scr| scr | SCB_SCR_SLEEPONEXIT);
+        }
+    }
+
+    /// Clear the SLEEPONEXIT bit in the SCR register
+    pub fn clear_sleeponexit(&mut self) {
+        unsafe {
+            self.scr.modify(|scr| scr & !SCB_SCR_SLEEPONEXIT);
+        }
+    }
+}
+
 const SCB_AIRCR_VECTKEY: u32 = 0x05FA << 16;
 const SCB_AIRCR_PRIGROUP_MASK: u32 = 0x5 << 8;
 const SCB_AIRCR_SYSRESETREQ: u32 = 1 << 2;

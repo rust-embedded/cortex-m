@@ -3,23 +3,23 @@ language: rust
 matrix:
   include:
     - env: TARGET=x86_64-unknown-linux-gnu
-      rust: beta
+      rust: stable
       if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
 
     - env: TARGET=thumbv6m-none-eabi
-      rust: beta
+      rust: stable
       if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
 
     - env: TARGET=thumbv7m-none-eabi
-      rust: beta
+      rust: stable
       if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
 
     - env: TARGET=thumbv7em-none-eabi
-      rust: beta
+      rust: stable
       if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
 
     - env: TARGET=thumbv7em-none-eabihf
-      rust: beta
+      rust: stable
       if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
 
     - env: TARGET=x86_64-unknown-linux-gnu

@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.6.6] - 2018-12-06
+
+### Changed
+
+- Misuse of attributes now produce compiler errors with proper spans instead of
+  panicking messages.
+
+- The `HardFault` symbol has been renamed to `HardFaultTrampoline`; likewise the
+  `UserHardFault` symbol has been renamed to `HardFault`. If you were using
+  breakpoints on `UserHardFault` to detect hard fault you should now put those
+  breakpoints on the `HardFault` symbol.
+
+### Fixed
+
+- Attributes on local `static mut` variables (declared at the beginning of
+  `entry` / `interrupt` / `exception`) are now respected.
+
+- The "GDB can now unwind HardFault callstacks" fix from the previous release
+  broke `HardFault`'s' `&ExceptionFrame` argument (the pointer was off by 8
+  bytes). This release fixes that problem without compromising GDB's ability to
+  unwind `HardFault`s.
+
 ## [v0.6.5] - 2018-10-23
 
 ### Changed
@@ -400,7 +422,8 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.5...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.6...HEAD
+[v0.6.6]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.5...v0.6.6
 [v0.6.5]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.4...v0.6.5
 [v0.6.4]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.3...v0.6.4
 [v0.6.3]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.2...v0.6.3

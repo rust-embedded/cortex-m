@@ -4,7 +4,7 @@
 
 use core::{fmt, mem, ptr, slice};
 
-use aligned::Aligned;
+use aligned::{Aligned, A4};
 
 use peripheral::itm::Stim;
 
@@ -77,7 +77,7 @@ pub fn write_all(port: &mut Stim, buffer: &[u8]) {
 /// # Examples
 ///
 /// ``` ignore
-/// let mut buffer: Aligned<u32, _> = Aligned([0; 14]);
+/// let mut buffer: Aligned<A4, _> = Aligned([0; 14]);
 ///
 /// buffer.copy_from_slice(b"Hello, world!\n");
 ///
@@ -86,7 +86,7 @@ pub fn write_all(port: &mut Stim, buffer: &[u8]) {
 /// // Or equivalently
 /// itm::write_aligned(&itm.stim[0], &Aligned(*b"Hello, world!\n"));
 /// ```
-pub fn write_aligned(port: &mut Stim, buffer: &Aligned<u32, [u8]>) {
+pub fn write_aligned(port: &mut Stim, buffer: &Aligned<A4, [u8]>) {
     unsafe {
         let len = buffer.len();
 

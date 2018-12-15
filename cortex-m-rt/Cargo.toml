@@ -8,12 +8,12 @@ license = "MIT OR Apache-2.0"
 name = "cortex-m-rt"
 readme = "README.md"
 repository = "https://github.com/rust-embedded/cortex-m-rt"
-version = "0.6.6"
+version = "0.6.7"
 autoexamples = true
 
 [dependencies]
 r0 = "0.2.2"
-cortex-m-rt-macros = { path = "macros", version = "0.1.4" }
+cortex-m-rt-macros = { path = "macros", version = "0.1.5" }
 
 [dev-dependencies]
 cortex-m = "0.5.7"

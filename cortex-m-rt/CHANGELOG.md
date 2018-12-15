@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.6.7] - 2018-12-15
+
+### Fixed
+
+- entry / exception / interrupt: `#[cfg]` attributes used on `static mut`
+  variables are now properly handled.
+
 ## [v0.6.6] - 2018-12-06
 
 ### Changed
@@ -422,7 +429,8 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.6...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.7...HEAD
+[v0.6.7]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.6...v0.6.7
 [v0.6.6]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.5...v0.6.6
 [v0.6.5]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.4...v0.6.5
 [v0.6.4]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.3...v0.6.4

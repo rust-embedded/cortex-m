@@ -1,6 +1,8 @@
 //! Data Watchpoint and Trace unit
 
-use volatile_register::{RO, RW, WO};
+#[cfg(not(armv6m))]
+use volatile_register::WO;
+use volatile_register::{RO, RW};
 
 use peripheral::DWT;
 

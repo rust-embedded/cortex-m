@@ -16,8 +16,8 @@ use std::collections::HashSet;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 use syn::{
-    parse, spanned::Spanned, FnArg, Ident, Item, ItemFn, ItemStatic, ReturnType, Stmt, Type,
-    Visibility,
+    parse, spanned::Spanned, AttrStyle, Attribute, FnArg, Ident, Item, ItemFn, ItemStatic,
+    PathArguments, ReturnType, Stmt, Type, Visibility,
 };
 
 static CALL_COUNT: AtomicUsize = AtomicUsize::new(0);
@@ -128,15 +128,17 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
     let vars = statics
         .into_iter()
         .map(|var| {
-            let attrs = var.attrs;
+            let (ref cfgs, ref attrs) = extract_cfgs(var.attrs);
             let ident = var.ident;
             let ty = var.ty;
             let expr = var.expr;
 
             quote!(
                 #[allow(non_snake_case)]
+                #(#cfgs)*
                 let #ident: &'static mut #ty = unsafe {
                     #(#attrs)*
+                    #(#cfgs)*
                     static mut #ident: #ty = #expr;
 
                     &mut #ident
@@ -405,7 +407,6 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
 
                     // further type check of the input argument
                     let #pat: &cortex_m_rt::ExceptionFrame = #pat;
-
                     #(#stmts)*
                 }
             )
@@ -446,15 +447,17 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             let vars = statics
                 .into_iter()
                 .map(|var| {
-                    let attrs = var.attrs;
+                    let (ref cfgs, ref attrs) = extract_cfgs(var.attrs);
                     let ident = var.ident;
                     let ty = var.ty;
                     let expr = var.expr;
 
                     quote!(
                         #[allow(non_snake_case)]
+                        #(#cfgs)*
                         let #ident: &mut #ty = unsafe {
                             #(#attrs)*
+                            #(#cfgs)*
                             static mut #ident: #ty = #expr;
 
                             &mut #ident
@@ -603,15 +606,17 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
     let vars = statics
         .into_iter()
         .map(|var| {
-            let attrs = var.attrs;
+            let (ref cfgs, ref attrs) = extract_cfgs(var.attrs);
             let ident = var.ident;
             let ty = var.ty;
             let expr = var.expr;
 
             quote!(
                 #[allow(non_snake_case)]
+                #(#cfgs)*
                 let #ident: &mut #ty = unsafe {
                     #(#attrs)*
+                    #(#cfgs)*
                     static mut #ident: #ty = #expr;
 
                     &mut #ident
@@ -775,4 +780,28 @@ fn extract_static_muts(stmts: Vec<Stmt>) -> Result<(Vec<ItemStatic>, Vec<Stmt>),
     stmts.extend(istmts);
 
     Ok((statics, stmts))
+}
+
+fn extract_cfgs(attrs: Vec<Attribute>) -> (Vec<Attribute>, Vec<Attribute>) {
+    let mut cfgs = vec![];
+    let mut not_cfgs = vec![];
+
+    for attr in attrs {
+        if eq(&attr, "cfg") {
+            cfgs.push(attr);
+        } else {
+            not_cfgs.push(attr);
+        }
+    }
+
+    (cfgs, not_cfgs)
+}
+
+/// Returns `true` if `attr.path` matches `name`
+fn eq(attr: &Attribute, name: &str) -> bool {
+    attr.style == AttrStyle::Outer && attr.path.segments.len() == 1 && {
+        let pair = attr.path.segments.first().unwrap();
+        let segment = pair.value();
+        segment.arguments == PathArguments::None && segment.ident.to_string() == name
+    }
 }

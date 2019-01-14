@@ -7,7 +7,7 @@
 
 This project is developed and maintained by the [Cortex-M team][team].
 
-# [Documentation](https://rust-embedded.github.io/cortex-m-rt)
+# [Documentation](https://docs.rs/cortex-m-rt)
 
 # License
 

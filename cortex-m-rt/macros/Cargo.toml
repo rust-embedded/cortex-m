@@ -2,7 +2,7 @@
 authors = ["Jorge Aparicio <jorge@japaric.io>"]
 categories = ["embedded", "no-std"]
 description = "Attributes re-exported in `cortex-m-rt`"
-documentation = "https://rust-embedded.github.io/cortex-m-rt"
+documentation = "https://docs.rs/cortex-m-rt"
 keywords = ["arm", "cortex-m", "runtime", "startup"]
 license = "MIT OR Apache-2.0"
 name = "cortex-m-rt-macros"

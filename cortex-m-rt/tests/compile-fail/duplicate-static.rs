@@ -6,6 +6,7 @@ extern crate panic_halt;
 
 use cortex_m_rt::{entry, exception, interrupt};
 
+#[allow(non_camel_case_types)]
 enum interrupt {
     UART0,
 }

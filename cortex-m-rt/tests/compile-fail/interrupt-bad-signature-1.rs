@@ -11,6 +11,7 @@ fn foo() -> ! {
     loop {}
 }
 
+#[allow(non_camel_case_types)]
 enum interrupt {
     USART1,
 }

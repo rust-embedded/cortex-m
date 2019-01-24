@@ -1,4 +1,4 @@
-//! Directly plug a `main` symbol instead of using `entry!`
+//! Directly plug a `main` symbol instead of using `#[entry]`
 
 #![deny(warnings)]
 #![no_main]

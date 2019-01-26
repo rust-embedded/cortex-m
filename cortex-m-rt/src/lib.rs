@@ -194,11 +194,11 @@
 //! One will always find the following (unmangled) symbols in `cortex-m-rt` applications:
 //!
 //! - `Reset`. This is the reset handler. The microcontroller will executed this function upon
-//! booting. This function will call the user program entry point (cf. [`entry!`]) using the `main`
+//! booting. This function will call the user program entry point (cf. [`#[entry]`]) using the `main`
 //! symbol so you may also find that symbol in your program; if you do, `main` will contain your
 //! application code. Some other times `main` gets inlined into `Reset` so you won't find it.
 //!
-//! [`entry!`]:  macro.entry.html
+//! [`#[entry]`]:  https://docs.rs/cortex-m-rt-macros/0.1.5/cortex_m_rt_macros/attr.entry.html
 //!
 //! - `DefaultHandler`. This is the default handler. If not overridden using `#[exception] fn
 //! DefaultHandler(..` this will be an infinite loop.
@@ -245,26 +245,13 @@
 //!
 //! ## Setting the program entry point
 //!
-//! This section describes how `entry!` is implemented. This information is useful to developers who
-//! want to provide an alternative to `entry!` that provides extra guarantees.
+//! This section describes how `#[entry]` is implemented. This information is useful to developers who
+//! want to provide an alternative to `#[entry]` that provides extra guarantees.
 //!
 //! The `Reset` handler will call a symbol named `main` (unmangled) *after* initializing `.bss` and
-//! `.data`, and enabling the FPU (if the target is `thumbv7em-none-eabihf`). `entry!` provides this
-//! symbol in its expansion:
-//!
-//! ``` ignore
-//! entry!(path::to::main);
-//!
-//! // expands into
-//!
-//! #[export_name = "main"]
-//! pub extern "C" fn __impl_main() -> ! {
-//!     // validate the signature of the program entry point
-//!     let f: fn() -> ! = path::to::main;
-//!
-//!     f()
-//! }
-//! ```
+//! `.data`, and enabling the FPU (if the target is `thumbv7em-none-eabihf`). A function with the
+//! `entry` attribute will be set to have the export name "`main`"; in addition, its mutable
+//! statics are turned into safe mutable references (see [`#[entry]`] for details).
 //!
 //! The unmangled `main` symbol must have signature `extern "C" fn() -> !` or its invocation from
 //! `Reset`  will result in undefined behavior.

@@ -6,5 +6,14 @@
   .type HardFaultTrampoline,%function
   .thumb_func
 HardFaultTrampoline:
+  # depending on the stack mode in EXC_RETURN, fetch stack pointer from
+  # PSP or MSP
+  mov r0, lr
+  mov r1, #4
+  tst r0, r1
+  bne 0f
   mrs r0, MSP
+  b HardFault
+0:
+  mrs r0, PSP
   b HardFault

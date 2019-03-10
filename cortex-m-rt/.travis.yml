@@ -53,7 +53,7 @@ script:
 
 after_script: set +e
 
-cache: cache
+cache: cargo
 
 before_cache:
   - chmod -R a+r $HOME/.cargo;

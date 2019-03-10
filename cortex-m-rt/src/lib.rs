@@ -221,7 +221,7 @@
 //! exception vectors, which includes exceptions like `HardFault` and `SysTick`. This array is
 //! located after `__RESET_VECTOR` in the `.vector_table` section.
 //!
-//! - `__EXCEPTIONS`. This is the device specific interrupt portion of the vector table; its exact
+//! - `__INTERRUPTS`. This is the device specific interrupt portion of the vector table; its exact
 //! size depends on the target device but if the `"device"` feature has not been enabled it will
 //! have a size of 32 vectors (on ARMv6-M) or 240 vectors (on ARMv7-M). This array is located after
 //! `__EXCEPTIONS` in the `.vector_table` section.

@@ -14,7 +14,7 @@ repository = "https://github.com/japaric/cortex-m"
 version = "0.5.8"
 
 [dependencies]
-aligned = "0.2.0"
+aligned = "0.3.1"
 bare-metal = "0.2.0"
 volatile-register = "0.2.0"
 

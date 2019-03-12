@@ -29,11 +29,17 @@ fn dwt() {
     let dwt = unsafe { &*::peripheral::DWT::ptr() };
 
     assert_eq!(address(&dwt.ctrl), 0xE000_1000);
+    #[cfg(not(armv6m))]
     assert_eq!(address(&dwt.cyccnt), 0xE000_1004);
+    #[cfg(not(armv6m))]
     assert_eq!(address(&dwt.cpicnt), 0xE000_1008);
+    #[cfg(not(armv6m))]
     assert_eq!(address(&dwt.exccnt), 0xE000_100C);
+    #[cfg(not(armv6m))]
     assert_eq!(address(&dwt.sleepcnt), 0xE000_1010);
+    #[cfg(not(armv6m))]
     assert_eq!(address(&dwt.lsucnt), 0xE000_1014);
+    #[cfg(not(armv6m))]
     assert_eq!(address(&dwt.foldcnt), 0xE000_1018);
     assert_eq!(address(&dwt.pcsr), 0xE000_101C);
     assert_eq!(address(&dwt.c[0].comp), 0xE000_1020);
@@ -42,7 +48,9 @@ fn dwt() {
     assert_eq!(address(&dwt.c[1].comp), 0xE000_1030);
     assert_eq!(address(&dwt.c[1].mask), 0xE000_1034);
     assert_eq!(address(&dwt.c[1].function), 0xE000_1038);
+    #[cfg(not(armv6m))]
     assert_eq!(address(&dwt.lar), 0xE000_1FB0);
+    #[cfg(not(armv6m))]
     assert_eq!(address(&dwt.lsr), 0xE000_1FB4);
 }
 

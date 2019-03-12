@@ -1,8 +1,8 @@
 //! Nested Vector Interrupt Controller
 
+use volatile_register::RW;
 #[cfg(not(armv6m))]
 use volatile_register::{RO, WO};
-use volatile_register::RW;
 
 use interrupt::Nr;
 use peripheral::NVIC;
@@ -67,10 +67,7 @@ pub struct RegisterBlock {
     pub ipr: [RW<u32>; 8],
 
     #[cfg(not(armv6m))]
-    reserved5: [u32; 208],
-
-    #[cfg(armv6m)]
-    reserved5: [u32; 696],
+    _reserved6: [u32; 580],
 
     #[cfg(not(armv6m))]
     /// Software Trigger Interrupt

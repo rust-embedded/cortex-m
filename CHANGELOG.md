@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.6.0] - 2019-03-12
+
+### Fixed
+
+- Fix numerous registers which were incorrectly included for thumbv6
+- `SHCRS` renamed to `SHCSR` in `SCB`
+
+### Added
+
+- Support for ARMv8-M (`thumbv8.base` and `thumbv8.main`)
+
+- `SCB` gained methods to set and clear `SLEEPONEXIT` bit
+
+- `NVIC` gained `STIR` register and methods to request an interrupt
+
+- `DCB` gained methods to check if debugger is attached
+
 ## [v0.5.8] - 2018-10-27
 
 ### Added
@@ -529,7 +546,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.5.8...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.6.0...HEAD
+[v0.6.0]: https://github.com/rust-embedded/cortex-m/compare/v0.5.8...v0.6.0
 [v0.5.8]: https://github.com/rust-embedded/cortex-m/compare/v0.5.7...v0.5.8
 [v0.5.7]: https://github.com/rust-embedded/cortex-m/compare/v0.5.6...v0.5.7
 [v0.5.6]: https://github.com/rust-embedded/cortex-m/compare/v0.5.5...v0.5.6

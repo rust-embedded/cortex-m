@@ -121,7 +121,7 @@ fn scb() {
     assert_eq!(address(&scb.scr), 0xE000_ED10);
     assert_eq!(address(&scb.ccr), 0xE000_ED14);
     assert_eq!(address(&scb.shpr), 0xE000_ED18);
-    assert_eq!(address(&scb.shcrs), 0xE000_ED24);
+    assert_eq!(address(&scb.shcsr), 0xE000_ED24);
     assert_eq!(address(&scb.cfsr), 0xE000_ED28);
     assert_eq!(address(&scb.hfsr), 0xE000_ED2C);
     assert_eq!(address(&scb.dfsr), 0xE000_ED30);

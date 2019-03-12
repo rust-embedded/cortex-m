@@ -8,7 +8,6 @@ fn main() {
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
     has_fpu(&target);
-    let is_armv6m = is_armv6m(&target);
 
     if target.starts_with("thumbv") {
         fs::copy(
@@ -43,7 +42,21 @@ INCLUDE device.x"#
         f
     };
 
-    let max_int_handlers = if is_armv6m { 32 } else { 240 };
+    let max_int_handlers = if target.starts_with("thumbv6m-") {
+        println!("cargo:rustc-cfg=cortex_m");
+        println!("cargo:rustc-cfg=armv6m");
+        32
+    } else if target.starts_with("thumbv7m-") || target.starts_with("thumbv7em-") {
+        println!("cargo:rustc-cfg=cortex_m");
+        println!("cargo:rustc-cfg=armv7m");
+        240
+    } else if target.starts_with("thumbv8m") {
+        println!("cargo:rustc-cfg=cortex_m");
+        println!("cargo:rustc-cfg=armv8m");
+        240
+    } else {
+        panic!("Unexpected target {:?}", target);
+    };
 
     // checking the size of the interrupts portion of the vector table is sub-architecture dependent
     writeln!(
@@ -58,6 +71,10 @@ handlers.");
         max_int_handlers
     ).unwrap();
 
+    if target.ends_with("-eabihf") {
+        println!("cargo:rustc-cfg=has_fpu");
+    }
+
     println!("cargo:rustc-link-search={}", out.display());
 
     println!("cargo:rerun-if-changed=build.rs");
@@ -67,14 +84,5 @@ handlers.");
 fn has_fpu(target: &str) {
     if target.ends_with("eabihf") {
         println!("cargo:rustc-cfg=has_fpu");
-    }
-}
-
-fn is_armv6m(target: &str) -> bool {
-    if target.starts_with("thumbv6m-") {
-        println!("cargo:rustc-cfg=armv6m");
-        true
-    } else {
-        false
     }
 }

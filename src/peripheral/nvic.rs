@@ -1,8 +1,8 @@
 //! Nested Vector Interrupt Controller
 
-#[cfg(not(armv6m))]
-use volatile_register::RO;
 use volatile_register::RW;
+#[cfg(not(armv6m))]
+use volatile_register::{RO, WO};
 
 use interrupt::Nr;
 use peripheral::NVIC;
@@ -65,9 +65,35 @@ pub struct RegisterBlock {
     /// so convenient byte-sized representation wouldn't work on that
     /// architecture.
     pub ipr: [RW<u32>; 8],
+
+    #[cfg(not(armv6m))]
+    _reserved6: [u32; 580],
+
+    #[cfg(not(armv6m))]
+    /// Software Trigger Interrupt
+    pub stir: WO<u32>,
 }
 
 impl NVIC {
+    #[cfg(not(armv6m))]
+    /// Request an IRQ in software
+    ///
+    /// Writing a value to the INTID field is the same as manually pending an interrupt by setting
+    /// the corresponding interrupt bit in an Interrupt Set Pending Register. This is similar to
+    /// `set_pending`.
+    ///
+    /// This method is not available on ARMv6-M chips.
+    pub fn request<I>(&mut self, interrupt: I)
+    where
+        I: Nr,
+    {
+        let nr = interrupt.nr();
+
+        unsafe {
+            self.stir.write(nr as u32);
+        }
+    }
+
     /// Clears `interrupt`'s pending state
     #[deprecated(since = "0.5.8", note = "Use `NVIC::unpend`")]
     pub fn clear_pending<I>(&mut self, interrupt: I)

@@ -55,7 +55,9 @@ INCLUDE device.x"#
         println!("cargo:rustc-cfg=armv8m");
         240
     } else {
-        panic!("Unexpected target {:?}", target);
+       // Non ARM target. We assume you're just testing the syntax.
+       // This value seems as soon as any
+       240
     };
 
     // checking the size of the interrupts portion of the vector table is sub-architecture dependent

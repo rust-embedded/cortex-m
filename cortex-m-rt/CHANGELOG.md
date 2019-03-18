@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.6.8] - 2019-03-18
+
+### Fixed
+
+- Correct stack-pointer is selected on `HardFault`
+- Linker template now takes and discard `*(.ARM.extab.*)`
+- Misc. documentation fixes
+
+### Changed
+
+- Architecture added: `armv8-m.main`
+- Cortex-M team added to `authors`
+- The nightly build is allowed to fail in CI
+
 ## [v0.6.7] - 2018-12-15
 
 ### Fixed
@@ -429,7 +443,8 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.7...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.8...HEAD
+[v0.6.8]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.7...v0.6.8
 [v0.6.7]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.6...v0.6.7
 [v0.6.6]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.5...v0.6.6
 [v0.6.5]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.4...v0.6.5

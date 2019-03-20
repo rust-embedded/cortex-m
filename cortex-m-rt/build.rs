@@ -73,10 +73,6 @@ handlers.");
         max_int_handlers
     ).unwrap();
 
-    if target.ends_with("-eabihf") {
-        println!("cargo:rustc-cfg=has_fpu");
-    }
-
     println!("cargo:rustc-link-search={}", out.display());
 
     println!("cargo:rerun-if-changed=build.rs");

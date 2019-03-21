@@ -619,6 +619,27 @@ impl SCB {
             ::asm::nop(); // avoid rust-lang/rust#28728
         }
     }
+
+    /// Initiate a system reset request to reset the MCU
+    ///
+    /// Static version of [`SCB::system_reset`].
+    pub fn system_reset2() -> ! {
+        ::asm::dsb();
+        unsafe {
+            (*Self::ptr()).aircr.modify(
+                |r| {
+                    SCB_AIRCR_VECTKEY | // otherwise the write is ignored
+            r & SCB_AIRCR_PRIGROUP_MASK | // keep priority group unchanged
+            SCB_AIRCR_SYSRESETREQ
+                }, // set the bit
+            )
+        };
+        ::asm::dsb();
+        loop {
+            // wait for the reset
+            ::asm::nop(); // avoid rust-lang/rust#28728
+        }
+    }
 }
 
 const SCB_ICSR_PENDSVSET: u32 = 1 << 28;

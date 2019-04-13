@@ -602,6 +602,7 @@ const SCB_AIRCR_SYSRESETREQ: u32 = 1 << 2;
 
 impl SCB {
     /// Initiate a system reset request to reset the MCU
+    #[deprecated(since = "0.6.1", note = "Use `SCB::sys_reset`")]
     pub fn system_reset(&mut self) -> ! {
         ::asm::dsb();
         unsafe {
@@ -621,9 +622,7 @@ impl SCB {
     }
 
     /// Initiate a system reset request to reset the MCU
-    ///
-    /// Static version of [`SCB::system_reset`].
-    pub fn system_reset2() -> ! {
+    pub fn sys_reset() -> ! {
         ::asm::dsb();
         unsafe {
             (*Self::ptr()).aircr.modify(

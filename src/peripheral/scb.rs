@@ -620,10 +620,30 @@ const SCB_AIRCR_SYSRESETREQ: u32 = 1 << 2;
 
 impl SCB {
     /// Initiate a system reset request to reset the MCU
+    #[deprecated(since = "0.6.1", note = "Use `SCB::sys_reset`")]
     pub fn system_reset(&mut self) -> ! {
         ::asm::dsb();
         unsafe {
             self.aircr.modify(
+                |r| {
+                    SCB_AIRCR_VECTKEY | // otherwise the write is ignored
+            r & SCB_AIRCR_PRIGROUP_MASK | // keep priority group unchanged
+            SCB_AIRCR_SYSRESETREQ
+                }, // set the bit
+            )
+        };
+        ::asm::dsb();
+        loop {
+            // wait for the reset
+            ::asm::nop(); // avoid rust-lang/rust#28728
+        }
+    }
+
+    /// Initiate a system reset request to reset the MCU
+    pub fn sys_reset() -> ! {
+        ::asm::dsb();
+        unsafe {
+            (*Self::ptr()).aircr.modify(
                 |r| {
                     SCB_AIRCR_VECTKEY | // otherwise the write is ignored
             r & SCB_AIRCR_PRIGROUP_MASK | // keep priority group unchanged

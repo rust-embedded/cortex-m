@@ -97,7 +97,7 @@ pub struct RegisterBlock {
 
 /// FPU access mode
 #[cfg(has_fpu)]
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum FpuAccessMode {
     /// FPU is not accessible
     Disabled,

@@ -18,7 +18,7 @@ pub struct RegisterBlock {
 }
 
 /// SysTick clock source
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SystClkSource {
     /// Core-provided clock
     Core,

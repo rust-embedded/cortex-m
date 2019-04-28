@@ -147,10 +147,10 @@ pub struct Peripherals {
     pub TPIU: TPIU,
 }
 
-// NOTE `no_mangle` is used here to prevent linking different minor versions of this crate as that
-// would let you `take` the core peripherals more than once (one per minor version)
-#[no_mangle]
-static mut CORE_PERIPHERALS: bool = false;
+// Re-use the CORE_PERIPHERALS static from cortex-m v0.6.0 to allow interoperation
+extern "C" {
+    static mut CORE_PERIPHERALS: bool;
+}
 
 impl Peripherals {
     /// Returns all the core peripherals *once*

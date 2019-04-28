@@ -37,6 +37,7 @@
 extern crate aligned;
 extern crate bare_metal;
 extern crate volatile_register;
+extern crate cortex_m_0_6;
 
 #[macro_use]
 mod macros;

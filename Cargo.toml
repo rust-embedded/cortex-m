@@ -8,12 +8,13 @@ license = "MIT OR Apache-2.0"
 name = "cortex-m"
 readme = "README.md"
 repository = "https://github.com/japaric/cortex-m"
-version = "0.5.8"
+version = "0.5.9"
 
 [dependencies]
 aligned = "0.2.0"
 bare-metal = "0.2.0"
 volatile-register = "0.2.0"
+cortex_m_0_6 = { package = "cortex-m", version = "0.6.0" }
 
 [features]
 cm7-r0p1 = []

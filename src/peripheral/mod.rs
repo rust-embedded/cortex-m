@@ -83,24 +83,16 @@ use core::ops;
 
 use interrupt;
 
-#[cfg(not(armv6m))]
-pub mod cbp;
-pub mod cpuid;
-pub mod dcb;
 pub mod dwt;
-#[cfg(not(armv6m))]
-pub mod fpb;
-// NOTE(target_arch) is for documentation purposes
-#[cfg(any(has_fpu, target_arch = "x86_64"))]
-pub mod fpu;
-#[cfg(not(armv6m))]
-pub mod itm;
-pub mod mpu;
 pub mod nvic;
 pub mod scb;
-pub mod syst;
+
 #[cfg(not(armv6m))]
-pub mod tpiu;
+pub use cortex_m_0_6::peripheral::{cbp, fpb, itm, tpiu};
+// NOTE(target_arch) is for documentation purposes
+#[cfg(any(has_fpu, target_arch = "x86_64"))]
+pub use cortex_m_0_6::peripheral::fpu;
+pub use cortex_m_0_6::peripheral::{cpuid, dcb, mpu, syst};
 
 #[cfg(test)]
 mod test;
@@ -170,121 +162,11 @@ impl Peripherals {
         debug_assert!(!CORE_PERIPHERALS);
 
         CORE_PERIPHERALS = true;
-
-        Peripherals {
-            CBP: CBP {
-                _marker: PhantomData,
-            },
-            CPUID: CPUID {
-                _marker: PhantomData,
-            },
-            DCB: DCB {
-                _marker: PhantomData,
-            },
-            DWT: DWT {
-                _marker: PhantomData,
-            },
-            FPB: FPB {
-                _marker: PhantomData,
-            },
-            FPU: FPU {
-                _marker: PhantomData,
-            },
-            ITM: ITM {
-                _marker: PhantomData,
-            },
-            MPU: MPU {
-                _marker: PhantomData,
-            },
-            NVIC: NVIC {
-                _marker: PhantomData,
-            },
-            SCB: SCB {
-                _marker: PhantomData,
-            },
-            SYST: SYST {
-                _marker: PhantomData,
-            },
-            TPIU: TPIU {
-                _marker: PhantomData,
-            },
-        }
+        core::mem::transmute(())
     }
 }
 
-/// Cache and branch predictor maintenance operations
-pub struct CBP {
-    _marker: PhantomData<*const ()>,
-}
-
-unsafe impl Send for CBP {}
-
-#[cfg(not(armv6m))]
-impl CBP {
-    pub(crate) unsafe fn new() -> Self {
-        CBP {
-            _marker: PhantomData,
-        }
-    }
-
-    /// Returns a pointer to the register block
-    pub fn ptr() -> *const self::cbp::RegisterBlock {
-        0xE000_EF50 as *const _
-    }
-}
-
-#[cfg(not(armv6m))]
-impl ops::Deref for CBP {
-    type Target = self::cbp::RegisterBlock;
-
-    fn deref(&self) -> &Self::Target {
-        unsafe { &*Self::ptr() }
-    }
-}
-
-/// CPUID
-pub struct CPUID {
-    _marker: PhantomData<*const ()>,
-}
-
-unsafe impl Send for CPUID {}
-
-impl CPUID {
-    /// Returns a pointer to the register block
-    pub fn ptr() -> *const self::cpuid::RegisterBlock {
-        0xE000_ED00 as *const _
-    }
-}
-
-impl ops::Deref for CPUID {
-    type Target = self::cpuid::RegisterBlock;
-
-    fn deref(&self) -> &Self::Target {
-        unsafe { &*Self::ptr() }
-    }
-}
-
-/// Debug Control Block
-pub struct DCB {
-    _marker: PhantomData<*const ()>,
-}
-
-unsafe impl Send for DCB {}
-
-impl DCB {
-    /// Returns a pointer to the register block
-    pub fn ptr() -> *const dcb::RegisterBlock {
-        0xE000_EDF0 as *const _
-    }
-}
-
-impl ops::Deref for DCB {
-    type Target = self::dcb::RegisterBlock;
-
-    fn deref(&self) -> &Self::Target {
-        unsafe { &*DCB::ptr() }
-    }
-}
+pub use cortex_m_0_6::peripheral::{CBP, CPUID, DCB, FPB, FPU, ITM, MPU, SYST, TPIU};
 
 /// Data Watchpoint and Trace unit
 pub struct DWT {
@@ -302,107 +184,6 @@ impl DWT {
 
 impl ops::Deref for DWT {
     type Target = self::dwt::RegisterBlock;
-
-    fn deref(&self) -> &Self::Target {
-        unsafe { &*Self::ptr() }
-    }
-}
-
-/// Flash Patch and Breakpoint unit
-pub struct FPB {
-    _marker: PhantomData<*const ()>,
-}
-
-unsafe impl Send for FPB {}
-
-#[cfg(not(armv6m))]
-impl FPB {
-    /// Returns a pointer to the register block
-    pub fn ptr() -> *const fpb::RegisterBlock {
-        0xE000_2000 as *const _
-    }
-}
-
-#[cfg(not(armv6m))]
-impl ops::Deref for FPB {
-    type Target = self::fpb::RegisterBlock;
-
-    fn deref(&self) -> &Self::Target {
-        unsafe { &*Self::ptr() }
-    }
-}
-
-/// Floating Point Unit
-pub struct FPU {
-    _marker: PhantomData<*const ()>,
-}
-
-unsafe impl Send for FPU {}
-
-#[cfg(any(has_fpu, target_arch = "x86_64"))]
-impl FPU {
-    /// Returns a pointer to the register block
-    pub fn ptr() -> *const fpu::RegisterBlock {
-        0xE000_EF30 as *const _
-    }
-}
-
-#[cfg(any(has_fpu, target_arch = "x86_64"))]
-impl ops::Deref for FPU {
-    type Target = self::fpu::RegisterBlock;
-
-    fn deref(&self) -> &Self::Target {
-        unsafe { &*Self::ptr() }
-    }
-}
-
-/// Instrumentation Trace Macrocell
-pub struct ITM {
-    _marker: PhantomData<*const ()>,
-}
-
-unsafe impl Send for ITM {}
-
-#[cfg(not(armv6m))]
-impl ITM {
-    /// Returns a pointer to the register block
-    pub fn ptr() -> *mut itm::RegisterBlock {
-        0xE000_0000 as *mut _
-    }
-}
-
-#[cfg(not(armv6m))]
-impl ops::Deref for ITM {
-    type Target = self::itm::RegisterBlock;
-
-    fn deref(&self) -> &Self::Target {
-        unsafe { &*Self::ptr() }
-    }
-}
-
-#[cfg(not(armv6m))]
-impl ops::DerefMut for ITM {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { &mut *Self::ptr() }
-    }
-}
-
-/// Memory Protection Unit
-pub struct MPU {
-    _marker: PhantomData<*const ()>,
-}
-
-unsafe impl Send for MPU {}
-
-impl MPU {
-    /// Returns a pointer to the register block
-    pub fn ptr() -> *const mpu::RegisterBlock {
-        0xE000_ED90 as *const _
-    }
-}
-
-impl ops::Deref for MPU {
-    type Target = self::mpu::RegisterBlock;
 
     fn deref(&self) -> &Self::Target {
         unsafe { &*Self::ptr() }
@@ -447,52 +228,6 @@ impl SCB {
 
 impl ops::Deref for SCB {
     type Target = self::scb::RegisterBlock;
-
-    fn deref(&self) -> &Self::Target {
-        unsafe { &*Self::ptr() }
-    }
-}
-
-/// SysTick: System Timer
-pub struct SYST {
-    _marker: PhantomData<*const ()>,
-}
-
-unsafe impl Send for SYST {}
-
-impl SYST {
-    /// Returns a pointer to the register block
-    pub fn ptr() -> *const syst::RegisterBlock {
-        0xE000_E010 as *const _
-    }
-}
-
-impl ops::Deref for SYST {
-    type Target = self::syst::RegisterBlock;
-
-    fn deref(&self) -> &Self::Target {
-        unsafe { &*Self::ptr() }
-    }
-}
-
-/// Trace Port Interface Unit
-pub struct TPIU {
-    _marker: PhantomData<*const ()>,
-}
-
-unsafe impl Send for TPIU {}
-
-#[cfg(not(armv6m))]
-impl TPIU {
-    /// Returns a pointer to the register block
-    pub fn ptr() -> *const tpiu::RegisterBlock {
-        0xE004_0000 as *const _
-    }
-}
-
-#[cfg(not(armv6m))]
-impl ops::Deref for TPIU {
-    type Target = self::tpiu::RegisterBlock;
 
     fn deref(&self) -> &Self::Target {
         unsafe { &*Self::ptr() }

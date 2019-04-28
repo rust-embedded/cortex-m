@@ -42,11 +42,10 @@ extern crate cortex_m_0_6;
 #[macro_use]
 mod macros;
 
-pub mod asm;
-pub mod interrupt;
+pub use cortex_m_0_6::{asm, interrupt, register};
 #[cfg(not(armv6m))]
-pub mod itm;
+pub use cortex_m_0_6::itm;
+
 pub mod peripheral;
-pub mod register;
 
 pub use peripheral::Peripherals;

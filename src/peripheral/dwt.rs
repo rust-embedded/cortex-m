@@ -32,17 +32,7 @@ pub struct RegisterBlock {
     pub lsr: RO<u32>,
 }
 
-/// Comparator
-#[repr(C)]
-pub struct Comparator {
-    /// Comparator
-    pub comp: RW<u32>,
-    /// Comparator Mask
-    pub mask: RW<u32>,
-    /// Comparator Function
-    pub function: RW<u32>,
-    reserved: u32,
-}
+pub use cortex_m_0_6::peripheral::dwt::Comparator;
 
 impl DWT {
     /// Enables the cycle counter

@@ -95,17 +95,8 @@ pub struct RegisterBlock {
     _reserved9: u32,
 }
 
-/// FPU access mode
 #[cfg(has_fpu)]
-#[derive(Clone, Copy, Debug)]
-pub enum FpuAccessMode {
-    /// FPU is not accessible
-    Disabled,
-    /// FPU is accessible in Privileged and User mode
-    Enabled,
-    /// FPU is accessible in Privileged mode only
-    Privileged,
-}
+pub use cortex_m_0_6::peripheral::scb::FpuAccessMode;
 
 #[cfg(has_fpu)]
 mod fpu_consts {
@@ -187,111 +178,7 @@ impl SCB {
     }
 }
 
-/// Processor core exceptions (internal interrupts)
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum Exception {
-    /// Non maskable interrupt
-    NonMaskableInt,
-
-    /// Hard fault interrupt
-    HardFault,
-
-    /// Memory management interrupt (not present on Cortex-M0 variants)
-    #[cfg(not(armv6m))]
-    MemoryManagement,
-
-    /// Bus fault interrupt (not present on Cortex-M0 variants)
-    #[cfg(not(armv6m))]
-    BusFault,
-
-    /// Usage fault interrupt (not present on Cortex-M0 variants)
-    #[cfg(not(armv6m))]
-    UsageFault,
-
-    /// Secure fault interrupt (only on ARMv8-M)
-    #[cfg(any(armv8m, target_arch = "x86_64"))]
-    SecureFault,
-
-    /// SV call interrupt
-    SVCall,
-
-    /// Debug monitor interrupt (not present on Cortex-M0 variants)
-    #[cfg(not(armv6m))]
-    DebugMonitor,
-
-    /// Pend SV interrupt
-    PendSV,
-
-    /// System Tick interrupt
-    SysTick,
-}
-
-impl Exception {
-    /// Returns the IRQ number of this `Exception`
-    ///
-    /// The return value is always within the closed range `[-1, -14]`
-    pub fn irqn(&self) -> i8 {
-        match *self {
-            Exception::NonMaskableInt => -14,
-            Exception::HardFault => -13,
-            #[cfg(not(armv6m))]
-            Exception::MemoryManagement => -12,
-            #[cfg(not(armv6m))]
-            Exception::BusFault => -11,
-            #[cfg(not(armv6m))]
-            Exception::UsageFault => -10,
-            #[cfg(any(armv8m, target_arch = "x86_64"))]
-            Exception::SecureFault => -9,
-            Exception::SVCall => -5,
-            #[cfg(not(armv6m))]
-            Exception::DebugMonitor => -4,
-            Exception::PendSV => -2,
-            Exception::SysTick => -1,
-        }
-    }
-}
-
-/// Active exception number
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum VectActive {
-    /// Thread mode
-    ThreadMode,
-
-    /// Processor core exception (internal interrupts)
-    Exception(Exception),
-
-    /// Device specific exception (external interrupts)
-    Interrupt {
-        /// Interrupt number. This number is always within half open range `[0, 240)`
-        irqn: u8,
-    },
-}
-
-impl VectActive {
-    /// Converts a `byte` into `VectActive`
-    pub fn from(vect_active: u8) -> Option<Self> {
-        Some(match vect_active {
-            0 => VectActive::ThreadMode,
-            2 => VectActive::Exception(Exception::NonMaskableInt),
-            3 => VectActive::Exception(Exception::HardFault),
-            #[cfg(not(armv6m))]
-            4 => VectActive::Exception(Exception::MemoryManagement),
-            #[cfg(not(armv6m))]
-            5 => VectActive::Exception(Exception::BusFault),
-            #[cfg(not(armv6m))]
-            6 => VectActive::Exception(Exception::UsageFault),
-            #[cfg(any(armv8m, target_arch = "x86_64"))]
-            7 => VectActive::Exception(Exception::SecureFault),
-            11 => VectActive::Exception(Exception::SVCall),
-            #[cfg(not(armv6m))]
-            12 => VectActive::Exception(Exception::DebugMonitor),
-            14 => VectActive::Exception(Exception::PendSV),
-            15 => VectActive::Exception(Exception::SysTick),
-            irqn if irqn >= 16 => VectActive::Interrupt { irqn },
-            _ => return None,
-        })
-    }
-}
+pub use cortex_m_0_6::peripheral::scb::{Exception, VectActive, SystemHandler};
 
 #[cfg(not(armv6m))]
 mod scb_consts {
@@ -301,6 +188,11 @@ mod scb_consts {
 
 #[cfg(not(armv6m))]
 use self::scb_consts::*;
+
+#[cfg(not(armv6m))]
+unsafe fn cbp_new() -> CBP {
+    core::mem::transmute(())
+}
 
 #[cfg(not(armv6m))]
 impl SCB {
@@ -313,7 +205,7 @@ impl SCB {
         }
 
         // NOTE(unsafe) All CBP registers are write-only and stateless
-        let mut cbp = unsafe { CBP::new() };
+        let mut cbp = unsafe { cbp_new() };
 
         // Invalidate I-Cache
         cbp.iciallu();
@@ -334,7 +226,7 @@ impl SCB {
         }
 
         // NOTE(unsafe) All CBP registers are write-only and stateless
-        let mut cbp = unsafe { CBP::new() };
+        let mut cbp = unsafe { cbp_new() };
 
         // Disable I-Cache
         unsafe { self.ccr.modify(|r| r & !SCB_CCR_IC_MASK) };
@@ -360,7 +252,7 @@ impl SCB {
     #[inline]
     pub fn invalidate_icache(&mut self) {
         // NOTE(unsafe) All CBP registers are write-only and stateless
-        let mut cbp = unsafe { CBP::new() };
+        let mut cbp = unsafe { cbp_new() };
 
         // Invalidate I-Cache
         cbp.iciallu();
@@ -420,7 +312,7 @@ impl SCB {
     #[inline]
     fn invalidate_dcache(&mut self, cpuid: &mut CPUID) {
         // NOTE(unsafe) All CBP registers are write-only and stateless
-        let mut cbp = unsafe { CBP::new() };
+        let mut cbp = unsafe { cbp_new() };
 
         // Read number of sets and ways
         let (sets, ways) = cpuid.cache_num_sets_ways(0, CsselrCacheType::DataOrUnified);
@@ -440,7 +332,7 @@ impl SCB {
     #[inline]
     pub fn clean_dcache(&mut self, cpuid: &mut CPUID) {
         // NOTE(unsafe) All CBP registers are write-only and stateless
-        let mut cbp = unsafe { CBP::new() };
+        let mut cbp = unsafe { cbp_new() };
 
         // Read number of sets and ways
         let (sets, ways) = cpuid.cache_num_sets_ways(0, CsselrCacheType::DataOrUnified);
@@ -459,7 +351,7 @@ impl SCB {
     #[inline]
     pub fn clean_invalidate_dcache(&mut self, cpuid: &mut CPUID) {
         // NOTE(unsafe) All CBP registers are write-only and stateless
-        let mut cbp = unsafe { CBP::new() };
+        let mut cbp = unsafe { cbp_new() };
 
         // Read number of sets and ways
         let (sets, ways) = cpuid.cache_num_sets_ways(0, CsselrCacheType::DataOrUnified);
@@ -489,7 +381,7 @@ impl SCB {
         }
 
         // NOTE(unsafe) All CBP registers are write-only and stateless
-        let mut cbp = unsafe { CBP::new() };
+        let mut cbp = unsafe { cbp_new() };
 
         ::asm::dsb();
 
@@ -523,7 +415,7 @@ impl SCB {
         }
 
         // NOTE(unsafe) All CBP registers are write-only and stateless
-        let mut cbp = unsafe { CBP::new() };
+        let mut cbp = unsafe { cbp_new() };
 
         ::asm::dsb();
 
@@ -558,7 +450,7 @@ impl SCB {
         }
 
         // NOTE(unsafe) All CBP registers are write-only and stateless
-        let mut cbp = unsafe { CBP::new() };
+        let mut cbp = unsafe { cbp_new() };
 
         ::asm::dsb();
 
@@ -670,59 +562,21 @@ impl SCB {
     }
 }
 
-/// System handlers, exceptions with configurable priority
-#[allow(non_camel_case_types)]
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum SystemHandler {
-    // NonMaskableInt, // priority is fixed
-    // HardFault, // priority is fixed
-    /// Memory management interrupt (not present on Cortex-M0 variants)
-    #[cfg(not(armv6m))]
-    MemoryManagement,
-
-    /// Bus fault interrupt (not present on Cortex-M0 variants)
-    #[cfg(not(armv6m))]
-    BusFault,
-
-    /// Usage fault interrupt (not present on Cortex-M0 variants)
-    #[cfg(not(armv6m))]
-    UsageFault,
-
-    /// Secure fault interrupt (only on ARMv8-M)
-    #[cfg(any(armv8m, target_arch = "x86_64"))]
-    SecureFault,
-
-    /// SV call interrupt
-    SVCall,
-
-    /// Debug monitor interrupt (not present on Cortex-M0 variants)
-    #[cfg(not(armv6m))]
-    DebugMonitor,
-
-    /// Pend SV interrupt
-    PendSV,
-
-    /// System Tick interrupt
-    SysTick,
-}
-
-impl SystemHandler {
-    fn index(&self) -> u8 {
-        match *self {
-            #[cfg(not(armv6m))]
-            SystemHandler::MemoryManagement => 4,
-            #[cfg(not(armv6m))]
-            SystemHandler::BusFault => 5,
-            #[cfg(not(armv6m))]
-            SystemHandler::UsageFault => 6,
-            #[cfg(any(armv8m, target_arch = "x86_64"))]
-            SystemHandler::SecureFault => 7,
-            SystemHandler::SVCall => 11,
-            #[cfg(not(armv6m))]
-            SystemHandler::DebugMonitor => 12,
-            SystemHandler::PendSV => 14,
-            SystemHandler::SysTick => 15,
-        }
+fn system_handler_index(sh: &SystemHandler) -> u8 {
+    match *sh {
+        #[cfg(not(armv6m))]
+        SystemHandler::MemoryManagement => 4,
+        #[cfg(not(armv6m))]
+        SystemHandler::BusFault => 5,
+        #[cfg(not(armv6m))]
+        SystemHandler::UsageFault => 6,
+        #[cfg(any(armv8m, target_arch = "x86_64"))]
+        SystemHandler::SecureFault => 7,
+        SystemHandler::SVCall => 11,
+        #[cfg(not(armv6m))]
+        SystemHandler::DebugMonitor => 12,
+        SystemHandler::PendSV => 14,
+        SystemHandler::SysTick => 15,
     }
 }
 
@@ -732,7 +586,7 @@ impl SCB {
     /// *NOTE*: Hardware priority does not exactly match logical priority levels. See
     /// [`NVIC.get_priority`](struct.NVIC.html#method.get_priority) for more details.
     pub fn get_priority(system_handler: SystemHandler) -> u8 {
-        let index = system_handler.index();
+        let index = system_handler_index(&system_handler);
 
         #[cfg(not(armv6m))]
         {
@@ -762,7 +616,7 @@ impl SCB {
     /// Changing priority levels can break priority-based critical sections (see
     /// [`register::basepri`](../register/basepri/index.html)) and compromise memory safety.
     pub unsafe fn set_priority(&mut self, system_handler: SystemHandler, prio: u8) {
-        let index = system_handler.index();
+        let index = system_handler_index(&system_handler);
 
         #[cfg(not(armv6m))]
         {

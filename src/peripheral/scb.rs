@@ -582,16 +582,32 @@ const SCB_SCR_SLEEPDEEP: u32 = 0x1 << 2;
 
 impl SCB {
     /// Set the SLEEPDEEP bit in the SCR register
+    #[deprecated(since = "0.6.1", note = "Use `SCB::set_sleep_deep`")]
     pub fn set_sleepdeep(&mut self) {
         unsafe {
             self.scr.modify(|scr| scr | SCB_SCR_SLEEPDEEP);
         }
     }
 
+    /// Set the SLEEPDEEP bit in the SCR register
+    pub fn set_sleep_deep() {
+        unsafe {
+            (*Self::ptr()).scr.modify(|scr| scr | SCB_SCR_SLEEPDEEP);
+        }
+    }
+
     /// Clear the SLEEPDEEP bit in the SCR register
+    #[deprecated(since = "0.6.1", note = "Use `SCB::clear_sleep_deep`")]
     pub fn clear_sleepdeep(&mut self) {
         unsafe {
             self.scr.modify(|scr| scr & !SCB_SCR_SLEEPDEEP);
+        }
+    }
+
+    /// Clear the SLEEPDEEP bit in the SCR register
+    pub fn clear_sleep_deep() {
+        unsafe {
+            (*Self::ptr()).scr.modify(|scr| scr & !SCB_SCR_SLEEPDEEP);
         }
     }
 }

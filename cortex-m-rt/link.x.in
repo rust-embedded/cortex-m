@@ -105,14 +105,13 @@ SECTIONS
   /* ### .data */
   .data : ALIGN(4)
   {
+    . = ALIGN(4);
+    __sdata = .;
     *(.data .data.*);
-
     . = ALIGN(4); /* 4-byte align the end (VMA) of this section */
+    __edata = .;
   } > RAM AT > FLASH
 
-  /* VMA of .data */
-  __sdata = ADDR(.data);
-  __edata = ADDR(.data) + SIZEOF(.data);
 
   /* LMA of .data */
   __sidata = LOADADDR(.data);
@@ -120,16 +119,16 @@ SECTIONS
   /* ### .bss */
   .bss : ALIGN(4)
   {
+    . = ALIGN(4);
+    __sbss = .;
     *(.bss .bss.*);
-
     . = ALIGN(4); /* 4-byte align the end (VMA) of this section */
+    __ebss = .;
   } > RAM
 
-  __sbss = ADDR(.bss);
-  __ebss = ADDR(.bss) + SIZEOF(.bss);
-
   /* Place the heap right after `.bss` */
-  __sheap = ADDR(.bss) + SIZEOF(.bss);
+  . = ALIGN(4);
+  __sheap = .;
 
   /* ## .got */
   /* Dynamic relocations are unsupported. This section is only used to detect relocatable code in

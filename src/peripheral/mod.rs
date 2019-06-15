@@ -167,8 +167,6 @@ impl Peripherals {
 
     /// Unchecked version of `Peripherals::take`
     pub unsafe fn steal() -> Self {
-        debug_assert!(!CORE_PERIPHERALS);
-
         CORE_PERIPHERALS = true;
 
         Peripherals {

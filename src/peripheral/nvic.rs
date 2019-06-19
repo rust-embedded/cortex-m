@@ -104,23 +104,44 @@ impl NVIC {
     }
 
     /// Disables `interrupt`
+    pub fn mask<I>(interrupt: I)
+    where
+        I: Nr,
+    {
+        let nr = interrupt.nr();
+        // NOTE(unsafe) this is a write to a stateless register
+        unsafe { (*Self::ptr()).icer[usize::from(nr / 32)].write(1 << (nr % 32)) }
+    }
+
+    /// Enables `interrupt`
+    ///
+    /// This function is `unsafe` because it can break mask-based critical sections
+    pub unsafe fn unmask<I>(interrupt: I)
+    where
+        I: Nr,
+    {
+        let nr = interrupt.nr();
+        // NOTE(ptr) this is a write to a stateless register
+        (*Self::ptr()).iser[usize::from(nr / 32)].write(1 << (nr % 32))
+    }
+
+    /// Disables `interrupt`
+    #[deprecated(since = "0.6.1", note = "Use `NVIC::mask`")]
     pub fn disable<I>(&mut self, interrupt: I)
     where
         I: Nr,
     {
-        let nr = interrupt.nr();
-
-        unsafe { self.icer[usize::from(nr / 32)].write(1 << (nr % 32)) }
+        Self::mask(interrupt)
     }
 
-    /// Enables `interrupt`
+    /// **WARNING** This method is a soundness hole in the API; it should actually be an `unsafe`
+    /// function. Use `NVIC::unmask` which has the right unsafety.
+    #[deprecated(since = "0.6.1", note = "Use `NVIC::unmask`")]
     pub fn enable<I>(&mut self, interrupt: I)
     where
         I: Nr,
     {
-        let nr = interrupt.nr();
-
-        unsafe { self.iser[usize::from(nr / 32)].write(1 << (nr % 32)) }
+        unsafe { Self::unmask(interrupt) }
     }
 
     /// Returns the NVIC priority of `interrupt`

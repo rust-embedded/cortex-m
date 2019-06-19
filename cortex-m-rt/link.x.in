@@ -112,7 +112,6 @@ SECTIONS
     __edata = .;
   } > RAM AT > FLASH
 
-
   /* LMA of .data */
   __sidata = LOADADDR(.data);
 
@@ -126,7 +125,15 @@ SECTIONS
     __ebss = .;
   } > RAM
 
-  /* Place the heap right after `.bss` */
+  /* ### .uninit */
+  .uninit (NOLOAD) : ALIGN(4)
+  {
+    . = ALIGN(4);
+    *(.uninit .uninit.*);
+    . = ALIGN(4);
+  } > RAM
+
+  /* Place the heap right after `.uninit` */
   . = ALIGN(4);
   __sheap = .;
 

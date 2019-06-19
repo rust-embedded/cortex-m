@@ -360,13 +360,31 @@
 //! }
 //! ```
 //!
-//! ## `pre_init!`
+//! ## Uninitialized static variables
 //!
-//! A user-defined function can be run at the start of the reset handler, before RAM is
-//! initialized. The macro `pre_init!` can be called to set the function to be run. The function is
-//! intended to perform actions that cannot wait the time it takes for RAM to be initialized, such
-//! as disabling a watchdog. As the function is called before RAM is initialized, any access of
-//! static variables will result in undefined behavior.
+//! The `.uninit` linker section can be used to leave `static mut` variables uninitialized. One use
+//! case of unitialized static variables is to avoid zeroing large statically allocated buffers (say
+//! to be used as thread stacks) -- this can considerably reduce initialization time on devices that
+//! operate at low frequencies.
+//!
+//! The only correct way to use this section is by placing `static mut` variables with type
+//! [`MaybeUninit`] in it.
+//!
+//! [`MaybeUninit`]: https://doc.rust-lang.org/core/mem/union.MaybeUninit.html
+//!
+//! ``` ignore
+//! use core::mem::MaybeUninit;
+//!
+//! const STACK_SIZE: usize = 8 * 1024;
+//! const NTHREADS: usize = 4;
+//!
+//! #[link_section = ".uninit.STACKS"]
+//! static mut STACKS: MaybeUninit<[[u8; STACK_SIZE]; NTHREADS]> = MaybeUninit::uninit();
+//! ```
+//!
+//! Be very careful with the `link_section` attribute because it's easy to misuse in ways that cause
+//! undefined behavior. At some point in the future we may add an attribute to safely place static
+//! variables in this section.
 
 // # Developer notes
 //

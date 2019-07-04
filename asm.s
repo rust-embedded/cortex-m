@@ -31,9 +31,10 @@ __cpsie:
   .syntax unified
   .thumb_func
 __delay:
+1:
   nop
   subs r0, #1
-  bne __delay
+  bne 1b  // Branch to 1 instead of __delay does not generate R_ARM_THM_JUMP8 relocation, which breaks linking on the thumbv6m-none-eabi target
   bx lr
 
   .section .text.__dmb

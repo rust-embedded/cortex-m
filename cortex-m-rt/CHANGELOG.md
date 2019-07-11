@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.6.9] - 2019-07-11
+
+### Added
+
+- Input `.uninit.*` sections are now collected into an output `.uninit` section.
+  Uninitialized static variables are meant to be placed in these sections. The
+  output `.uninit` section is not initialized by the runtime.
+
 ## [v0.6.8] - 2019-04-02
 
 ### Fixed
@@ -443,7 +451,8 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.8...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.9...HEAD
+[v0.6.9]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.8...v0.6.9
 [v0.6.8]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.7...v0.6.8
 [v0.6.7]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.6...v0.6.7
 [v0.6.6]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.5...v0.6.6

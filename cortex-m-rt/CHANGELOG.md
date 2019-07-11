@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.6.9] - 2019-07-11
+
+### Added
+
+- Input `.uninit.*` sections are now collected into an output `.uninit` section.
+  Uninitialized static variables are meant to be placed in these sections. The
+  output `.uninit` section is not initialized by the runtime.
+
 ## [v0.6.8] - 2019-04-02
 
 ### Fixed

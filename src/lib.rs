@@ -24,11 +24,10 @@
 //!
 //! The disadvantage is that `inline-asm` requires a nightly toolchain.
 //!
-//! ## `const-fn`
+//! # Minimum Supported Rust Version (MSRV)
 //!
-//! Enabling this feature turns the `Mutex.new` constructor into a `const fn`.
-//!
-//! This feature requires a nightly toolchain.
+//! This crate is guaranteed to compile on stable Rust 1.31 and up. It *might*
+//! compile with older versions but that may change in any new patch release.
 
 #![cfg_attr(feature = "inline-asm", feature(asm))]
 #![deny(missing_docs)]

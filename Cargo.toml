@@ -16,10 +16,9 @@ links = "cortex-m"  # prevent multiple versions of this crate to be linked toget
 
 [dependencies]
 aligned = "0.3.1"
-bare-metal = "0.2.0"
+bare-metal = { version = "0.2.0", features = ["const-fn"] }
 volatile-register = "0.2.0"
 
 [features]
 cm7-r0p1 = []
-const-fn = ["bare-metal/const-fn"]
 inline-asm = []

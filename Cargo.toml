@@ -13,6 +13,7 @@ readme = "README.md"
 repository = "https://github.com/japaric/cortex-m"
 version = "0.6.0"
 links = "cortex-m"  # prevent multiple versions of this crate to be linked together
+edition = "2018"
 
 [dependencies]
 aligned = "0.3.1"
@@ -20,5 +21,6 @@ bare-metal = { version = "0.2.0", features = ["const-fn"] }
 volatile-register = "0.2.0"
 
 [features]
+const-fn = []
 cm7-r0p1 = []
 inline-asm = []

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.6.10] - 2019-07-25
+
+### Fixed
+
+- Linker template now takes and discard `*(.ARM.exidx)`
+
 ## [v0.6.9] - 2019-07-11
 
 ### Added
@@ -451,7 +457,8 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.9...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.10...HEAD
+[v0.6.10]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.9...v0.6.10
 [v0.6.9]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.8...v0.6.9
 [v0.6.8]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.7...v0.6.8
 [v0.6.7]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.6...v0.6.7

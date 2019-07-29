@@ -4,8 +4,8 @@ use volatile_register::RW;
 #[cfg(not(armv6m))]
 use volatile_register::{RO, WO};
 
-use interrupt::Nr;
-use peripheral::NVIC;
+use crate::interrupt::Nr;
+use crate::peripheral::NVIC;
 
 /// Register block
 #[repr(C)]

@@ -302,10 +302,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 #![feature(used)]
 #![no_std]
 
-extern crate cortex_m;
-extern crate cortex_m_rt;
-extern crate stm32f30x;
-
 use core::cell::RefCell;
 
 use cortex_m::ctxt::Local;

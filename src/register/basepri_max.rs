@@ -16,7 +16,7 @@ pub fn write(_basepri: u8) {
                 #[cfg(not(feature = "cm7-r0p1"))]
                 () => asm!("msr BASEPRI_MAX, $0" :: "r"(_basepri) : "memory" : "volatile"),
                 #[cfg(feature = "cm7-r0p1")]
-                () => ::interrupt::free(
+                () => crate::interrupt::free(
                     |_| asm!("msr BASEPRI_MAX, $0" :: "r"(_basepri) : "memory" : "volatile"),
                 ),
             }

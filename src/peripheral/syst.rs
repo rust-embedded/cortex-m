@@ -2,7 +2,7 @@
 
 use volatile_register::{RO, RW};
 
-use peripheral::SYST;
+use crate::peripheral::SYST;
 
 /// Register block
 #[repr(C)]

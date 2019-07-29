@@ -47,4 +47,4 @@ pub mod itm;
 pub mod peripheral;
 pub mod register;
 
-pub use peripheral::Peripherals;
+pub use crate::peripheral::Peripherals;

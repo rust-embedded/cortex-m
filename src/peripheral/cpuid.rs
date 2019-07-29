@@ -5,7 +5,7 @@ use volatile_register::RO;
 use volatile_register::RW;
 
 #[cfg(not(armv6m))]
-use peripheral::CPUID;
+use crate::peripheral::CPUID;
 
 /// Register block
 #[repr(C)]
@@ -104,7 +104,7 @@ impl CPUID {
         const CCSIDR_ASSOCIATIVITY_MASK: u32 = 0x3FF << CCSIDR_ASSOCIATIVITY_POS;
 
         self.select_cache(level, ind);
-        ::asm::dsb();
+        crate::asm::dsb();
         let ccsidr = self.ccsidr.read();
         (
             (1 + ((ccsidr & CCSIDR_NUMSETS_MASK) >> CCSIDR_NUMSETS_POS)) as u16,

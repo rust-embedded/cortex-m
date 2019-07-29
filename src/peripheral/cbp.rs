@@ -4,7 +4,7 @@
 
 use volatile_register::WO;
 
-use peripheral::CBP;
+use crate::peripheral::CBP;
 
 /// Register block
 #[repr(C)]

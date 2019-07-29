@@ -33,8 +33,7 @@ macro_rules! iprintln {
 /// # Example
 ///
 /// ``` no_run
-/// #[macro_use(singleton)]
-/// extern crate cortex_m;
+/// use cortex_m::singleton;
 ///
 /// fn main() {
 ///     // OK if `main` is executed only once
@@ -77,8 +76,7 @@ macro_rules! singleton {
 }
 
 /// ``` compile_fail
-/// #[macro_use(singleton)]
-/// extern crate cortex_m;
+/// use cortex_m::singleton;
 ///
 /// fn main() {}
 ///
@@ -92,8 +90,7 @@ const CFAIL: () = ();
 
 /// ```
 /// #![deny(unsafe_code)]
-/// #[macro_use(singleton)]
-/// extern crate cortex_m;
+/// use cortex_m::singleton;
 ///
 /// fn main() {}
 ///

@@ -61,7 +61,7 @@ pub fn free<F, R>(f: F) -> R
 where
     F: FnOnce(&CriticalSection) -> R,
 {
-    let primask = ::register::primask::read();
+    let primask = crate::register::primask::read();
 
     // disable interrupts
     disable();

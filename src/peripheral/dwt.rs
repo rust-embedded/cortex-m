@@ -4,7 +4,7 @@
 use volatile_register::WO;
 use volatile_register::{RO, RW};
 
-use peripheral::DWT;
+use crate::peripheral::DWT;
 
 /// Register block
 #[repr(C)]

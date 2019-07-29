@@ -321,8 +321,8 @@ impl SCB {
         // Enable I-Cache
         unsafe { self.ccr.modify(|r| r | SCB_CCR_IC_MASK) };
 
-        ::asm::dsb();
-        ::asm::isb();
+        crate::asm::dsb();
+        crate::asm::isb();
     }
 
     /// Disables I-Cache if currently enabled
@@ -342,15 +342,15 @@ impl SCB {
         // Invalidate I-Cache
         cbp.iciallu();
 
-        ::asm::dsb();
-        ::asm::isb();
+        crate::asm::dsb();
+        crate::asm::isb();
     }
 
     /// Returns whether the I-Cache is currently enabled
     #[inline]
     pub fn icache_enabled() -> bool {
-        ::asm::dsb();
-        ::asm::isb();
+        crate::asm::dsb();
+        crate::asm::isb();
 
         // NOTE(unsafe) atomic read with no side effects
         unsafe { (*Self::ptr()).ccr.read() & SCB_CCR_IC_MASK == SCB_CCR_IC_MASK }
@@ -365,8 +365,8 @@ impl SCB {
         // Invalidate I-Cache
         cbp.iciallu();
 
-        ::asm::dsb();
-        ::asm::isb();
+        crate::asm::dsb();
+        crate::asm::isb();
     }
 
     /// Enables D-cache if currently disabled
@@ -383,8 +383,8 @@ impl SCB {
         // Now turn on the DCache
         unsafe { self.ccr.modify(|r| r | SCB_CCR_DC_MASK) };
 
-        ::asm::dsb();
-        ::asm::isb();
+        crate::asm::dsb();
+        crate::asm::isb();
     }
 
     /// Disables D-cache if currently enabled
@@ -405,8 +405,8 @@ impl SCB {
     /// Returns whether the D-Cache is currently enabled
     #[inline]
     pub fn dcache_enabled() -> bool {
-        ::asm::dsb();
-        ::asm::isb();
+        crate::asm::dsb();
+        crate::asm::isb();
 
         // NOTE(unsafe) atomic read with no side effects
         unsafe { (*Self::ptr()).ccr.read() & SCB_CCR_DC_MASK == SCB_CCR_DC_MASK }
@@ -432,8 +432,8 @@ impl SCB {
             }
         }
 
-        ::asm::dsb();
-        ::asm::isb();
+        crate::asm::dsb();
+        crate::asm::isb();
     }
 
     /// Cleans D-cache
@@ -451,8 +451,8 @@ impl SCB {
             }
         }
 
-        ::asm::dsb();
-        ::asm::isb();
+        crate::asm::dsb();
+        crate::asm::isb();
     }
 
     /// Cleans and invalidates D-cache
@@ -470,8 +470,8 @@ impl SCB {
             }
         }
 
-        ::asm::dsb();
-        ::asm::isb();
+        crate::asm::dsb();
+        crate::asm::isb();
     }
 
     /// Invalidates D-cache by address
@@ -491,7 +491,7 @@ impl SCB {
         // NOTE(unsafe) All CBP registers are write-only and stateless
         let mut cbp = unsafe { CBP::new() };
 
-        ::asm::dsb();
+        crate::asm::dsb();
 
         // Cache lines are fixed to 32 bit on Cortex-M7 and not present in earlier Cortex-M
         const LINESIZE: usize = 32;
@@ -504,8 +504,8 @@ impl SCB {
             addr += LINESIZE;
         }
 
-        ::asm::dsb();
-        ::asm::isb();
+        crate::asm::dsb();
+        crate::asm::isb();
     }
 
     /// Cleans D-cache by address
@@ -525,7 +525,7 @@ impl SCB {
         // NOTE(unsafe) All CBP registers are write-only and stateless
         let mut cbp = unsafe { CBP::new() };
 
-        ::asm::dsb();
+        crate::asm::dsb();
 
         // Cache lines are fixed to 32 bit on Cortex-M7 and not present in earlier Cortex-M
         const LINESIZE: usize = 32;
@@ -538,8 +538,8 @@ impl SCB {
             addr += LINESIZE;
         }
 
-        ::asm::dsb();
-        ::asm::isb();
+        crate::asm::dsb();
+        crate::asm::isb();
     }
 
     /// Cleans and invalidates D-cache by address
@@ -560,7 +560,7 @@ impl SCB {
         // NOTE(unsafe) All CBP registers are write-only and stateless
         let mut cbp = unsafe { CBP::new() };
 
-        ::asm::dsb();
+        crate::asm::dsb();
 
         // Cache lines are fixed to 32 bit on Cortex-M7 and not present in earlier Cortex-M
         const LINESIZE: usize = 32;
@@ -573,8 +573,8 @@ impl SCB {
             addr += LINESIZE;
         }
 
-        ::asm::dsb();
-        ::asm::isb();
+        crate::asm::dsb();
+        crate::asm::isb();
     }
 }
 
@@ -622,7 +622,7 @@ impl SCB {
     /// Initiate a system reset request to reset the MCU
     #[deprecated(since = "0.6.1", note = "Use `SCB::sys_reset`")]
     pub fn system_reset(&mut self) -> ! {
-        ::asm::dsb();
+        crate::asm::dsb();
         unsafe {
             self.aircr.modify(
                 |r| {
@@ -632,16 +632,16 @@ impl SCB {
                 }, // set the bit
             )
         };
-        ::asm::dsb();
+        crate::asm::dsb();
         loop {
             // wait for the reset
-            ::asm::nop(); // avoid rust-lang/rust#28728
+            crate::asm::nop(); // avoid rust-lang/rust#28728
         }
     }
 
     /// Initiate a system reset request to reset the MCU
     pub fn sys_reset() -> ! {
-        ::asm::dsb();
+        crate::asm::dsb();
         unsafe {
             (*Self::ptr()).aircr.modify(
                 |r| {
@@ -651,10 +651,10 @@ impl SCB {
                 }, // set the bit
             )
         };
-        ::asm::dsb();
+        crate::asm::dsb();
         loop {
             // wait for the reset
-            ::asm::nop(); // avoid rust-lang/rust#28728
+            crate::asm::nop(); // avoid rust-lang/rust#28728
         }
     }
 }

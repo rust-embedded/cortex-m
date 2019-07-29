@@ -8,8 +8,6 @@
 //! the [`Peripherals::take`](struct.Peripherals.html#method.take) method.
 //!
 //! ``` no_run
-//! extern crate cortex_m;
-//!
 //! use cortex_m::peripheral::Peripherals;
 //!
 //! fn main() {
@@ -22,8 +20,6 @@
 //! `Option`. Subsequent calls to the method will result in a `None` value being returned.
 //!
 //! ``` no_run
-//! extern crate cortex_m;
-//!
 //! use cortex_m::peripheral::Peripherals;
 //!
 //! fn main() {
@@ -36,8 +32,6 @@
 //! [`DWT::get_cycle_count`](struct.DWT.html#method.get_cycle_count) method.
 //!
 //! ``` no_run
-//! extern crate cortex_m;
-//!
 //! use cortex_m::peripheral::{DWT, Peripherals};
 //!
 //! fn main() {
@@ -56,8 +50,6 @@
 //! safe higher level abstractions.
 //!
 //! ``` no_run
-//! extern crate cortex_m;
-//!
 //! use cortex_m::peripheral::{DWT, Peripherals};
 //!
 //! fn main() {
@@ -81,7 +73,7 @@
 use core::marker::PhantomData;
 use core::ops;
 
-use interrupt;
+use crate::interrupt;
 
 #[cfg(not(armv6m))]
 pub mod cbp;

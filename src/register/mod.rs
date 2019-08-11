@@ -43,6 +43,12 @@ pub mod primask;
 
 pub mod psp;
 
+#[cfg(armv8m_main)]
+pub mod msplim;
+
+#[cfg(armv8m_main)]
+pub mod psplim;
+
 // Accessing these registers requires inline assembly because their contents are tied to the current
 // stack frame
 #[cfg(any(feature = "inline-asm", target_arch = "x86_64"))]

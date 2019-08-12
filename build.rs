@@ -26,9 +26,13 @@ fn main() {
         println!("cargo:rustc-cfg=cortex_m");
         println!("cargo:rustc-cfg=armv7m");
         //println!("cargo:rustc-cfg=armv7em");
-    } else if target.starts_with("thumbv8m") {
+    } else if target.starts_with("thumbv8m.base") {
         println!("cargo:rustc-cfg=cortex_m");
         println!("cargo:rustc-cfg=armv8m");
+    } else if target.starts_with("thumbv8m.main") {
+        println!("cargo:rustc-cfg=cortex_m");
+        println!("cargo:rustc-cfg=armv8m");
+        println!("cargo:rustc-cfg=armv8m_main");
     }
 
     if target.ends_with("-eabihf") {

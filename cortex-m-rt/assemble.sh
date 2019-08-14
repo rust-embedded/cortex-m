@@ -24,5 +24,6 @@ ar crs bin/thumbv8m.base-none-eabi.a bin/$crate.o
 
 arm-none-eabi-as -march=armv8-m.main asm.s -o bin/$crate.o
 ar crs bin/thumbv8m.main-none-eabi.a bin/$crate.o
+ar crs bin/thumbv8m.main-none-eabihf.a bin/$crate.o
 
 rm bin/$crate.o

@@ -19,21 +19,10 @@ autoexamples = true
 r0 = "0.2.2"
 cortex-m-rt-macros = { path = "macros", version = "0.1.5" }
 
-[target.thumbv7em-none-eabihf.dev-dependencies]
-cortex-m-semihosting = "0.3.1"
-
-[target.thumbv7em-none-eabi.dev-dependencies]
-cortex-m-semihosting = "0.3.1"
-
-[target.thumbv7m-none-eabi.dev-dependencies]
-cortex-m-semihosting = "0.3.1"
-
-[target.thumbv6m-none-eabi.dev-dependencies]
-cortex-m-semihosting = "0.3.1"
-
 [dev-dependencies]
 cortex-m = "0.6"
 panic-halt = "0.2.0"
+cortex-m-semihosting = "0.3"
 
 [dev-dependencies.rand]
 default-features = false

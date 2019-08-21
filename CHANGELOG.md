@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.6.1] - 2019-08-21
+
+### Fixed
+
+- Better `Debug`, `PartialEq` and `Eq` for more types
+- The `delay` function is fixed for Cortex-M0 MCUs
+
+### Added
+
+- Static version of `system_reset` as `system_reset2`
+- Now uses `links = "cortex-m"` to not link multiple versions of the crate
+- Masking of the NVIC is added `NVIC::{mask,unmask}`
+- Now Rust 2018 edition
+- `{M,P}SPLIM` access is now possible on ARMv8-M
+
+### Deprecation
+
+- `system_reset` is deprecated in favor of `sys_reset`
+
 ## [v0.6.0] - 2019-03-12
 
 ### Fixed
@@ -542,7 +561,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.6.1...HEAD
+[v0.6.0]: https://github.com/rust-embedded/cortex-m/compare/v0.6.0...v0.6.1
 [v0.6.0]: https://github.com/rust-embedded/cortex-m/compare/v0.5.8...v0.6.0
 [v0.5.8]: https://github.com/rust-embedded/cortex-m/compare/v0.5.7...v0.5.8
 [v0.5.7]: https://github.com/rust-embedded/cortex-m/compare/v0.5.6...v0.5.7

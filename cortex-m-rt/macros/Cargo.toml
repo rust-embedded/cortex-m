@@ -13,12 +13,12 @@ version = "0.1.5"
 proc-macro = true
 
 [dependencies]
-quote = "0.6.8"
-proc-macro2 = "0.4.20"
+quote = "1.0"
+proc-macro2 = "1.0"
 
 [dependencies.syn]
 features = ["extra-traits", "full"]
-version = "0.15.13"
+version = "1.0"
 
 [dependencies.rand]
 version = "0.5.5"

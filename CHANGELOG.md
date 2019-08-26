@@ -562,7 +562,7 @@ fn main() {
 - Wrappers over miscellaneous instructions like `bkpt`
 
 [Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.6.1...HEAD
-[v0.6.0]: https://github.com/rust-embedded/cortex-m/compare/v0.6.0...v0.6.1
+[v0.6.1]: https://github.com/rust-embedded/cortex-m/compare/v0.6.0...v0.6.1
 [v0.6.0]: https://github.com/rust-embedded/cortex-m/compare/v0.5.8...v0.6.0
 [v0.5.8]: https://github.com/rust-embedded/cortex-m/compare/v0.5.7...v0.5.8
 [v0.5.7]: https://github.com/rust-embedded/cortex-m/compare/v0.5.6...v0.5.7

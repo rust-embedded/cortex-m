@@ -17,7 +17,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 use syn::{
     parse, spanned::Spanned, AttrStyle, Attribute, FnArg, Ident, Item, ItemFn, ItemStatic,
-    PathArguments, ReturnType, Stmt, Type, Visibility,
+    ReturnType, Stmt, Type, Visibility,
 };
 
 static CALL_COUNT: AtomicUsize = AtomicUsize::new(0);
@@ -86,14 +86,14 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
     let f = parse_macro_input!(input as ItemFn);
 
     // check the function signature
-    let valid_signature = f.constness.is_none()
+    let valid_signature = f.sig.constness.is_none()
         && f.vis == Visibility::Inherited
-        && f.abi.is_none()
-        && f.decl.inputs.is_empty()
-        && f.decl.generics.params.is_empty()
-        && f.decl.generics.where_clause.is_none()
-        && f.decl.variadic.is_none()
-        && match f.decl.output {
+        && f.sig.abi.is_none()
+        && f.sig.inputs.is_empty()
+        && f.sig.generics.params.is_empty()
+        && f.sig.generics.where_clause.is_none()
+        && f.sig.variadic.is_none()
+        && match f.sig.output {
             ReturnType::Default => false,
             ReturnType::Type(_, ref ty) => match **ty {
                 Type::Never(_) => true,
@@ -118,7 +118,7 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
 
     // XXX should we blacklist other attributes?
     let attrs = f.attrs;
-    let unsafety = f.unsafety;
+    let unsafety = f.sig.unsafety;
     let hash = random_ident();
     let (statics, stmts) = match extract_static_muts(f.block.stmts) {
         Err(e) => return e.to_compile_error().into(),
@@ -282,7 +282,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
     }
 
     let fspan = f.span();
-    let ident = f.ident;
+    let ident = f.sig.ident;
 
     enum Exception {
         DefaultHandler,
@@ -309,19 +309,19 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
     let attrs = f.attrs;
     let block = f.block;
     let stmts = block.stmts;
-    let unsafety = f.unsafety;
+    let unsafety = f.sig.unsafety;
 
     let hash = random_ident();
     match exn {
         Exception::DefaultHandler => {
-            let valid_signature = f.constness.is_none()
+            let valid_signature = f.sig.constness.is_none()
                 && f.vis == Visibility::Inherited
-                && f.abi.is_none()
-                && f.decl.inputs.len() == 1
-                && f.decl.generics.params.is_empty()
-                && f.decl.generics.where_clause.is_none()
-                && f.decl.variadic.is_none()
-                && match f.decl.output {
+                && f.sig.abi.is_none()
+                && f.sig.inputs.len() == 1
+                && f.sig.generics.params.is_empty()
+                && f.sig.generics.where_clause.is_none()
+                && f.sig.variadic.is_none()
+                && match f.sig.output {
                     ReturnType::Default => true,
                     ReturnType::Type(_, ref ty) => match **ty {
                         Type::Tuple(ref tuple) => tuple.elems.is_empty(),
@@ -339,8 +339,8 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                 .into();
             }
 
-            let arg = match f.decl.inputs[0] {
-                FnArg::Captured(ref arg) => arg,
+            let arg = match f.sig.inputs[0] {
+                FnArg::Typed(ref arg) => arg,
                 _ => unreachable!(),
             };
 
@@ -360,21 +360,21 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             .into()
         }
         Exception::HardFault => {
-            let valid_signature = f.constness.is_none()
+            let valid_signature = f.sig.constness.is_none()
                 && f.vis == Visibility::Inherited
-                && f.abi.is_none()
-                && f.decl.inputs.len() == 1
-                && match f.decl.inputs[0] {
-                    FnArg::Captured(ref arg) => match arg.ty {
-                        Type::Reference(ref r) => r.lifetime.is_none() && r.mutability.is_none(),
+                && f.sig.abi.is_none()
+                && f.sig.inputs.len() == 1
+                && match &f.sig.inputs[0] {
+                    FnArg::Typed(arg) => match arg.ty.as_ref() {
+                        Type::Reference(r) => r.lifetime.is_none() && r.mutability.is_none(),
                         _ => false,
                     },
                     _ => false,
                 }
-                && f.decl.generics.params.is_empty()
-                && f.decl.generics.where_clause.is_none()
-                && f.decl.variadic.is_none()
-                && match f.decl.output {
+                && f.sig.generics.params.is_empty()
+                && f.sig.generics.where_clause.is_none()
+                && f.sig.variadic.is_none()
+                && match f.sig.output {
                     ReturnType::Default => false,
                     ReturnType::Type(_, ref ty) => match **ty {
                         Type::Never(_) => true,
@@ -391,8 +391,8 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                 .into();
             }
 
-            let arg = match f.decl.inputs[0] {
-                FnArg::Captured(ref arg) => arg,
+            let arg = match f.sig.inputs[0] {
+                FnArg::Typed(ref arg) => arg,
                 _ => unreachable!(),
             };
 
@@ -413,14 +413,14 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             .into()
         }
         Exception::Other => {
-            let valid_signature = f.constness.is_none()
+            let valid_signature = f.sig.constness.is_none()
                 && f.vis == Visibility::Inherited
-                && f.abi.is_none()
-                && f.decl.inputs.is_empty()
-                && f.decl.generics.params.is_empty()
-                && f.decl.generics.where_clause.is_none()
-                && f.decl.variadic.is_none()
-                && match f.decl.output {
+                && f.sig.abi.is_none()
+                && f.sig.inputs.is_empty()
+                && f.sig.generics.params.is_empty()
+                && f.sig.generics.where_clause.is_none()
+                && f.sig.variadic.is_none()
+                && match f.sig.output {
                     ReturnType::Default => true,
                     ReturnType::Type(_, ref ty) => match **ty {
                         Type::Tuple(ref tuple) => tuple.elems.is_empty(),
@@ -564,23 +564,23 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
     }
 
     let fspan = f.span();
-    let ident = f.ident;
+    let ident = f.sig.ident;
     let ident_s = ident.to_string();
 
     // XXX should we blacklist other attributes?
     let attrs = f.attrs;
     let block = f.block;
     let stmts = block.stmts;
-    let unsafety = f.unsafety;
+    let unsafety = f.sig.unsafety;
 
-    let valid_signature = f.constness.is_none()
+    let valid_signature = f.sig.constness.is_none()
         && f.vis == Visibility::Inherited
-        && f.abi.is_none()
-        && f.decl.inputs.is_empty()
-        && f.decl.generics.params.is_empty()
-        && f.decl.generics.where_clause.is_none()
-        && f.decl.variadic.is_none()
-        && match f.decl.output {
+        && f.sig.abi.is_none()
+        && f.sig.inputs.is_empty()
+        && f.sig.generics.params.is_empty()
+        && f.sig.generics.where_clause.is_none()
+        && f.sig.variadic.is_none()
+        && match f.sig.output {
             ReturnType::Default => true,
             ReturnType::Type(_, ref ty) => match **ty {
                 Type::Tuple(ref tuple) => tuple.elems.is_empty(),
@@ -669,15 +669,15 @@ pub fn pre_init(args: TokenStream, input: TokenStream) -> TokenStream {
     let f = parse_macro_input!(input as ItemFn);
 
     // check the function signature
-    let valid_signature = f.constness.is_none()
+    let valid_signature = f.sig.constness.is_none()
         && f.vis == Visibility::Inherited
-        && f.unsafety.is_some()
-        && f.abi.is_none()
-        && f.decl.inputs.is_empty()
-        && f.decl.generics.params.is_empty()
-        && f.decl.generics.where_clause.is_none()
-        && f.decl.variadic.is_none()
-        && match f.decl.output {
+        && f.sig.unsafety.is_some()
+        && f.sig.abi.is_none()
+        && f.sig.inputs.is_empty()
+        && f.sig.generics.params.is_empty()
+        && f.sig.generics.where_clause.is_none()
+        && f.sig.variadic.is_none()
+        && match f.sig.output {
             ReturnType::Default => true,
             ReturnType::Type(_, ref ty) => match **ty {
                 Type::Tuple(ref tuple) => tuple.elems.is_empty(),
@@ -702,7 +702,7 @@ pub fn pre_init(args: TokenStream, input: TokenStream) -> TokenStream {
 
     // XXX should we blacklist other attributes?
     let attrs = f.attrs;
-    let ident = f.ident;
+    let ident = f.sig.ident;
     let block = f.block;
 
     quote!(
@@ -799,9 +799,5 @@ fn extract_cfgs(attrs: Vec<Attribute>) -> (Vec<Attribute>, Vec<Attribute>) {
 
 /// Returns `true` if `attr.path` matches `name`
 fn eq(attr: &Attribute, name: &str) -> bool {
-    attr.style == AttrStyle::Outer && attr.path.segments.len() == 1 && {
-        let pair = attr.path.segments.first().unwrap();
-        let segment = pair.value();
-        segment.arguments == PathArguments::None && segment.ident.to_string() == name
-    }
+    attr.style == AttrStyle::Outer && attr.path.is_ident(name)
 }

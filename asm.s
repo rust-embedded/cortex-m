@@ -5,12 +5,20 @@ __bkpt:
   bkpt
   bx lr
 
-  .section .text.__control
-  .global __control
+  .section .text.__control_r
+  .global __control_r
   .thumb_func
-__control:
+__control_r:
   mrs r0, CONTROL
   bx lr
+
+  .section .text.__control_w
+  .global __control_w
+  .thumb_func
+__control_w:
+  msr CONTROL, r0
+  bx lr
+
 
   .section .text.__cpsid
   .global __cpsid

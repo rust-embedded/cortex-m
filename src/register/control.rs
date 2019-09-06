@@ -7,6 +7,11 @@ pub struct Control {
 }
 
 impl Control {
+    /// Creates a `Control` value from raw bits.
+    pub fn from_bits(bits: u32) -> Self {
+        Self { bits }
+    }
+
     /// Returns the contents of the register as raw bits
     pub fn bits(&self) -> u32 {
         self.bits
@@ -21,6 +26,15 @@ impl Control {
         }
     }
 
+    /// Sets the thread mode privilege level value (nPRIV).
+    pub fn set_npriv(&mut self, npriv: Npriv) {
+        let mask = 1 << 0;
+        match npriv {
+            Npriv::Unprivileged => self.bits |= mask,
+            Npriv::Privileged => self.bits &= !mask,
+        }
+    }
+
     /// Currently active stack pointer
     pub fn spsel(&self) -> Spsel {
         if self.bits & (1 << 1) == (1 << 1) {
@@ -30,12 +44,30 @@ impl Control {
         }
     }
 
+    /// Sets the SPSEL value.
+    pub fn set_spsel(&mut self, spsel: Spsel) {
+        let mask = 1 << 1;
+        match spsel {
+            Spsel::Psp => self.bits |= mask,
+            Spsel::Msp => self.bits &= !mask,
+        }
+    }
+
     /// Whether context floating-point is currently active
     pub fn fpca(&self) -> Fpca {
         if self.bits & (1 << 2) == (1 << 2) {
             Fpca::Active
         } else {
             Fpca::NotActive
+        }
+    }
+
+    /// Sets the FPCA value.
+    pub fn set_fpca(&mut self, fpca: Fpca) {
+        let mask = 1 << 2;
+        match fpca {
+            Fpca::Active => self.bits |= mask,
+            Fpca::NotActive => self.bits &= !mask,
         }
     }
 }
@@ -120,14 +152,43 @@ pub fn read() -> Control {
                 #[cfg(not(feature = "inline-asm"))]
                 () => unsafe {
                     extern "C" {
-                        fn __control() -> u32;
+                        fn __control_r() -> u32;
                     }
 
-                    __control()
+                    __control_r()
                 },
             };
 
             Control { bits: r }
+        }
+
+        #[cfg(not(cortex_m))]
+        () => unimplemented!(),
+    }
+}
+
+/// Writes to the CPU register.
+#[inline]
+pub unsafe fn write(_control: Control) {
+    match () {
+        #[cfg(cortex_m)]
+        () => {
+            let r = match () {
+                #[cfg(feature = "inline-asm")]
+                () => {
+                    let control = _control.bits();
+                    unsafe { asm!("msr CONTROL, $0" :: "r"(control) : "memory" : "volatile") }
+                }
+
+                #[cfg(not(feature = "inline-asm"))]
+                () => unsafe {
+                    extern "C" {
+                        fn __control_w() -> u32;
+                    }
+
+                    __control_w(_control.bits())
+                },
+            };
         }
 
         #[cfg(not(cortex_m))]

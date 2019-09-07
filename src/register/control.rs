@@ -172,24 +172,22 @@ pub fn read() -> Control {
 pub unsafe fn write(_control: Control) {
     match () {
         #[cfg(cortex_m)]
-        () => {
-            let r = match () {
-                #[cfg(feature = "inline-asm")]
-                () => {
-                    let control = _control.bits();
-                    unsafe { asm!("msr CONTROL, $0" :: "r"(control) : "memory" : "volatile") }
+        () => match () {
+            #[cfg(feature = "inline-asm")]
+            () => {
+                let control = _control.bits();
+                unsafe { asm!("msr CONTROL, $0" :: "r"(control) : "memory" : "volatile") }
+            }
+
+            #[cfg(not(feature = "inline-asm"))]
+            () => {
+                extern "C" {
+                    fn __control_w(bits: u32);
                 }
 
-                #[cfg(not(feature = "inline-asm"))]
-                () => unsafe {
-                    extern "C" {
-                        fn __control_w() -> u32;
-                    }
-
-                    __control_w(_control.bits())
-                },
-            };
-        }
+                __control_w(_control.bits());
+            }
+        },
 
         #[cfg(not(cortex_m))]
         () => unimplemented!(),

@@ -176,7 +176,7 @@ pub unsafe fn write(_control: Control) {
             #[cfg(feature = "inline-asm")]
             () => {
                 let control = _control.bits();
-                unsafe { asm!("msr CONTROL, $0" :: "r"(control) : "memory" : "volatile") }
+                asm!("msr CONTROL, $0" :: "r"(control) : "memory" : "volatile");
             }
 
             #[cfg(not(feature = "inline-asm"))]

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Checks that the blobs are up to date with the committed assembly files
 

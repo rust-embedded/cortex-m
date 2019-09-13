@@ -7,12 +7,20 @@ pub struct Control {
 }
 
 impl Control {
+    /// Creates a `Control` value from raw bits.
+    #[inline]
+    pub fn from_bits(bits: u32) -> Self {
+        Self { bits }
+    }
+
     /// Returns the contents of the register as raw bits
+    #[inline]
     pub fn bits(&self) -> u32 {
         self.bits
     }
 
     /// Thread mode privilege level
+    #[inline]
     pub fn npriv(&self) -> Npriv {
         if self.bits & (1 << 0) == (1 << 0) {
             Npriv::Unprivileged
@@ -21,7 +29,18 @@ impl Control {
         }
     }
 
+    /// Sets the thread mode privilege level value (nPRIV).
+    #[inline]
+    pub fn set_npriv(&mut self, npriv: Npriv) {
+        let mask = 1 << 0;
+        match npriv {
+            Npriv::Unprivileged => self.bits |= mask,
+            Npriv::Privileged => self.bits &= !mask,
+        }
+    }
+
     /// Currently active stack pointer
+    #[inline]
     pub fn spsel(&self) -> Spsel {
         if self.bits & (1 << 1) == (1 << 1) {
             Spsel::Psp
@@ -30,12 +49,33 @@ impl Control {
         }
     }
 
+    /// Sets the SPSEL value.
+    #[inline]
+    pub fn set_spsel(&mut self, spsel: Spsel) {
+        let mask = 1 << 1;
+        match spsel {
+            Spsel::Psp => self.bits |= mask,
+            Spsel::Msp => self.bits &= !mask,
+        }
+    }
+
     /// Whether context floating-point is currently active
+    #[inline]
     pub fn fpca(&self) -> Fpca {
         if self.bits & (1 << 2) == (1 << 2) {
             Fpca::Active
         } else {
             Fpca::NotActive
+        }
+    }
+
+    /// Sets the FPCA value.
+    #[inline]
+    pub fn set_fpca(&mut self, fpca: Fpca) {
+        let mask = 1 << 2;
+        match fpca {
+            Fpca::Active => self.bits |= mask,
+            Fpca::NotActive => self.bits &= !mask,
         }
     }
 }
@@ -51,11 +91,13 @@ pub enum Npriv {
 
 impl Npriv {
     /// Is in privileged thread mode?
+    #[inline]
     pub fn is_privileged(&self) -> bool {
         *self == Npriv::Privileged
     }
 
     /// Is in unprivileged thread mode?
+    #[inline]
     pub fn is_unprivileged(&self) -> bool {
         *self == Npriv::Unprivileged
     }
@@ -72,11 +114,13 @@ pub enum Spsel {
 
 impl Spsel {
     /// Is MSP the current stack pointer?
+    #[inline]
     pub fn is_msp(&self) -> bool {
         *self == Spsel::Msp
     }
 
     /// Is PSP the current stack pointer?
+    #[inline]
     pub fn is_psp(&self) -> bool {
         *self == Spsel::Psp
     }
@@ -93,11 +137,13 @@ pub enum Fpca {
 
 impl Fpca {
     /// Is a floating-point context active?
+    #[inline]
     pub fn is_active(&self) -> bool {
         *self == Fpca::Active
     }
 
     /// Is a floating-point context not active?
+    #[inline]
     pub fn is_not_active(&self) -> bool {
         *self == Fpca::NotActive
     }
@@ -120,15 +166,42 @@ pub fn read() -> Control {
                 #[cfg(not(feature = "inline-asm"))]
                 () => unsafe {
                     extern "C" {
-                        fn __control() -> u32;
+                        fn __control_r() -> u32;
                     }
 
-                    __control()
+                    __control_r()
                 },
             };
 
             Control { bits: r }
         }
+
+        #[cfg(not(cortex_m))]
+        () => unimplemented!(),
+    }
+}
+
+/// Writes to the CPU register.
+#[inline]
+pub unsafe fn write(_control: Control) {
+    match () {
+        #[cfg(cortex_m)]
+        () => match () {
+            #[cfg(feature = "inline-asm")]
+            () => {
+                let control = _control.bits();
+                asm!("msr CONTROL, $0" :: "r"(control) : "memory" : "volatile");
+            }
+
+            #[cfg(not(feature = "inline-asm"))]
+            () => {
+                extern "C" {
+                    fn __control_w(bits: u32);
+                }
+
+                __control_w(_control.bits());
+            }
+        },
 
         #[cfg(not(cortex_m))]
         () => unimplemented!(),

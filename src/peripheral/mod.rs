@@ -429,6 +429,18 @@ pub struct SCB {
 unsafe impl Send for SCB {}
 
 impl SCB {
+    /// Unsafely obtains an `SCB` instance from nothing.
+    /// 
+    /// # Safety
+    /// 
+    /// This is only safe to use when the returned `SCB` instance is used
+    /// correctly without conflicting with any other existing `SCB` instances.
+    pub unsafe fn steal() -> Self {
+        Self {
+            _marker: PhantomData,
+        }
+    }
+
     /// Returns a pointer to the register block
     pub fn ptr() -> *const scb::RegisterBlock {
         0xE000_ED04 as *const _

@@ -433,8 +433,8 @@ impl SCB {
     /// 
     /// # Safety
     /// 
-    /// This is only safe to use when the returned `SCB` instance is used
-    /// correctly without conflicting with any other existing `SCB` instances.
+    /// The caller has to ensure that all SCB access is synchronized across all
+    /// `SCB` instances to avoid race conditions.
     pub unsafe fn steal() -> Self {
         Self {
             _marker: PhantomData,

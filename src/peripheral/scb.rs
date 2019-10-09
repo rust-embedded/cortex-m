@@ -230,8 +230,8 @@ impl Exception {
     /// Returns the IRQ number of this `Exception`
     ///
     /// The return value is always within the closed range `[-1, -14]`
-    pub fn irqn(&self) -> i8 {
-        match *self {
+    pub fn irqn(self) -> i8 {
+        match self {
             Exception::NonMaskableInt => -14,
             Exception::HardFault => -13,
             #[cfg(not(armv6m))]
@@ -709,7 +709,6 @@ impl SCB {
 }
 
 /// System handlers, exceptions with configurable priority
-#[allow(non_camel_case_types)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SystemHandler {
     // NonMaskableInt, // priority is fixed
@@ -745,8 +744,8 @@ pub enum SystemHandler {
 }
 
 impl SystemHandler {
-    fn index(&self) -> u8 {
-        match *self {
+    fn index(self) -> u8 {
+        match self {
             #[cfg(not(armv6m))]
             SystemHandler::MemoryManagement => 4,
             #[cfg(not(armv6m))]

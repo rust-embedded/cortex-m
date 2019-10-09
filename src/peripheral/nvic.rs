@@ -90,7 +90,7 @@ impl NVIC {
         let nr = interrupt.nr();
 
         unsafe {
-            self.stir.write(nr as u32);
+            self.stir.write(u32::from(nr));
         }
     }
 

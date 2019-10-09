@@ -8,32 +8,32 @@ pub struct Apsr {
 
 impl Apsr {
     /// Returns the contents of the register as raw bits
-    pub fn bits(&self) -> u32 {
+    pub fn bits(self) -> u32 {
         self.bits
     }
 
     /// DSP overflow and saturation flag
-    pub fn q(&self) -> bool {
+    pub fn q(self) -> bool {
         self.bits & (1 << 27) == (1 << 27)
     }
 
     /// Overflow flag
-    pub fn v(&self) -> bool {
+    pub fn v(self) -> bool {
         self.bits & (1 << 28) == (1 << 28)
     }
 
     /// Carry or borrow flag
-    pub fn c(&self) -> bool {
+    pub fn c(self) -> bool {
         self.bits & (1 << 29) == (1 << 29)
     }
 
     /// Zero flag
-    pub fn z(&self) -> bool {
+    pub fn z(self) -> bool {
         self.bits & (1 << 30) == (1 << 30)
     }
 
     /// Negative flag
-    pub fn n(&self) -> bool {
+    pub fn n(self) -> bool {
         self.bits & (1 << 31) == (1 << 31)
     }
 }

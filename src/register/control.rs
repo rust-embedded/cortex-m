@@ -15,13 +15,13 @@ impl Control {
 
     /// Returns the contents of the register as raw bits
     #[inline]
-    pub fn bits(&self) -> u32 {
+    pub fn bits(self) -> u32 {
         self.bits
     }
 
     /// Thread mode privilege level
     #[inline]
-    pub fn npriv(&self) -> Npriv {
+    pub fn npriv(self) -> Npriv {
         if self.bits & (1 << 0) == (1 << 0) {
             Npriv::Unprivileged
         } else {
@@ -41,7 +41,7 @@ impl Control {
 
     /// Currently active stack pointer
     #[inline]
-    pub fn spsel(&self) -> Spsel {
+    pub fn spsel(self) -> Spsel {
         if self.bits & (1 << 1) == (1 << 1) {
             Spsel::Psp
         } else {
@@ -61,7 +61,7 @@ impl Control {
 
     /// Whether context floating-point is currently active
     #[inline]
-    pub fn fpca(&self) -> Fpca {
+    pub fn fpca(self) -> Fpca {
         if self.bits & (1 << 2) == (1 << 2) {
             Fpca::Active
         } else {
@@ -92,14 +92,14 @@ pub enum Npriv {
 impl Npriv {
     /// Is in privileged thread mode?
     #[inline]
-    pub fn is_privileged(&self) -> bool {
-        *self == Npriv::Privileged
+    pub fn is_privileged(self) -> bool {
+        self == Npriv::Privileged
     }
 
     /// Is in unprivileged thread mode?
     #[inline]
-    pub fn is_unprivileged(&self) -> bool {
-        *self == Npriv::Unprivileged
+    pub fn is_unprivileged(self) -> bool {
+        self == Npriv::Unprivileged
     }
 }
 
@@ -115,14 +115,14 @@ pub enum Spsel {
 impl Spsel {
     /// Is MSP the current stack pointer?
     #[inline]
-    pub fn is_msp(&self) -> bool {
-        *self == Spsel::Msp
+    pub fn is_msp(self) -> bool {
+        self == Spsel::Msp
     }
 
     /// Is PSP the current stack pointer?
     #[inline]
-    pub fn is_psp(&self) -> bool {
-        *self == Spsel::Psp
+    pub fn is_psp(self) -> bool {
+        self == Spsel::Psp
     }
 }
 
@@ -138,14 +138,14 @@ pub enum Fpca {
 impl Fpca {
     /// Is a floating-point context active?
     #[inline]
-    pub fn is_active(&self) -> bool {
-        *self == Fpca::Active
+    pub fn is_active(self) -> bool {
+        self == Fpca::Active
     }
 
     /// Is a floating-point context not active?
     #[inline]
-    pub fn is_not_active(&self) -> bool {
-        *self == Fpca::NotActive
+    pub fn is_not_active(self) -> bool {
+        self == Fpca::NotActive
     }
 }
 

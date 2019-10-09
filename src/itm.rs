@@ -28,6 +28,8 @@ impl<'p> fmt::Write for Port<'p> {
 }
 
 /// Writes a `buffer` to the ITM `port`
+#[allow(clippy::cast_ptr_alignment)]
+#[allow(clippy::transmute_ptr_to_ptr)]
 pub fn write_all(port: &mut Stim, buffer: &[u8]) {
     unsafe {
         let mut len = buffer.len();
@@ -86,6 +88,8 @@ pub fn write_all(port: &mut Stim, buffer: &[u8]) {
 /// // Or equivalently
 /// itm::write_aligned(&itm.stim[0], &Aligned(*b"Hello, world!\n"));
 /// ```
+#[allow(clippy::cast_ptr_alignment)]
+#[allow(clippy::transmute_ptr_to_ptr)]
 pub fn write_aligned(port: &mut Stim, buffer: &Aligned<A4, [u8]>) {
     unsafe {
         let len = buffer.len();
@@ -102,7 +106,7 @@ pub fn write_aligned(port: &mut Stim, buffer: &Aligned<A4, [u8]>) {
 
         // 3 bytes or less left
         let mut left = len & 0b11;
-        let mut ptr = buffer.as_ptr().offset(split as isize);
+        let mut ptr = buffer.as_ptr().add(split);
 
         // at least 2 bytes left
         if left > 1 {

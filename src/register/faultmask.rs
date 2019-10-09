@@ -11,13 +11,13 @@ pub enum Faultmask {
 
 impl Faultmask {
     /// All exceptions are active
-    pub fn is_active(&self) -> bool {
-        *self == Faultmask::Active
+    pub fn is_active(self) -> bool {
+        self == Faultmask::Active
     }
 
     /// All exceptions, except for NMI, are inactive
-    pub fn is_inactive(&self) -> bool {
-        *self == Faultmask::Inactive
+    pub fn is_inactive(self) -> bool {
+        self == Faultmask::Inactive
     }
 }
 

@@ -11,11 +11,13 @@ pub enum Primask {
 
 impl Primask {
     /// All exceptions with configurable priority are active
+    #[inline]
     pub fn is_active(self) -> bool {
         self == Primask::Active
     }
 
     /// All exceptions with configurable priority are inactive
+    #[inline]
     pub fn is_inactive(self) -> bool {
         self == Primask::Inactive
     }

@@ -40,16 +40,19 @@ impl SYST {
     /// Clears current value to 0
     ///
     /// After calling `clear_current()`, the next call to `has_wrapped()` will return `false`.
+    #[inline]
     pub fn clear_current(&mut self) {
         unsafe { self.cvr.write(0) }
     }
 
     /// Disables counter
+    #[inline]
     pub fn disable_counter(&mut self) {
         unsafe { self.csr.modify(|v| v & !SYST_CSR_ENABLE) }
     }
 
     /// Disables SysTick interrupt
+    #[inline]
     pub fn disable_interrupt(&mut self) {
         unsafe { self.csr.modify(|v| v & !SYST_CSR_TICKINT) }
     }
@@ -66,11 +69,13 @@ impl SYST {
     /// - Program Control and Status register"
     ///
     /// The sequence translates to `self.set_reload(x); self.clear_current(); self.enable_counter()`
+    #[inline]
     pub fn enable_counter(&mut self) {
         unsafe { self.csr.modify(|v| v | SYST_CSR_ENABLE) }
     }
 
     /// Enables SysTick interrupt
+    #[inline]
     pub fn enable_interrupt(&mut self) {
         unsafe { self.csr.modify(|v| v | SYST_CSR_TICKINT) }
     }
@@ -79,6 +84,7 @@ impl SYST {
     ///
     /// *NOTE* This takes `&mut self` because the read operation is side effectful and can clear the
     /// bit that indicates that the timer has wrapped (cf. `SYST.has_wrapped`)
+    #[inline]
     pub fn get_clock_source(&mut self) -> SystClkSource {
         // NOTE(unsafe) atomic read with no side effects
         if self.csr.read() & SYST_CSR_CLKSOURCE != 0 {
@@ -89,12 +95,14 @@ impl SYST {
     }
 
     /// Gets current value
+    #[inline]
     pub fn get_current() -> u32 {
         // NOTE(unsafe) atomic read with no side effects
         unsafe { (*Self::ptr()).cvr.read() }
     }
 
     /// Gets reload value
+    #[inline]
     pub fn get_reload() -> u32 {
         // NOTE(unsafe) atomic read with no side effects
         unsafe { (*Self::ptr()).rvr.read() }
@@ -105,12 +113,14 @@ impl SYST {
     ///
     /// Returns `0` if the value is not known (e.g. because the clock can
     /// change dynamically).
+    #[inline]
     pub fn get_ticks_per_10ms() -> u32 {
         // NOTE(unsafe) atomic read with no side effects
         unsafe { (*Self::ptr()).calib.read() & SYST_COUNTER_MASK }
     }
 
     /// Checks if an external reference clock is available
+    #[inline]
     pub fn has_reference_clock() -> bool {
         // NOTE(unsafe) atomic read with no side effects
         unsafe { (*Self::ptr()).calib.read() & SYST_CALIB_NOREF == 0 }
@@ -120,6 +130,7 @@ impl SYST {
     ///
     /// *NOTE* This takes `&mut self` because the read operation is side effectful and will clear
     /// the bit of the read register.
+    #[inline]
     pub fn has_wrapped(&mut self) -> bool {
         self.csr.read() & SYST_CSR_COUNTFLAG != 0
     }
@@ -128,6 +139,7 @@ impl SYST {
     ///
     /// *NOTE* This takes `&mut self` because the read operation is side effectful and can clear the
     /// bit that indicates that the timer has wrapped (cf. `SYST.has_wrapped`)
+    #[inline]
     pub fn is_counter_enabled(&mut self) -> bool {
         self.csr.read() & SYST_CSR_ENABLE != 0
     }
@@ -136,6 +148,7 @@ impl SYST {
     ///
     /// *NOTE* This takes `&mut self` because the read operation is side effectful and can clear the
     /// bit that indicates that the timer has wrapped (cf. `SYST.has_wrapped`)
+    #[inline]
     pub fn is_interrupt_enabled(&mut self) -> bool {
         self.csr.read() & SYST_CSR_TICKINT != 0
     }
@@ -145,12 +158,14 @@ impl SYST {
     /// Returns `false` if using the reload value returned by
     /// `get_ticks_per_10ms()` may result in a period significantly deviating
     /// from 10 ms.
+    #[inline]
     pub fn is_precise() -> bool {
         // NOTE(unsafe) atomic read with no side effects
         unsafe { (*Self::ptr()).calib.read() & SYST_CALIB_SKEW == 0 }
     }
 
     /// Sets clock source
+    #[inline]
     pub fn set_clock_source(&mut self, clk_source: SystClkSource) {
         match clk_source {
             SystClkSource::External => unsafe { self.csr.modify(|v| v & !SYST_CSR_CLKSOURCE) },
@@ -163,6 +178,7 @@ impl SYST {
     /// Valid values are between `1` and `0x00ffffff`.
     ///
     /// *NOTE* To make the timer wrap every `N` ticks set the reload value to `N - 1`
+    #[inline]
     pub fn set_reload(&mut self, value: u32) {
         unsafe { self.rvr.write(value) }
     }

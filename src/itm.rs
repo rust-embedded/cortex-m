@@ -21,6 +21,7 @@ unsafe fn write_words(stim: &mut Stim, bytes: &[u32]) {
 struct Port<'p>(&'p mut Stim);
 
 impl<'p> fmt::Write for Port<'p> {
+    #[inline]
     fn write_str(&mut self, s: &str) -> fmt::Result {
         write_all(self.0, s.as_bytes());
         Ok(())
@@ -126,6 +127,7 @@ pub fn write_aligned(port: &mut Stim, buffer: &Aligned<A4, [u8]>) {
 }
 
 /// Writes `fmt::Arguments` to the ITM `port`
+#[inline]
 pub fn write_fmt(port: &mut Stim, args: fmt::Arguments) {
     use core::fmt::Write;
 
@@ -133,6 +135,7 @@ pub fn write_fmt(port: &mut Stim, args: fmt::Arguments) {
 }
 
 /// Writes a string to the ITM `port`
+#[inline]
 pub fn write_str(port: &mut Stim, string: &str) {
     write_all(port, string.as_bytes())
 }

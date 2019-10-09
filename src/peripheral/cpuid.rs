@@ -82,6 +82,7 @@ impl CPUID {
     /// * `ind`: select instruction cache or data/unified cache
     ///
     /// `level` is masked to be between 0 and 7.
+    #[inline]
     pub fn select_cache(&mut self, level: u8, ind: CsselrCacheType) {
         const CSSELR_IND_POS: u32 = 0;
         const CSSELR_IND_MASK: u32 = 1 << CSSELR_IND_POS;
@@ -97,6 +98,7 @@ impl CPUID {
     }
 
     /// Returns the number of sets and ways in the selected cache
+    #[inline]
     pub fn cache_num_sets_ways(&mut self, level: u8, ind: CsselrCacheType) -> (u16, u16) {
         const CCSIDR_NUMSETS_POS: u32 = 13;
         const CCSIDR_NUMSETS_MASK: u32 = 0x7FFF << CCSIDR_NUMSETS_POS;

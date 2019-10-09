@@ -120,16 +120,19 @@ use self::fpu_consts::*;
 #[cfg(has_fpu)]
 impl SCB {
     /// Shorthand for `set_fpu_access_mode(FpuAccessMode::Disabled)`
+    #[inline]
     pub fn disable_fpu(&mut self) {
         self.set_fpu_access_mode(FpuAccessMode::Disabled)
     }
 
     /// Shorthand for `set_fpu_access_mode(FpuAccessMode::Enabled)`
+    #[inline]
     pub fn enable_fpu(&mut self) {
         self.set_fpu_access_mode(FpuAccessMode::Enabled)
     }
 
     /// Gets FPU access mode
+    #[inline]
     pub fn fpu_access_mode() -> FpuAccessMode {
         // NOTE(unsafe) atomic read operation with no side effects
         let cpacr = unsafe { (*Self::ptr()).cpacr.read() };
@@ -149,6 +152,7 @@ impl SCB {
     /// floating-point arguments or have any floating-point local variables. Because the compiler
     /// might inline such a function into a caller that does have floating-point arguments or
     /// variables, any such function must be also marked #[inline(never)].
+    #[inline]
     pub fn set_fpu_access_mode(&mut self, mode: FpuAccessMode) {
         let mut cpacr = self.cpacr.read() & !SCB_CPACR_FPU_MASK;
         match mode {
@@ -162,6 +166,7 @@ impl SCB {
 
 impl SCB {
     /// Returns the active exception number
+    #[inline]
     pub fn vect_active() -> VectActive {
         let icsr = unsafe { ptr::read(&(*SCB::ptr()).icsr as *const _ as *const u32) };
 
@@ -230,6 +235,7 @@ impl Exception {
     /// Returns the IRQ number of this `Exception`
     ///
     /// The return value is always within the closed range `[-1, -14]`
+    #[inline]
     pub fn irqn(self) -> i8 {
         match self {
             Exception::NonMaskableInt => -14,
@@ -269,6 +275,7 @@ pub enum VectActive {
 
 impl VectActive {
     /// Converts a `byte` into `VectActive`
+    #[inline]
     pub fn from(vect_active: u8) -> Option<Self> {
         Some(match vect_active {
             0 => VectActive::ThreadMode,
@@ -582,6 +589,7 @@ const SCB_SCR_SLEEPDEEP: u32 = 0x1 << 2;
 
 impl SCB {
     /// Set the SLEEPDEEP bit in the SCR register
+    #[inline]
     pub fn set_sleepdeep(&mut self) {
         unsafe {
             self.scr.modify(|scr| scr | SCB_SCR_SLEEPDEEP);
@@ -589,6 +597,7 @@ impl SCB {
     }
 
     /// Clear the SLEEPDEEP bit in the SCR register
+    #[inline]
     pub fn clear_sleepdeep(&mut self) {
         unsafe {
             self.scr.modify(|scr| scr & !SCB_SCR_SLEEPDEEP);
@@ -600,6 +609,7 @@ const SCB_SCR_SLEEPONEXIT: u32 = 0x1 << 1;
 
 impl SCB {
     /// Set the SLEEPONEXIT bit in the SCR register
+    #[inline]
     pub fn set_sleeponexit(&mut self) {
         unsafe {
             self.scr.modify(|scr| scr | SCB_SCR_SLEEPONEXIT);
@@ -607,6 +617,7 @@ impl SCB {
     }
 
     /// Clear the SLEEPONEXIT bit in the SCR register
+    #[inline]
     pub fn clear_sleeponexit(&mut self) {
         unsafe {
             self.scr.modify(|scr| scr & !SCB_SCR_SLEEPONEXIT);
@@ -621,6 +632,7 @@ const SCB_AIRCR_SYSRESETREQ: u32 = 1 << 2;
 impl SCB {
     /// Initiate a system reset request to reset the MCU
     #[deprecated(since = "0.6.1", note = "Use `SCB::sys_reset`")]
+    #[inline]
     pub fn system_reset(&mut self) -> ! {
         crate::asm::dsb();
         unsafe {
@@ -640,6 +652,7 @@ impl SCB {
     }
 
     /// Initiate a system reset request to reset the MCU
+    #[inline]
     pub fn sys_reset() -> ! {
         crate::asm::dsb();
         unsafe {
@@ -667,6 +680,7 @@ const SCB_ICSR_PENDSTCLR: u32 = 1 << 25;
 
 impl SCB {
     /// Set the PENDSVSET bit in the ICSR register which will pend the PendSV interrupt
+    #[inline]
     pub fn set_pendsv() {
         unsafe {
             (*Self::ptr()).icsr.write(SCB_ICSR_PENDSVSET);
@@ -674,11 +688,13 @@ impl SCB {
     }
 
     /// Check if PENDSVSET bit in the ICSR register is set meaning PendSV interrupt is pending
+    #[inline]
     pub fn is_pendsv_pending() -> bool {
         unsafe { (*Self::ptr()).icsr.read() & SCB_ICSR_PENDSVSET == SCB_ICSR_PENDSVSET }
     }
 
     /// Set the PENDSVCLR bit in the ICSR register which will clear a pending PendSV interrupt
+    #[inline]
     pub fn clear_pendsv() {
         unsafe {
             (*Self::ptr()).icsr.write(SCB_ICSR_PENDSVCLR);
@@ -768,6 +784,7 @@ impl SCB {
     ///
     /// *NOTE*: Hardware priority does not exactly match logical priority levels. See
     /// [`NVIC.get_priority`](struct.NVIC.html#method.get_priority) for more details.
+    #[inline]
     pub fn get_priority(system_handler: SystemHandler) -> u8 {
         let index = system_handler.index();
 
@@ -798,6 +815,7 @@ impl SCB {
     ///
     /// Changing priority levels can break priority-based critical sections (see
     /// [`register::basepri`](../register/basepri/index.html)) and compromise memory safety.
+    #[inline]
     pub unsafe fn set_priority(&mut self, system_handler: SystemHandler, prio: u8) {
         let index = system_handler.index();
 

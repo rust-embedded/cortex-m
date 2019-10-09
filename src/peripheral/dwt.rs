@@ -65,12 +65,14 @@ pub struct Comparator {
 impl DWT {
     /// Enables the cycle counter
     #[cfg(not(armv6m))]
+    #[inline]
     pub fn enable_cycle_counter(&mut self) {
         unsafe { self.ctrl.modify(|r| r | 1) }
     }
 
     /// Returns the current clock cycle count
     #[cfg(not(armv6m))]
+    #[inline]
     pub fn get_cycle_count() -> u32 {
         // NOTE(unsafe) atomic read with no side effects
         unsafe { (*Self::ptr()).cyccnt.read() }

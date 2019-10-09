@@ -158,6 +158,7 @@ impl Peripherals {
     }
 
     /// Unchecked version of `Peripherals::take`
+    #[inline]
     pub unsafe fn steal() -> Self {
         CORE_PERIPHERALS = true;
 
@@ -211,6 +212,7 @@ unsafe impl Send for CBP {}
 
 #[cfg(not(armv6m))]
 impl CBP {
+    #[inline(always)]
     pub(crate) unsafe fn new() -> Self {
         CBP {
             _marker: PhantomData,
@@ -218,6 +220,7 @@ impl CBP {
     }
 
     /// Returns a pointer to the register block
+    #[inline(always)]
     pub fn ptr() -> *const self::cbp::RegisterBlock {
         0xE000_EF50 as *const _
     }
@@ -227,6 +230,7 @@ impl CBP {
 impl ops::Deref for CBP {
     type Target = self::cbp::RegisterBlock;
 
+    #[inline(always)]
     fn deref(&self) -> &Self::Target {
         unsafe { &*Self::ptr() }
     }
@@ -241,6 +245,7 @@ unsafe impl Send for CPUID {}
 
 impl CPUID {
     /// Returns a pointer to the register block
+    #[inline(always)]
     pub fn ptr() -> *const self::cpuid::RegisterBlock {
         0xE000_ED00 as *const _
     }
@@ -249,6 +254,7 @@ impl CPUID {
 impl ops::Deref for CPUID {
     type Target = self::cpuid::RegisterBlock;
 
+    #[inline(always)]
     fn deref(&self) -> &Self::Target {
         unsafe { &*Self::ptr() }
     }
@@ -263,6 +269,7 @@ unsafe impl Send for DCB {}
 
 impl DCB {
     /// Returns a pointer to the register block
+    #[inline(always)]
     pub fn ptr() -> *const dcb::RegisterBlock {
         0xE000_EDF0 as *const _
     }
@@ -271,6 +278,7 @@ impl DCB {
 impl ops::Deref for DCB {
     type Target = self::dcb::RegisterBlock;
 
+    #[inline(always)]
     fn deref(&self) -> &Self::Target {
         unsafe { &*DCB::ptr() }
     }
@@ -285,6 +293,7 @@ unsafe impl Send for DWT {}
 
 impl DWT {
     /// Returns a pointer to the register block
+    #[inline(always)]
     pub fn ptr() -> *const dwt::RegisterBlock {
         0xE000_1000 as *const _
     }
@@ -293,6 +302,7 @@ impl DWT {
 impl ops::Deref for DWT {
     type Target = self::dwt::RegisterBlock;
 
+    #[inline(always)]
     fn deref(&self) -> &Self::Target {
         unsafe { &*Self::ptr() }
     }
@@ -308,6 +318,7 @@ unsafe impl Send for FPB {}
 #[cfg(not(armv6m))]
 impl FPB {
     /// Returns a pointer to the register block
+    #[inline(always)]
     pub fn ptr() -> *const fpb::RegisterBlock {
         0xE000_2000 as *const _
     }
@@ -317,6 +328,7 @@ impl FPB {
 impl ops::Deref for FPB {
     type Target = self::fpb::RegisterBlock;
 
+    #[inline(always)]
     fn deref(&self) -> &Self::Target {
         unsafe { &*Self::ptr() }
     }
@@ -332,6 +344,7 @@ unsafe impl Send for FPU {}
 #[cfg(any(has_fpu, target_arch = "x86_64"))]
 impl FPU {
     /// Returns a pointer to the register block
+    #[inline(always)]
     pub fn ptr() -> *const fpu::RegisterBlock {
         0xE000_EF30 as *const _
     }
@@ -341,6 +354,7 @@ impl FPU {
 impl ops::Deref for FPU {
     type Target = self::fpu::RegisterBlock;
 
+    #[inline(always)]
     fn deref(&self) -> &Self::Target {
         unsafe { &*Self::ptr() }
     }
@@ -356,6 +370,7 @@ unsafe impl Send for ITM {}
 #[cfg(not(armv6m))]
 impl ITM {
     /// Returns a pointer to the register block
+    #[inline(always)]
     pub fn ptr() -> *mut itm::RegisterBlock {
         0xE000_0000 as *mut _
     }
@@ -365,6 +380,7 @@ impl ITM {
 impl ops::Deref for ITM {
     type Target = self::itm::RegisterBlock;
 
+    #[inline(always)]
     fn deref(&self) -> &Self::Target {
         unsafe { &*Self::ptr() }
     }
@@ -372,6 +388,7 @@ impl ops::Deref for ITM {
 
 #[cfg(not(armv6m))]
 impl ops::DerefMut for ITM {
+    #[inline(always)]
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { &mut *Self::ptr() }
     }
@@ -386,6 +403,7 @@ unsafe impl Send for MPU {}
 
 impl MPU {
     /// Returns a pointer to the register block
+    #[inline(always)]
     pub fn ptr() -> *const mpu::RegisterBlock {
         0xE000_ED90 as *const _
     }
@@ -394,6 +412,7 @@ impl MPU {
 impl ops::Deref for MPU {
     type Target = self::mpu::RegisterBlock;
 
+    #[inline(always)]
     fn deref(&self) -> &Self::Target {
         unsafe { &*Self::ptr() }
     }
@@ -408,6 +427,7 @@ unsafe impl Send for NVIC {}
 
 impl NVIC {
     /// Returns a pointer to the register block
+    #[inline(always)]
     pub fn ptr() -> *const nvic::RegisterBlock {
         0xE000_E100 as *const _
     }
@@ -416,6 +436,7 @@ impl NVIC {
 impl ops::Deref for NVIC {
     type Target = self::nvic::RegisterBlock;
 
+    #[inline(always)]
     fn deref(&self) -> &Self::Target {
         unsafe { &*Self::ptr() }
     }
@@ -430,6 +451,7 @@ unsafe impl Send for SCB {}
 
 impl SCB {
     /// Returns a pointer to the register block
+    #[inline(always)]
     pub fn ptr() -> *const scb::RegisterBlock {
         0xE000_ED04 as *const _
     }
@@ -438,6 +460,7 @@ impl SCB {
 impl ops::Deref for SCB {
     type Target = self::scb::RegisterBlock;
 
+    #[inline(always)]
     fn deref(&self) -> &Self::Target {
         unsafe { &*Self::ptr() }
     }
@@ -452,6 +475,7 @@ unsafe impl Send for SYST {}
 
 impl SYST {
     /// Returns a pointer to the register block
+    #[inline(always)]
     pub fn ptr() -> *const syst::RegisterBlock {
         0xE000_E010 as *const _
     }
@@ -460,6 +484,7 @@ impl SYST {
 impl ops::Deref for SYST {
     type Target = self::syst::RegisterBlock;
 
+    #[inline(always)]
     fn deref(&self) -> &Self::Target {
         unsafe { &*Self::ptr() }
     }
@@ -475,6 +500,7 @@ unsafe impl Send for TPIU {}
 #[cfg(not(armv6m))]
 impl TPIU {
     /// Returns a pointer to the register block
+    #[inline(always)]
     pub fn ptr() -> *const tpiu::RegisterBlock {
         0xE004_0000 as *const _
     }
@@ -484,6 +510,7 @@ impl TPIU {
 impl ops::Deref for TPIU {
     type Target = self::tpiu::RegisterBlock;
 
+    #[inline(always)]
     fn deref(&self) -> &Self::Target {
         unsafe { &*Self::ptr() }
     }

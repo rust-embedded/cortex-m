@@ -75,4 +75,13 @@ impl DWT {
         // NOTE(unsafe) atomic read with no side effects
         unsafe { (*Self::ptr()).cyccnt.read() }
     }
+
+    /// Removes the software lock on the DWT
+    ///
+    /// Some devices, like the STM32F7, software lock the DWT after a power cycle.
+    #[cfg(not(armv6m))]
+    pub fn unlock() {
+        // NOTE(unsafe) atomic write to a stateless, write-only register
+        unsafe { (*Self::ptr()).lar.write(0xC5ACCE55) }
+    }
 }

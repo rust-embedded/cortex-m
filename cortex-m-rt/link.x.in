@@ -88,10 +88,12 @@ SECTIONS
     *(.text .text.*);
     *(.HardFaultTrampoline);
     *(.HardFault.*);
+    . = ALIGN(4);
+    __etext = .;
   } > FLASH
 
   /* ### .rodata */
-  .rodata : ALIGN(4)
+  .rodata __etext : ALIGN(4)
   {
     *(.rodata .rodata.*);
 
@@ -99,18 +101,19 @@ SECTIONS
        This is required by LLD to ensure the LMA of the following .data
        section will have the correct alignment. */
     . = ALIGN(4);
+    __erodata = .;
   } > FLASH
 
   /* ## Sections in RAM */
   /* ### .data */
-  .data : ALIGN(4)
+  .data : AT(__erodata) ALIGN(4)
   {
     . = ALIGN(4);
     __sdata = .;
     *(.data .data.*);
     . = ALIGN(4); /* 4-byte align the end (VMA) of this section */
     __edata = .;
-  } > RAM AT > FLASH
+  } > RAM
 
   /* LMA of .data */
   __sidata = LOADADDR(.data);

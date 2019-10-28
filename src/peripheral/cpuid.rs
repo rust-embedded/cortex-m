@@ -90,7 +90,7 @@ impl CPUID {
 
         unsafe {
             self.csselr.write(
-                (((level as u32) << CSSELR_LEVEL_POS) & CSSELR_LEVEL_MASK)
+                ((u32::from(level) << CSSELR_LEVEL_POS) & CSSELR_LEVEL_MASK)
                     | (((ind as u32) << CSSELR_IND_POS) & CSSELR_IND_MASK),
             )
         }

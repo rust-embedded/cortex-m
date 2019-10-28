@@ -26,7 +26,7 @@ pub enum SystClkSource {
     External,
 }
 
-const SYST_COUNTER_MASK: u32 = 0x00ffffff;
+const SYST_COUNTER_MASK: u32 = 0x00ff_ffff;
 
 const SYST_CSR_ENABLE: u32 = 1 << 0;
 const SYST_CSR_TICKINT: u32 = 1 << 1;
@@ -81,10 +81,10 @@ impl SYST {
     /// bit that indicates that the timer has wrapped (cf. `SYST.has_wrapped`)
     pub fn get_clock_source(&mut self) -> SystClkSource {
         // NOTE(unsafe) atomic read with no side effects
-        let clk_source_bit = self.csr.read() & SYST_CSR_CLKSOURCE != 0;
-        match clk_source_bit {
-            false => SystClkSource::External,
-            true => SystClkSource::Core,
+        if self.csr.read() & SYST_CSR_CLKSOURCE != 0 {
+            SystClkSource::Core
+        } else {
+            SystClkSource::External
         }
     }
 

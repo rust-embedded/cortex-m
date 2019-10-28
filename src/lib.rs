@@ -32,6 +32,7 @@
 #![cfg_attr(feature = "inline-asm", feature(asm))]
 #![deny(missing_docs)]
 #![no_std]
+#![allow(clippy::identity_op)]
 
 extern crate aligned;
 extern crate bare_metal;

@@ -97,6 +97,7 @@ pub struct RegisterBlock {
 
 /// FPU access mode
 #[cfg(has_fpu)]
+#[allow(clippy::missing_inline_in_public_items)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum FpuAccessMode {
     /// FPU is not accessible
@@ -193,6 +194,7 @@ impl SCB {
 }
 
 /// Processor core exceptions (internal interrupts)
+#[allow(clippy::missing_inline_in_public_items)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Exception {
     /// Non maskable interrupt
@@ -258,6 +260,7 @@ impl Exception {
 }
 
 /// Active exception number
+#[allow(clippy::missing_inline_in_public_items)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum VectActive {
     /// Thread mode
@@ -725,6 +728,7 @@ impl SCB {
 }
 
 /// System handlers, exceptions with configurable priority
+#[allow(clippy::missing_inline_in_public_items)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SystemHandler {
     // NonMaskableInt, // priority is fixed

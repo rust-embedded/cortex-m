@@ -34,6 +34,7 @@
 #![no_std]
 #![allow(clippy::identity_op)]
 #![allow(clippy::missing_safety_doc)]
+#![deny(clippy::missing_inline_in_public_items)]
 
 extern crate aligned;
 extern crate bare_metal;

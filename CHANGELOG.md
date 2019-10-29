@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Deprecation
+
+- Deprecated incorrectly included registers (`BASPRI`, `BASEPRI_MAX`, `FAULTMASK`) on `thumbv8.base`
+
 ## [v0.6.1] - 2019-08-21
 
 ### Fixed

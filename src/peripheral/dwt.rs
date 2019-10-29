@@ -65,12 +65,14 @@ pub struct Comparator {
 impl DWT {
     /// Enables the cycle counter
     #[cfg(not(armv6m))]
+    #[inline]
     pub fn enable_cycle_counter(&mut self) {
         unsafe { self.ctrl.modify(|r| r | 1) }
     }
 
     /// Returns the current clock cycle count
     #[cfg(not(armv6m))]
+    #[inline]
     pub fn get_cycle_count() -> u32 {
         // NOTE(unsafe) atomic read with no side effects
         unsafe { (*Self::ptr()).cyccnt.read() }
@@ -80,6 +82,7 @@ impl DWT {
     ///
     /// Some devices, like the STM32F7, software lock the DWT after a power cycle.
     #[cfg(not(armv6m))]
+    #[inline]
     pub fn unlock() {
         // NOTE(unsafe) atomic write to a stateless, write-only register
         unsafe { (*Self::ptr()).lar.write(0xC5AC_CE55) }

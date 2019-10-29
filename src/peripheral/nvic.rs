@@ -83,6 +83,7 @@ impl NVIC {
     /// `set_pending`.
     ///
     /// This method is not available on ARMv6-M chips.
+    #[inline]
     pub fn request<I>(&mut self, interrupt: I)
     where
         I: Nr,
@@ -96,6 +97,7 @@ impl NVIC {
 
     /// Clears `interrupt`'s pending state
     #[deprecated(since = "0.5.8", note = "Use `NVIC::unpend`")]
+    #[inline]
     pub fn clear_pending<I>(&mut self, interrupt: I)
     where
         I: Nr,
@@ -104,6 +106,7 @@ impl NVIC {
     }
 
     /// Disables `interrupt`
+    #[inline]
     pub fn mask<I>(interrupt: I)
     where
         I: Nr,
@@ -116,6 +119,7 @@ impl NVIC {
     /// Enables `interrupt`
     ///
     /// This function is `unsafe` because it can break mask-based critical sections
+    #[inline]
     pub unsafe fn unmask<I>(interrupt: I)
     where
         I: Nr,
@@ -127,6 +131,7 @@ impl NVIC {
 
     /// Disables `interrupt`
     #[deprecated(since = "0.6.1", note = "Use `NVIC::mask`")]
+    #[inline]
     pub fn disable<I>(&mut self, interrupt: I)
     where
         I: Nr,
@@ -137,6 +142,7 @@ impl NVIC {
     /// **WARNING** This method is a soundness hole in the API; it should actually be an `unsafe`
     /// function. Use `NVIC::unmask` which has the right unsafety.
     #[deprecated(since = "0.6.1", note = "Use `NVIC::unmask`")]
+    #[inline]
     pub fn enable<I>(&mut self, interrupt: I)
     where
         I: Nr,
@@ -149,6 +155,7 @@ impl NVIC {
     /// *NOTE* NVIC encodes priority in the highest bits of a byte so values like `1` and `2` map
     /// to the same priority. Also for NVIC priorities, a lower value (e.g. `16`) has higher
     /// priority (urgency) than a larger value (e.g. `32`).
+    #[inline]
     pub fn get_priority<I>(interrupt: I) -> u8
     where
         I: Nr,
@@ -171,6 +178,7 @@ impl NVIC {
 
     /// Is `interrupt` active or pre-empted and stacked
     #[cfg(not(armv6m))]
+    #[inline]
     pub fn is_active<I>(interrupt: I) -> bool
     where
         I: Nr,
@@ -183,6 +191,7 @@ impl NVIC {
     }
 
     /// Checks if `interrupt` is enabled
+    #[inline]
     pub fn is_enabled<I>(interrupt: I) -> bool
     where
         I: Nr,
@@ -195,6 +204,7 @@ impl NVIC {
     }
 
     /// Checks if `interrupt` is pending
+    #[inline]
     pub fn is_pending<I>(interrupt: I) -> bool
     where
         I: Nr,
@@ -207,6 +217,7 @@ impl NVIC {
     }
 
     /// Forces `interrupt` into pending state
+    #[inline]
     pub fn pend<I>(interrupt: I)
     where
         I: Nr,
@@ -219,6 +230,7 @@ impl NVIC {
 
     /// Forces `interrupt` into pending state
     #[deprecated(since = "0.5.8", note = "Use `NVIC::pend`")]
+    #[inline]
     pub fn set_pending<I>(&mut self, interrupt: I)
     where
         I: Nr,
@@ -238,6 +250,7 @@ impl NVIC {
     ///
     /// Changing priority levels can break priority-based critical sections (see
     /// [`register::basepri`](../register/basepri/index.html)) and compromise memory safety.
+    #[inline]
     pub unsafe fn set_priority<I>(&mut self, interrupt: I, prio: u8)
     where
         I: Nr,
@@ -260,6 +273,7 @@ impl NVIC {
     }
 
     /// Clears `interrupt`'s pending state
+    #[inline]
     pub fn unpend<I>(interrupt: I)
     where
         I: Nr,
@@ -271,6 +285,7 @@ impl NVIC {
     }
 
     #[cfg(armv6m)]
+    #[inline]
     fn ipr_index<I>(interrupt: &I) -> usize
     where
         I: Nr,
@@ -279,6 +294,7 @@ impl NVIC {
     }
 
     #[cfg(armv6m)]
+    #[inline]
     fn ipr_shift<I>(interrupt: &I) -> usize
     where
         I: Nr,

@@ -25,6 +25,7 @@ impl DCB {
     /// `peripheral::DWT` cycle counter to work properly.
     /// As by STM documentation, this flag is not reset on
     /// soft-reset, only on power reset.
+    #[inline]
     pub fn enable_trace(&mut self) {
         // set bit 24 / TRCENA
         unsafe {
@@ -33,6 +34,7 @@ impl DCB {
     }
 
     /// Disables TRACE. See `DCB::enable_trace()` for more details
+    #[inline]
     pub fn disable_trace(&mut self) {
         // unset bit 24 / TRCENA
         unsafe {
@@ -47,6 +49,7 @@ impl DCB {
     /// on Cortex-M0 devices. Per the ARM v6-M Architecture Reference Manual, "Access to the DHCSR
     /// from software running on the processor is IMPLEMENTATION DEFINED". Indeed, from the
     /// [Cortex-M0+ r0p1 Technical Reference Manual](http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0484c/BABJHEIG.html), "Note Software cannot access the debug registers."
+    #[inline]
     pub fn is_debugger_attached() -> bool {
         unsafe {
             // do an 8-bit read of the 32-bit DHCSR register, and get the LSB

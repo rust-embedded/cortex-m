@@ -781,7 +781,7 @@ impl SCB {
         {
             // NOTE(unsafe) atomic read with no side effects
             let shpr = unsafe { (*Self::ptr()).shpr[usize::from((index - 8) / 4)].read() };
-            let prio = (shpr >> (8 * (index % 4))) & 0x000000ff;
+            let prio = (shpr >> (8 * (index % 4))) & 0x0000_00ff;
             prio as u8
         }
     }
@@ -810,7 +810,7 @@ impl SCB {
         {
             self.shpr[usize::from((index - 8) / 4)].modify(|value| {
                 let shift = 8 * (index % 4);
-                let mask = 0x000000ff << shift;
+                let mask = 0x0000_00ff << shift;
                 let prio = u32::from(prio) << shift;
 
                 (value & !mask) | prio

@@ -78,8 +78,6 @@ macro_rules! singleton {
 /// ``` compile_fail
 /// use cortex_m::singleton;
 ///
-/// fn main() {}
-///
 /// fn foo() {
 ///     // check that the call to `uninitialized` requires unsafe
 ///     singleton!(: u8 = std::mem::uninitialized());
@@ -91,8 +89,6 @@ const CFAIL: () = ();
 /// ```
 /// #![deny(unsafe_code)]
 /// use cortex_m::singleton;
-///
-/// fn main() {}
 ///
 /// fn foo() {
 ///     // check that calls to `singleton!` don't trip the `unsafe_code` lint

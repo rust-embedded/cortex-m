@@ -31,6 +31,15 @@ main() {
     if [ $TARGET = x86_64-unknown-linux-gnu ]; then
         ./check-blobs.sh
     fi
+
+    if [ $TRAVIS_RUST_VERSION = nightly ]; then
+        # Get the latest nightly with a working clippy
+        rustup toolchain uninstall nightly
+        rustup set profile default
+        rustup default nightly
+        rustup target add $TARGET
+        cargo clippy --target $TARGET -- -D warnings
+    fi
 }
 
 main

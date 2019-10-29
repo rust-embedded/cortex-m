@@ -82,6 +82,7 @@ impl DWT {
     ///
     /// Some devices, like the STM32F7, software lock the DWT after a power cycle.
     #[cfg(not(armv6m))]
+    #[inline]
     pub fn unlock() {
         // NOTE(unsafe) atomic write to a stateless, write-only register
         unsafe { (*Self::ptr()).lar.write(0xC5ACCE55) }

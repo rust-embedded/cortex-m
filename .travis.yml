@@ -62,6 +62,10 @@ matrix:
       rust: nightly
       if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
 
+    - env: TARGET=thumbv8m.base-none-eabi
+      rust: nightly
+      if: (branch = staging OR branch = trying) OR (type = pull_request AND branch = master)
+
 before_install: set -e
 
 install:

@@ -82,6 +82,6 @@ impl DWT {
     #[cfg(not(armv6m))]
     pub fn unlock() {
         // NOTE(unsafe) atomic write to a stateless, write-only register
-        unsafe { (*Self::ptr()).lar.write(0xC5ACCE55) }
+        unsafe { (*Self::ptr()).lar.write(0xC5AC_CE55) }
     }
 }

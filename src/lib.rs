@@ -33,6 +33,7 @@
 #![deny(missing_docs)]
 #![no_std]
 #![allow(clippy::identity_op)]
+#![allow(clippy::missing_safety_doc)]
 
 extern crate aligned;
 extern crate bare_metal;

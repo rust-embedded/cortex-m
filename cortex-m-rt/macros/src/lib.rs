@@ -1,28 +1,20 @@
 #![deny(warnings)]
 
 extern crate proc_macro;
-extern crate rand;
-#[macro_use]
-extern crate quote;
-extern crate core;
-extern crate proc_macro2;
-#[macro_use]
-extern crate syn;
 
+use proc_macro::TokenStream;
 use proc_macro2::Span;
-use rand::Rng;
-use rand::SeedableRng;
+use rand::{Rng, SeedableRng};
 use std::collections::HashSet;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 use syn::{
-    parse, spanned::Spanned, AttrStyle, Attribute, FnArg, Ident, Item, ItemFn, ItemStatic,
-    ReturnType, Stmt, Type, Visibility,
+    parse, parse_macro_input, spanned::Spanned, AttrStyle, Attribute, FnArg, Ident, Item, ItemFn,
+    ItemStatic, ReturnType, Stmt, Type, Visibility,
 };
+use quote::quote;
 
 static CALL_COUNT: AtomicUsize = AtomicUsize::new(0);
-
-use proc_macro::TokenStream;
 
 /// Attribute to declare the entry point of the program
 ///
@@ -736,9 +728,9 @@ fn random_ident() -> Ident {
         &(0..16)
             .map(|i| {
                 if i == 0 || rng.gen() {
-                    ('a' as u8 + rng.gen::<u8>() % 25) as char
+                    (b'a' + rng.gen::<u8>() % 25) as char
                 } else {
-                    ('0' as u8 + rng.gen::<u8>() % 10) as char
+                    (b'0' + rng.gen::<u8>() % 10) as char
                 }
             })
             .collect::<String>(),

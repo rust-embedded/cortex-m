@@ -26,7 +26,8 @@ cortex-m-semihosting = "0.3"
 
 [dev-dependencies.rand]
 default-features = false
-version = "0.5.5"
+features = ["small_rng"]
+version = "0.7"
 
 [target.'cfg(not(target_os = "none"))'.dev-dependencies]
 compiletest_rs = "0.3.25"

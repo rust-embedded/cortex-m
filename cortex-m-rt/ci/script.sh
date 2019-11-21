@@ -5,7 +5,7 @@ main() {
 
     cargo check --target $TARGET --features device
 
-    if [ $TARGET = x86_64-unknown-linux-gnu ] && [ $TRAVIS_RUST_VERSION = nightly ]; then
+    if [ $TARGET = x86_64-unknown-linux-gnu ] && [ $TRAVIS_RUST_VERSION = stable ]; then
         ( cd macros && cargo check && cargo test )
 
         cargo test --features device --test compiletest
@@ -73,7 +73,7 @@ main() {
             # linking with GNU LD
             env RUSTFLAGS="-C linker=arm-none-eabi-ld -C link-arg=-Tlink.x" cargo run --target $TARGET --example qemu | grep "x = 42"
             env RUSTFLAGS="-C linker=arm-none-eabi-ld -C link-arg=-Tlink.x" cargo run --target $TARGET --example qemu --release | grep "x = 42"
-            
+
             # linking with rustc's LLD
             cargo run --target $TARGET --example qemu | grep "x = 42"
             cargo run --target $TARGET --example qemu --release | grep "x = 42"

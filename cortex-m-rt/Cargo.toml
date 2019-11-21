@@ -30,7 +30,7 @@ features = ["small_rng"]
 version = "0.7"
 
 [target.'cfg(not(target_os = "none"))'.dev-dependencies]
-compiletest_rs = "0.3.25"
+compiletest_rs = "0.4.0"
 
 [[example]]
 name = "device"

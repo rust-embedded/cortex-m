@@ -115,8 +115,13 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
         let ident = &statik.ident;
         let ty = &statik.ty;
         let attrs = &statik.attrs;
-        syn::parse::<FnArg>(quote!(#[allow(non_snake_case)] #(#attrs)* #ident: &mut #ty).into())
-            .unwrap()
+
+        // Note that we use an explicit `'static` lifetime for the entry point arguments. This makes
+        // it more flexible, and is sound here, since the entry will not be called again, ever.
+        syn::parse::<FnArg>(
+            quote!(#[allow(non_snake_case)] #(#attrs)* #ident: &'static mut #ty).into(),
+        )
+        .unwrap()
     }));
     f.block.stmts = stmts;
 

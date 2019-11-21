@@ -36,6 +36,10 @@ compiletest_rs = "0.4.0"
 name = "device"
 required-features = ["device"]
 
+[[test]]
+name = "compiletest"
+required-features = ["device"]
+
 [features]
 device = []
 

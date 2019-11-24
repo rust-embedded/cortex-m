@@ -21,10 +21,5 @@ proc-macro2 = "1.0"
 features = ["extra-traits", "full"]
 version = "1.0"
 
-[dependencies.rand]
-default-features = false
-features = ["small_rng"]
-version = "0.7"
-
 [dev-dependencies]
 cortex-m-rt = { path = "..", version = "0.6" }

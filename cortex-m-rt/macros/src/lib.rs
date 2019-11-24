@@ -4,17 +4,13 @@ extern crate proc_macro;
 
 use proc_macro::TokenStream;
 use proc_macro2::Span;
-use rand::{Rng, SeedableRng};
+use quote::quote;
 use std::collections::HashSet;
-use std::sync::atomic::{AtomicUsize, Ordering};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::iter;
 use syn::{
     parse, parse_macro_input, spanned::Spanned, AttrStyle, Attribute, FnArg, Ident, Item, ItemFn,
     ItemStatic, ReturnType, Stmt, Type, Visibility,
 };
-use quote::quote;
-
-static CALL_COUNT: AtomicUsize = AtomicUsize::new(0);
 
 /// Attribute to declare the entry point of the program
 ///
@@ -75,7 +71,7 @@ static CALL_COUNT: AtomicUsize = AtomicUsize::new(0);
 /// ```
 #[proc_macro_attribute]
 pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
-    let f = parse_macro_input!(input as ItemFn);
+    let mut f = parse_macro_input!(input as ItemFn);
 
     // check the function signature
     let valid_signature = f.sig.constness.is_none()
@@ -109,44 +105,56 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
     }
 
     // XXX should we blacklist other attributes?
-    let attrs = f.attrs;
-    let unsafety = f.sig.unsafety;
-    let hash = random_ident();
     let (statics, stmts) = match extract_static_muts(f.block.stmts) {
         Err(e) => return e.to_compile_error().into(),
         Ok(x) => x,
     };
 
-    let vars = statics
-        .into_iter()
-        .map(|var| {
-            let (ref cfgs, ref attrs) = extract_cfgs(var.attrs);
-            let ident = var.ident;
-            let ty = var.ty;
-            let expr = var.expr;
+    f.sig.ident = Ident::new(&format!("__cortex_m_rt_{}", f.sig.ident), Span::call_site());
+    f.sig.inputs.extend(statics.iter().map(|statik| {
+        let ident = &statik.ident;
+        let ty = &statik.ty;
+        let attrs = &statik.attrs;
 
-            quote!(
-                #[allow(non_snake_case)]
+        // Note that we use an explicit `'static` lifetime for the entry point arguments. This makes
+        // it more flexible, and is sound here, since the entry will not be called again, ever.
+        syn::parse::<FnArg>(
+            quote!(#[allow(non_snake_case)] #(#attrs)* #ident: &'static mut #ty).into(),
+        )
+        .unwrap()
+    }));
+    f.block.stmts = stmts;
+
+    let tramp_ident = Ident::new(&format!("{}_trampoline", f.sig.ident), Span::call_site());
+    let ident = &f.sig.ident;
+
+    let resource_args = statics
+        .iter()
+        .map(|statik| {
+            let (ref cfgs, ref attrs) = extract_cfgs(statik.attrs.clone());
+            let ident = &statik.ident;
+            let ty = &statik.ty;
+            let expr = &statik.expr;
+            quote! {
                 #(#cfgs)*
-                let #ident: &'static mut #ty = unsafe {
+                {
                     #(#attrs)*
-                    #(#cfgs)*
                     static mut #ident: #ty = #expr;
-
                     &mut #ident
-                };
-            )
+                }
+            }
         })
         .collect::<Vec<_>>();
 
     quote!(
         #[export_name = "main"]
-        #(#attrs)*
-        pub #unsafety fn #hash() -> ! {
-            #(#vars)*
-
-            #(#stmts)*
+        pub unsafe extern "C" fn #tramp_ident() {
+            #ident(
+                #(#resource_args),*
+            )
         }
+
+        #f
     )
     .into()
 }
@@ -265,7 +273,7 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
 /// ```
 #[proc_macro_attribute]
 pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
-    let f = parse_macro_input!(input as ItemFn);
+    let mut f = parse_macro_input!(input as ItemFn);
 
     if !args.is_empty() {
         return parse::Error::new(Span::call_site(), "This attribute accepts no arguments")
@@ -274,7 +282,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
     }
 
     let fspan = f.span();
-    let ident = f.sig.ident;
+    let ident = f.sig.ident.clone();
 
     enum Exception {
         DefaultHandler,
@@ -298,12 +306,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
     };
 
     // XXX should we blacklist other attributes?
-    let attrs = f.attrs;
-    let block = f.block;
-    let stmts = block.stmts;
-    let unsafety = f.sig.unsafety;
 
-    let hash = random_ident();
     match exn {
         Exception::DefaultHandler => {
             let valid_signature = f.sig.constness.is_none()
@@ -331,23 +334,23 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                 .into();
             }
 
-            let arg = match f.sig.inputs[0] {
-                FnArg::Typed(ref arg) => arg,
-                _ => unreachable!(),
-            };
+            f.sig.ident = Ident::new(&format!("__cortex_m_rt_{}", f.sig.ident), Span::call_site());
+            let tramp_ident = Ident::new(&format!("{}_trampoline", f.sig.ident), Span::call_site());
+            let ident = &f.sig.ident;
 
             quote!(
                 #[export_name = #ident_s]
-                #(#attrs)*
-                pub #unsafety extern "C" fn #hash() {
+                pub unsafe extern "C" fn #tramp_ident() {
                     extern crate core;
 
                     const SCB_ICSR: *const u32 = 0xE000_ED04 as *const u32;
 
-                    let #arg = unsafe { core::ptr::read(SCB_ICSR) as u8 as i16 - 16 };
+                    let irqn = unsafe { core::ptr::read(SCB_ICSR) as u8 as i16 - 16 };
 
-                    #(#stmts)*
+                    #ident(irqn)
                 }
+
+                #f
             )
             .into()
         }
@@ -383,24 +386,18 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                 .into();
             }
 
-            let arg = match f.sig.inputs[0] {
-                FnArg::Typed(ref arg) => arg,
-                _ => unreachable!(),
-            };
-
-            let pat = &arg.pat;
+            f.sig.ident = Ident::new(&format!("__cortex_m_rt_{}", f.sig.ident), Span::call_site());
+            let tramp_ident = Ident::new(&format!("{}_trampoline", f.sig.ident), Span::call_site());
+            let ident = &f.sig.ident;
 
             quote!(
                 #[export_name = "HardFault"]
                 #[link_section = ".HardFault.user"]
-                #(#attrs)*
-                pub #unsafety extern "C" fn #hash(#arg) -> ! {
-                    extern crate cortex_m_rt;
-
-                    // further type check of the input argument
-                    let #pat: &cortex_m_rt::ExceptionFrame = #pat;
-                    #(#stmts)*
+                pub unsafe extern "C" fn #tramp_ident(frame: &::cortex_m_rt::ExceptionFrame) {
+                    #ident(frame)
                 }
+
+                #f
             )
             .into()
         }
@@ -431,46 +428,63 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                 .into();
             }
 
-            let (statics, stmts) = match extract_static_muts(stmts) {
+            let (statics, stmts) = match extract_static_muts(f.block.stmts) {
                 Err(e) => return e.to_compile_error().into(),
                 Ok(x) => x,
             };
 
-            let vars = statics
-                .into_iter()
-                .map(|var| {
-                    let (ref cfgs, ref attrs) = extract_cfgs(var.attrs);
-                    let ident = var.ident;
-                    let ty = var.ty;
-                    let expr = var.expr;
+            f.sig.ident = Ident::new(&format!("__cortex_m_rt_{}", f.sig.ident), Span::call_site());
+            f.sig.inputs.extend(statics.iter().map(|statik| {
+                let ident = &statik.ident;
+                let ty = &statik.ty;
+                let attrs = &statik.attrs;
+                syn::parse::<FnArg>(
+                    quote!(#[allow(non_snake_case)] #(#attrs)* #ident: &mut #ty).into(),
+                )
+                .unwrap()
+            }));
+            f.block.stmts = iter::once(
+                syn::parse2(quote! {{
+                    extern crate cortex_m_rt;
 
-                    quote!(
-                        #[allow(non_snake_case)]
+                    // check that this exception actually exists
+                    cortex_m_rt::Exception::#ident;
+                }})
+                .unwrap(),
+            )
+            .chain(stmts)
+            .collect();
+
+            let tramp_ident = Ident::new(&format!("{}_trampoline", f.sig.ident), Span::call_site());
+            let ident = &f.sig.ident;
+
+            let resource_args = statics
+                .iter()
+                .map(|statik| {
+                    let (ref cfgs, ref attrs) = extract_cfgs(statik.attrs.clone());
+                    let ident = &statik.ident;
+                    let ty = &statik.ty;
+                    let expr = &statik.expr;
+                    quote! {
                         #(#cfgs)*
-                        let #ident: &mut #ty = unsafe {
+                        {
                             #(#attrs)*
-                            #(#cfgs)*
                             static mut #ident: #ty = #expr;
-
                             &mut #ident
-                        };
-                    )
+                        }
+                    }
                 })
                 .collect::<Vec<_>>();
 
             quote!(
                 #[export_name = #ident_s]
-                #(#attrs)*
-                pub #unsafety extern "C" fn #hash() {
-                    extern crate cortex_m_rt;
-
-                    // check that this exception actually exists
-                    cortex_m_rt::Exception::#ident;
-
-                    #(#vars)*
-
-                    #(#stmts)*
+                pub unsafe extern "C" fn #tramp_ident() {
+                    #ident(
+                        #(#resource_args),*
+                    )
                 }
+
+                #f
             )
             .into()
         }
@@ -547,7 +561,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
 /// ```
 #[proc_macro_attribute]
 pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
-    let f: ItemFn = syn::parse(input).expect("`#[interrupt]` must be applied to a function");
+    let mut f: ItemFn = syn::parse(input).expect("`#[interrupt]` must be applied to a function");
 
     if !args.is_empty() {
         return parse::Error::new(Span::call_site(), "This attribute accepts no arguments")
@@ -556,14 +570,10 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
     }
 
     let fspan = f.span();
-    let ident = f.sig.ident;
+    let ident = f.sig.ident.clone();
     let ident_s = ident.to_string();
 
     // XXX should we blacklist other attributes?
-    let attrs = f.attrs;
-    let block = f.block;
-    let stmts = block.stmts;
-    let unsafety = f.sig.unsafety;
 
     let valid_signature = f.sig.constness.is_none()
         && f.vis == Visibility::Inherited
@@ -590,44 +600,61 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
         .into();
     }
 
-    let (statics, stmts) = match extract_static_muts(stmts) {
+    let (statics, stmts) = match extract_static_muts(f.block.stmts.iter().cloned()) {
         Err(e) => return e.to_compile_error().into(),
         Ok(x) => x,
     };
 
-    let vars = statics
-        .into_iter()
-        .map(|var| {
-            let (ref cfgs, ref attrs) = extract_cfgs(var.attrs);
-            let ident = var.ident;
-            let ty = var.ty;
-            let expr = var.expr;
+    f.sig.ident = Ident::new(&format!("__cortex_m_rt_{}", f.sig.ident), Span::call_site());
+    f.sig.inputs.extend(statics.iter().map(|statik| {
+        let ident = &statik.ident;
+        let ty = &statik.ty;
+        let attrs = &statik.attrs;
+        syn::parse::<FnArg>(quote!(#[allow(non_snake_case)] #(#attrs)* #ident: &mut #ty).into())
+            .unwrap()
+    }));
+    f.block.stmts = iter::once(
+        syn::parse2(quote! {{
+            extern crate cortex_m_rt;
 
-            quote!(
-                #[allow(non_snake_case)]
+            // Check that this interrupt actually exists
+            interrupt::#ident;
+        }})
+        .unwrap(),
+    )
+    .chain(stmts)
+    .collect();
+
+    let tramp_ident = Ident::new(&format!("{}_trampoline", f.sig.ident), Span::call_site());
+    let ident = &f.sig.ident;
+
+    let resource_args = statics
+        .iter()
+        .map(|statik| {
+            let (ref cfgs, ref attrs) = extract_cfgs(statik.attrs.clone());
+            let ident = &statik.ident;
+            let ty = &statik.ty;
+            let expr = &statik.expr;
+            quote! {
                 #(#cfgs)*
-                let #ident: &mut #ty = unsafe {
+                {
                     #(#attrs)*
-                    #(#cfgs)*
                     static mut #ident: #ty = #expr;
-
                     &mut #ident
-                };
-            )
+                }
+            }
         })
         .collect::<Vec<_>>();
 
-    let hash = random_ident();
     quote!(
         #[export_name = #ident_s]
-        #(#attrs)*
-        pub #unsafety extern "C" fn #hash() {
-            interrupt::#ident;
-
-            #(#vars)*
-
-            #(#stmts)*
+        pub unsafe extern "C" fn #tramp_ident() {
+            #ident(
+                #(#resource_args),*
+            )
         }
+
+        #f
     )
     .into()
 }
@@ -705,41 +732,10 @@ pub fn pre_init(args: TokenStream, input: TokenStream) -> TokenStream {
     .into()
 }
 
-// Creates a random identifier
-fn random_ident() -> Ident {
-    let secs = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_secs();
-
-    let count: u64 = CALL_COUNT.fetch_add(1, Ordering::SeqCst) as u64;
-    let mut seed: [u8; 16] = [0; 16];
-
-    for (i, v) in seed.iter_mut().take(8).enumerate() {
-        *v = ((secs >> (i * 8)) & 0xFF) as u8
-    }
-
-    for (i, v) in seed.iter_mut().skip(8).enumerate() {
-        *v = ((count >> (i * 8)) & 0xFF) as u8
-    }
-
-    let mut rng = rand::rngs::SmallRng::from_seed(seed);
-    Ident::new(
-        &(0..16)
-            .map(|i| {
-                if i == 0 || rng.gen() {
-                    (b'a' + rng.gen::<u8>() % 25) as char
-                } else {
-                    (b'0' + rng.gen::<u8>() % 10) as char
-                }
-            })
-            .collect::<String>(),
-        Span::call_site(),
-    )
-}
-
 /// Extracts `static mut` vars from the beginning of the given statements
-fn extract_static_muts(stmts: Vec<Stmt>) -> Result<(Vec<ItemStatic>, Vec<Stmt>), parse::Error> {
+fn extract_static_muts(
+    stmts: impl IntoIterator<Item = Stmt>,
+) -> Result<(Vec<ItemStatic>, Vec<Stmt>), parse::Error> {
     let mut istmts = stmts.into_iter();
 
     let mut seen = HashSet::new();

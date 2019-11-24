@@ -23,7 +23,6 @@ main() {
         override-exception
         pre_init
         qemu
-        rand
         state
         unsafe-default-handler
         unsafe-entry

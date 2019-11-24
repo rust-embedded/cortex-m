@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Macros now generate a second trampoline function instead of randomizing the
+  function's symbol name. This makes the build deterministic.
+- [breaking-change] `static mut` resources no longer have `'static` lifetime
+  except in the `#[entry]` function (this is a soundness fix; see [#212]).
+
+[#212]: https://github.com/rust-embedded/cortex-m-rt/issues/212
+
 ## [v0.6.10] - 2019-07-25
 
 ### Fixed

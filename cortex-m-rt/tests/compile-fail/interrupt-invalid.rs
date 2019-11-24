@@ -7,7 +7,7 @@ extern crate panic_halt;
 use cortex_m_rt::{entry, interrupt};
 
 #[entry]
-fn foo() -> ! {
+fn entry() -> ! {
     loop {}
 }
 

@@ -16,16 +16,17 @@
 //!
 //! This crate also provides the following attributes:
 //!
-//! - `#[entry]` to declare the entry point of the program
-//! - `#[exception]` to override an exception handler. If not overridden all exception handlers
-//!   default to an infinite loop.
-//! - `#[pre_init]` to run code *before* `static` variables are initialized
+//! - [`#[entry]`][attr-entry] to declare the entry point of the program
+//! - [`#[exception]`][attr-exception] to override an exception handler. If not overridden all
+//!   exception handlers default to an infinite loop.
+//! - [`#[pre_init]`][attr-pre_init] to run code *before* `static` variables are initialized
 //!
 //! This crate also implements a related attribute called `#[interrupt]`, which allows you
 //! to define interrupt handlers. However, since which interrupts are available depends on the
 //! microcontroller in use, this attribute should be re-exported and used from a device crate.
 //!
-//! The documentation for these attributes can be found in the [Reexports](#reexports) section.
+//! The documentation for these attributes can be found in the [Attribute Macros](#attributes)
+//! section.
 //!
 //! # Requirements
 //!
@@ -194,11 +195,10 @@
 //! One will always find the following (unmangled) symbols in `cortex-m-rt` applications:
 //!
 //! - `Reset`. This is the reset handler. The microcontroller will executed this function upon
-//! booting. This function will call the user program entry point (cf. [`#[entry]`]) using the `main`
-//! symbol so you may also find that symbol in your program; if you do, `main` will contain your
-//! application code. Some other times `main` gets inlined into `Reset` so you won't find it.
-//!
-//! [`#[entry]`]:  https://docs.rs/cortex-m-rt-macros/0.1.5/cortex_m_rt_macros/attr.entry.html
+//! booting. This function will call the user program entry point (cf. [`#[entry]`][attr-entry])
+//! using the `main` symbol so you may also find that symbol in your program; if you do, `main`
+//! will contain your application code. Some other times `main` gets inlined into `Reset` so you
+//! won't find it.
 //!
 //! - `DefaultHandler`. This is the default handler. If not overridden using `#[exception] fn
 //! DefaultHandler(..` this will be an infinite loop.
@@ -227,9 +227,9 @@
 //! `__EXCEPTIONS` in the `.vector_table` section.
 //!
 //! - `__pre_init`. This is a function to be run before RAM is initialized. It defaults to an empty
-//! function. The function called can be changed by calling the `pre_init!` macro. The empty
-//! function is not optimized out by default, but if an empty function is passed to `pre_init!` the
-//! function call will be optimized out.
+//! function. The function called can be changed by applying the [`#[pre_init]`][attr-pre_init]
+//! attribute to a function. The empty function is not optimized out by default, but if an empty
+//! function is passed to [`#[pre_init]`][attr-pre_init] the function call will be optimized out.
 //!
 //! If you override any exception handler you'll find it as an unmangled symbol, e.g. `SysTick` or
 //! `SVCall`, in the output of `objdump`,
@@ -245,13 +245,14 @@
 //!
 //! ## Setting the program entry point
 //!
-//! This section describes how `#[entry]` is implemented. This information is useful to developers who
-//! want to provide an alternative to `#[entry]` that provides extra guarantees.
+//! This section describes how [`#[entry]`][attr-entry] is implemented. This information is useful
+//! to developers who want to provide an alternative to [`#[entry]`][attr-entry] that provides extra
+//! guarantees.
 //!
 //! The `Reset` handler will call a symbol named `main` (unmangled) *after* initializing `.bss` and
 //! `.data`, and enabling the FPU (if the target is `thumbv7em-none-eabihf`). A function with the
 //! `entry` attribute will be set to have the export name "`main`"; in addition, its mutable
-//! statics are turned into safe mutable references (see [`#[entry]`] for details).
+//! statics are turned into safe mutable references (see [`#[entry]`][attr-entry] for details).
 //!
 //! The unmangled `main` symbol must have signature `extern "C" fn() -> !` or its invocation from
 //! `Reset`  will result in undefined behavior.
@@ -385,6 +386,10 @@
 //! Be very careful with the `link_section` attribute because it's easy to misuse in ways that cause
 //! undefined behavior. At some point in the future we may add an attribute to safely place static
 //! variables in this section.
+//!
+//! [attr-entry]: attr.entry.html
+//! [attr-exception]: attr.exception.html
+//! [attr-pre_init]: attr.pre_init.html
 
 // # Developer notes
 //
@@ -402,7 +407,9 @@ use core::fmt;
 use core::sync::atomic::{self, Ordering};
 
 #[cfg(feature = "device")]
+#[doc(inline)]
 pub use macros::interrupt;
+#[doc(inline)]
 pub use macros::{entry, exception, pre_init};
 
 #[export_name = "error: cortex-m-rt appears more than once in the dependency graph"]

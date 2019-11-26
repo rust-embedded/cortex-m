@@ -1,3 +1,7 @@
+//! Internal implementation details of `cortex-m-rt`.
+//!
+//! Do not use this crate directly.
+
 #![deny(warnings)]
 
 extern crate proc_macro;

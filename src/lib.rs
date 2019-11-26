@@ -34,6 +34,20 @@
 #![no_std]
 #![allow(clippy::identity_op)]
 #![allow(clippy::missing_safety_doc)]
+
+// This makes clippy warn about public functions which are not #[inline].
+//
+// Almost all functions in this crate result in trivial or even no assembly.
+// These functions should be #[inline].
+//
+// If you do add a function that's not supposed to be #[inline], you can add
+// #[allow(clippy::missing_inline_in_public_items)] in front of it to add an
+// exception to clippy's rules.
+//
+// This should be done in case of:
+//  - A function containing non-trivial logic (such as itm::write_all); or
+//  - A generated #[derive(Debug)] function (in which case the attribute needs
+//    to be applied to the struct).
 #![deny(clippy::missing_inline_in_public_items)]
 
 extern crate aligned;

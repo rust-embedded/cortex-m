@@ -66,6 +66,7 @@ pub struct RegisterBlock {
 
 /// Type of cache to select on CSSELR writes.
 #[cfg(not(armv6m))]
+#[allow(clippy::missing_inline_in_public_items)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum CsselrCacheType {
     /// Select DCache or unified cache

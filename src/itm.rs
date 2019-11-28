@@ -9,6 +9,7 @@ use aligned::{Aligned, A4};
 use crate::peripheral::itm::Stim;
 
 // NOTE assumes that `bytes` is 32-bit aligned
+#[allow(clippy::missing_inline_in_public_items)]
 unsafe fn write_words(stim: &mut Stim, bytes: &[u32]) {
     let mut p = bytes.as_ptr();
     for _ in 0..bytes.len() {
@@ -30,6 +31,7 @@ impl<'p> fmt::Write for Port<'p> {
 
 /// Writes a `buffer` to the ITM `port`
 #[allow(clippy::cast_ptr_alignment)]
+#[allow(clippy::missing_inline_in_public_items)]
 #[allow(clippy::transmute_ptr_to_ptr)]
 pub fn write_all(port: &mut Stim, buffer: &[u8]) {
     unsafe {
@@ -90,6 +92,7 @@ pub fn write_all(port: &mut Stim, buffer: &[u8]) {
 /// itm::write_aligned(&itm.stim[0], &Aligned(*b"Hello, world!\n"));
 /// ```
 #[allow(clippy::cast_ptr_alignment)]
+#[allow(clippy::missing_inline_in_public_items)]
 #[allow(clippy::transmute_ptr_to_ptr)]
 pub fn write_aligned(port: &mut Stim, buffer: &Aligned<A4, [u8]>) {
     unsafe {

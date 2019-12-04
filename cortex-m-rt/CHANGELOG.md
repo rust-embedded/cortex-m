@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.6.11] - 2019-12-04
+
 ### Changed
 
 - Macros now generate a second trampoline function instead of randomizing the
@@ -467,6 +469,7 @@ section                size        addr
 Initial release
 
 [Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.10...HEAD
+[v0.6.11]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.10...v0.6.11
 [v0.6.10]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.9...v0.6.10
 [v0.6.9]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.8...v0.6.9
 [v0.6.8]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.7...v0.6.8

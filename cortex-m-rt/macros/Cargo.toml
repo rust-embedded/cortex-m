@@ -7,7 +7,7 @@ keywords = ["arm", "cortex-m", "runtime", "startup"]
 license = "MIT OR Apache-2.0"
 name = "cortex-m-rt-macros"
 repository = "https://github.com/japaric/cortex-m-rt"
-version = "0.1.6"
+version = "0.1.7"
 edition = "2018"
 
 [lib]

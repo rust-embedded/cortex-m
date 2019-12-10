@@ -599,6 +599,8 @@ pub enum Exception {
     SysTick,
 }
 
+pub use self::Exception as exception;
+
 extern "C" {
     fn NonMaskableInt();
 

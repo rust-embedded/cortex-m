@@ -173,7 +173,7 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
 /// # Syntax
 ///
 /// ```
-/// # use cortex_m_rt_macros::exception;
+/// # use cortex_m_rt::exception;
 /// #[exception]
 /// fn SysTick() {
 ///     // ..
@@ -449,10 +449,8 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             }));
             f.block.stmts = iter::once(
                 syn::parse2(quote! {{
-                    extern crate cortex_m_rt;
-
                     // check that this exception actually exists
-                    cortex_m_rt::Exception::#ident;
+                    exception::#ident;
                 }})
                 .unwrap(),
             )
@@ -619,8 +617,6 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
     }));
     f.block.stmts = iter::once(
         syn::parse2(quote! {{
-            extern crate cortex_m_rt;
-
             // Check that this interrupt actually exists
             interrupt::#ident;
         }})

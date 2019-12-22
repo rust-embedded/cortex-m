@@ -62,7 +62,7 @@ pub mod asm;
 #[cfg(armv8m)]
 pub mod cmse;
 pub mod interrupt;
-#[cfg(not(armv6m))]
+#[cfg(all(not(armv6m), not(armv8m_base)))]
 pub mod itm;
 pub mod peripheral;
 pub mod register;

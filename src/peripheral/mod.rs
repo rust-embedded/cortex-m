@@ -73,7 +73,7 @@ pub mod fpb;
 // NOTE(target_arch) is for documentation purposes
 #[cfg(any(has_fpu, target_arch = "x86_64"))]
 pub mod fpu;
-#[cfg(not(armv6m))]
+#[cfg(all(not(armv6m), not(armv8m_base)))]
 pub mod itm;
 pub mod mpu;
 pub mod nvic;
@@ -90,7 +90,8 @@ mod test;
 /// Core peripherals
 #[allow(non_snake_case)]
 pub struct Peripherals {
-    /// Cache and branch predictor maintenance operations (not present on Cortex-M0 variants)
+    /// Cache and branch predictor maintenance operations.
+    /// Not available on Armv6-M.
     pub CBP: CBP,
 
     /// CPUID
@@ -102,13 +103,15 @@ pub struct Peripherals {
     /// Data Watchpoint and Trace unit
     pub DWT: DWT,
 
-    /// Flash Patch and Breakpoint unit (not present on Cortex-M0 variants)
+    /// Flash Patch and Breakpoint unit.
+    /// Not available on Armv6-M.
     pub FPB: FPB,
 
-    /// Floating Point Unit (only present on `thumbv7em-none-eabihf`)
+    /// Floating Point Unit.
     pub FPU: FPU,
 
-    /// Instrumentation Trace Macrocell (not present on Cortex-M0 variants)
+    /// Instrumentation Trace Macrocell.
+    /// Not available on Armv6-M and Armv8-M Baseline.
     pub ITM: ITM,
 
     /// Memory Protection Unit
@@ -123,7 +126,8 @@ pub struct Peripherals {
     /// SysTick: System Timer
     pub SYST: SYST,
 
-    /// Trace Port Interface Unit (not present on Cortex-M0 variants)
+    /// Trace Port Interface Unit.
+    /// Not available on Armv6-M.
     pub TPIU: TPIU,
 
     // Private field making `Peripherals` non-exhaustive. We don't use `#[non_exhaustive]` so we
@@ -360,7 +364,7 @@ pub struct ITM {
 
 unsafe impl Send for ITM {}
 
-#[cfg(not(armv6m))]
+#[cfg(all(not(armv6m), not(armv8m_base)))]
 impl ITM {
     /// Returns a pointer to the register block
     #[inline(always)]
@@ -369,7 +373,7 @@ impl ITM {
     }
 }
 
-#[cfg(not(armv6m))]
+#[cfg(all(not(armv6m), not(armv8m_base)))]
 impl ops::Deref for ITM {
     type Target = self::itm::RegisterBlock;
 
@@ -379,7 +383,7 @@ impl ops::Deref for ITM {
     }
 }
 
-#[cfg(not(armv6m))]
+#[cfg(all(not(armv6m), not(armv8m_base)))]
 impl ops::DerefMut for ITM {
     #[inline(always)]
     fn deref_mut(&mut self) -> &mut Self::Target {

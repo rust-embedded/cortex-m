@@ -1,6 +1,6 @@
 //! Flash Patch and Breakpoint unit
 //!
-//! *NOTE* Available only on ARMv7-M (`thumbv7*m-none-eabi*`)
+//! *NOTE* Not available on Armv6-M.
 
 use volatile_register::{RO, RW, WO};
 

@@ -151,6 +151,7 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
         .collect::<Vec<_>>();
 
     quote!(
+        #[doc(hidden)]
         #[export_name = "main"]
         pub unsafe extern "C" fn #tramp_ident() {
             #ident(

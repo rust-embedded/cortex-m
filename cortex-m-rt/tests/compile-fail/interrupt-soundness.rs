@@ -30,5 +30,5 @@ fn USART1() {
 
 #[interrupt]
 fn USART2() {
-    USART1(); //~ ERROR cannot find function `USART1` in this scope
+    USART1(); //~ ERROR cannot find function, tuple struct or tuple variant `USART1` in this scope [E0425]
 }

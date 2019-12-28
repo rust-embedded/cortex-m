@@ -25,5 +25,5 @@ fn SysTick() {
 #[exception]
 fn SVCall() {
     // If this was allowed it would lead to a data race as `SVCall` could preempt `SysTick`
-    SysTick(); //~ ERROR cannot find function `SysTick` in this scope
+    SysTick(); //~ ERROR cannot find function, tuple struct or tuple variant `SysTick` in this scope [E0425]
 }

@@ -150,7 +150,15 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
         })
         .collect::<Vec<_>>();
 
+    if let Some(error) = check_for_blacklisted_attrs(&f.attrs) {
+        return error;
+    }
+
+    let (ref cfgs, ref attrs) = extract_cfgs(f.attrs.clone());
+
     quote!(
+        #(#cfgs)*
+        #(#attrs)*
         #[doc(hidden)]
         #[export_name = "main"]
         pub unsafe extern "C" fn #tramp_ident() {
@@ -343,7 +351,15 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             let tramp_ident = Ident::new(&format!("{}_trampoline", f.sig.ident), Span::call_site());
             let ident = &f.sig.ident;
 
+            if let Some(error) = check_for_blacklisted_attrs(&f.attrs) {
+                return error;
+            }
+
+            let (ref cfgs, ref attrs) = extract_cfgs(f.attrs.clone());
+
             quote!(
+                #(#cfgs)*
+                #(#attrs)*
                 #[doc(hidden)]
                 #[export_name = #ident_s]
                 pub unsafe extern "C" fn #tramp_ident() {
@@ -396,7 +412,15 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             let tramp_ident = Ident::new(&format!("{}_trampoline", f.sig.ident), Span::call_site());
             let ident = &f.sig.ident;
 
+            if let Some(error) = check_for_blacklisted_attrs(&f.attrs) {
+                return error;
+            }
+
+            let (ref cfgs, ref attrs) = extract_cfgs(f.attrs.clone());
+
             quote!(
+                #(#cfgs)*
+                #(#attrs)*
                 #[doc(hidden)]
                 #[export_name = "HardFault"]
                 #[link_section = ".HardFault.user"]
@@ -481,7 +505,15 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                 })
                 .collect::<Vec<_>>();
 
+            if let Some(error) = check_for_blacklisted_attrs(&f.attrs) {
+                return error;
+            }
+
+            let (ref cfgs, ref attrs) = extract_cfgs(f.attrs.clone());
+
             quote!(
+                #(#cfgs)*
+                #(#attrs)*
                 #[doc(hidden)]
                 #[export_name = #ident_s]
                 pub unsafe extern "C" fn #tramp_ident() {
@@ -650,7 +682,15 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
         })
         .collect::<Vec<_>>();
 
+    if let Some(error) = check_for_blacklisted_attrs(&f.attrs) {
+        return error;
+    }
+
+    let (ref cfgs, ref attrs) = extract_cfgs(f.attrs.clone());
+
     quote!(
+        #(#cfgs)*
+        #(#attrs)*
         #[doc(hidden)]
         #[export_name = #ident_s]
         pub unsafe extern "C" fn #tramp_ident() {
@@ -788,6 +828,30 @@ fn extract_cfgs(attrs: Vec<Attribute>) -> (Vec<Attribute>, Vec<Attribute>) {
     }
 
     (cfgs, not_cfgs)
+}
+
+fn check_for_blacklisted_attrs(attrs: &[Attribute]) -> Option<TokenStream> {
+    if let Some(val) = containts_blacklist_attrs(attrs) {
+        return Some(parse::Error::new(val.span(), "This attribute is not allowed [blacklisted]")
+            .to_compile_error()
+            .into());
+    }
+
+    None
+}
+
+fn containts_blacklist_attrs(attrs: &[Attribute]) -> Option<Attribute> {
+    let blacklist = &["inline", "export_name", "no_mangle", "must_use"];
+
+    for attr in attrs {
+        for val in blacklist {
+            if eq(&attr, &val) {
+                return Some(attr.clone());
+            }
+        }
+    }
+
+    None
 }
 
 /// Returns `true` if `attr.path` matches `name`

@@ -832,7 +832,7 @@ fn extract_cfgs(attrs: Vec<Attribute>) -> (Vec<Attribute>, Vec<Attribute>) {
 
 fn check_for_blacklisted_attrs(attrs: &[Attribute]) -> Option<TokenStream> {
     if let Some(val) = containts_blacklist_attrs(attrs) {
-        return Some(parse::Error::new(val.span(), "This attribute is not allowed [blacklisted]")
+        return Some(parse::Error::new(val.span(), "this attribute is not allowed on a function controlled by cortex-m-rt")
             .to_compile_error()
             .into());
     }
@@ -841,11 +841,11 @@ fn check_for_blacklisted_attrs(attrs: &[Attribute]) -> Option<TokenStream> {
 }
 
 fn containts_blacklist_attrs(attrs: &[Attribute]) -> Option<Attribute> {
-    let blacklist = &["inline", "export_name", "no_mangle", "must_use"];
+    let whitelist = &["doc", "link_section"];
 
     for attr in attrs {
-        for val in blacklist {
-            if eq(&attr, &val) {
+        for val in whitelist {
+            if !eq(&attr, &val) {
                 return Some(attr.clone());
             }
         }

@@ -6,13 +6,13 @@ extern crate panic_halt;
 
 use cortex_m_rt::{entry, exception, interrupt};
 
-#[no_mangle] //~ ERROR This attribute is not allowed [blacklisted]
+#[no_mangle] //~ ERROR this attribute is not allowed on a function controlled by cortex-m-rt
 #[entry]
 fn foo() -> ! {
     loop {}
 }
 
-#[no_mangle] //~ ERROR This attribute is not allowed [blacklisted]
+#[no_mangle] //~ ERROR this attribute is not allowed on a function controlled by cortex-m-rt
 #[exception]
 fn SysTick() {}
 
@@ -21,6 +21,6 @@ enum interrupt {
     USART1,
 }
 
-#[no_mangle] //~ ERROR This attribute is not allowed [blacklisted]
+#[no_mangle] //~ ERROR this attribute is not allowed on a function controlled by cortex-m-rt
 #[interrupt]
 fn USART1() {}

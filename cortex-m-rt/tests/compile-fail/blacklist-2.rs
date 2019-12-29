@@ -6,13 +6,13 @@ extern crate panic_halt;
 
 use cortex_m_rt::{entry, exception, interrupt};
 
-#[export_name = "not_allowed"] //~ ERROR This attribute is not allowed [blacklisted]
+#[export_name = "not_allowed"] //~ ERROR this attribute is not allowed on a function controlled by cortex-m-rt
 #[entry]
 fn foo() -> ! {
     loop {}
 }
 
-#[export_name = "not_allowed"] //~ ERROR This attribute is not allowed [blacklisted]
+#[export_name = "not_allowed"] //~ ERROR this attribute is not allowed on a function controlled by cortex-m-rt
 #[exception]
 fn SysTick() {}
 
@@ -21,6 +21,6 @@ enum interrupt {
     USART1,
 }
 
-#[export_name = "not_allowed"] //~ ERROR This attribute is not allowed [blacklisted]
+#[export_name = "not_allowed"] //~ ERROR this attribute is not allowed on a function controlled by cortex-m-rt
 #[interrupt]
 fn USART1() {}

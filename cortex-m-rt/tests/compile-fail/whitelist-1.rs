@@ -19,8 +19,14 @@ fn SysTick() {}
 #[allow(non_camel_case_types)]
 enum interrupt {
     USART1,
+    USART2,
 }
 
 #[inline] //~ ERROR this attribute is not allowed on a function controlled by cortex-m-rt
 #[interrupt]
 fn USART1() {}
+
+#[cfg(feature = "device")]
+#[cfg_attr(feature = "device", inline)] //~ ERROR this attribute is not allowed on a function controlled by cortex-m-rt
+#[interrupt]
+fn USART2() {}

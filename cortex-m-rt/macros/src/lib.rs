@@ -150,7 +150,7 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
         })
         .collect::<Vec<_>>();
 
-    if let Some(error) = check_for_blacklisted_attrs(&f.attrs) {
+    if let Err(error) = check_attr_whitelist(&f.attrs) {
         return error;
     }
 
@@ -351,7 +351,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             let tramp_ident = Ident::new(&format!("{}_trampoline", f.sig.ident), Span::call_site());
             let ident = &f.sig.ident;
 
-            if let Some(error) = check_for_blacklisted_attrs(&f.attrs) {
+            if let Err(error) = check_attr_whitelist(&f.attrs) {
                 return error;
             }
 
@@ -412,7 +412,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             let tramp_ident = Ident::new(&format!("{}_trampoline", f.sig.ident), Span::call_site());
             let ident = &f.sig.ident;
 
-            if let Some(error) = check_for_blacklisted_attrs(&f.attrs) {
+            if let Err(error) = check_attr_whitelist(&f.attrs) {
                 return error;
             }
 
@@ -505,7 +505,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                 })
                 .collect::<Vec<_>>();
 
-            if let Some(error) = check_for_blacklisted_attrs(&f.attrs) {
+            if let Err(error) = check_attr_whitelist(&f.attrs) {
                 return error;
             }
 
@@ -682,7 +682,7 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
         })
         .collect::<Vec<_>>();
 
-    if let Some(error) = check_for_blacklisted_attrs(&f.attrs) {
+    if let Err(error) = check_attr_whitelist(&f.attrs) {
         return error;
     }
 
@@ -830,23 +830,8 @@ fn extract_cfgs(attrs: Vec<Attribute>) -> (Vec<Attribute>, Vec<Attribute>) {
     (cfgs, not_cfgs)
 }
 
-fn check_for_blacklisted_attrs(attrs: &[Attribute]) -> Option<TokenStream> {
-    if let Some(val) = containts_blacklist_attrs(attrs) {
-        return Some(
-            parse::Error::new(
-                val.span(),
-                "this attribute is not allowed on a function controlled by cortex-m-rt",
-            )
-            .to_compile_error()
-            .into(),
-        );
-    }
-
-    None
-}
-
-fn containts_blacklist_attrs(attrs: &[Attribute]) -> Option<Attribute> {
-    let whitelist = &["doc", "link_section"];
+fn check_attr_whitelist(attrs: &[Attribute]) -> Result<(), TokenStream> {
+    let whitelist = &["doc", "link_section", "cfg", "allow", "warn", "deny", "forbid", "cold"];
 
     'o: for attr in attrs {
         for val in whitelist {
@@ -855,10 +840,18 @@ fn containts_blacklist_attrs(attrs: &[Attribute]) -> Option<Attribute> {
             }
         }
 
-        return Some(attr.clone());
-    }
+        return Err(
+            parse::Error::new(
+                attr.span(),
+                "this attribute is not allowed on a function controlled by cortex-m-rt",
+            )
+            .to_compile_error()
+            .into(),
+        );
 
-    None
+    };
+
+    Ok(())
 }
 
 /// Returns `true` if `attr.path` matches `name`

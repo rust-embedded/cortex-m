@@ -294,6 +294,11 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             .into();
     }
 
+    if let Err(error) = check_attr_whitelist(&f.attrs) {
+        return error;
+    }
+
+
     let fspan = f.span();
     let ident = f.sig.ident.clone();
 
@@ -351,10 +356,6 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             let tramp_ident = Ident::new(&format!("{}_trampoline", f.sig.ident), Span::call_site());
             let ident = &f.sig.ident;
 
-            if let Err(error) = check_attr_whitelist(&f.attrs) {
-                return error;
-            }
-
             let (ref cfgs, ref attrs) = extract_cfgs(f.attrs.clone());
 
             quote!(
@@ -411,10 +412,6 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             f.sig.ident = Ident::new(&format!("__cortex_m_rt_{}", f.sig.ident), Span::call_site());
             let tramp_ident = Ident::new(&format!("{}_trampoline", f.sig.ident), Span::call_site());
             let ident = &f.sig.ident;
-
-            if let Err(error) = check_attr_whitelist(&f.attrs) {
-                return error;
-            }
 
             let (ref cfgs, ref attrs) = extract_cfgs(f.attrs.clone());
 
@@ -504,10 +501,6 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                     }
                 })
                 .collect::<Vec<_>>();
-
-            if let Err(error) = check_attr_whitelist(&f.attrs) {
-                return error;
-            }
 
             let (ref cfgs, ref attrs) = extract_cfgs(f.attrs.clone());
 

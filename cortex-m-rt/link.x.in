@@ -191,6 +191,7 @@ ASSERT(SIZEOF(.vector_table) > 0x40, "
 ERROR(cortex-m-rt): The interrupt vectors are missing.
 Possible solutions, from most likely to less likely:
 - Link to a svd2rust generated device crate
+- Check that you actually use the device/hal/bsp crate in your code
 - Disable the 'device' feature of cortex-m-rt to build a generic application (a dependency
 may be enabling it)
 - Supply the interrupt handlers yourself. Check the documentation for details.");

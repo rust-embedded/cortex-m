@@ -416,33 +416,60 @@ pub use macros::{entry, exception, pre_init};
 #[doc(hidden)]
 pub static __ONCE__: () = ();
 
-/// Registers stacked (pushed into the stack) during an exception
+/// Registers stacked (pushed into the stack) during an exception.
 #[derive(Clone, Copy)]
 #[repr(C)]
 pub struct ExceptionFrame {
-    /// (General purpose) Register 0
-    pub r0: u32,
+    r0: u32,
+    r1: u32,
+    r2: u32,
+    r3: u32,
+    r12: u32,
+    lr: u32,
+    pc: u32,
+    xpsr: u32,
+}
 
-    /// (General purpose) Register 1
-    pub r1: u32,
+impl ExceptionFrame {
+    /// Returns the value of (general purpose) register 0.
+    pub fn r0(&self) -> u32 {
+        self.r0
+    }
 
-    /// (General purpose) Register 2
-    pub r2: u32,
+    /// Returns the value of (general purpose) register 1.
+    pub fn r1(&self) -> u32 {
+        self.r1
+    }
 
-    /// (General purpose) Register 3
-    pub r3: u32,
+    /// Returns the value of (general purpose) register 2.
+    pub fn r2(&self) -> u32 {
+        self.r2
+    }
 
-    /// (General purpose) Register 12
-    pub r12: u32,
+    /// Returns the value of (general purpose) register 3.
+    pub fn r3(&self) -> u32 {
+        self.r3
+    }
 
-    /// Linker Register
-    pub lr: u32,
+    /// Returns the value of (general purpose) register 12.
+    pub fn r12(&self) -> u32 {
+        self.r12
+    }
 
-    /// Program Counter
-    pub pc: u32,
+    /// Returns the value of the Link Register.
+    pub fn lr(&self) -> u32 {
+        self.lr
+    }
 
-    /// Program Status Register
-    pub xpsr: u32,
+    /// Returns the value of the Program Counter.
+    pub fn pc(&self) -> u32 {
+        self.pc
+    }
+
+    /// Returns the value of the Program Status Register.
+    pub fn xpsr(&self) -> u32 {
+        self.xpsr
+    }
 }
 
 impl fmt::Debug for ExceptionFrame {

@@ -470,6 +470,46 @@ impl ExceptionFrame {
     pub fn xpsr(&self) -> u32 {
         self.xpsr
     }
+
+    /// Sets the stacked value of (general purpose) register 0.
+    pub unsafe fn set_r0(&mut self, value: u32) {
+        self.r0 = value;
+    }
+
+    /// Sets the stacked value of (general purpose) register 1.
+    pub unsafe fn set_r1(&mut self, value: u32) {
+        self.r1 = value;
+    }
+
+    /// Sets the stacked value of (general purpose) register 2.
+    pub unsafe fn set_r2(&mut self, value: u32) {
+        self.r2 = value;
+    }
+
+    /// Sets the stacked value of (general purpose) register 3.
+    pub unsafe fn set_r3(&mut self, value: u32) {
+        self.r3 = value;
+    }
+
+    /// Sets the stacked value of (general purpose) register 12.
+    pub unsafe fn set_r12(&mut self, value: u32) {
+        self.r12 = value;
+    }
+
+    /// Sets the stacked value of the Link Register.
+    pub unsafe fn set_lr(&mut self, value: u32) {
+        self.lr = value;
+    }
+
+    /// Sets the stacked value of the Program Counter.
+    pub unsafe fn set_pc(&mut self, value: u32) {
+        self.pc = value;
+    }
+
+    /// Sets the stacked value of the Program Status Register.
+    pub unsafe fn set_xpsr(&mut self, value: u32) {
+        self.xpsr = value;
+    }
 }
 
 impl fmt::Debug for ExceptionFrame {

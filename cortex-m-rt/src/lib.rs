@@ -416,7 +416,7 @@ pub use macros::{entry, exception, pre_init};
 #[doc(hidden)]
 pub static __ONCE__: () = ();
 
-/// Registers stacked (pushed into the stack) during an exception.
+/// Registers stacked (pushed onto the stack) during an exception.
 #[derive(Clone, Copy)]
 #[repr(C)]
 pub struct ExceptionFrame {

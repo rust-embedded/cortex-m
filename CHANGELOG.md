@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.6.2] - 2020-01-12
+
+### Added
+
+- Allow writing to the `CONTROL` register via `register::control::write`
+- Add `DWT::unlock()` for a safe way to unlock the DWT
+
 ### Deprecation
 
 - Deprecated incorrectly included registers (`BASPRI`, `BASEPRI_MAX`, `FAULTMASK`) on `thumbv8.base`
@@ -566,6 +573,7 @@ fn main() {
 - Wrappers over miscellaneous instructions like `bkpt`
 
 [Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.6.1...HEAD
+[v0.6.2]: https://github.com/rust-embedded/cortex-m/compare/v0.6.1...v0.6.2
 [v0.6.1]: https://github.com/rust-embedded/cortex-m/compare/v0.6.0...v0.6.1
 [v0.6.0]: https://github.com/rust-embedded/cortex-m/compare/v0.5.8...v0.6.0
 [v0.5.8]: https://github.com/rust-embedded/cortex-m/compare/v0.5.7...v0.5.8

@@ -58,6 +58,8 @@ extern crate volatile_register;
 mod macros;
 
 pub mod asm;
+#[cfg(armv8m)]
+pub mod cmse;
 pub mod interrupt;
 #[cfg(not(armv6m))]
 pub mod itm;

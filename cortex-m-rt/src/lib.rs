@@ -432,41 +432,49 @@ pub struct ExceptionFrame {
 
 impl ExceptionFrame {
     /// Returns the value of (general purpose) register 0.
+    #[inline(always)]
     pub fn r0(&self) -> u32 {
         self.r0
     }
 
     /// Returns the value of (general purpose) register 1.
+    #[inline(always)]
     pub fn r1(&self) -> u32 {
         self.r1
     }
 
     /// Returns the value of (general purpose) register 2.
+    #[inline(always)]
     pub fn r2(&self) -> u32 {
         self.r2
     }
 
     /// Returns the value of (general purpose) register 3.
+    #[inline(always)]
     pub fn r3(&self) -> u32 {
         self.r3
     }
 
     /// Returns the value of (general purpose) register 12.
+    #[inline(always)]
     pub fn r12(&self) -> u32 {
         self.r12
     }
 
     /// Returns the value of the Link Register.
+    #[inline(always)]
     pub fn lr(&self) -> u32 {
         self.lr
     }
 
     /// Returns the value of the Program Counter.
+    #[inline(always)]
     pub fn pc(&self) -> u32 {
         self.pc
     }
 
     /// Returns the value of the Program Status Register.
+    #[inline(always)]
     pub fn xpsr(&self) -> u32 {
         self.xpsr
     }
@@ -477,6 +485,7 @@ impl ExceptionFrame {
     ///
     /// This affects the `r0` register of the preempted code, which must not rely on it getting
     /// restored to its previous value.
+    #[inline(always)]
     pub unsafe fn set_r0(&mut self, value: u32) {
         self.r0 = value;
     }
@@ -487,6 +496,7 @@ impl ExceptionFrame {
     ///
     /// This affects the `r1` register of the preempted code, which must not rely on it getting
     /// restored to its previous value.
+    #[inline(always)]
     pub unsafe fn set_r1(&mut self, value: u32) {
         self.r1 = value;
     }
@@ -497,6 +507,7 @@ impl ExceptionFrame {
     ///
     /// This affects the `r2` register of the preempted code, which must not rely on it getting
     /// restored to its previous value.
+    #[inline(always)]
     pub unsafe fn set_r2(&mut self, value: u32) {
         self.r2 = value;
     }
@@ -507,6 +518,7 @@ impl ExceptionFrame {
     ///
     /// This affects the `r3` register of the preempted code, which must not rely on it getting
     /// restored to its previous value.
+    #[inline(always)]
     pub unsafe fn set_r3(&mut self, value: u32) {
         self.r3 = value;
     }
@@ -517,6 +529,7 @@ impl ExceptionFrame {
     ///
     /// This affects the `r12` register of the preempted code, which must not rely on it getting
     /// restored to its previous value.
+    #[inline(always)]
     pub unsafe fn set_r12(&mut self, value: u32) {
         self.r12 = value;
     }
@@ -527,6 +540,7 @@ impl ExceptionFrame {
     ///
     /// This affects the `lr` register of the preempted code, which must not rely on it getting
     /// restored to its previous value.
+    #[inline(always)]
     pub unsafe fn set_lr(&mut self, value: u32) {
         self.lr = value;
     }
@@ -537,6 +551,7 @@ impl ExceptionFrame {
     ///
     /// This affects the `pc` register of the preempted code, which must not rely on it getting
     /// restored to its previous value.
+    #[inline(always)]
     pub unsafe fn set_pc(&mut self, value: u32) {
         self.pc = value;
     }
@@ -547,6 +562,7 @@ impl ExceptionFrame {
     ///
     /// This affects the `xPSR` registers (`IPSR`, `APSR`, and `EPSR`) of the preempted code, which
     /// must not rely on them getting restored to their previous value.
+    #[inline(always)]
     pub unsafe fn set_xpsr(&mut self, value: u32) {
         self.xpsr = value;
     }

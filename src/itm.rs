@@ -18,7 +18,7 @@ unsafe fn write_words(stim: &mut Stim, bytes: &[u32]) {
 
 /// Writes an aligned byte slice to the ITM.
 ///
-/// `bytes` must be 4-byte aligned.
+/// `buffer` must be 4-byte aligned.
 unsafe fn write_aligned_impl(port: &mut Stim, buffer: &[u8]) {
     let len = buffer.len();
 

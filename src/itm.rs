@@ -1,21 +1,57 @@
 //! Instrumentation Trace Macrocell
 //!
-//! **NOTE** This module is only available on ARMv7-M and newer
+//! **NOTE** This module is only available on ARMv7-M and newer.
 
-use core::{fmt, mem, ptr, slice};
-
-use aligned::{Aligned, A4};
+use core::{fmt, ptr, slice};
 
 use crate::peripheral::itm::Stim;
 
 // NOTE assumes that `bytes` is 32-bit aligned
-#[allow(clippy::missing_inline_in_public_items)]
 unsafe fn write_words(stim: &mut Stim, bytes: &[u32]) {
     let mut p = bytes.as_ptr();
     for _ in 0..bytes.len() {
         while !stim.is_fifo_ready() {}
         stim.write_u32(ptr::read(p));
         p = p.offset(1);
+    }
+}
+
+/// Writes an aligned byte slice to the ITM.
+///
+/// `buffer` must be 4-byte aligned.
+unsafe fn write_aligned_impl(port: &mut Stim, buffer: &[u8]) {
+    let len = buffer.len();
+
+    if len == 0 {
+        return;
+    }
+
+    let split = len & !0b11;
+    #[allow(clippy::cast_ptr_alignment)]
+    write_words(
+        port,
+        slice::from_raw_parts(buffer.as_ptr() as *const u32, split >> 2),
+    );
+
+    // 3 bytes or less left
+    let mut left = len & 0b11;
+    let mut ptr = buffer.as_ptr().add(split);
+
+    // at least 2 bytes left
+    if left > 1 {
+        while !port.is_fifo_ready() {}
+
+        #[allow(clippy::cast_ptr_alignment)]
+        port.write_u16(ptr::read(ptr as *const u16));
+
+        ptr = ptr.offset(2);
+        left -= 2;
+    }
+
+    // final byte
+    if left == 1 {
+        while !port.is_fifo_ready() {}
+        port.write_u8(*ptr);
     }
 }
 
@@ -29,10 +65,15 @@ impl<'p> fmt::Write for Port<'p> {
     }
 }
 
-/// Writes a `buffer` to the ITM `port`
-#[allow(clippy::cast_ptr_alignment)]
+/// A wrapper type that aligns its contents on a 4-Byte boundary.
+///
+/// ITM transfers are most efficient when the data is 4-Byte-aligned. This type provides an easy
+/// way to accomplish and enforce such an alignment.
+#[repr(align(4))]
+pub struct Aligned<T: ?Sized>(pub T);
+
+/// Writes `buffer` to an ITM port.
 #[allow(clippy::missing_inline_in_public_items)]
-#[allow(clippy::transmute_ptr_to_ptr)]
 pub fn write_all(port: &mut Stim, buffer: &[u8]) {
     unsafe {
         let mut len = buffer.len();
@@ -57,6 +98,9 @@ pub fn write_all(port: &mut Stim, buffer: &[u8]) {
             if len > 1 {
                 // at least 2 bytes
                 while !port.is_fifo_ready() {}
+
+                // We checked the alignment above, so this is safe
+                #[allow(clippy::cast_ptr_alignment)]
                 port.write_u16(ptr::read(ptr as *const u16));
 
                 // 0x04
@@ -73,59 +117,31 @@ pub fn write_all(port: &mut Stim, buffer: &[u8]) {
             }
         }
 
-        write_aligned(port, mem::transmute(slice::from_raw_parts(ptr, len)));
+        // The remaining data is 4-byte aligned, but might not be a multiple of 4 bytes
+        write_aligned_impl(port, slice::from_raw_parts(ptr, len));
     }
 }
 
-/// Writes a 4-byte aligned `buffer` to the ITM `port`
+/// Writes a 4-byte aligned `buffer` to an ITM port.
 ///
 /// # Examples
 ///
-/// ``` ignore
-/// let mut buffer: Aligned<A4, _> = Aligned([0; 14]);
+/// ```no_run
+/// # use cortex_m::{itm::{self, Aligned}, peripheral::ITM};
+/// # let port = unsafe { &mut (*ITM::ptr()).stim[0] };
+/// let mut buffer = Aligned([0; 14]);
 ///
-/// buffer.copy_from_slice(b"Hello, world!\n");
+/// buffer.0.copy_from_slice(b"Hello, world!\n");
 ///
-/// itm::write_aligned(&itm.stim[0], &buffer);
+/// itm::write_aligned(port, &buffer);
 ///
 /// // Or equivalently
-/// itm::write_aligned(&itm.stim[0], &Aligned(*b"Hello, world!\n"));
+/// itm::write_aligned(port, &Aligned(*b"Hello, world!\n"));
 /// ```
-#[allow(clippy::cast_ptr_alignment)]
 #[allow(clippy::missing_inline_in_public_items)]
-#[allow(clippy::transmute_ptr_to_ptr)]
-pub fn write_aligned(port: &mut Stim, buffer: &Aligned<A4, [u8]>) {
+pub fn write_aligned(port: &mut Stim, buffer: &Aligned<[u8]>) {
     unsafe {
-        let len = buffer.len();
-
-        if len == 0 {
-            return;
-        }
-
-        let split = len & !0b11;
-        write_words(
-            port,
-            slice::from_raw_parts(buffer.as_ptr() as *const u32, split >> 2),
-        );
-
-        // 3 bytes or less left
-        let mut left = len & 0b11;
-        let mut ptr = buffer.as_ptr().add(split);
-
-        // at least 2 bytes left
-        if left > 1 {
-            while !port.is_fifo_ready() {}
-            port.write_u16(ptr::read(ptr as *const u16));
-
-            ptr = ptr.offset(2);
-            left -= 2;
-        }
-
-        // final byte
-        if left == 1 {
-            while !port.is_fifo_ready() {}
-            port.write_u8(*ptr);
-        }
+        write_aligned_impl(port, &buffer.0)
     }
 }
 

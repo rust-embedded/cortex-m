@@ -38,7 +38,6 @@ pub struct RegisterBlock {
 
     _reserved5: [u32; 48],
 
-    #[cfg(not(armv6m))]
     /// Interrupt Priority
     ///
     /// On ARMv7-M, 124 word-sized registers are available. Each of those
@@ -50,9 +49,9 @@ pub struct RegisterBlock {
     /// On ARMv6-M, the registers must only be accessed along word boundaries,
     /// so convenient byte-sized representation wouldn't work on that
     /// architecture.
+    #[cfg(not(armv6m))]
     pub ipr: [RW<u8>; 496],
 
-    #[cfg(armv6m)]
     /// Interrupt Priority
     ///
     /// On ARMv7-M, 124 word-sized registers are available. Each of those
@@ -64,18 +63,18 @@ pub struct RegisterBlock {
     /// On ARMv6-M, the registers must only be accessed along word boundaries,
     /// so convenient byte-sized representation wouldn't work on that
     /// architecture.
+    #[cfg(armv6m)]
     pub ipr: [RW<u32>; 8],
 
     #[cfg(not(armv6m))]
     _reserved6: [u32; 580],
 
-    #[cfg(not(armv6m))]
     /// Software Trigger Interrupt
+    #[cfg(not(armv6m))]
     pub stir: WO<u32>,
 }
 
 impl NVIC {
-    #[cfg(not(armv6m))]
     /// Request an IRQ in software
     ///
     /// Writing a value to the INTID field is the same as manually pending an interrupt by setting
@@ -83,6 +82,7 @@ impl NVIC {
     /// `set_pending`.
     ///
     /// This method is not available on ARMv6-M chips.
+    #[cfg(not(armv6m))]
     #[inline]
     pub fn request<I>(&mut self, interrupt: I)
     where
@@ -93,16 +93,6 @@ impl NVIC {
         unsafe {
             self.stir.write(u32::from(nr));
         }
-    }
-
-    /// Clears `interrupt`'s pending state
-    #[deprecated(since = "0.5.8", note = "Use `NVIC::unpend`")]
-    #[inline]
-    pub fn clear_pending<I>(&mut self, interrupt: I)
-    where
-        I: Nr,
-    {
-        Self::unpend(interrupt)
     }
 
     /// Disables `interrupt`
@@ -127,27 +117,6 @@ impl NVIC {
         let nr = interrupt.nr();
         // NOTE(ptr) this is a write to a stateless register
         (*Self::ptr()).iser[usize::from(nr / 32)].write(1 << (nr % 32))
-    }
-
-    /// Disables `interrupt`
-    #[deprecated(since = "0.6.1", note = "Use `NVIC::mask`")]
-    #[inline]
-    pub fn disable<I>(&mut self, interrupt: I)
-    where
-        I: Nr,
-    {
-        Self::mask(interrupt)
-    }
-
-    /// **WARNING** This method is a soundness hole in the API; it should actually be an `unsafe`
-    /// function. Use `NVIC::unmask` which has the right unsafety.
-    #[deprecated(since = "0.6.1", note = "Use `NVIC::unmask`")]
-    #[inline]
-    pub fn enable<I>(&mut self, interrupt: I)
-    where
-        I: Nr,
-    {
-        unsafe { Self::unmask(interrupt) }
     }
 
     /// Returns the NVIC priority of `interrupt`
@@ -226,16 +195,6 @@ impl NVIC {
 
         // NOTE(unsafe) atomic stateless write; ICPR doesn't store any state
         unsafe { (*Self::ptr()).ispr[usize::from(nr / 32)].write(1 << (nr % 32)) }
-    }
-
-    /// Forces `interrupt` into pending state
-    #[deprecated(since = "0.5.8", note = "Use `NVIC::pend`")]
-    #[inline]
-    pub fn set_pending<I>(&mut self, interrupt: I)
-    where
-        I: Nr,
-    {
-        Self::pend(interrupt)
     }
 
     /// Sets the "priority" of `interrupt` to `prio`

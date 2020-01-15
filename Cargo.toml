@@ -21,6 +21,5 @@ bare-metal = { version = "0.2.0", features = ["const-fn"] }
 volatile-register = "0.2.0"
 
 [features]
-const-fn = []
 cm7-r0p1 = []
 inline-asm = []

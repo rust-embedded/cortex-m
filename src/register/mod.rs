@@ -29,33 +29,12 @@
 #[cfg(all(not(armv6m), not(armv8m_base)))]
 pub mod basepri;
 
-#[cfg(armv8m_base)]
-#[deprecated(
-    since = "0.6.2",
-    note = "basepri is unavailable on thumbv8.base, and will be removed in the next release"
-)]
-pub mod basepri;
-
 #[cfg(all(not(armv6m), not(armv8m_base)))]
-pub mod basepri_max;
-
-#[cfg(armv8m_base)]
-#[deprecated(
-    since = "0.6.2",
-    note = "basepri is unavailable on thumbv8m.base, and will be removed in the next release"
-)]
 pub mod basepri_max;
 
 pub mod control;
 
 #[cfg(all(not(armv6m), not(armv8m_base)))]
-pub mod faultmask;
-
-#[cfg(armv8m_base)]
-#[deprecated(
-    since = "0.6.2",
-    note = "faultmask is unavailable on thumbv8m.base, and will be removed in the next release"
-)]
 pub mod faultmask;
 
 pub mod msp;

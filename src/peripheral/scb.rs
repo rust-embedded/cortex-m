@@ -314,65 +314,71 @@ use self::scb_consts::*;
 
 #[cfg(not(armv6m))]
 impl SCB {
-    /// Enables I-Cache if currently disabled
+    /// Enables I-cache if currently disabled
+    ///
+    /// This operation first invalidates the entire I-cache.
     #[inline]
     pub fn enable_icache(&mut self) {
-        // Don't do anything if ICache is already enabled
+        // Don't do anything if I-cache is already enabled
         if Self::icache_enabled() {
             return;
         }
 
-        // NOTE(unsafe) All CBP registers are write-only and stateless
+        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
         let mut cbp = unsafe { CBP::new() };
 
-        // Invalidate I-Cache
+        // Invalidate I-cache
         cbp.iciallu();
 
-        // Enable I-Cache
+        // Enable I-cache
+        // NOTE(unsafe): We have synchronised access by &mut self
         unsafe { self.ccr.modify(|r| r | SCB_CCR_IC_MASK) };
 
         crate::asm::dsb();
         crate::asm::isb();
     }
 
-    /// Disables I-Cache if currently enabled
+    /// Disables I-cache if currently enabled
+    ///
+    /// This operation invalidates the entire I-cache after disabling.
     #[inline]
     pub fn disable_icache(&mut self) {
-        // Don't do anything if ICache is already disabled
+        // Don't do anything if I-cache is already disabled
         if !Self::icache_enabled() {
             return;
         }
 
-        // NOTE(unsafe) All CBP registers are write-only and stateless
+        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
         let mut cbp = unsafe { CBP::new() };
 
-        // Disable I-Cache
+        // Disable I-cache
+        // NOTE(unsafe): We have synchronised access by &mut self
         unsafe { self.ccr.modify(|r| r & !SCB_CCR_IC_MASK) };
 
-        // Invalidate I-Cache
+        // Invalidate I-cache
         cbp.iciallu();
 
         crate::asm::dsb();
         crate::asm::isb();
     }
 
-    /// Returns whether the I-Cache is currently enabled
-    #[inline]
+    /// Returns whether the I-cache is currently enabled
+    #[inline(always)]
     pub fn icache_enabled() -> bool {
         crate::asm::dsb();
         crate::asm::isb();
 
-        // NOTE(unsafe) atomic read with no side effects
+        // NOTE(unsafe): atomic read with no side effects
         unsafe { (*Self::ptr()).ccr.read() & SCB_CCR_IC_MASK == SCB_CCR_IC_MASK }
     }
 
-    /// Invalidates I-Cache
+    /// Invalidates entire I-cache
     #[inline]
     pub fn invalidate_icache(&mut self) {
-        // NOTE(unsafe) All CBP registers are write-only and stateless
+        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
         let mut cbp = unsafe { CBP::new() };
 
-        // Invalidate I-Cache
+        // Invalidate I-cache
         cbp.iciallu();
 
         crate::asm::dsb();
@@ -380,17 +386,21 @@ impl SCB {
     }
 
     /// Enables D-cache if currently disabled
+    ///
+    /// This operation first invalidates the entire D-cache, ensuring it does
+    /// not contain stale values before being enabled.
     #[inline]
     pub fn enable_dcache(&mut self, cpuid: &mut CPUID) {
-        // Don't do anything if DCache is already enabled
+        // Don't do anything if D-cache is already enabled
         if Self::dcache_enabled() {
             return;
         }
 
-        // Invalidate anything currently in the DCache
-        self.invalidate_dcache(cpuid);
+        // Invalidate anything currently in the D-cache
+        unsafe { self.invalidate_dcache(cpuid) };
 
-        // Now turn on the DCache
+        // Now turn on the D-cache
+        // NOTE(unsafe): We have synchronised access by &mut self
         unsafe { self.ccr.modify(|r| r | SCB_CCR_DC_MASK) };
 
         crate::asm::dsb();
@@ -398,21 +408,25 @@ impl SCB {
     }
 
     /// Disables D-cache if currently enabled
+    ///
+    /// This operation subsequently cleans and invalidates the entire D-cache,
+    /// ensuring all contents are safely written back to main memory after disabling.
     #[inline]
     pub fn disable_dcache(&mut self, cpuid: &mut CPUID) {
-        // Don't do anything if DCache is already disabled
+        // Don't do anything if D-cache is already disabled
         if !Self::dcache_enabled() {
             return;
         }
 
-        // Turn off the DCache
+        // Turn off the D-cache
+        // NOTE(unsafe): We have synchronised access by &mut self
         unsafe { self.ccr.modify(|r| r & !SCB_CCR_DC_MASK) };
 
         // Clean and invalidate whatever was left in it
         self.clean_invalidate_dcache(cpuid);
     }
 
-    /// Returns whether the D-Cache is currently enabled
+    /// Returns whether the D-cache is currently enabled
     #[inline]
     pub fn dcache_enabled() -> bool {
         crate::asm::dsb();
@@ -422,20 +436,21 @@ impl SCB {
         unsafe { (*Self::ptr()).ccr.read() & SCB_CCR_DC_MASK == SCB_CCR_DC_MASK }
     }
 
-    /// Invalidates D-cache
+    /// Invalidates entire D-cache
     ///
-    /// Note that calling this while the dcache is enabled will probably wipe out your
-    /// stack, depending on optimisations, breaking returning to the call point.
+    /// Note that calling this while the dcache is enabled will probably wipe out the
+    /// stack, depending on optimisations, therefore breaking returning to the call point.
+    ///
     /// It's used immediately before enabling the dcache, but not exported publicly.
     #[inline]
-    fn invalidate_dcache(&mut self, cpuid: &mut CPUID) {
-        // NOTE(unsafe) All CBP registers are write-only and stateless
-        let mut cbp = unsafe { CBP::new() };
+    unsafe fn invalidate_dcache(&mut self, cpuid: &mut CPUID) {
+        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
+        let mut cbp = CBP::new();
 
         // Read number of sets and ways
         let (sets, ways) = cpuid.cache_num_sets_ways(0, CsselrCacheType::DataOrUnified);
 
-        // Invalidate entire D-Cache
+        // Invalidate entire D-cache
         for set in 0..sets {
             for way in 0..ways {
                 cbp.dcisw(set, way);
@@ -446,10 +461,13 @@ impl SCB {
         crate::asm::isb();
     }
 
-    /// Cleans D-cache
+    /// Cleans entire D-cache
+    ///
+    /// This function causes everything in the D-cache to be written back to main memory,
+    /// overwriting whatever is already there.
     #[inline]
     pub fn clean_dcache(&mut self, cpuid: &mut CPUID) {
-        // NOTE(unsafe) All CBP registers are write-only and stateless
+        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
         let mut cbp = unsafe { CBP::new() };
 
         // Read number of sets and ways
@@ -465,10 +483,14 @@ impl SCB {
         crate::asm::isb();
     }
 
-    /// Cleans and invalidates D-cache
+    /// Cleans and invalidates entire D-cache
+    ///
+    /// This function causes everything in the D-cache to be written back to main memory,
+    /// and then marks the entire D-cache as invalid, causing future reads to first fetch
+    /// from main memory.
     #[inline]
     pub fn clean_invalidate_dcache(&mut self, cpuid: &mut CPUID) {
-        // NOTE(unsafe) All CBP registers are write-only and stateless
+        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
         let mut cbp = unsafe { CBP::new() };
 
         // Read number of sets and ways
@@ -486,20 +508,35 @@ impl SCB {
 
     /// Invalidates D-cache by address
     ///
-    /// `addr`: the address to invalidate
-    /// `size`: size of the memory block, in number of bytes
+    /// * `addr`: the address to invalidate
+    /// * `size`: size of the memory block, in number of bytes
     ///
     /// Invalidates cache starting from the lowest 32-byte aligned address represented by `addr`,
     /// in blocks of 32 bytes until at least `size` bytes have been invalidated.
+    ///
+    /// Invalidation causes the next read access to memory to be fetched from main memory instead
+    /// of the cache.
+    ///
+    /// # Safety
+    ///
+    /// After invalidating, the next read of invalidated data will be from main memory. This may
+    /// cause recent writes to be lost, potentially including writes that initialised objects.
+    /// Therefore, this method may cause uninitialised memory or invalid values to be read,
+    /// resulting in undefined behaviour. You must ensure that main memory contains valid and
+    /// initialised values before invalidating.
+    ///
+    /// If `addr` is not 32-byte aligned or if `size` is not a multiple of 32, other memory
+    /// will also be invalidated unexpectedly. It is highly recommended that `addr` is 32-byte
+    /// aligned and `size` is a multiple of 32 bytes.
     #[inline]
-    pub fn invalidate_dcache_by_address(&mut self, addr: usize, size: usize) {
+    pub unsafe fn invalidate_dcache_by_address(&mut self, addr: usize, size: usize) {
         // No-op zero sized operations
         if size == 0 {
             return;
         }
 
-        // NOTE(unsafe) All CBP registers are write-only and stateless
-        let mut cbp = unsafe { CBP::new() };
+        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
+        let mut cbp = CBP::new();
 
         crate::asm::dsb();
 
@@ -518,13 +555,72 @@ impl SCB {
         crate::asm::isb();
     }
 
+    /// Invalidates an object from the D-cache
+    ///
+    /// * `obj`: Object to invalidate
+    ///
+    /// Invalidates cache starting from the lowest 32-byte aligned address containing `obj`,
+    /// in blocks of 32 bytes until all of `obj` has been invalidated.
+    ///
+    /// Invalidation causes the next read access to memory to be fetched from main memory instead
+    /// of the cache.
+    ///
+    /// # Safety
+    ///
+    /// After invalidating, `obj` will be read from main memory on next access. This may cause
+    /// recent writes to `obj` to be lost, potentially including the write that initialised it.
+    /// Therefore, this method may cause uninitialised memory or invalid values to be read,
+    /// resulting in undefined behaviour. You must ensure that main memory contains a valid and
+    /// initialised value for T before invalidating `obj`.
+    ///
+    /// If `obj` is not both 32-byte aligned and a multiple of 32 bytes long, other memory
+    /// will also be invalidated unexpectedly. It is highly recommended that `obj` is 32-byte
+    /// aligned and a multiple of 32 bytes long.
+    #[inline]
+    pub unsafe fn invalidate_dcache_by_ref<T>(&mut self, obj: &T) {
+        self.invalidate_dcache_by_address(obj as *const T as usize, core::mem::size_of::<T>());
+    }
+
+    /// Invalidates a slice from the D-cache
+    ///
+    /// * `slice`: Slice to invalidate
+    ///
+    /// Invalidates cache starting from the lowest 32-byte aligned address containing members of
+    /// `slice`, in blocks of 32 bytes until all of `slice` has been invalidated.
+    ///
+    /// Invalidation causes the next read access to memory to be fetched from main memory instead
+    /// of the cache.
+    ///
+    /// # Safety
+    ///
+    /// After invalidating, `slice` will be read from main memory on next access. This may cause
+    /// recent writes to `slice` to be lost, potentially including the write that initialised it.
+    /// Therefore, this method may cause uninitialised memory or invalid values to be read,
+    /// resulting in undefined behaviour. You must ensure that main memory contains valid and
+    /// initialised values for T before invalidating `slice`.
+    ///
+    /// If `slice` is not both 32-byte aligned and a multiple of 32 bytes long, other memory
+    /// will also be invalidated unexpectedly. It is highly recommended that `slice` is 32-byte
+    /// aligned and a multiple of 32 bytes long.
+    #[inline]
+    pub unsafe fn invalidate_dcache_by_slice<T>(&mut self, slice: &[T]) {
+        self.invalidate_dcache_by_address(slice.as_ptr() as usize,
+                                          slice.len() * core::mem::size_of::<T>());
+    }
+
     /// Cleans D-cache by address
     ///
-    /// `addr`: the address to clean
-    /// `size`: size of the memory block, in number of bytes
+    /// * `addr`: the address to clean
+    /// * `size`: size of the memory block, in number of bytes
     ///
     /// Cleans cache starting from the lowest 32-byte aligned address represented by `addr`,
     /// in blocks of 32 bytes until at least `size` bytes have been cleaned.
+    ///
+    /// It is highly recommended that `addr` is 32-byte aligned and a `size` is a multiple of
+    /// 32 bytes long, otherwise surrounding data will also be cleaned.
+    ///
+    /// Cleaning the cache causes whatever data is present in the cache to be immediately written
+    /// to main memory, overwriting whatever was in main memory.
     #[inline]
     pub fn clean_dcache_by_address(&mut self, addr: usize, size: usize) {
         // No-op zero sized operations
@@ -532,7 +628,7 @@ impl SCB {
             return;
         }
 
-        // NOTE(unsafe) All CBP registers are write-only and stateless
+        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
         let mut cbp = unsafe { CBP::new() };
 
         crate::asm::dsb();
@@ -552,14 +648,54 @@ impl SCB {
         crate::asm::isb();
     }
 
+    /// Cleans an object in D-cache
+    ///
+    /// * `obj`: Object to clean
+    ///
+    /// Cleans cache starting from the lowest 32-byte aligned address containing `obj`,
+    /// in blocks of 32 bytes until all of `obj` has been cleaned.
+    ///
+    /// It is highly recommended that `obj` is both 32-byte aligned and a multiple of
+    /// 32 bytes long, otherwise surrounding data will also be cleaned.
+    ///
+    /// Cleaning the cache causes whatever data is present in the cache to be immediately written
+    /// to main memory, overwriting whatever was in main memory.
+    pub fn clean_dcache_by_ref<T>(&mut self, obj: &T) {
+        self.clean_dcache_by_address(obj as *const T as usize, core::mem::size_of::<T>());
+    }
+
+    /// Cleans a slice in D-cache
+    ///
+    /// * `slice`: Slice to clean
+    ///
+    /// Cleans cache starting from the lowest 32-byte aligned address containing members of
+    /// `slice`, in blocks of 32 bytes until all of `slice` has been cleaned.
+    ///
+    /// It is highly recommended that `slice` is both 32-byte aligned and a multiple of
+    /// 32 bytes long, otherwise surrounding data will also be cleaned.
+    ///
+    /// Cleaning the cache causes whatever data is present in the cache to be immediately written
+    /// to main memory, overwriting whatever was in main memory.
+    pub fn clean_dcache_by_slice<T>(&mut self, slice: &[T]) {
+        self.clean_dcache_by_address(slice.as_ptr() as usize,
+                                     slice.len() * core::mem::size_of::<T>());
+    }
+
     /// Cleans and invalidates D-cache by address
     ///
-    /// `addr`: the address to clean and invalidate
-    /// `size`: size of the memory block, in number of bytes
+    /// * `addr`: the address to clean and invalidate
+    /// * `size`: size of the memory block, in number of bytes
     ///
     /// Cleans and invalidates cache starting from the lowest 32-byte aligned address represented
     /// by `addr`, in blocks of 32 bytes until at least `size` bytes have been cleaned and
     /// invalidated.
+    ///
+    /// It is highly recommended that `addr` is 32-byte aligned and a `size` is a multiple of
+    /// 32 bytes long, otherwise surrounding data will also be cleaned.
+    ///
+    /// Cleaning and invalidating causes data in the D-cache to be written back to main memory,
+    /// and then marks that data in the D-cache as invalid, causing future reads to first fetch
+    /// from main memory.
     #[inline]
     pub fn clean_invalidate_dcache_by_address(&mut self, addr: usize, size: usize) {
         // No-op zero sized operations
@@ -567,7 +703,7 @@ impl SCB {
             return;
         }
 
-        // NOTE(unsafe) All CBP registers are write-only and stateless
+        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
         let mut cbp = unsafe { CBP::new() };
 
         crate::asm::dsb();

@@ -50,7 +50,6 @@
 //    to be applied to the struct).
 #![deny(clippy::missing_inline_in_public_items)]
 
-extern crate aligned;
 extern crate bare_metal;
 extern crate volatile_register;
 

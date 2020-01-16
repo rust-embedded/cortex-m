@@ -825,11 +825,25 @@ fn extract_cfgs(attrs: Vec<Attribute>) -> (Vec<Attribute>, Vec<Attribute>) {
 
 fn check_attr_whitelist(attrs: &[Attribute]) -> Result<(), TokenStream> {
     let whitelist = &["doc", "link_section", "cfg", "allow", "warn", "deny", "forbid", "cold"];
+    let cortex_m_rt_blacklist = &["entry", "exception", "interrupt", "pre_init"];
 
     'o: for attr in attrs {
         for val in whitelist {
             if eq(&attr, &val) {
                 continue 'o;
+            }
+        }
+
+        for val in cortex_m_rt_blacklist {
+            if eq(&attr, &val) {
+                return Err(
+                    parse::Error::new(
+                        attr.span(),
+                        "cortex-m-rt does not support multiple attributes on the same function",
+                    )
+                    .to_compile_error()
+                    .into(),
+                );
             }
         }
 

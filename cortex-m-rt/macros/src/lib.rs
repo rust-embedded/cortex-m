@@ -839,7 +839,7 @@ fn check_attr_whitelist(attrs: &[Attribute]) -> Result<(), TokenStream> {
                 return Err(
                     parse::Error::new(
                         attr.span(),
-                        "cortex-m-rt does not support multiple attributes on the same function",
+                        "multiple cortex-m-rt attributes are not supported on the same function",
                     )
                     .to_compile_error()
                     .into(),

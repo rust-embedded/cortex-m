@@ -150,7 +150,15 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
         })
         .collect::<Vec<_>>();
 
+    if let Err(error) = check_attr_whitelist(&f.attrs, WhiteListCaller::Entry) {
+        return error;
+    }
+
+    let (ref cfgs, ref attrs) = extract_cfgs(f.attrs.clone());
+
     quote!(
+        #(#cfgs)*
+        #(#attrs)*
         #[doc(hidden)]
         #[export_name = "main"]
         pub unsafe extern "C" fn #tramp_ident() {
@@ -286,6 +294,10 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             .into();
     }
 
+    if let Err(error) = check_attr_whitelist(&f.attrs, WhiteListCaller::Exception) {
+        return error;
+    }
+
     let fspan = f.span();
     let ident = f.sig.ident.clone();
 
@@ -343,7 +355,11 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             let tramp_ident = Ident::new(&format!("{}_trampoline", f.sig.ident), Span::call_site());
             let ident = &f.sig.ident;
 
+            let (ref cfgs, ref attrs) = extract_cfgs(f.attrs.clone());
+
             quote!(
+                #(#cfgs)*
+                #(#attrs)*
                 #[doc(hidden)]
                 #[export_name = #ident_s]
                 pub unsafe extern "C" fn #tramp_ident() {
@@ -396,7 +412,11 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             let tramp_ident = Ident::new(&format!("{}_trampoline", f.sig.ident), Span::call_site());
             let ident = &f.sig.ident;
 
+            let (ref cfgs, ref attrs) = extract_cfgs(f.attrs.clone());
+
             quote!(
+                #(#cfgs)*
+                #(#attrs)*
                 #[doc(hidden)]
                 #[export_name = "HardFault"]
                 #[link_section = ".HardFault.user"]
@@ -481,7 +501,11 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                 })
                 .collect::<Vec<_>>();
 
+            let (ref cfgs, ref attrs) = extract_cfgs(f.attrs.clone());
+
             quote!(
+                #(#cfgs)*
+                #(#attrs)*
                 #[doc(hidden)]
                 #[export_name = #ident_s]
                 pub unsafe extern "C" fn #tramp_ident() {
@@ -650,7 +674,15 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
         })
         .collect::<Vec<_>>();
 
+    if let Err(error) = check_attr_whitelist(&f.attrs, WhiteListCaller::Interrupt) {
+        return error;
+    }
+
+    let (ref cfgs, ref attrs) = extract_cfgs(f.attrs.clone());
+
     quote!(
+        #(#cfgs)*
+        #(#attrs)*
         #[doc(hidden)]
         #[export_name = #ident_s]
         pub unsafe extern "C" fn #tramp_ident() {
@@ -724,6 +756,10 @@ pub fn pre_init(args: TokenStream, input: TokenStream) -> TokenStream {
             .into();
     }
 
+    if let Err(error) = check_attr_whitelist(&f.attrs, WhiteListCaller::PreInit) {
+        return error;
+    }
+
     // XXX should we blacklist other attributes?
     let attrs = f.attrs;
     let ident = f.sig.ident;
@@ -788,6 +824,53 @@ fn extract_cfgs(attrs: Vec<Attribute>) -> (Vec<Attribute>, Vec<Attribute>) {
     }
 
     (cfgs, not_cfgs)
+}
+
+enum WhiteListCaller {
+    Entry,
+    Exception,
+    Interrupt,
+    PreInit,
+}
+
+fn check_attr_whitelist(attrs: &[Attribute], caller: WhiteListCaller) -> Result<(), TokenStream> {
+    let whitelist = &[
+        "doc",
+        "link_section",
+        "cfg",
+        "allow",
+        "warn",
+        "deny",
+        "forbid",
+        "cold",
+    ];
+
+    'o: for attr in attrs {
+        for val in whitelist {
+            if eq(&attr, &val) {
+                continue 'o;
+            }
+        }
+
+        let err_str = match caller {
+            WhiteListCaller::Entry => "this attribute is not allowed on a cortex-m-rt entry point",
+            WhiteListCaller::Exception => {
+                "this attribute is not allowed on an exception handler controlled by cortex-m-rt"
+            }
+            WhiteListCaller::Interrupt => {
+                "this attribute is not allowed on an interrupt handler controlled by cortex-m-rt"
+            }
+            WhiteListCaller::PreInit => {
+                "this attribute is not allowed on a pre-init controlled by cortex-m-rt"
+            }
+        };
+
+        return Err(parse::Error::new(attr.span(), &err_str)
+            .to_compile_error()
+            .into());
+    }
+
+    Ok(())
 }
 
 /// Returns `true` if `attr.path` matches `name`

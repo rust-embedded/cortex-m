@@ -416,33 +416,156 @@ pub use macros::{entry, exception, pre_init};
 #[doc(hidden)]
 pub static __ONCE__: () = ();
 
-/// Registers stacked (pushed into the stack) during an exception
+/// Registers stacked (pushed onto the stack) during an exception.
 #[derive(Clone, Copy)]
 #[repr(C)]
 pub struct ExceptionFrame {
-    /// (General purpose) Register 0
-    pub r0: u32,
+    r0: u32,
+    r1: u32,
+    r2: u32,
+    r3: u32,
+    r12: u32,
+    lr: u32,
+    pc: u32,
+    xpsr: u32,
+}
 
-    /// (General purpose) Register 1
-    pub r1: u32,
+impl ExceptionFrame {
+    /// Returns the value of (general purpose) register 0.
+    #[inline(always)]
+    pub fn r0(&self) -> u32 {
+        self.r0
+    }
 
-    /// (General purpose) Register 2
-    pub r2: u32,
+    /// Returns the value of (general purpose) register 1.
+    #[inline(always)]
+    pub fn r1(&self) -> u32 {
+        self.r1
+    }
 
-    /// (General purpose) Register 3
-    pub r3: u32,
+    /// Returns the value of (general purpose) register 2.
+    #[inline(always)]
+    pub fn r2(&self) -> u32 {
+        self.r2
+    }
 
-    /// (General purpose) Register 12
-    pub r12: u32,
+    /// Returns the value of (general purpose) register 3.
+    #[inline(always)]
+    pub fn r3(&self) -> u32 {
+        self.r3
+    }
 
-    /// Linker Register
-    pub lr: u32,
+    /// Returns the value of (general purpose) register 12.
+    #[inline(always)]
+    pub fn r12(&self) -> u32 {
+        self.r12
+    }
 
-    /// Program Counter
-    pub pc: u32,
+    /// Returns the value of the Link Register.
+    #[inline(always)]
+    pub fn lr(&self) -> u32 {
+        self.lr
+    }
 
-    /// Program Status Register
-    pub xpsr: u32,
+    /// Returns the value of the Program Counter.
+    #[inline(always)]
+    pub fn pc(&self) -> u32 {
+        self.pc
+    }
+
+    /// Returns the value of the Program Status Register.
+    #[inline(always)]
+    pub fn xpsr(&self) -> u32 {
+        self.xpsr
+    }
+
+    /// Sets the stacked value of (general purpose) register 0.
+    ///
+    /// # Safety
+    ///
+    /// This affects the `r0` register of the preempted code, which must not rely on it getting
+    /// restored to its previous value.
+    #[inline(always)]
+    pub unsafe fn set_r0(&mut self, value: u32) {
+        self.r0 = value;
+    }
+
+    /// Sets the stacked value of (general purpose) register 1.
+    ///
+    /// # Safety
+    ///
+    /// This affects the `r1` register of the preempted code, which must not rely on it getting
+    /// restored to its previous value.
+    #[inline(always)]
+    pub unsafe fn set_r1(&mut self, value: u32) {
+        self.r1 = value;
+    }
+
+    /// Sets the stacked value of (general purpose) register 2.
+    ///
+    /// # Safety
+    ///
+    /// This affects the `r2` register of the preempted code, which must not rely on it getting
+    /// restored to its previous value.
+    #[inline(always)]
+    pub unsafe fn set_r2(&mut self, value: u32) {
+        self.r2 = value;
+    }
+
+    /// Sets the stacked value of (general purpose) register 3.
+    ///
+    /// # Safety
+    ///
+    /// This affects the `r3` register of the preempted code, which must not rely on it getting
+    /// restored to its previous value.
+    #[inline(always)]
+    pub unsafe fn set_r3(&mut self, value: u32) {
+        self.r3 = value;
+    }
+
+    /// Sets the stacked value of (general purpose) register 12.
+    ///
+    /// # Safety
+    ///
+    /// This affects the `r12` register of the preempted code, which must not rely on it getting
+    /// restored to its previous value.
+    #[inline(always)]
+    pub unsafe fn set_r12(&mut self, value: u32) {
+        self.r12 = value;
+    }
+
+    /// Sets the stacked value of the Link Register.
+    ///
+    /// # Safety
+    ///
+    /// This affects the `lr` register of the preempted code, which must not rely on it getting
+    /// restored to its previous value.
+    #[inline(always)]
+    pub unsafe fn set_lr(&mut self, value: u32) {
+        self.lr = value;
+    }
+
+    /// Sets the stacked value of the Program Counter.
+    ///
+    /// # Safety
+    ///
+    /// This affects the `pc` register of the preempted code, which must not rely on it getting
+    /// restored to its previous value.
+    #[inline(always)]
+    pub unsafe fn set_pc(&mut self, value: u32) {
+        self.pc = value;
+    }
+
+    /// Sets the stacked value of the Program Status Register.
+    ///
+    /// # Safety
+    ///
+    /// This affects the `xPSR` registers (`IPSR`, `APSR`, and `EPSR`) of the preempted code, which
+    /// must not rely on them getting restored to their previous value.
+    #[inline(always)]
+    pub unsafe fn set_xpsr(&mut self, value: u32) {
+        self.xpsr = value;
+    }
 }
 
 impl fmt::Debug for ExceptionFrame {

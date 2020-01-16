@@ -89,6 +89,7 @@ mod test;
 
 /// Core peripherals
 #[allow(non_snake_case)]
+#[non_exhaustive]
 pub struct Peripherals {
     /// Cache and branch predictor maintenance operations (not present on Cortex-M0 variants)
     pub CBP: CBP,

@@ -844,7 +844,6 @@ fn check_attr_whitelist(attrs: &[Attribute], caller: WhiteListCaller) -> Result<
         "forbid",
         "cold",
     ];
-    let cortex_m_rt_blacklist = &["entry", "exception", "interrupt", "pre_init"];
 
     'o: for attr in attrs {
         for val in whitelist {
@@ -853,35 +852,22 @@ fn check_attr_whitelist(attrs: &[Attribute], caller: WhiteListCaller) -> Result<
             }
         }
 
-        for val in cortex_m_rt_blacklist {
-            if eq(&attr, &val) {
-                let err_str = match caller {
-                    WhiteListCaller::Entry => {
-                        &"this attribute is not allowed on a cortex-m-rt entry point"
-                    }
-                    WhiteListCaller::Exception => {
-                        &"this attribute is not allowed on an exception handler"
-                    }
-                    WhiteListCaller::Interrupt => {
-                        &"this attribute is not allowed on an interrupt handler"
-                    }
-                    WhiteListCaller::PreInit => {
-                        &"this attribute is not allowed on an interrupt handler"
-                    }
-                };
-
-                return Err(parse::Error::new(attr.span(), err_str)
-                    .to_compile_error()
-                    .into());
+        let err_str = match caller {
+            WhiteListCaller::Entry => "this attribute is not allowed on a cortex-m-rt entry point",
+            WhiteListCaller::Exception => {
+                "this attribute is not allowed on an exception handler controlled by cortex-m-rt"
             }
-        }
+            WhiteListCaller::Interrupt => {
+                "this attribute is not allowed on an interrupt handler controlled by cortex-m-rt"
+            }
+            WhiteListCaller::PreInit => {
+                "this attribute is not allowed on a pre-init controlled by cortex-m-rt"
+            }
+        };
 
-        return Err(parse::Error::new(
-            attr.span(),
-            "this attribute is not allowed on a function controlled by cortex-m-rt",
-        )
-        .to_compile_error()
-        .into());
+        return Err(parse::Error::new(attr.span(), &err_str)
+            .to_compile_error()
+            .into());
     }
 
     Ok(())

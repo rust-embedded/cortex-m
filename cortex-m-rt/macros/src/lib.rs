@@ -150,7 +150,7 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
         })
         .collect::<Vec<_>>();
 
-    if let Err(error) = check_attr_whitelist(&f.attrs) {
+    if let Err(error) = check_attr_whitelist(&f.attrs, WhiteListCaller::Entry) {
         return error;
     }
 
@@ -294,10 +294,9 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             .into();
     }
 
-    if let Err(error) = check_attr_whitelist(&f.attrs) {
+    if let Err(error) = check_attr_whitelist(&f.attrs, WhiteListCaller::Exception) {
         return error;
     }
-
 
     let fspan = f.span();
     let ident = f.sig.ident.clone();
@@ -675,7 +674,7 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
         })
         .collect::<Vec<_>>();
 
-    if let Err(error) = check_attr_whitelist(&f.attrs) {
+    if let Err(error) = check_attr_whitelist(&f.attrs, WhiteListCaller::Interrupt) {
         return error;
     }
 
@@ -757,6 +756,10 @@ pub fn pre_init(args: TokenStream, input: TokenStream) -> TokenStream {
             .into();
     }
 
+    if let Err(error) = check_attr_whitelist(&f.attrs, WhiteListCaller::PreInit) {
+        return error;
+    }
+
     // XXX should we blacklist other attributes?
     let attrs = f.attrs;
     let ident = f.sig.ident;
@@ -823,8 +826,24 @@ fn extract_cfgs(attrs: Vec<Attribute>) -> (Vec<Attribute>, Vec<Attribute>) {
     (cfgs, not_cfgs)
 }
 
-fn check_attr_whitelist(attrs: &[Attribute]) -> Result<(), TokenStream> {
-    let whitelist = &["doc", "link_section", "cfg", "allow", "warn", "deny", "forbid", "cold"];
+enum WhiteListCaller {
+    Entry,
+    Exception,
+    Interrupt,
+    PreInit,
+}
+
+fn check_attr_whitelist(attrs: &[Attribute], caller: WhiteListCaller) -> Result<(), TokenStream> {
+    let whitelist = &[
+        "doc",
+        "link_section",
+        "cfg",
+        "allow",
+        "warn",
+        "deny",
+        "forbid",
+        "cold",
+    ];
     let cortex_m_rt_blacklist = &["entry", "exception", "interrupt", "pre_init"];
 
     'o: for attr in attrs {
@@ -836,27 +855,34 @@ fn check_attr_whitelist(attrs: &[Attribute]) -> Result<(), TokenStream> {
 
         for val in cortex_m_rt_blacklist {
             if eq(&attr, &val) {
-                return Err(
-                    parse::Error::new(
-                        attr.span(),
-                        "multiple cortex-m-rt attributes are not supported on the same function",
-                    )
+                let err_str = match caller {
+                    WhiteListCaller::Entry => {
+                        &"this attribute is not allowed on a cortex-m-rt entry point"
+                    }
+                    WhiteListCaller::Exception => {
+                        &"this attribute is not allowed on an exception handler"
+                    }
+                    WhiteListCaller::Interrupt => {
+                        &"this attribute is not allowed on an interrupt handler"
+                    }
+                    WhiteListCaller::PreInit => {
+                        &"this attribute is not allowed on an interrupt handler"
+                    }
+                };
+
+                return Err(parse::Error::new(attr.span(), err_str)
                     .to_compile_error()
-                    .into(),
-                );
+                    .into());
             }
         }
 
-        return Err(
-            parse::Error::new(
-                attr.span(),
-                "this attribute is not allowed on a function controlled by cortex-m-rt",
-            )
-            .to_compile_error()
-            .into(),
-        );
-
-    };
+        return Err(parse::Error::new(
+            attr.span(),
+            "this attribute is not allowed on a function controlled by cortex-m-rt",
+        )
+        .to_compile_error()
+        .into());
+    }
 
     Ok(())
 }

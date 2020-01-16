@@ -7,7 +7,7 @@ extern crate panic_halt;
 use cortex_m_rt::{entry, exception};
 
 #[exception]
-#[entry] //~ ERROR multiple cortex-m-rt attributes are not supported on the same function
+#[entry] //~ ERROR this attribute is not allowed on an exception handler
 fn SVCall() -> ! {
     loop {}
 }

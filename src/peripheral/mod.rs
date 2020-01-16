@@ -1,5 +1,4 @@
-#![allow(clippy::needless_doctest_main)]
-//! Core peripherals
+//! Core peripherals.
 //!
 //! # API
 //!
@@ -9,41 +8,32 @@
 //! the [`Peripherals::take`](struct.Peripherals.html#method.take) method.
 //!
 //! ``` no_run
-//! use cortex_m::peripheral::Peripherals;
-//!
-//! fn main() {
-//!     let mut peripherals = Peripherals::take().unwrap();
-//!     peripherals.DWT.enable_cycle_counter();
-//! }
+//! # use cortex_m::peripheral::Peripherals;
+//! let mut peripherals = Peripherals::take().unwrap();
+//! peripherals.DWT.enable_cycle_counter();
 //! ```
 //!
 //! This method can only be successfully called *once* -- this is why the method returns an
 //! `Option`. Subsequent calls to the method will result in a `None` value being returned.
 //!
-//! ``` no_run
-//! use cortex_m::peripheral::Peripherals;
-//!
-//! fn main() {
-//!     let ok = Peripherals::take().unwrap();
-//!     let panics = Peripherals::take().unwrap();
-//! }
+//! ``` no_run, should_panic
+//! # use cortex_m::peripheral::Peripherals;
+//! let ok = Peripherals::take().unwrap();
+//! let panics = Peripherals::take().unwrap();
 //! ```
 //! A part of the peripheral API doesn't require access to a peripheral instance. This part of the
 //! API is provided as static methods on the peripheral types. One example is the
 //! [`DWT::get_cycle_count`](struct.DWT.html#method.get_cycle_count) method.
 //!
 //! ``` no_run
-//! use cortex_m::peripheral::{DWT, Peripherals};
+//! # use cortex_m::peripheral::{DWT, Peripherals};
+//! {
+//!     let mut peripherals = Peripherals::take().unwrap();
+//!     peripherals.DWT.enable_cycle_counter();
+//! } // all the peripheral singletons are destroyed here
 //!
-//! fn main() {
-//!     {
-//!         let mut peripherals = Peripherals::take().unwrap();
-//!         peripherals.DWT.enable_cycle_counter();
-//!     } // all the peripheral singletons are destroyed here
-//!
-//!     // but this method can be called without a DWT instance
-//!     let cyccnt = DWT::get_cycle_count();
-//! }
+//! // but this method can be called without a DWT instance
+//! let cyccnt = DWT::get_cycle_count();
 //! ```
 //!
 //! The singleton property can be *unsafely* bypassed using the `ptr` static method which is
@@ -51,17 +41,14 @@
 //! safe higher level abstractions.
 //!
 //! ``` no_run
-//! use cortex_m::peripheral::{DWT, Peripherals};
+//! # use cortex_m::peripheral::{DWT, Peripherals};
+//! {
+//!     let mut peripherals = Peripherals::take().unwrap();
+//!     peripherals.DWT.enable_cycle_counter();
+//! } // all the peripheral singletons are destroyed here
 //!
-//! fn main() {
-//!     {
-//!         let mut peripherals = Peripherals::take().unwrap();
-//!         peripherals.DWT.enable_cycle_counter();
-//!     } // all the peripheral singletons are destroyed here
-//!
-//!     // actually safe because this is an atomic read with no side effects
-//!     let cyccnt = unsafe { (*DWT::ptr()).cyccnt.read() };
-//! }
+//! // actually safe because this is an atomic read with no side effects
+//! let cyccnt = unsafe { (*DWT::ptr()).cyccnt.read() };
 //! ```
 //!
 //! # References

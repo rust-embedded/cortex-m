@@ -767,6 +767,7 @@ pub fn pre_init(args: TokenStream, input: TokenStream) -> TokenStream {
 
     quote!(
         #[export_name = "__pre_init"]
+        #[allow(missing_docs)]  // we make a private fn public, which can trigger this lint
         #(#attrs)*
         pub unsafe fn #ident() #block
     )

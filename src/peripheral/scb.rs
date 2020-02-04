@@ -508,14 +508,24 @@ impl SCB {
 
     /// Invalidates D-cache by address
     ///
-    /// * `addr`: the address to invalidate
-    /// * `size`: size of the memory block, in number of bytes
+    /// * `addr`: the address to invalidate, which must be cache-line aligned
+    /// * `size`: number of bytes to invalidate, which must be a multiple of the cache line size
     ///
-    /// Invalidates cache starting from the lowest 32-byte aligned address represented by `addr`,
-    /// in blocks of 32 bytes until at least `size` bytes have been invalidated.
+    /// Invalidates D-cache cache lines, starting from the first line containing `addr`,
+    /// finishing once at least `size` bytes have been invalidated.
     ///
     /// Invalidation causes the next read access to memory to be fetched from main memory instead
     /// of the cache.
+    ///
+    /// # Cache Line Sizes
+    ///
+    /// Cache line sizes vary by core. For all Cortex-M7 cores, the cache line size is fixed
+    /// to 32 bytes, which means `addr` must be 32-byte aligned and `size` must be a multiple
+    /// of 32. At the time of writing, no other Cortex-M cores have data caches.
+    ///
+    /// If `addr` is not cache-line aligned, or `size` is not a multiple of the cache line size,
+    /// other data before or after the desired memory would also be invalidated, which can very
+    /// easily cause memory corruption and undefined behaviour.
     ///
     /// # Safety
     ///
@@ -525,9 +535,11 @@ impl SCB {
     /// resulting in undefined behaviour. You must ensure that main memory contains valid and
     /// initialised values before invalidating.
     ///
-    /// If `addr` is not 32-byte aligned or if `size` is not a multiple of 32, other memory
-    /// will also be invalidated unexpectedly. It is highly recommended that `addr` is 32-byte
-    /// aligned and `size` is a multiple of 32 bytes.
+    /// `addr` **must** be aligned to the size of the cache lines, and `size` **must** be a
+    /// multiple of the cache line size, otherwise this function will invalidate other memory,
+    /// easily leading to memory corruption and undefined behaviour. This precondition is checked
+    /// in debug builds using a `debug_assert!()`, but not checked in release builds to avoid
+    /// a runtime-dependent `panic!()` call.
     #[inline]
     pub unsafe fn invalidate_dcache_by_address(&mut self, addr: usize, size: usize) {
         // No-op zero sized operations
@@ -538,17 +550,25 @@ impl SCB {
         // NOTE(unsafe): No races as all CBP registers are write-only and stateless
         let mut cbp = CBP::new();
 
+        // dminline is log2(num words), so 2**dminline * 4 gives size in bytes
+        let dminline = CPUID::cache_dminline();
+        let line_size = (1 << dminline) * 4;
+
+        debug_assert!((addr & (line_size - 1)) == 0);
+        debug_assert!((size & (line_size - 1)) == 0);
+
         crate::asm::dsb();
 
-        // Cache lines are fixed to 32 bit on Cortex-M7 and not present in earlier Cortex-M
-        const LINESIZE: usize = 32;
-        let num_lines = ((size - 1) / LINESIZE) + 1;
+        // Find number of cache lines to invalidate
+        let num_lines = ((size - 1) / line_size) + 1;
 
-        let mut addr = addr & 0xFFFF_FFE0;
+        // Compute address of first cache line
+        let mask = 0xFFFF_FFFF - (line_size - 1);
+        let mut addr = addr & mask;
 
         for _ in 0..num_lines {
             cbp.dcimvac(addr as u32);
-            addr += LINESIZE;
+            addr += line_size;
         }
 
         crate::asm::dsb();
@@ -559,11 +579,21 @@ impl SCB {
     ///
     /// * `obj`: Object to invalidate
     ///
-    /// Invalidates cache starting from the lowest 32-byte aligned address containing `obj`,
-    /// in blocks of 32 bytes until all of `obj` has been invalidated.
+    /// Invalidates D-cache starting from the first cache line containing `obj`,
+    /// continuing to invalidate cache lines until all of `obj` has been invalidated.
     ///
     /// Invalidation causes the next read access to memory to be fetched from main memory instead
     /// of the cache.
+    ///
+    /// # Cache Line Sizes
+    ///
+    /// Cache line sizes vary by core. For all Cortex-M7 cores, the cache line size is fixed
+    /// to 32 bytes, which means `obj` must be 32-byte aligned, and its size must be a multiple
+    /// of 32 bytes. At the time of writing, no other Cortex-M cores have data caches.
+    ///
+    /// If `obj` is not cache-line aligned, or its size is not a multiple of the cache line size,
+    /// other data before or after the desired memory would also be invalidated, which can very
+    /// easily cause memory corruption and undefined behaviour.
     ///
     /// # Safety
     ///
@@ -573,11 +603,13 @@ impl SCB {
     /// resulting in undefined behaviour. You must ensure that main memory contains a valid and
     /// initialised value for T before invalidating `obj`.
     ///
-    /// If `obj` is not both 32-byte aligned and a multiple of 32 bytes long, other memory
-    /// will also be invalidated unexpectedly. It is highly recommended that `obj` is 32-byte
-    /// aligned and a multiple of 32 bytes long.
+    /// `obj` **must** be aligned to the size of the cache lines, and its size **must** be a
+    /// multiple of the cache line size, otherwise this function will invalidate other memory,
+    /// easily leading to memory corruption and undefined behaviour. This precondition is checked
+    /// in debug builds using a `debug_assert!()`, but not checked in release builds to avoid
+    /// a runtime-dependent `panic!()` call.
     #[inline]
-    pub unsafe fn invalidate_dcache_by_ref<T>(&mut self, obj: &T) {
+    pub unsafe fn invalidate_dcache_by_ref<T>(&mut self, obj: &mut T) {
         self.invalidate_dcache_by_address(obj as *const T as usize, core::mem::size_of::<T>());
     }
 
@@ -585,11 +617,21 @@ impl SCB {
     ///
     /// * `slice`: Slice to invalidate
     ///
-    /// Invalidates cache starting from the lowest 32-byte aligned address containing members of
-    /// `slice`, in blocks of 32 bytes until all of `slice` has been invalidated.
+    /// Invalidates D-cache starting from the first cache line containing members of `slice`,
+    /// continuing to invalidate cache lines until all of `slice` has been invalidated.
     ///
     /// Invalidation causes the next read access to memory to be fetched from main memory instead
     /// of the cache.
+    ///
+    /// # Cache Line Sizes
+    ///
+    /// Cache line sizes vary by core. For all Cortex-M7 cores, the cache line size is fixed
+    /// to 32 bytes, which means `slice` must be 32-byte aligned, and its size must be a multiple
+    /// of 32 bytes. At the time of writing, no other Cortex-M cores have data caches.
+    ///
+    /// If `slice` is not cache-line aligned, or its size is not a multiple of the cache line size,
+    /// other data before or after the desired memory would also be invalidated, which can very
+    /// easily cause memory corruption and undefined behaviour.
     ///
     /// # Safety
     ///
@@ -599,11 +641,13 @@ impl SCB {
     /// resulting in undefined behaviour. You must ensure that main memory contains valid and
     /// initialised values for T before invalidating `slice`.
     ///
-    /// If `slice` is not both 32-byte aligned and a multiple of 32 bytes long, other memory
-    /// will also be invalidated unexpectedly. It is highly recommended that `slice` is 32-byte
-    /// aligned and a multiple of 32 bytes long.
+    /// `slice` **must** be aligned to the size of the cache lines, and its size **must** be a
+    /// multiple of the cache line size, otherwise this function will invalidate other memory,
+    /// easily leading to memory corruption and undefined behaviour. This precondition is checked
+    /// in debug builds using a `debug_assert!()`, but not checked in release builds to avoid
+    /// a runtime-dependent `panic!()` call.
     #[inline]
-    pub unsafe fn invalidate_dcache_by_slice<T>(&mut self, slice: &[T]) {
+    pub unsafe fn invalidate_dcache_by_slice<T>(&mut self, slice: &mut [T]) {
         self.invalidate_dcache_by_address(slice.as_ptr() as usize,
                                           slice.len() * core::mem::size_of::<T>());
     }
@@ -611,16 +655,24 @@ impl SCB {
     /// Cleans D-cache by address
     ///
     /// * `addr`: the address to clean
-    /// * `size`: size of the memory block, in number of bytes
+    /// * `size`: number of bytes to clean
     ///
-    /// Cleans cache starting from the lowest 32-byte aligned address represented by `addr`,
-    /// in blocks of 32 bytes until at least `size` bytes have been cleaned.
-    ///
-    /// It is highly recommended that `addr` is 32-byte aligned and a `size` is a multiple of
-    /// 32 bytes long, otherwise surrounding data will also be cleaned.
+    /// Cleans D-cache cache lines, starting from the first line containing `addr`,
+    /// finishing once at least `size` bytes have been invalidated.
     ///
     /// Cleaning the cache causes whatever data is present in the cache to be immediately written
     /// to main memory, overwriting whatever was in main memory.
+    ///
+    /// # Cache Line Sizes
+    ///
+    /// Cache line sizes vary by core. For all Cortex-M7 cores, the cache line size is fixed
+    /// to 32 bytes, which means `addr` should generally be 32-byte aligned and `size` should be a
+    /// multiple of 32. At the time of writing, no other Cortex-M cores have data caches.
+    ///
+    /// If `addr` is not cache-line aligned, or `size` is not a multiple of the cache line size,
+    /// other data before or after the desired memory will also be cleaned. From the point of view
+    /// of the core executing this function, memory remains consistent, so this is not unsound,
+    /// but is worth knowing about.
     #[inline]
     pub fn clean_dcache_by_address(&mut self, addr: usize, size: usize) {
         // No-op zero sized operations
@@ -633,15 +685,16 @@ impl SCB {
 
         crate::asm::dsb();
 
-        // Cache lines are fixed to 32 bit on Cortex-M7 and not present in earlier Cortex-M
-        const LINESIZE: usize = 32;
-        let num_lines = ((size - 1) / LINESIZE) + 1;
+        let dminline = CPUID::cache_dminline();
+        let line_size = (1 << dminline) * 4;
+        let num_lines = ((size - 1) / line_size) + 1;
 
-        let mut addr = addr & 0xFFFF_FFE0;
+        let mask = 0xFFFF_FFFF - (line_size - 1);
+        let mut addr = addr & mask;
 
         for _ in 0..num_lines {
             cbp.dccmvac(addr as u32);
-            addr += LINESIZE;
+            addr += line_size;
         }
 
         crate::asm::dsb();
@@ -652,11 +705,11 @@ impl SCB {
     ///
     /// * `obj`: Object to clean
     ///
-    /// Cleans cache starting from the lowest 32-byte aligned address containing `obj`,
-    /// in blocks of 32 bytes until all of `obj` has been cleaned.
+    /// Cleans D-cache starting from the first cache line containing `obj`,
+    /// continuing to clean cache lines until all of `obj` has been cleaned.
     ///
-    /// It is highly recommended that `obj` is both 32-byte aligned and a multiple of
-    /// 32 bytes long, otherwise surrounding data will also be cleaned.
+    /// It is recommended that `obj` is both aligned to the cache line size and a multiple of
+    /// the cache line size long, otherwise surrounding data will also be cleaned.
     ///
     /// Cleaning the cache causes whatever data is present in the cache to be immediately written
     /// to main memory, overwriting whatever was in main memory.
@@ -668,11 +721,11 @@ impl SCB {
     ///
     /// * `slice`: Slice to clean
     ///
-    /// Cleans cache starting from the lowest 32-byte aligned address containing members of
-    /// `slice`, in blocks of 32 bytes until all of `slice` has been cleaned.
+    /// Cleans D-cache starting from the first cache line containing members of `slice`,
+    /// continuing to clean cache lines until all of `slice` has been cleaned.
     ///
-    /// It is highly recommended that `slice` is both 32-byte aligned and a multiple of
-    /// 32 bytes long, otherwise surrounding data will also be cleaned.
+    /// It is recommended that `slice` is both aligned to the cache line size and a multiple of
+    /// the cache line size long, otherwise surrounding data will also be cleaned.
     ///
     /// Cleaning the cache causes whatever data is present in the cache to be immediately written
     /// to main memory, overwriting whatever was in main memory.
@@ -684,14 +737,13 @@ impl SCB {
     /// Cleans and invalidates D-cache by address
     ///
     /// * `addr`: the address to clean and invalidate
-    /// * `size`: size of the memory block, in number of bytes
+    /// * `size`: number of bytes to clean and invalidate
     ///
-    /// Cleans and invalidates cache starting from the lowest 32-byte aligned address represented
-    /// by `addr`, in blocks of 32 bytes until at least `size` bytes have been cleaned and
-    /// invalidated.
+    /// Cleans and invalidates D-cache starting from the first cache line containing `addr`,
+    /// finishing once at least `size` bytes have been cleaned and invalidated.
     ///
-    /// It is highly recommended that `addr` is 32-byte aligned and a `size` is a multiple of
-    /// 32 bytes long, otherwise surrounding data will also be cleaned.
+    /// It is recommended that `addr` is aligned to the cache line size and `size` is a multiple of
+    /// the cache line size, otherwise surrounding data will also be cleaned.
     ///
     /// Cleaning and invalidating causes data in the D-cache to be written back to main memory,
     /// and then marks that data in the D-cache as invalid, causing future reads to first fetch

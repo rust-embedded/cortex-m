@@ -531,9 +531,9 @@ impl SCB {
     ///
     /// After invalidating, the next read of invalidated data will be from main memory. This may
     /// cause recent writes to be lost, potentially including writes that initialized objects.
-    /// Therefore, this method may cause uninitialised memory or invalid values to be read,
+    /// Therefore, this method may cause uninitialized memory or invalid values to be read,
     /// resulting in undefined behaviour. You must ensure that main memory contains valid and
-    /// initialised values before invalidating.
+    /// initialized values before invalidating.
     ///
     /// `addr` **must** be aligned to the size of the cache lines, and `size` **must** be a
     /// multiple of the cache line size, otherwise this function will invalidate other memory,
@@ -598,10 +598,10 @@ impl SCB {
     /// # Safety
     ///
     /// After invalidating, `obj` will be read from main memory on next access. This may cause
-    /// recent writes to `obj` to be lost, potentially including the write that initialised it.
-    /// Therefore, this method may cause uninitialised memory or invalid values to be read,
+    /// recent writes to `obj` to be lost, potentially including the write that initialized it.
+    /// Therefore, this method may cause uninitialized memory or invalid values to be read,
     /// resulting in undefined behaviour. You must ensure that main memory contains a valid and
-    /// initialised value for T before invalidating `obj`.
+    /// initialized value for T before invalidating `obj`.
     ///
     /// `obj` **must** be aligned to the size of the cache lines, and its size **must** be a
     /// multiple of the cache line size, otherwise this function will invalidate other memory,
@@ -636,10 +636,10 @@ impl SCB {
     /// # Safety
     ///
     /// After invalidating, `slice` will be read from main memory on next access. This may cause
-    /// recent writes to `slice` to be lost, potentially including the write that initialised it.
-    /// Therefore, this method may cause uninitialised memory or invalid values to be read,
+    /// recent writes to `slice` to be lost, potentially including the write that initialized it.
+    /// Therefore, this method may cause uninitialized memory or invalid values to be read,
     /// resulting in undefined behaviour. You must ensure that main memory contains valid and
-    /// initialised values for T before invalidating `slice`.
+    /// initialized values for T before invalidating `slice`.
     ///
     /// `slice` **must** be aligned to the size of the cache lines, and its size **must** be a
     /// multiple of the cache line size, otherwise this function will invalidate other memory,

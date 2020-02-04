@@ -131,6 +131,7 @@ impl CPUID {
     /// caches that are controlled by the processor.
     ///
     /// This is the `IminLine` field of the CTR register.
+    #[inline(always)]
     pub fn cache_iminline() -> u32 {
         const CTR_IMINLINE_POS: u32 = 0;
         const CTR_IMINLINE_MASK: u32 = 0xF << CTR_IMINLINE_POS;

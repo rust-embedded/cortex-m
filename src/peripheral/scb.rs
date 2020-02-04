@@ -314,7 +314,7 @@ use self::scb_consts::*;
 
 #[cfg(not(armv6m))]
 impl SCB {
-    /// Enables I-cache if currently disabled
+    /// Enables I-cache if currently disabled.
     ///
     /// This operation first invalidates the entire I-cache.
     #[inline]
@@ -338,7 +338,7 @@ impl SCB {
         crate::asm::isb();
     }
 
-    /// Disables I-cache if currently enabled
+    /// Disables I-cache if currently enabled.
     ///
     /// This operation invalidates the entire I-cache after disabling.
     #[inline]
@@ -362,7 +362,7 @@ impl SCB {
         crate::asm::isb();
     }
 
-    /// Returns whether the I-cache is currently enabled
+    /// Returns whether the I-cache is currently enabled.
     #[inline(always)]
     pub fn icache_enabled() -> bool {
         crate::asm::dsb();
@@ -372,7 +372,7 @@ impl SCB {
         unsafe { (*Self::ptr()).ccr.read() & SCB_CCR_IC_MASK == SCB_CCR_IC_MASK }
     }
 
-    /// Invalidates entire I-cache
+    /// Invalidates the entire I-cache.
     #[inline]
     pub fn invalidate_icache(&mut self) {
         // NOTE(unsafe): No races as all CBP registers are write-only and stateless
@@ -385,7 +385,7 @@ impl SCB {
         crate::asm::isb();
     }
 
-    /// Enables D-cache if currently disabled
+    /// Enables D-cache if currently disabled.
     ///
     /// This operation first invalidates the entire D-cache, ensuring it does
     /// not contain stale values before being enabled.
@@ -407,7 +407,7 @@ impl SCB {
         crate::asm::isb();
     }
 
-    /// Disables D-cache if currently enabled
+    /// Disables D-cache if currently enabled.
     ///
     /// This operation subsequently cleans and invalidates the entire D-cache,
     /// ensuring all contents are safely written back to main memory after disabling.
@@ -426,7 +426,7 @@ impl SCB {
         self.clean_invalidate_dcache(cpuid);
     }
 
-    /// Returns whether the D-cache is currently enabled
+    /// Returns whether the D-cache is currently enabled.
     #[inline]
     pub fn dcache_enabled() -> bool {
         crate::asm::dsb();
@@ -436,7 +436,7 @@ impl SCB {
         unsafe { (*Self::ptr()).ccr.read() & SCB_CCR_DC_MASK == SCB_CCR_DC_MASK }
     }
 
-    /// Invalidates entire D-cache
+    /// Invalidates the entire D-cache.
     ///
     /// Note that calling this while the dcache is enabled will probably wipe out the
     /// stack, depending on optimisations, therefore breaking returning to the call point.
@@ -461,7 +461,7 @@ impl SCB {
         crate::asm::isb();
     }
 
-    /// Cleans entire D-cache
+    /// Cleans the entire D-cache.
     ///
     /// This function causes everything in the D-cache to be written back to main memory,
     /// overwriting whatever is already there.
@@ -483,7 +483,7 @@ impl SCB {
         crate::asm::isb();
     }
 
-    /// Cleans and invalidates entire D-cache
+    /// Cleans and invalidates the entire D-cache.
     ///
     /// This function causes everything in the D-cache to be written back to main memory,
     /// and then marks the entire D-cache as invalid, causing future reads to first fetch
@@ -506,10 +506,10 @@ impl SCB {
         crate::asm::isb();
     }
 
-    /// Invalidates D-cache by address
+    /// Invalidates D-cache by address.
     ///
-    /// * `addr`: the address to invalidate, which must be cache-line aligned
-    /// * `size`: number of bytes to invalidate, which must be a multiple of the cache line size
+    /// * `addr`: The address to invalidate, which must be cache-line aligned.
+    /// * `size`: Number of bytes to invalidate, which must be a multiple of the cache line size.
     ///
     /// Invalidates D-cache cache lines, starting from the first line containing `addr`,
     /// finishing once at least `size` bytes have been invalidated.
@@ -530,7 +530,7 @@ impl SCB {
     /// # Safety
     ///
     /// After invalidating, the next read of invalidated data will be from main memory. This may
-    /// cause recent writes to be lost, potentially including writes that initialised objects.
+    /// cause recent writes to be lost, potentially including writes that initialized objects.
     /// Therefore, this method may cause uninitialised memory or invalid values to be read,
     /// resulting in undefined behaviour. You must ensure that main memory contains valid and
     /// initialised values before invalidating.
@@ -575,9 +575,9 @@ impl SCB {
         crate::asm::isb();
     }
 
-    /// Invalidates an object from the D-cache
+    /// Invalidates an object from the D-cache.
     ///
-    /// * `obj`: Object to invalidate
+    /// * `obj`: The object to invalidate.
     ///
     /// Invalidates D-cache starting from the first cache line containing `obj`,
     /// continuing to invalidate cache lines until all of `obj` has been invalidated.
@@ -613,9 +613,9 @@ impl SCB {
         self.invalidate_dcache_by_address(obj as *const T as usize, core::mem::size_of::<T>());
     }
 
-    /// Invalidates a slice from the D-cache
+    /// Invalidates a slice from the D-cache.
     ///
-    /// * `slice`: Slice to invalidate
+    /// * `slice`: The slice to invalidate.
     ///
     /// Invalidates D-cache starting from the first cache line containing members of `slice`,
     /// continuing to invalidate cache lines until all of `slice` has been invalidated.
@@ -652,10 +652,10 @@ impl SCB {
                                           slice.len() * core::mem::size_of::<T>());
     }
 
-    /// Cleans D-cache by address
+    /// Cleans D-cache by address.
     ///
-    /// * `addr`: the address to clean
-    /// * `size`: number of bytes to clean
+    /// * `addr`: The address to start cleaning at.
+    /// * `size`: The number of bytes to clean.
     ///
     /// Cleans D-cache cache lines, starting from the first line containing `addr`,
     /// finishing once at least `size` bytes have been invalidated.
@@ -701,9 +701,9 @@ impl SCB {
         crate::asm::isb();
     }
 
-    /// Cleans an object in D-cache
+    /// Cleans an object from the D-cache.
     ///
-    /// * `obj`: Object to clean
+    /// * `obj`: The object to clean.
     ///
     /// Cleans D-cache starting from the first cache line containing `obj`,
     /// continuing to clean cache lines until all of `obj` has been cleaned.
@@ -717,9 +717,9 @@ impl SCB {
         self.clean_dcache_by_address(obj as *const T as usize, core::mem::size_of::<T>());
     }
 
-    /// Cleans a slice in D-cache
+    /// Cleans a slice from D-cache.
     ///
-    /// * `slice`: Slice to clean
+    /// * `slice`: The slice to clean.
     ///
     /// Cleans D-cache starting from the first cache line containing members of `slice`,
     /// continuing to clean cache lines until all of `slice` has been cleaned.
@@ -734,10 +734,10 @@ impl SCB {
                                      slice.len() * core::mem::size_of::<T>());
     }
 
-    /// Cleans and invalidates D-cache by address
+    /// Cleans and invalidates D-cache by address.
     ///
-    /// * `addr`: the address to clean and invalidate
-    /// * `size`: number of bytes to clean and invalidate
+    /// * `addr`: The address to clean and invalidate.
+    /// * `size`: The number of bytes to clean and invalidate.
     ///
     /// Cleans and invalidates D-cache starting from the first cache line containing `addr`,
     /// finishing once at least `size` bytes have been cleaned and invalidated.

@@ -39,34 +39,28 @@ const CBP_SW_SET_MASK: u32 = 0x1FF << CBP_SW_SET_POS;
 
 impl CBP {
     /// I-cache invalidate all to PoU
-    #[inline]
+    #[inline(always)]
     pub fn iciallu(&mut self) {
-        unsafe {
-            self.iciallu.write(0);
-        }
+        unsafe { self.iciallu.write(0) };
     }
 
     /// I-cache invalidate by MVA to PoU
-    #[inline]
+    #[inline(always)]
     pub fn icimvau(&mut self, mva: u32) {
-        unsafe {
-            self.icimvau.write(mva);
-        }
+        unsafe { self.icimvau.write(mva) };
     }
 
     /// D-cache invalidate by MVA to PoC
-    #[inline]
-    pub fn dcimvac(&mut self, mva: u32) {
-        unsafe {
-            self.dcimvac.write(mva);
-        }
+    #[inline(always)]
+    pub unsafe fn dcimvac(&mut self, mva: u32) {
+        self.dcimvac.write(mva);
     }
 
     /// D-cache invalidate by set-way
     ///
     /// `set` is masked to be between 0 and 3, and `way` between 0 and 511.
-    #[inline]
-    pub fn dcisw(&mut self, set: u16, way: u16) {
+    #[inline(always)]
+    pub unsafe fn dcisw(&mut self, set: u16, way: u16) {
         // The ARMv7-M Architecture Reference Manual, as of Revision E.b, says these set/way
         // operations have a register data format which depends on the implementation's
         // associativity and number of sets. Specifically the 'way' and 'set' fields have
@@ -76,16 +70,14 @@ impl CBP {
         // Generic User Guide section 4.8.3. Since no other ARMv7-M implementations except the
         // Cortex-M7 have a DCACHE or ICACHE at all, it seems safe to do the same thing as the
         // CMSIS-Core implementation and use fixed values.
-        unsafe {
-            self.dcisw.write(
-                ((u32::from(way) & (CBP_SW_WAY_MASK >> CBP_SW_WAY_POS)) << CBP_SW_WAY_POS)
-                    | ((u32::from(set) & (CBP_SW_SET_MASK >> CBP_SW_SET_POS)) << CBP_SW_SET_POS),
-            );
-        }
+        self.dcisw.write(
+            ((u32::from(way) & (CBP_SW_WAY_MASK >> CBP_SW_WAY_POS)) << CBP_SW_WAY_POS)
+                | ((u32::from(set) & (CBP_SW_SET_MASK >> CBP_SW_SET_POS)) << CBP_SW_SET_POS),
+        );
     }
 
     /// D-cache clean by MVA to PoU
-    #[inline]
+    #[inline(always)]
     pub fn dccmvau(&mut self, mva: u32) {
         unsafe {
             self.dccmvau.write(mva);
@@ -93,7 +85,7 @@ impl CBP {
     }
 
     /// D-cache clean by MVA to PoC
-    #[inline]
+    #[inline(always)]
     pub fn dccmvac(&mut self, mva: u32) {
         unsafe {
             self.dccmvac.write(mva);
@@ -103,7 +95,7 @@ impl CBP {
     /// D-cache clean by set-way
     ///
     /// `set` is masked to be between 0 and 3, and `way` between 0 and 511.
-    #[inline]
+    #[inline(always)]
     pub fn dccsw(&mut self, set: u16, way: u16) {
         // See comment for dcisw() about the format here
         unsafe {
@@ -115,7 +107,7 @@ impl CBP {
     }
 
     /// D-cache clean and invalidate by MVA to PoC
-    #[inline]
+    #[inline(always)]
     pub fn dccimvac(&mut self, mva: u32) {
         unsafe {
             self.dccimvac.write(mva);
@@ -125,7 +117,7 @@ impl CBP {
     /// D-cache clean and invalidate by set-way
     ///
     /// `set` is masked to be between 0 and 3, and `way` between 0 and 511.
-    #[inline]
+    #[inline(always)]
     pub fn dccisw(&mut self, set: u16, way: u16) {
         // See comment for dcisw() about the format here
         unsafe {
@@ -137,7 +129,7 @@ impl CBP {
     }
 
     /// Branch predictor invalidate all
-    #[inline]
+    #[inline(always)]
     pub fn bpiall(&mut self) {
         unsafe {
             self.bpiall.write(0);

@@ -20,6 +20,3 @@ proc-macro2 = "1.0"
 [dependencies.syn]
 features = ["extra-traits", "full"]
 version = "1.0"
-
-[dev-dependencies]
-cortex-m-rt = { path = "..", version = "0.6" }

@@ -33,6 +33,8 @@ main() {
         data_overflow
     )
     if [ "$TARGET" != x86_64-unknown-linux-gnu ]; then
+        RUSTDOCFLAGS="-Cpanic=abort" cargo test --doc
+
         # linking with GNU LD
         for ex in "${examples[@]}"; do
             cargo rustc --target "$TARGET" --example "$ex" -- \

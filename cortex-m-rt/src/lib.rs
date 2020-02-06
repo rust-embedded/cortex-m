@@ -42,7 +42,7 @@
 //! program will be placed in the `FLASH` region, whereas the `.bss` and `.data` sections, as well
 //! as the heap,will be placed in the `RAM` region.
 //!
-//! ``` text
+//! ```text
 //! /* Linker script for the STM32F103C8T6 */
 //! MEMORY
 //! {
@@ -58,7 +58,7 @@
 //! region -- the stack grows downwards towards smaller address. This symbol can be used to place
 //! the stack in a different memory region, for example:
 //!
-//! ``` text
+//! ```text
 //! /* Linker script for the STM32F303VCT6 */
 //! MEMORY
 //! {
@@ -82,7 +82,7 @@
 //! for these devices one must place the `.text` section after this configuration section --
 //! `_stext` can be used for this purpose.
 //!
-//! ``` text
+//! ```text
 //! MEMORY
 //! {
 //!   /* .. */
@@ -99,17 +99,15 @@
 //! handler and the default exception handler must also be defined somewhere in the dependency
 //! graph (see [`#[exception]`]). In this example we define them in the binary crate:
 //!
-//! ``` ignore
+//! ```no_run
 //! // IMPORTANT the standard `main` interface is not used because it requires nightly
 //! #![no_main]
 //! #![no_std]
 //!
-//! extern crate cortex_m_rt as rt;
+//! // Some panic handler needs to be included. This one halts the processor on panic.
+//! extern crate panic_halt;
 //!
-//! // makes `panic!` print messages to the host stderr using semihosting
-//! extern crate panic_semihosting;
-//!
-//! use rt::entry;
+//! use cortex_m_rt::entry;
 //!
 //! // use `main` as the entry point of this application
 //! // `main` is not allowed to return
@@ -127,7 +125,7 @@
 //! can find it, e.g. in the current directory; and then link the program using `cortex-m-rt`'s
 //! linker script: `link.x`. The required steps are shown below:
 //!
-//! ``` text
+//! ```text
 //! $ cat > memory.x <<EOF
 //! /* Linker script for the STM32F103C8T6 */
 //! MEMORY
@@ -170,7 +168,7 @@
 //! lets you distinguish how much space is taking the vector table in Flash vs how much is being
 //! used by actual instructions (`.text`) and constants (`.rodata`).
 //!
-//! ```
+//! ```text
 //! $ size -Ax target/thumbv7m-none-eabi/examples/app
 //! target/thumbv7m-none-eabi/release/examples/app  :
 //! section             size         addr
@@ -184,7 +182,7 @@
 //! Without the `-A` argument `size` reports the sum of the sizes of `.text`, `.rodata` and
 //! `.vector_table` under "text".
 //!
-//! ```
+//! ```text
 //! $ size target/thumbv7m-none-eabi/examples/app
 //!   text    data     bss     dec     hex filename
 //!   1160       0       0    1660     67c target/thumbv7m-none-eabi/release/app
@@ -283,9 +281,9 @@
 //! Let's illustrate with an artificial example where a device only has two interrupt: `Foo`, with
 //! IRQ number = 2, and `Bar`, with IRQ number = 4.
 //!
-//! ``` ignore
+//! ```no_run
 //! union Vector {
-//!     handler: extern "C" fn(),
+//!     handler: unsafe extern "C" fn(),
 //!     reserved: usize,
 //! }
 //!
@@ -331,7 +329,7 @@
 //!
 //! For our running example the `device.x` linker script looks like this:
 //!
-//! ``` text
+//! ```text
 //! /* device.x */
 //! PROVIDE(Foo = DefaultHandler);
 //! PROVIDE(Bar = DefaultHandler);
@@ -344,7 +342,7 @@
 //! must contain build script that puts `device.x` somewhere the linker can find. An example of such
 //! build script is shown below:
 //!
-//! ``` ignore
+//! ```no_ruin
 //! use std::env;
 //! use std::fs::File;
 //! use std::io::Write;
@@ -373,7 +371,7 @@
 //!
 //! [`MaybeUninit`]: https://doc.rust-lang.org/core/mem/union.MaybeUninit.html
 //!
-//! ``` ignore
+//! ```no_run,edition2018
 //! use core::mem::MaybeUninit;
 //!
 //! const STACK_SIZE: usize = 8 * 1024;
@@ -406,11 +404,275 @@ extern crate r0;
 use core::fmt;
 use core::sync::atomic::{self, Ordering};
 
+/// Attribute to declare an interrupt (AKA device-specific exception) handler
+///
+/// **IMPORTANT**: If you are using Rust 1.30 this attribute must be used on reachable items (i.e.
+/// there must be no private modules between the item and the root of the crate); if the item is in
+/// the root of the crate you'll be fine. This reachability restriction doesn't apply to Rust 1.31
+/// and newer releases.
+///
+/// **NOTE**: This attribute is exposed by `cortex-m-rt` only when the `device` feature is enabled.
+/// However, that export is not meant to be used directly -- using it will result in a compilation
+/// error. You should instead use the device crate (usually generated using `svd2rust`) re-export of
+/// that attribute. You need to use the re-export to have the compiler check that the interrupt
+/// exists on the target device.
+///
+/// # Syntax
+///
+/// ``` ignore
+/// extern crate device;
+///
+/// // the attribute comes from the device crate not from cortex-m-rt
+/// use device::interrupt;
+///
+/// #[interrupt]
+/// fn USART1() {
+///     // ..
+/// }
+/// ```
+///
+/// where the name of the function must be one of the device interrupts.
+///
+/// # Usage
+///
+/// `#[interrupt] fn Name(..` overrides the default handler for the interrupt with the given `Name`.
+/// These handlers must have signature `[unsafe] fn() [-> !]`. It's possible to add state to these
+/// handlers by declaring `static mut` variables at the beginning of the body of the function. These
+/// variables will be safe to access from the function body.
+///
+/// If the interrupt handler has not been overridden it will be dispatched by the default exception
+/// handler (`DefaultHandler`).
+///
+/// # Properties
+///
+/// Interrupts handlers can only be called by the hardware. Other parts of the program can't refer
+/// to the interrupt handlers, much less invoke them as if they were functions.
+///
+/// `static mut` variables declared within an interrupt handler are safe to access and can be used
+/// to preserve state across invocations of the handler. The compiler can't prove this is safe so
+/// the attribute will help by making a transformation to the source code: for this reason a
+/// variable like `static mut FOO: u32` will become `let FOO: &mut u32;`.
+///
+/// # Examples
+///
+/// - Using state within an interrupt handler
+///
+/// ``` ignore
+/// extern crate device;
+///
+/// use device::interrupt;
+///
+/// #[interrupt]
+/// fn TIM2() {
+///     static mut COUNT: i32 = 0;
+///
+///     // `COUNT` is safe to access and has type `&mut i32`
+///     *COUNT += 1;
+///
+///     println!("{}", COUNT);
+/// }
+/// ```
 #[cfg(feature = "device")]
-#[doc(inline)]
 pub use macros::interrupt;
-#[doc(inline)]
-pub use macros::{entry, exception, pre_init};
+
+/// Attribute to declare the entry point of the program
+///
+/// **IMPORTANT**: This attribute must appear exactly *once* in the dependency graph. Also, if you
+/// are using Rust 1.30 the attribute must be used on a reachable item (i.e. there must be no
+/// private modules between the item and the root of the crate); if the item is in the root of the
+/// crate you'll be fine. This reachability restriction doesn't apply to Rust 1.31 and newer releases.
+///
+/// The specified function will be called by the reset handler *after* RAM has been initialized. In
+/// the case of the `thumbv7em-none-eabihf` target the FPU will also be enabled before the function
+/// is called.
+///
+/// The type of the specified function must be `[unsafe] fn() -> !` (never ending function)
+///
+/// # Properties
+///
+/// The entry point will be called by the reset handler. The program can't reference to the entry
+/// point, much less invoke it.
+///
+/// `static mut` variables declared within the entry point are safe to access. The compiler can't
+/// prove this is safe so the attribute will help by making a transformation to the source code: for
+/// this reason a variable like `static mut FOO: u32` will become `let FOO: &'static mut u32;`. Note
+/// that `&'static mut` references have move semantics.
+///
+/// # Examples
+///
+/// - Simple entry point
+///
+/// ``` no_run
+/// # #![no_main]
+/// # use cortex_m_rt::entry;
+/// #[entry]
+/// fn main() -> ! {
+///     loop {
+///         /* .. */
+///     }
+/// }
+/// ```
+///
+/// - `static mut` variables local to the entry point are safe to modify.
+///
+/// ``` no_run
+/// # #![no_main]
+/// # use cortex_m_rt::entry;
+/// #[entry]
+/// fn main() -> ! {
+///     static mut FOO: u32 = 0;
+///
+///     let foo: &'static mut u32 = FOO;
+///     assert_eq!(*foo, 0);
+///     *foo = 1;
+///     assert_eq!(*foo, 1);
+///
+///     loop {
+///         /* .. */
+///     }
+/// }
+/// ```
+pub use macros::entry;
+
+/// Attribute to declare an exception handler
+///
+/// **IMPORTANT**: If you are using Rust 1.30 this attribute must be used on reachable items (i.e.
+/// there must be no private modules between the item and the root of the crate); if the item is in
+/// the root of the crate you'll be fine. This reachability restriction doesn't apply to Rust 1.31
+/// and newer releases.
+///
+/// # Syntax
+///
+/// ```
+/// # use cortex_m_rt::exception;
+/// #[exception]
+/// fn SysTick() {
+///     // ..
+/// }
+///
+/// # fn main() {}
+/// ```
+///
+/// where the name of the function must be one of:
+///
+/// - `DefaultHandler`
+/// - `NonMaskableInt`
+/// - `HardFault`
+/// - `MemoryManagement` (a)
+/// - `BusFault` (a)
+/// - `UsageFault` (a)
+/// - `SecureFault` (b)
+/// - `SVCall`
+/// - `DebugMonitor` (a)
+/// - `PendSV`
+/// - `SysTick`
+///
+/// (a) Not available on Cortex-M0 variants (`thumbv6m-none-eabi`)
+///
+/// (b) Only available on ARMv8-M
+///
+/// # Usage
+///
+/// `#[exception] fn HardFault(..` sets the hard fault handler. The handler must have signature
+/// `[unsafe] fn(&ExceptionFrame) -> !`. This handler is not allowed to return as that can cause
+/// undefined behavior.
+///
+/// `#[exception] fn DefaultHandler(..` sets the *default* handler. All exceptions which have not
+/// been assigned a handler will be serviced by this handler. This handler must have signature
+/// `[unsafe] fn(irqn: i16) [-> !]`. `irqn` is the IRQ number (See CMSIS); `irqn` will be a negative
+/// number when the handler is servicing a core exception; `irqn` will be a positive number when the
+/// handler is servicing a device specific exception (interrupt).
+///
+/// `#[exception] fn Name(..` overrides the default handler for the exception with the given `Name`.
+/// These handlers must have signature `[unsafe] fn() [-> !]`. When overriding these other exception
+/// it's possible to add state to them by declaring `static mut` variables at the beginning of the
+/// body of the function. These variables will be safe to access from the function body.
+///
+/// # Properties
+///
+/// Exception handlers can only be called by the hardware. Other parts of the program can't refer to
+/// the exception handlers, much less invoke them as if they were functions.
+///
+/// `static mut` variables declared within an exception handler are safe to access and can be used
+/// to preserve state across invocations of the handler. The compiler can't prove this is safe so
+/// the attribute will help by making a transformation to the source code: for this reason a
+/// variable like `static mut FOO: u32` will become `let FOO: &mut u32;`.
+///
+/// # Examples
+///
+/// - Setting the `HardFault` handler
+///
+/// ```
+/// # extern crate cortex_m_rt;
+/// # extern crate cortex_m_rt_macros;
+/// use cortex_m_rt::{ExceptionFrame, exception};
+///
+/// #[exception]
+/// fn HardFault(ef: &ExceptionFrame) -> ! {
+///     // prints the exception frame as a panic message
+///     panic!("{:#?}", ef);
+/// }
+///
+/// # fn main() {}
+/// ```
+///
+/// - Setting the default handler
+///
+/// ```
+/// use cortex_m_rt::exception;
+///
+/// #[exception]
+/// fn DefaultHandler(irqn: i16) {
+///     println!("IRQn = {}", irqn);
+/// }
+///
+/// # fn main() {}
+/// ```
+///
+/// - Overriding the `SysTick` handler
+///
+/// ```
+/// use cortex_m_rt::exception;
+///
+/// #[exception]
+/// fn SysTick() {
+///     static mut COUNT: i32 = 0;
+///
+///     // `COUNT` is safe to access and has type `&mut i32`
+///     *COUNT += 1;
+///
+///     println!("{}", COUNT);
+/// }
+///
+/// # fn main() {}
+/// ```
+pub use macros::exception;
+
+/// Attribute to mark which function will be called at the beginning of the reset handler.
+///
+/// **IMPORTANT**: This attribute can appear at most *once* in the dependency graph. Also, if you
+/// are using Rust 1.30 the attribute must be used on a reachable item (i.e. there must be no
+/// private modules between the item and the root of the crate); if the item is in the root of the
+/// crate you'll be fine. This reachability restriction doesn't apply to Rust 1.31 and newer
+/// releases.
+///
+/// The function must have the signature of `unsafe fn()`.
+///
+/// The function passed will be called before static variables are initialized. Any access of static
+/// variables will result in undefined behavior.
+///
+/// # Examples
+///
+/// ```
+/// # use cortex_m_rt::pre_init;
+/// #[pre_init]
+/// unsafe fn before_main() {
+///     // do something here
+/// }
+///
+/// # fn main() {}
+/// ```
+pub use macros::pre_init;
 
 #[export_name = "error: cortex-m-rt appears more than once in the dependency graph"]
 #[doc(hidden)]
@@ -722,6 +984,7 @@ pub enum Exception {
     SysTick,
 }
 
+#[doc(hidden)]
 pub use self::Exception as exception;
 
 extern "C" {
@@ -766,7 +1029,9 @@ pub static __EXCEPTIONS: [Vector; 14] = [
         handler: NonMaskableInt,
     },
     // Exception 3: Hard Fault Interrupt.
-    Vector { handler: HardFaultTrampoline },
+    Vector {
+        handler: HardFaultTrampoline,
+    },
     // Exception 4: Memory Management Interrupt [not on Cortex-M0 variants].
     #[cfg(not(armv6m))]
     Vector {

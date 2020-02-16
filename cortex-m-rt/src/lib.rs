@@ -658,8 +658,17 @@ pub use macros::exception;
 ///
 /// The function must have the signature of `unsafe fn()`.
 ///
-/// The function passed will be called before static variables are initialized. Any access of static
+/// # Safety
+///
+/// The function will be called before static variables are initialized. Any access of static
 /// variables will result in undefined behavior.
+///
+/// **Warning**: Due to [rvalue static promotion][rfc1414] static variables may be accessed whenever
+/// taking a reference to a constant. This means that even trivial expressions such as `&1` in the
+/// `#[pre_init]` function *or any code called by it* will cause **immediate undefined behavior**.
+///
+/// Users are advised to only use the `#[pre_init]` feature when absolutely necessary as these
+/// constraints make safe usage difficult.
 ///
 /// # Examples
 ///
@@ -672,6 +681,8 @@ pub use macros::exception;
 ///
 /// # fn main() {}
 /// ```
+///
+/// [rfc1414]: https://github.com/rust-lang/rfcs/blob/master/text/1414-rvalue_static_promotion.md
 pub use macros::pre_init;
 
 #[export_name = "error: cortex-m-rt appears more than once in the dependency graph"]

@@ -342,7 +342,7 @@
 //! must contain build script that puts `device.x` somewhere the linker can find. An example of such
 //! build script is shown below:
 //!
-//! ```no_ruin
+//! ```ignore
 //! use std::env;
 //! use std::fs::File;
 //! use std::io::Write;

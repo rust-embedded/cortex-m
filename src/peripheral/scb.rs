@@ -305,8 +305,8 @@ impl VectActive {
 
 #[cfg(not(armv6m))]
 mod scb_consts {
-    pub const SCB_CCR_IC_MASK: u32 = (1 << 17);
-    pub const SCB_CCR_DC_MASK: u32 = (1 << 16);
+    pub const SCB_CCR_IC_MASK: u32 = 1 << 17;
+    pub const SCB_CCR_DC_MASK: u32 = 1 << 16;
 }
 
 #[cfg(not(armv6m))]

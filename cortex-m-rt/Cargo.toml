@@ -16,7 +16,7 @@ version = "0.6.11"
 autoexamples = true
 
 [dependencies]
-r0 = "0.2.2"
+r0 = "1.0"
 cortex-m-rt-macros = { path = "macros", version = "=0.6.11" }
 
 [dev-dependencies]

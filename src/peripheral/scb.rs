@@ -713,6 +713,7 @@ impl SCB {
     ///
     /// Cleaning the cache causes whatever data is present in the cache to be immediately written
     /// to main memory, overwriting whatever was in main memory.
+    #[inline]
     pub fn clean_dcache_by_ref<T>(&mut self, obj: &T) {
         self.clean_dcache_by_address(obj as *const T as usize, core::mem::size_of::<T>());
     }
@@ -729,6 +730,7 @@ impl SCB {
     ///
     /// Cleaning the cache causes whatever data is present in the cache to be immediately written
     /// to main memory, overwriting whatever was in main memory.
+    #[inline]
     pub fn clean_dcache_by_slice<T>(&mut self, slice: &[T]) {
         self.clean_dcache_by_address(slice.as_ptr() as usize,
                                      slice.len() * core::mem::size_of::<T>());

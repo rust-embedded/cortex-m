@@ -34,6 +34,8 @@
 #![no_std]
 #![allow(clippy::identity_op)]
 #![allow(clippy::missing_safety_doc)]
+// Prevent clippy from complaining about empty match expression that are used for cfg gating.
+#![allow(clippy::match_single_binding)]
 
 // This makes clippy warn about public functions which are not #[inline].
 //

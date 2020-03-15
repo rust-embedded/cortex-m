@@ -86,10 +86,13 @@ pub fn nop() {
 ///
 /// Can be used as a stable alternative to `core::intrinsics::abort`.
 #[inline]
-pub fn udf() {
+pub fn udf() -> ! {
     match () {
         #[cfg(all(cortex_m, feature = "inline-asm"))]
-        () => unsafe { asm!("udf" :::: "volatile") },
+        () => unsafe {
+            asm!("udf" :::: "volatile");
+            loop { continue }
+        },
 
         #[cfg(all(cortex_m, not(feature = "inline-asm")))]
         () => unsafe {
@@ -97,7 +100,9 @@ pub fn udf() {
                 fn __udf();
             }
 
-            __udf()
+            __udf();
+
+            loop { continue }
         },
 
         #[cfg(not(cortex_m))]

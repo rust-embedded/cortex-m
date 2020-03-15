@@ -114,6 +114,14 @@ __sev:
   sev
   bx lr
 
+
+  .section .text.__udf
+  .global __udf
+  .thumb_func
+__udf:
+  udf
+  bx lr
+
   .section .text.__wfe
   .global __wfe
   .thumb_func

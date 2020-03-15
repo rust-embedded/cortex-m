@@ -81,6 +81,30 @@ pub fn nop() {
     }
 }
 
+
+/// Generate an Undefined Instruction exception.
+///
+/// Can be used as a stable alternative to `core::intrinsics::abort`.
+#[inline]
+pub fn udf() {
+    match () {
+        #[cfg(all(cortex_m, feature = "inline-asm"))]
+        () => unsafe { asm!("udf" :::: "volatile") },
+
+        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
+        () => unsafe {
+            extern "C" {
+                fn __udf();
+            }
+
+            __udf()
+        },
+
+        #[cfg(not(cortex_m))]
+        () => unimplemented!(),
+    }
+}
+
 /// Wait For Event
 #[inline]
 pub fn wfe() {

@@ -120,7 +120,6 @@ __sev:
   .thumb_func
 __udf:
   udf
-  bx lr
 
   .section .text.__wfe
   .global __wfe

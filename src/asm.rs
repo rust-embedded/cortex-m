@@ -91,7 +91,7 @@ pub fn udf() -> ! {
         #[cfg(all(cortex_m, feature = "inline-asm"))]
         () => unsafe {
             asm!("udf" :::: "volatile");
-            loop { continue }
+            core::hint::unreachable_unchecked();
         },
 
         #[cfg(all(cortex_m, not(feature = "inline-asm")))]
@@ -102,7 +102,7 @@ pub fn udf() -> ! {
 
             __udf();
 
-            loop { continue }
+            core::hint::unreachable_unchecked();
         },
 
         #[cfg(not(cortex_m))]

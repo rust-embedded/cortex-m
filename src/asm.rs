@@ -42,7 +42,7 @@ pub fn delay(_n: u32) {
                   bne.n 1b"
                  : "+r"(_n / 4 + 1)
                  :
-                 :
+                 : "cpsr"
                  : "volatile");
         },
 

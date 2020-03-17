@@ -648,8 +648,10 @@ impl SCB {
     /// a runtime-dependent `panic!()` call.
     #[inline]
     pub unsafe fn invalidate_dcache_by_slice<T>(&mut self, slice: &mut [T]) {
-        self.invalidate_dcache_by_address(slice.as_ptr() as usize,
-                                          slice.len() * core::mem::size_of::<T>());
+        self.invalidate_dcache_by_address(
+            slice.as_ptr() as usize,
+            slice.len() * core::mem::size_of::<T>(),
+        );
     }
 
     /// Cleans D-cache by address.
@@ -732,8 +734,10 @@ impl SCB {
     /// to main memory, overwriting whatever was in main memory.
     #[inline]
     pub fn clean_dcache_by_slice<T>(&mut self, slice: &[T]) {
-        self.clean_dcache_by_address(slice.as_ptr() as usize,
-                                     slice.len() * core::mem::size_of::<T>());
+        self.clean_dcache_by_address(
+            slice.as_ptr() as usize,
+            slice.len() * core::mem::size_of::<T>(),
+        );
     }
 
     /// Cleans and invalidates D-cache by address.
@@ -899,57 +903,38 @@ impl SCB {
 /// System handlers, exceptions with configurable priority
 #[allow(clippy::missing_inline_in_public_items)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[repr(u8)]
 pub enum SystemHandler {
     // NonMaskableInt, // priority is fixed
     // HardFault, // priority is fixed
     /// Memory management interrupt (not present on Cortex-M0 variants)
     #[cfg(not(armv6m))]
-    MemoryManagement,
+    MemoryManagement = 4,
 
     /// Bus fault interrupt (not present on Cortex-M0 variants)
     #[cfg(not(armv6m))]
-    BusFault,
+    BusFault = 5,
 
     /// Usage fault interrupt (not present on Cortex-M0 variants)
     #[cfg(not(armv6m))]
-    UsageFault,
+    UsageFault = 6,
 
     /// Secure fault interrupt (only on ARMv8-M)
     #[cfg(any(armv8m, target_arch = "x86_64"))]
-    SecureFault,
+    SecureFault = 7,
 
     /// SV call interrupt
-    SVCall,
+    SVCall = 11,
 
     /// Debug monitor interrupt (not present on Cortex-M0 variants)
     #[cfg(not(armv6m))]
-    DebugMonitor,
+    DebugMonitor = 12,
 
     /// Pend SV interrupt
-    PendSV,
+    PendSV = 14,
 
     /// System Tick interrupt
-    SysTick,
-}
-
-impl SystemHandler {
-    fn index(self) -> u8 {
-        match self {
-            #[cfg(not(armv6m))]
-            SystemHandler::MemoryManagement => 4,
-            #[cfg(not(armv6m))]
-            SystemHandler::BusFault => 5,
-            #[cfg(not(armv6m))]
-            SystemHandler::UsageFault => 6,
-            #[cfg(any(armv8m, target_arch = "x86_64"))]
-            SystemHandler::SecureFault => 7,
-            SystemHandler::SVCall => 11,
-            #[cfg(not(armv6m))]
-            SystemHandler::DebugMonitor => 12,
-            SystemHandler::PendSV => 14,
-            SystemHandler::SysTick => 15,
-        }
-    }
+    SysTick = 15,
 }
 
 impl SCB {
@@ -959,7 +944,7 @@ impl SCB {
     /// [`NVIC.get_priority`](struct.NVIC.html#method.get_priority) for more details.
     #[inline]
     pub fn get_priority(system_handler: SystemHandler) -> u8 {
-        let index = system_handler.index();
+        let index = system_handler as u8;
 
         #[cfg(not(armv6m))]
         {
@@ -990,7 +975,7 @@ impl SCB {
     /// [`register::basepri`](../register/basepri/index.html)) and compromise memory safety.
     #[inline]
     pub unsafe fn set_priority(&mut self, system_handler: SystemHandler, prio: u8) {
-        let index = system_handler.index();
+        let index = system_handler as u8;
 
         #[cfg(not(armv6m))]
         {

@@ -951,6 +951,7 @@ impl SCB {
             // NOTE(unsafe) atomic read with no side effects
 
             // NOTE(unsafe): Index is bounded to [4,15] by SystemHandler design.
+            // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
             let priority_ref = unsafe {(*Self::ptr()).shpr.get_unchecked(usize::from(index - 4))};
 
             priority_ref.read()
@@ -961,6 +962,7 @@ impl SCB {
             // NOTE(unsafe) atomic read with no side effects
 
             // NOTE(unsafe): Index is bounded to [11,15] by SystemHandler design.
+            // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
             let priority_ref = unsafe {(*Self::ptr()).shpr.get_unchecked(usize::from((index - 8) / 4))};
 
             let shpr = priority_ref.read();
@@ -988,6 +990,7 @@ impl SCB {
         #[cfg(not(armv6m))]
         {
             // NOTE(unsafe): Index is bounded to [4,15] by SystemHandler design.
+            // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
             let priority_ref = (*Self::ptr()).shpr.get_unchecked(usize::from(index - 4));
 
             priority_ref.write(prio)
@@ -996,6 +999,7 @@ impl SCB {
         #[cfg(armv6m)]
         {
             // NOTE(unsafe): Index is bounded to [11,15] by SystemHandler design.
+            // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
             let priority_ref = (*Self::ptr()).shpr.get_unchecked(usize::from((index - 8) / 4));
 
             priority_ref.modify(|value| {

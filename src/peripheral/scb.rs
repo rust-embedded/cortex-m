@@ -949,13 +949,23 @@ impl SCB {
         #[cfg(not(armv6m))]
         {
             // NOTE(unsafe) atomic read with no side effects
-            unsafe { (*Self::ptr()).shpr[usize::from(index - 4)].read() }
+
+            // NOTE(unsafe): Index is bounded to [4,15] by SystemHandler design.
+            // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
+            let priority_ref = unsafe {(*Self::ptr()).shpr.get_unchecked(usize::from(index - 4))};
+
+            priority_ref.read()
         }
 
         #[cfg(armv6m)]
         {
             // NOTE(unsafe) atomic read with no side effects
-            let shpr = unsafe { (*Self::ptr()).shpr[usize::from((index - 8) / 4)].read() };
+
+            // NOTE(unsafe): Index is bounded to [11,15] by SystemHandler design.
+            // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
+            let priority_ref = unsafe {(*Self::ptr()).shpr.get_unchecked(usize::from((index - 8) / 4))};
+
+            let shpr = priority_ref.read();
             let prio = (shpr >> (8 * (index % 4))) & 0x0000_00ff;
             prio as u8
         }
@@ -979,12 +989,20 @@ impl SCB {
 
         #[cfg(not(armv6m))]
         {
-            self.shpr[usize::from(index - 4)].write(prio)
+            // NOTE(unsafe): Index is bounded to [4,15] by SystemHandler design.
+            // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
+            let priority_ref = (*Self::ptr()).shpr.get_unchecked(usize::from(index - 4));
+
+            priority_ref.write(prio)
         }
 
         #[cfg(armv6m)]
         {
-            self.shpr[usize::from((index - 8) / 4)].modify(|value| {
+            // NOTE(unsafe): Index is bounded to [11,15] by SystemHandler design.
+            // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
+            let priority_ref = (*Self::ptr()).shpr.get_unchecked(usize::from((index - 8) / 4));
+
+            priority_ref.modify(|value| {
                 let shift = 8 * (index % 4);
                 let mask = 0x0000_00ff << shift;
                 let prio = u32::from(prio) << shift;

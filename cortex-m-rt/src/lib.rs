@@ -207,7 +207,7 @@
 //! trampoline is required to set up the pointer to the stacked exception frame.
 //!
 //! - `HardFault`. This is the user defined hard fault handler. If not overridden using
-//! `#[exception] fn HardFault(..` it will default to a panic with message "Hardfault".
+//! `#[exception] fn HardFault(..` it will default to a panic with message "HardFault".
 //!
 //! - `__STACK_START`. This is the first entry in the `.vector_table` section. This symbol contains
 //! the initial value of the stack pointer; this is where the stack will be located -- the stack
@@ -945,7 +945,7 @@ pub unsafe extern "C" fn Reset() -> ! {
 #[link_section = ".HardFault.default"]
 #[no_mangle]
 pub unsafe extern "C" fn HardFault_(ef: &ExceptionFrame) -> ! {
-    panic!("Hardfault");
+    panic!("HardFault");
 }
 
 #[doc(hidden)]

@@ -57,6 +57,28 @@ main() {
         cargo rustc --target "$TARGET" --example device --features device --release -- \
               -C linker=arm-none-eabi-ld
 
+        # linking with GNU GCC
+        for ex in "${examples[@]}"; do
+            cargo rustc --target "$TARGET" --example "$ex" -- \
+                  -C linker=arm-none-eabi-gcc -C link-arg=-nostartfiles
+
+            cargo rustc --target "$TARGET" --example "$ex" --release -- \
+                  -C linker=arm-none-eabi-gcc -C link-arg=-nostartfiles
+        done
+        for ex in "${fail_examples[@]}"; do
+            ! cargo rustc --target "$TARGET" --example "$ex" -- \
+                  -C linker=arm-none-eabi-gcc -C link-arg=-nostartfiles
+
+            ! cargo rustc --target "$TARGET" --example "$ex" --release -- \
+                  -C linker=arm-none-eabi-gcc -C link-arg=-nostartfiles
+        done
+
+        cargo rustc --target "$TARGET" --example device --features device -- \
+              -C linker=arm-none-eabi-gcc -C link-arg=-nostartfiles
+
+        cargo rustc --target "$TARGET" --example device --features device --release -- \
+              -C linker=arm-none-eabi-gcc -C link-arg=-nostartfiles
+
         # linking with rustc's LLD
         for ex in "${examples[@]}"; do
             cargo rustc --target "$TARGET" --example "$ex"
@@ -76,6 +98,10 @@ main() {
             # linking with GNU LD
             env RUSTFLAGS="-C linker=arm-none-eabi-ld -C link-arg=-Tlink.x" cargo run --target "$TARGET" --example qemu | grep "x = 42"
             env RUSTFLAGS="-C linker=arm-none-eabi-ld -C link-arg=-Tlink.x" cargo run --target "$TARGET" --example qemu --release | grep "x = 42"
+
+            # linking with GNU GCC
+            env RUSTFLAGS="-C linker=arm-none-eabi-gcc -C link-arg=-Tlink.x -Clink-arg=-nostartfiles" cargo run --target "$TARGET" --example qemu | grep "x = 42"
+            env RUSTFLAGS="-C linker=arm-none-eabi-gcc -C link-arg=-Tlink.x -Clink-arg=-nostartfiles" cargo run --target "$TARGET" --example qemu --release | grep "x = 42"
 
             # linking with rustc's LLD
             cargo run --target "$TARGET" --example qemu | grep "x = 42"

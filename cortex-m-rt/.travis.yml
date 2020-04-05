@@ -4,24 +4,24 @@ matrix:
   allow_failures:
     - rust: nightly
   include:
-    # MSRV 1.32.0 #############################################################
+    # MSRV 1.39.0 #############################################################
     - env: TARGET=x86_64-unknown-linux-gnu
-      rust: 1.32.0
+      rust: 1.39.0
 
     - env: TARGET=thumbv6m-none-eabi
-      rust: 1.32.0
+      rust: 1.39.0
 
     - env: TARGET=thumbv7m-none-eabi
-      rust: 1.32.0
+      rust: 1.39.0
 
     - env: TARGET=thumbv7em-none-eabi
-      rust: 1.32.0
+      rust: 1.39.0
 
     - env: TARGET=thumbv7em-none-eabihf
-      rust: 1.32.0
+      rust: 1.39.0
 
     - env: TARGET=thumbv8m.main-none-eabi
-      rust: 1.32.0
+      rust: 1.39.0
 
     # Stable ##################################################################
     - env: TARGET=x86_64-unknown-linux-gnu

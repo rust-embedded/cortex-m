@@ -372,6 +372,7 @@
 //! [`MaybeUninit`]: https://doc.rust-lang.org/core/mem/union.MaybeUninit.html
 //!
 //! ```no_run,edition2018
+//! # extern crate core;
 //! use core::mem::MaybeUninit;
 //!
 //! const STACK_SIZE: usize = 8 * 1024;
@@ -388,6 +389,10 @@
 //! [attr-entry]: attr.entry.html
 //! [attr-exception]: attr.exception.html
 //! [attr-pre_init]: attr.pre_init.html
+//!
+//! # Minimum Supported Rust Version (MSRV)
+//!
+//! The MSRV of this release is Rust 1.39.0.
 
 // # Developer notes
 //

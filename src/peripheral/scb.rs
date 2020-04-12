@@ -1,6 +1,8 @@
 //! System Control Block
 
 use core::ptr;
+#[cfg(not(any(armv6m, armv8m_base)))]
+use crate::interrupt;
 
 use volatile_register::RW;
 
@@ -1010,5 +1012,97 @@ impl SCB {
                 (value & !mask) | prio
             });
         }
+    }
+
+    /// Enable the exception
+    ///
+    /// If the exception is enabled, when the exception is triggered, the exception handler will be executed instead of the
+    /// HardFault handler.
+    /// This function is only allowed on the following exceptions:
+    /// * `MemoryManagement`
+    /// * `BusFault`
+    /// * `UsageFault`
+    /// * `SecureFault` (can only be enabled from Secure state)
+    ///
+    /// Calling this function with any other exception will do nothing.
+    #[inline]
+    #[cfg(not(any(armv6m, armv8m_base)))]
+    pub fn enable(&mut self, exception: Exception) {
+        if self.is_enabled(exception) {
+            return;
+        }
+
+        // Make sure that the read-modify-write sequence happens during a critical section to avoid
+        // modifying pending and active interrupts.
+        interrupt::free(|_| {
+            let shift = match exception {
+                Exception::MemoryManagement => 16,
+                Exception::BusFault => 17,
+                Exception::UsageFault => 18,
+                #[cfg(armv8m_main)]
+                Exception::SecureFault => 19,
+                _ => return,
+            };
+
+            unsafe { self.shcsr.modify(|value| value | (1 << shift)) }
+        })
+    }
+
+    /// Disable the exception
+    ///
+    /// If the exception is disabled, when the exception is triggered, the HardFault handler will be executed instead of the
+    /// exception handler.
+    /// This function is only allowed on the following exceptions:
+    /// * `MemoryManagement`
+    /// * `BusFault`
+    /// * `UsageFault`
+    /// * `SecureFault` (can not be changed from Non-secure state)
+    ///
+    /// Calling this function with any other exception will do nothing.
+    #[inline]
+    #[cfg(not(any(armv6m, armv8m_base)))]
+    pub fn disable(&mut self, exception: Exception) {
+        if !self.is_enabled(exception) {
+            return;
+        }
+
+        // Make sure that the read-modify-write sequence happens during a critical section to avoid
+        // modifying pending and active interrupts.
+        interrupt::free(|_| {
+            let shift = match exception {
+                Exception::MemoryManagement => 16,
+                Exception::BusFault => 17,
+                Exception::UsageFault => 18,
+                #[cfg(armv8m_main)]
+                Exception::SecureFault => 19,
+                _ => return,
+            };
+
+            unsafe { self.shcsr.modify(|value| value & !(1 << shift)) }
+        })
+    }
+
+    /// Check if an exception is enabled
+    ///
+    /// This function is only allowed on the following exception:
+    /// * `MemoryManagement`
+    /// * `BusFault`
+    /// * `UsageFault`
+    /// * `SecureFault` (can not be read from Non-secure state)
+    ///
+    /// Calling this function with any other exception will read `false`.
+    #[inline]
+    #[cfg(not(any(armv6m, armv8m_base)))]
+    pub fn is_enabled(&mut self, exception: Exception) -> bool {
+        let shift = match exception {
+            Exception::MemoryManagement => 16,
+            Exception::BusFault => 17,
+            Exception::UsageFault => 18,
+            #[cfg(armv8m_main)]
+            Exception::SecureFault => 19,
+            _ => return false,
+        };
+
+        (self.shcsr.read() & (1 << shift)) > 0
     }
 }

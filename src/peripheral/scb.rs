@@ -1,8 +1,6 @@
 //! System Control Block
 
 use core::ptr;
-#[cfg(not(any(armv6m, armv8m_base)))]
-use crate::interrupt;
 
 use volatile_register::RW;
 
@@ -1014,6 +1012,20 @@ impl SCB {
         }
     }
 
+    /// Return the bit position of the exception enable bit in the SHCSR register
+    #[inline]
+    #[cfg(not(any(armv6m, armv8m_base)))]
+    fn shcsr_enable_shift(exception: Exception) -> Option<u32> {
+        match exception {
+            Exception::MemoryManagement => Some(16),
+            Exception::BusFault => Some(17),
+            Exception::UsageFault => Some(18),
+            #[cfg(armv8m_main)]
+            Exception::SecureFault => Some(19),
+            _ => None,
+        }
+    }
+
     /// Enable the exception
     ///
     /// If the exception is enabled, when the exception is triggered, the exception handler will be executed instead of the
@@ -1028,24 +1040,11 @@ impl SCB {
     #[inline]
     #[cfg(not(any(armv6m, armv8m_base)))]
     pub fn enable(&mut self, exception: Exception) {
-        if self.is_enabled(exception) {
-            return;
-        }
-
-        // Make sure that the read-modify-write sequence happens during a critical section to avoid
-        // modifying pending and active interrupts.
-        interrupt::free(|_| {
-            let shift = match exception {
-                Exception::MemoryManagement => 16,
-                Exception::BusFault => 17,
-                Exception::UsageFault => 18,
-                #[cfg(armv8m_main)]
-                Exception::SecureFault => 19,
-                _ => return,
-            };
-
+        if let Some(shift) = SCB::shcsr_enable_shift(exception) {
+            // The mutable reference to SCB makes sure that only this code is currently modifying
+            // the register.
             unsafe { self.shcsr.modify(|value| value | (1 << shift)) }
-        })
+        }
     }
 
     /// Disable the exception
@@ -1062,24 +1061,11 @@ impl SCB {
     #[inline]
     #[cfg(not(any(armv6m, armv8m_base)))]
     pub fn disable(&mut self, exception: Exception) {
-        if !self.is_enabled(exception) {
-            return;
-        }
-
-        // Make sure that the read-modify-write sequence happens during a critical section to avoid
-        // modifying pending and active interrupts.
-        interrupt::free(|_| {
-            let shift = match exception {
-                Exception::MemoryManagement => 16,
-                Exception::BusFault => 17,
-                Exception::UsageFault => 18,
-                #[cfg(armv8m_main)]
-                Exception::SecureFault => 19,
-                _ => return,
-            };
-
+        if let Some(shift) = SCB::shcsr_enable_shift(exception) {
+            // The mutable reference to SCB makes sure that only this code is currently modifying
+            // the register.
             unsafe { self.shcsr.modify(|value| value & !(1 << shift)) }
-        })
+        }
     }
 
     /// Check if an exception is enabled
@@ -1093,16 +1079,11 @@ impl SCB {
     /// Calling this function with any other exception will read `false`.
     #[inline]
     #[cfg(not(any(armv6m, armv8m_base)))]
-    pub fn is_enabled(&mut self, exception: Exception) -> bool {
-        let shift = match exception {
-            Exception::MemoryManagement => 16,
-            Exception::BusFault => 17,
-            Exception::UsageFault => 18,
-            #[cfg(armv8m_main)]
-            Exception::SecureFault => 19,
-            _ => return false,
-        };
-
-        (self.shcsr.read() & (1 << shift)) > 0
+    pub fn is_enabled(&self, exception: Exception) -> bool {
+        if let Some(shift) = SCB::shcsr_enable_shift(exception) {
+            (self.shcsr.read() & (1 << shift)) > 0
+        } else {
+            false
+        }
     }
 }

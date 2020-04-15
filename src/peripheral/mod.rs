@@ -57,7 +57,6 @@
 
 // TODO stand-alone registers: ICTR, ACTLR and STIR
 
-
 use core::marker::PhantomData;
 use core::ops;
 
@@ -77,6 +76,8 @@ pub mod fpu;
 pub mod itm;
 pub mod mpu;
 pub mod nvic;
+#[cfg(armv8m)]
+pub mod sau;
 pub mod scb;
 pub mod syst;
 #[cfg(not(armv6m))]
@@ -116,6 +117,9 @@ pub struct Peripherals {
 
     /// Nested Vector Interrupt Controller
     pub NVIC: NVIC,
+
+    /// Security Attribution Unit
+    pub SAU: SAU,
 
     /// System Control Block
     pub SCB: SCB,
@@ -180,6 +184,9 @@ impl Peripherals {
                 _marker: PhantomData,
             },
             NVIC: NVIC {
+                _marker: PhantomData,
+            },
+            SAU: SAU {
                 _marker: PhantomData,
             },
             SCB: SCB {
@@ -428,6 +435,32 @@ impl NVIC {
 
 impl ops::Deref for NVIC {
     type Target = self::nvic::RegisterBlock;
+
+    #[inline(always)]
+    fn deref(&self) -> &Self::Target {
+        unsafe { &*Self::ptr() }
+    }
+}
+
+/// Security Attribution Unit
+pub struct SAU {
+    _marker: PhantomData<*const ()>,
+}
+
+unsafe impl Send for SAU {}
+
+#[cfg(armv8m)]
+impl SAU {
+    /// Returns a pointer to the register block
+    #[inline(always)]
+    pub fn ptr() -> *const sau::RegisterBlock {
+        0xE000_EDD0 as *const _
+    }
+}
+
+#[cfg(armv8m)]
+impl ops::Deref for SAU {
+    type Target = self::sau::RegisterBlock;
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {

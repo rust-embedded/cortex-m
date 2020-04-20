@@ -199,14 +199,15 @@
 //! won't find it.
 //!
 //! - `DefaultHandler`. This is the default handler. If not overridden using `#[exception] fn
-//! DefaultHandler(..` this will be an infinite loop.
+//! DefaultHandler(..` this will cause a panic with the message "DefaultHandler #`i`", where `i` is
+//! the number of the interrupt handler.
 //!
 //! - `HardFaultTrampoline`. This is the real hard fault handler. This function is simply a
 //! trampoline that jumps into the user defined hard fault handler named `HardFault`. The
 //! trampoline is required to set up the pointer to the stacked exception frame.
 //!
 //! - `HardFault`. This is the user defined hard fault handler. If not overridden using
-//! `#[exception] fn HardFault(..` it will default to an infinite loop.
+//! `#[exception] fn HardFault(..` it will default to a panic with message "HardFault".
 //!
 //! - `__STACK_START`. This is the first entry in the `.vector_table` section. This symbol contains
 //! the initial value of the stack pointer; this is where the stack will be located -- the stack
@@ -407,7 +408,6 @@ extern crate cortex_m_rt_macros as macros;
 extern crate r0;
 
 use core::fmt;
-use core::sync::atomic::{self, Ordering};
 
 /// Attribute to declare an interrupt (AKA device-specific exception) handler
 ///
@@ -950,21 +950,17 @@ pub unsafe extern "C" fn Reset() -> ! {
 #[link_section = ".HardFault.default"]
 #[no_mangle]
 pub unsafe extern "C" fn HardFault_(ef: &ExceptionFrame) -> ! {
-    loop {
-        // add some side effect to prevent this from turning into a UDF instruction
-        // see rust-lang/rust#28728 for details
-        atomic::compiler_fence(Ordering::SeqCst);
-    }
+    panic!("HardFault");
 }
 
 #[doc(hidden)]
 #[no_mangle]
 pub unsafe extern "C" fn DefaultHandler_() -> ! {
-    loop {
-        // add some side effect to prevent this from turning into a UDF instruction
-        // see rust-lang/rust#28728 for details
-        atomic::compiler_fence(Ordering::SeqCst);
-    }
+    const SCB_ICSR: *const u32 = 0xE000_ED04 as *const u32;
+
+    let irqn = core::ptr::read(SCB_ICSR) as u8 as i16 - 16;
+
+    panic!("DefaultHandler #{}", irqn);
 }
 
 #[doc(hidden)]

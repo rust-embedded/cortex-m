@@ -18,6 +18,7 @@ links = "cortex-m"  # prevent multiple versions of this crate to be linked toget
 [dependencies]
 bare-metal = { version = "0.2.0", features = ["const-fn"] }
 volatile-register = "0.2.0"
+mutex-trait = "0.2.0"
 
 [features]
 cm7-r0p1 = []

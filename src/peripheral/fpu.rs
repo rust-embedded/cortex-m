@@ -1,6 +1,6 @@
 //! Floating Point Unit
 //!
-//! *NOTE* Available only on ARMv7E-M (`thumbv7em-none-eabihf`)
+//! *NOTE* Available only on targets with a Floating Point Unit (FPU) extension.
 
 use volatile_register::{RO, RW};
 

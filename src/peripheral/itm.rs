@@ -1,6 +1,6 @@
 //! Instrumentation Trace Macrocell
 //!
-//! *NOTE* Available only on ARMv7-M (`thumbv7*m-none-eabi*`)
+//! *NOTE* Not available on Armv6-M and Armv8-M Baseline.
 
 use core::cell::UnsafeCell;
 use core::ptr;

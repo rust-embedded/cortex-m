@@ -34,6 +34,8 @@
 #![no_std]
 #![allow(clippy::identity_op)]
 #![allow(clippy::missing_safety_doc)]
+// Prevent clippy from complaining about empty match expression that are used for cfg gating.
+#![allow(clippy::match_single_binding)]
 
 // This makes clippy warn about public functions which are not #[inline].
 //
@@ -57,8 +59,10 @@ extern crate volatile_register;
 mod macros;
 
 pub mod asm;
+#[cfg(armv8m)]
+pub mod cmse;
 pub mod interrupt;
-#[cfg(not(armv6m))]
+#[cfg(all(not(armv6m), not(armv8m_base)))]
 pub mod itm;
 pub mod peripheral;
 pub mod register;

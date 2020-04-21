@@ -114,4 +114,28 @@ impl CPUID {
             (1 + ((ccsidr & CCSIDR_ASSOCIATIVITY_MASK) >> CCSIDR_ASSOCIATIVITY_POS)) as u16,
         )
     }
+
+    /// Returns log2 of the number of words in the smallest cache line of all the data cache and
+    /// unified caches that are controlled by the processor.
+    ///
+    /// This is the `DminLine` field of the CTR register.
+    #[inline(always)]
+    pub fn cache_dminline() -> u32 {
+        const CTR_DMINLINE_POS: u32 = 16;
+        const CTR_DMINLINE_MASK: u32 = 0xF << CTR_DMINLINE_POS;
+        let ctr = unsafe { (*Self::ptr()).ctr.read() };
+        (ctr & CTR_DMINLINE_MASK) >> CTR_DMINLINE_POS
+    }
+
+    /// Returns log2 of the number of words in the smallest cache line of all the instruction
+    /// caches that are controlled by the processor.
+    ///
+    /// This is the `IminLine` field of the CTR register.
+    #[inline(always)]
+    pub fn cache_iminline() -> u32 {
+        const CTR_IMINLINE_POS: u32 = 0;
+        const CTR_IMINLINE_MASK: u32 = 0xF << CTR_IMINLINE_POS;
+        let ctr = unsafe { (*Self::ptr()).ctr.read() };
+        (ctr & CTR_IMINLINE_MASK) >> CTR_IMINLINE_POS
+    }
 }

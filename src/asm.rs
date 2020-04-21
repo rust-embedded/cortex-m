@@ -42,7 +42,7 @@ pub fn delay(_n: u32) {
                   bne.n 1b"
                  : "+r"(_n / 4 + 1)
                  :
-                 :
+                 : "cpsr"
                  : "volatile");
         },
 
@@ -74,6 +74,35 @@ pub fn nop() {
             }
 
             __nop()
+        },
+
+        #[cfg(not(cortex_m))]
+        () => unimplemented!(),
+    }
+}
+
+
+/// Generate an Undefined Instruction exception.
+///
+/// Can be used as a stable alternative to `core::intrinsics::abort`.
+#[inline]
+pub fn udf() -> ! {
+    match () {
+        #[cfg(all(cortex_m, feature = "inline-asm"))]
+        () => unsafe {
+            asm!("udf" :::: "volatile");
+            core::hint::unreachable_unchecked();
+        },
+
+        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
+        () => unsafe {
+            extern "C" {
+                fn __udf();
+            }
+
+            __udf();
+
+            core::hint::unreachable_unchecked();
         },
 
         #[cfg(not(cortex_m))]
@@ -216,6 +245,147 @@ pub fn dmb() {
 
             __dmb()
             // XXX do we need a explicit compiler barrier here?
+        },
+
+        #[cfg(not(cortex_m))]
+        () => unimplemented!(),
+    }
+}
+
+/// Test Target
+///
+/// Queries the Security state and access permissions of a memory location.
+/// Returns a Test Target Response Payload (cf section D1.2.215 of
+/// Armv8-M Architecture Reference Manual).
+#[inline]
+#[cfg(armv8m)]
+// The __tt function does not dereference the pointer received.
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
+pub fn tt(addr: *mut u32) -> u32 {
+    match () {
+        #[cfg(all(cortex_m, feature = "inline-asm"))]
+        () => {
+            let tt_resp: u32;
+            unsafe {
+                asm!("tt $0, $1" : "=r"(tt_resp) : "r"(addr) :: "volatile");
+            }
+            tt_resp
+        }
+
+        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
+        () => unsafe {
+            extern "C" {
+                fn __tt(_: *mut u32) -> u32;
+            }
+
+            __tt(addr)
+        },
+
+        #[cfg(not(cortex_m))]
+        () => unimplemented!(),
+    }
+}
+
+/// Test Target Unprivileged
+///
+/// Queries the Security state and access permissions of a memory location for an unprivileged
+/// access to that location.
+/// Returns a Test Target Response Payload (cf section D1.2.215 of
+/// Armv8-M Architecture Reference Manual).
+#[inline]
+#[cfg(armv8m)]
+// The __ttt function does not dereference the pointer received.
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
+pub fn ttt(addr: *mut u32) -> u32 {
+    match () {
+        #[cfg(all(cortex_m, feature = "inline-asm"))]
+        () => {
+            let tt_resp: u32;
+            unsafe {
+                asm!("ttt $0, $1" : "=r"(tt_resp) : "r"(addr) :: "volatile");
+            }
+            tt_resp
+        }
+
+        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
+        () => unsafe {
+            extern "C" {
+                fn __ttt(_: *mut u32) -> u32;
+            }
+
+            __ttt(addr)
+        },
+
+        #[cfg(not(cortex_m))]
+        () => unimplemented!(),
+    }
+}
+
+/// Test Target Alternate Domain
+///
+/// Queries the Security state and access permissions of a memory location for a Non-Secure access
+/// to that location. This instruction is only valid when executing in Secure state and is
+/// undefined if used from Non-Secure state.
+/// Returns a Test Target Response Payload (cf section D1.2.215 of
+/// Armv8-M Architecture Reference Manual).
+#[inline]
+#[cfg(armv8m)]
+// The __tta function does not dereference the pointer received.
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
+pub fn tta(addr: *mut u32) -> u32 {
+    match () {
+        #[cfg(all(cortex_m, feature = "inline-asm"))]
+        () => {
+            let tt_resp: u32;
+            unsafe {
+                asm!("tta $0, $1" : "=r"(tt_resp) : "r"(addr) :: "volatile");
+            }
+            tt_resp
+        }
+
+        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
+        () => unsafe {
+            extern "C" {
+                fn __tta(_: *mut u32) -> u32;
+            }
+
+            __tta(addr)
+        },
+
+        #[cfg(not(cortex_m))]
+        () => unimplemented!(),
+    }
+}
+
+/// Test Target Alternate Domain Unprivileged
+///
+/// Queries the Security state and access permissions of a memory location for a Non-Secure and
+/// unprivileged access to that location. This instruction is only valid when executing in Secure
+/// state and is undefined if used from Non-Secure state.
+/// Returns a Test Target Response Payload (cf section D1.2.215 of
+/// Armv8-M Architecture Reference Manual).
+#[inline]
+#[cfg(armv8m)]
+// The __ttat function does not dereference the pointer received.
+#[allow(clippy::not_unsafe_ptr_arg_deref)]
+pub fn ttat(addr: *mut u32) -> u32 {
+    match () {
+        #[cfg(all(cortex_m, feature = "inline-asm"))]
+        () => {
+            let tt_resp: u32;
+            unsafe {
+                asm!("ttat $0, $1" : "=r"(tt_resp) : "r"(addr) :: "volatile");
+            }
+            tt_resp
+        }
+
+        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
+        () => unsafe {
+            extern "C" {
+                fn __ttat(_: *mut u32) -> u32;
+            }
+
+            __ttat(addr)
         },
 
         #[cfg(not(cortex_m))]

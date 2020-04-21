@@ -305,8 +305,8 @@ impl VectActive {
 
 #[cfg(not(armv6m))]
 mod scb_consts {
-    pub const SCB_CCR_IC_MASK: u32 = (1 << 17);
-    pub const SCB_CCR_DC_MASK: u32 = (1 << 16);
+    pub const SCB_CCR_IC_MASK: u32 = 1 << 17;
+    pub const SCB_CCR_DC_MASK: u32 = 1 << 16;
 }
 
 #[cfg(not(armv6m))]
@@ -314,105 +314,119 @@ use self::scb_consts::*;
 
 #[cfg(not(armv6m))]
 impl SCB {
-    /// Enables I-Cache if currently disabled
+    /// Enables I-cache if currently disabled.
+    ///
+    /// This operation first invalidates the entire I-cache.
     #[inline]
     pub fn enable_icache(&mut self) {
-        // Don't do anything if ICache is already enabled
+        // Don't do anything if I-cache is already enabled
         if Self::icache_enabled() {
             return;
         }
 
-        // NOTE(unsafe) All CBP registers are write-only and stateless
+        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
         let mut cbp = unsafe { CBP::new() };
 
-        // Invalidate I-Cache
+        // Invalidate I-cache
         cbp.iciallu();
 
-        // Enable I-Cache
+        // Enable I-cache
+        // NOTE(unsafe): We have synchronised access by &mut self
         unsafe { self.ccr.modify(|r| r | SCB_CCR_IC_MASK) };
 
         crate::asm::dsb();
         crate::asm::isb();
     }
 
-    /// Disables I-Cache if currently enabled
+    /// Disables I-cache if currently enabled.
+    ///
+    /// This operation invalidates the entire I-cache after disabling.
     #[inline]
     pub fn disable_icache(&mut self) {
-        // Don't do anything if ICache is already disabled
+        // Don't do anything if I-cache is already disabled
         if !Self::icache_enabled() {
             return;
         }
 
-        // NOTE(unsafe) All CBP registers are write-only and stateless
+        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
         let mut cbp = unsafe { CBP::new() };
 
-        // Disable I-Cache
+        // Disable I-cache
+        // NOTE(unsafe): We have synchronised access by &mut self
         unsafe { self.ccr.modify(|r| r & !SCB_CCR_IC_MASK) };
 
-        // Invalidate I-Cache
+        // Invalidate I-cache
         cbp.iciallu();
 
         crate::asm::dsb();
         crate::asm::isb();
     }
 
-    /// Returns whether the I-Cache is currently enabled
-    #[inline]
+    /// Returns whether the I-cache is currently enabled.
+    #[inline(always)]
     pub fn icache_enabled() -> bool {
         crate::asm::dsb();
         crate::asm::isb();
 
-        // NOTE(unsafe) atomic read with no side effects
+        // NOTE(unsafe): atomic read with no side effects
         unsafe { (*Self::ptr()).ccr.read() & SCB_CCR_IC_MASK == SCB_CCR_IC_MASK }
     }
 
-    /// Invalidates I-Cache
+    /// Invalidates the entire I-cache.
     #[inline]
     pub fn invalidate_icache(&mut self) {
-        // NOTE(unsafe) All CBP registers are write-only and stateless
+        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
         let mut cbp = unsafe { CBP::new() };
 
-        // Invalidate I-Cache
+        // Invalidate I-cache
         cbp.iciallu();
 
         crate::asm::dsb();
         crate::asm::isb();
     }
 
-    /// Enables D-cache if currently disabled
+    /// Enables D-cache if currently disabled.
+    ///
+    /// This operation first invalidates the entire D-cache, ensuring it does
+    /// not contain stale values before being enabled.
     #[inline]
     pub fn enable_dcache(&mut self, cpuid: &mut CPUID) {
-        // Don't do anything if DCache is already enabled
+        // Don't do anything if D-cache is already enabled
         if Self::dcache_enabled() {
             return;
         }
 
-        // Invalidate anything currently in the DCache
-        self.invalidate_dcache(cpuid);
+        // Invalidate anything currently in the D-cache
+        unsafe { self.invalidate_dcache(cpuid) };
 
-        // Now turn on the DCache
+        // Now turn on the D-cache
+        // NOTE(unsafe): We have synchronised access by &mut self
         unsafe { self.ccr.modify(|r| r | SCB_CCR_DC_MASK) };
 
         crate::asm::dsb();
         crate::asm::isb();
     }
 
-    /// Disables D-cache if currently enabled
+    /// Disables D-cache if currently enabled.
+    ///
+    /// This operation subsequently cleans and invalidates the entire D-cache,
+    /// ensuring all contents are safely written back to main memory after disabling.
     #[inline]
     pub fn disable_dcache(&mut self, cpuid: &mut CPUID) {
-        // Don't do anything if DCache is already disabled
+        // Don't do anything if D-cache is already disabled
         if !Self::dcache_enabled() {
             return;
         }
 
-        // Turn off the DCache
+        // Turn off the D-cache
+        // NOTE(unsafe): We have synchronised access by &mut self
         unsafe { self.ccr.modify(|r| r & !SCB_CCR_DC_MASK) };
 
         // Clean and invalidate whatever was left in it
         self.clean_invalidate_dcache(cpuid);
     }
 
-    /// Returns whether the D-Cache is currently enabled
+    /// Returns whether the D-cache is currently enabled.
     #[inline]
     pub fn dcache_enabled() -> bool {
         crate::asm::dsb();
@@ -422,20 +436,21 @@ impl SCB {
         unsafe { (*Self::ptr()).ccr.read() & SCB_CCR_DC_MASK == SCB_CCR_DC_MASK }
     }
 
-    /// Invalidates D-cache
+    /// Invalidates the entire D-cache.
     ///
-    /// Note that calling this while the dcache is enabled will probably wipe out your
-    /// stack, depending on optimisations, breaking returning to the call point.
+    /// Note that calling this while the dcache is enabled will probably wipe out the
+    /// stack, depending on optimisations, therefore breaking returning to the call point.
+    ///
     /// It's used immediately before enabling the dcache, but not exported publicly.
     #[inline]
-    fn invalidate_dcache(&mut self, cpuid: &mut CPUID) {
-        // NOTE(unsafe) All CBP registers are write-only and stateless
-        let mut cbp = unsafe { CBP::new() };
+    unsafe fn invalidate_dcache(&mut self, cpuid: &mut CPUID) {
+        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
+        let mut cbp = CBP::new();
 
         // Read number of sets and ways
         let (sets, ways) = cpuid.cache_num_sets_ways(0, CsselrCacheType::DataOrUnified);
 
-        // Invalidate entire D-Cache
+        // Invalidate entire D-cache
         for set in 0..sets {
             for way in 0..ways {
                 cbp.dcisw(set, way);
@@ -446,10 +461,13 @@ impl SCB {
         crate::asm::isb();
     }
 
-    /// Cleans D-cache
+    /// Cleans the entire D-cache.
+    ///
+    /// This function causes everything in the D-cache to be written back to main memory,
+    /// overwriting whatever is already there.
     #[inline]
     pub fn clean_dcache(&mut self, cpuid: &mut CPUID) {
-        // NOTE(unsafe) All CBP registers are write-only and stateless
+        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
         let mut cbp = unsafe { CBP::new() };
 
         // Read number of sets and ways
@@ -465,10 +483,14 @@ impl SCB {
         crate::asm::isb();
     }
 
-    /// Cleans and invalidates D-cache
+    /// Cleans and invalidates the entire D-cache.
+    ///
+    /// This function causes everything in the D-cache to be written back to main memory,
+    /// and then marks the entire D-cache as invalid, causing future reads to first fetch
+    /// from main memory.
     #[inline]
     pub fn clean_invalidate_dcache(&mut self, cpuid: &mut CPUID) {
-        // NOTE(unsafe) All CBP registers are write-only and stateless
+        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
         let mut cbp = unsafe { CBP::new() };
 
         // Read number of sets and ways
@@ -484,47 +506,175 @@ impl SCB {
         crate::asm::isb();
     }
 
-    /// Invalidates D-cache by address
+    /// Invalidates D-cache by address.
     ///
-    /// `addr`: the address to invalidate
-    /// `size`: size of the memory block, in number of bytes
+    /// * `addr`: The address to invalidate, which must be cache-line aligned.
+    /// * `size`: Number of bytes to invalidate, which must be a multiple of the cache line size.
     ///
-    /// Invalidates cache starting from the lowest 32-byte aligned address represented by `addr`,
-    /// in blocks of 32 bytes until at least `size` bytes have been invalidated.
+    /// Invalidates D-cache cache lines, starting from the first line containing `addr`,
+    /// finishing once at least `size` bytes have been invalidated.
+    ///
+    /// Invalidation causes the next read access to memory to be fetched from main memory instead
+    /// of the cache.
+    ///
+    /// # Cache Line Sizes
+    ///
+    /// Cache line sizes vary by core. For all Cortex-M7 cores, the cache line size is fixed
+    /// to 32 bytes, which means `addr` must be 32-byte aligned and `size` must be a multiple
+    /// of 32. At the time of writing, no other Cortex-M cores have data caches.
+    ///
+    /// If `addr` is not cache-line aligned, or `size` is not a multiple of the cache line size,
+    /// other data before or after the desired memory would also be invalidated, which can very
+    /// easily cause memory corruption and undefined behaviour.
+    ///
+    /// # Safety
+    ///
+    /// After invalidating, the next read of invalidated data will be from main memory. This may
+    /// cause recent writes to be lost, potentially including writes that initialized objects.
+    /// Therefore, this method may cause uninitialized memory or invalid values to be read,
+    /// resulting in undefined behaviour. You must ensure that main memory contains valid and
+    /// initialized values before invalidating.
+    ///
+    /// `addr` **must** be aligned to the size of the cache lines, and `size` **must** be a
+    /// multiple of the cache line size, otherwise this function will invalidate other memory,
+    /// easily leading to memory corruption and undefined behaviour. This precondition is checked
+    /// in debug builds using a `debug_assert!()`, but not checked in release builds to avoid
+    /// a runtime-dependent `panic!()` call.
     #[inline]
-    pub fn invalidate_dcache_by_address(&mut self, addr: usize, size: usize) {
+    pub unsafe fn invalidate_dcache_by_address(&mut self, addr: usize, size: usize) {
         // No-op zero sized operations
         if size == 0 {
             return;
         }
 
-        // NOTE(unsafe) All CBP registers are write-only and stateless
-        let mut cbp = unsafe { CBP::new() };
+        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
+        let mut cbp = CBP::new();
+
+        // dminline is log2(num words), so 2**dminline * 4 gives size in bytes
+        let dminline = CPUID::cache_dminline();
+        let line_size = (1 << dminline) * 4;
+
+        debug_assert!((addr & (line_size - 1)) == 0);
+        debug_assert!((size & (line_size - 1)) == 0);
 
         crate::asm::dsb();
 
-        // Cache lines are fixed to 32 bit on Cortex-M7 and not present in earlier Cortex-M
-        const LINESIZE: usize = 32;
-        let num_lines = ((size - 1) / LINESIZE) + 1;
+        // Find number of cache lines to invalidate
+        let num_lines = ((size - 1) / line_size) + 1;
 
-        let mut addr = addr & 0xFFFF_FFE0;
+        // Compute address of first cache line
+        let mask = 0xFFFF_FFFF - (line_size - 1);
+        let mut addr = addr & mask;
 
         for _ in 0..num_lines {
             cbp.dcimvac(addr as u32);
-            addr += LINESIZE;
+            addr += line_size;
         }
 
         crate::asm::dsb();
         crate::asm::isb();
     }
 
-    /// Cleans D-cache by address
+    /// Invalidates an object from the D-cache.
     ///
-    /// `addr`: the address to clean
-    /// `size`: size of the memory block, in number of bytes
+    /// * `obj`: The object to invalidate.
     ///
-    /// Cleans cache starting from the lowest 32-byte aligned address represented by `addr`,
-    /// in blocks of 32 bytes until at least `size` bytes have been cleaned.
+    /// Invalidates D-cache starting from the first cache line containing `obj`,
+    /// continuing to invalidate cache lines until all of `obj` has been invalidated.
+    ///
+    /// Invalidation causes the next read access to memory to be fetched from main memory instead
+    /// of the cache.
+    ///
+    /// # Cache Line Sizes
+    ///
+    /// Cache line sizes vary by core. For all Cortex-M7 cores, the cache line size is fixed
+    /// to 32 bytes, which means `obj` must be 32-byte aligned, and its size must be a multiple
+    /// of 32 bytes. At the time of writing, no other Cortex-M cores have data caches.
+    ///
+    /// If `obj` is not cache-line aligned, or its size is not a multiple of the cache line size,
+    /// other data before or after the desired memory would also be invalidated, which can very
+    /// easily cause memory corruption and undefined behaviour.
+    ///
+    /// # Safety
+    ///
+    /// After invalidating, `obj` will be read from main memory on next access. This may cause
+    /// recent writes to `obj` to be lost, potentially including the write that initialized it.
+    /// Therefore, this method may cause uninitialized memory or invalid values to be read,
+    /// resulting in undefined behaviour. You must ensure that main memory contains a valid and
+    /// initialized value for T before invalidating `obj`.
+    ///
+    /// `obj` **must** be aligned to the size of the cache lines, and its size **must** be a
+    /// multiple of the cache line size, otherwise this function will invalidate other memory,
+    /// easily leading to memory corruption and undefined behaviour. This precondition is checked
+    /// in debug builds using a `debug_assert!()`, but not checked in release builds to avoid
+    /// a runtime-dependent `panic!()` call.
+    #[inline]
+    pub unsafe fn invalidate_dcache_by_ref<T>(&mut self, obj: &mut T) {
+        self.invalidate_dcache_by_address(obj as *const T as usize, core::mem::size_of::<T>());
+    }
+
+    /// Invalidates a slice from the D-cache.
+    ///
+    /// * `slice`: The slice to invalidate.
+    ///
+    /// Invalidates D-cache starting from the first cache line containing members of `slice`,
+    /// continuing to invalidate cache lines until all of `slice` has been invalidated.
+    ///
+    /// Invalidation causes the next read access to memory to be fetched from main memory instead
+    /// of the cache.
+    ///
+    /// # Cache Line Sizes
+    ///
+    /// Cache line sizes vary by core. For all Cortex-M7 cores, the cache line size is fixed
+    /// to 32 bytes, which means `slice` must be 32-byte aligned, and its size must be a multiple
+    /// of 32 bytes. At the time of writing, no other Cortex-M cores have data caches.
+    ///
+    /// If `slice` is not cache-line aligned, or its size is not a multiple of the cache line size,
+    /// other data before or after the desired memory would also be invalidated, which can very
+    /// easily cause memory corruption and undefined behaviour.
+    ///
+    /// # Safety
+    ///
+    /// After invalidating, `slice` will be read from main memory on next access. This may cause
+    /// recent writes to `slice` to be lost, potentially including the write that initialized it.
+    /// Therefore, this method may cause uninitialized memory or invalid values to be read,
+    /// resulting in undefined behaviour. You must ensure that main memory contains valid and
+    /// initialized values for T before invalidating `slice`.
+    ///
+    /// `slice` **must** be aligned to the size of the cache lines, and its size **must** be a
+    /// multiple of the cache line size, otherwise this function will invalidate other memory,
+    /// easily leading to memory corruption and undefined behaviour. This precondition is checked
+    /// in debug builds using a `debug_assert!()`, but not checked in release builds to avoid
+    /// a runtime-dependent `panic!()` call.
+    #[inline]
+    pub unsafe fn invalidate_dcache_by_slice<T>(&mut self, slice: &mut [T]) {
+        self.invalidate_dcache_by_address(
+            slice.as_ptr() as usize,
+            slice.len() * core::mem::size_of::<T>(),
+        );
+    }
+
+    /// Cleans D-cache by address.
+    ///
+    /// * `addr`: The address to start cleaning at.
+    /// * `size`: The number of bytes to clean.
+    ///
+    /// Cleans D-cache cache lines, starting from the first line containing `addr`,
+    /// finishing once at least `size` bytes have been invalidated.
+    ///
+    /// Cleaning the cache causes whatever data is present in the cache to be immediately written
+    /// to main memory, overwriting whatever was in main memory.
+    ///
+    /// # Cache Line Sizes
+    ///
+    /// Cache line sizes vary by core. For all Cortex-M7 cores, the cache line size is fixed
+    /// to 32 bytes, which means `addr` should generally be 32-byte aligned and `size` should be a
+    /// multiple of 32. At the time of writing, no other Cortex-M cores have data caches.
+    ///
+    /// If `addr` is not cache-line aligned, or `size` is not a multiple of the cache line size,
+    /// other data before or after the desired memory will also be cleaned. From the point of view
+    /// of the core executing this function, memory remains consistent, so this is not unsound,
+    /// but is worth knowing about.
     #[inline]
     pub fn clean_dcache_by_address(&mut self, addr: usize, size: usize) {
         // No-op zero sized operations
@@ -532,34 +682,78 @@ impl SCB {
             return;
         }
 
-        // NOTE(unsafe) All CBP registers are write-only and stateless
+        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
         let mut cbp = unsafe { CBP::new() };
 
         crate::asm::dsb();
 
-        // Cache lines are fixed to 32 bit on Cortex-M7 and not present in earlier Cortex-M
-        const LINESIZE: usize = 32;
-        let num_lines = ((size - 1) / LINESIZE) + 1;
+        let dminline = CPUID::cache_dminline();
+        let line_size = (1 << dminline) * 4;
+        let num_lines = ((size - 1) / line_size) + 1;
 
-        let mut addr = addr & 0xFFFF_FFE0;
+        let mask = 0xFFFF_FFFF - (line_size - 1);
+        let mut addr = addr & mask;
 
         for _ in 0..num_lines {
             cbp.dccmvac(addr as u32);
-            addr += LINESIZE;
+            addr += line_size;
         }
 
         crate::asm::dsb();
         crate::asm::isb();
     }
 
-    /// Cleans and invalidates D-cache by address
+    /// Cleans an object from the D-cache.
     ///
-    /// `addr`: the address to clean and invalidate
-    /// `size`: size of the memory block, in number of bytes
+    /// * `obj`: The object to clean.
     ///
-    /// Cleans and invalidates cache starting from the lowest 32-byte aligned address represented
-    /// by `addr`, in blocks of 32 bytes until at least `size` bytes have been cleaned and
-    /// invalidated.
+    /// Cleans D-cache starting from the first cache line containing `obj`,
+    /// continuing to clean cache lines until all of `obj` has been cleaned.
+    ///
+    /// It is recommended that `obj` is both aligned to the cache line size and a multiple of
+    /// the cache line size long, otherwise surrounding data will also be cleaned.
+    ///
+    /// Cleaning the cache causes whatever data is present in the cache to be immediately written
+    /// to main memory, overwriting whatever was in main memory.
+    #[inline]
+    pub fn clean_dcache_by_ref<T>(&mut self, obj: &T) {
+        self.clean_dcache_by_address(obj as *const T as usize, core::mem::size_of::<T>());
+    }
+
+    /// Cleans a slice from D-cache.
+    ///
+    /// * `slice`: The slice to clean.
+    ///
+    /// Cleans D-cache starting from the first cache line containing members of `slice`,
+    /// continuing to clean cache lines until all of `slice` has been cleaned.
+    ///
+    /// It is recommended that `slice` is both aligned to the cache line size and a multiple of
+    /// the cache line size long, otherwise surrounding data will also be cleaned.
+    ///
+    /// Cleaning the cache causes whatever data is present in the cache to be immediately written
+    /// to main memory, overwriting whatever was in main memory.
+    #[inline]
+    pub fn clean_dcache_by_slice<T>(&mut self, slice: &[T]) {
+        self.clean_dcache_by_address(
+            slice.as_ptr() as usize,
+            slice.len() * core::mem::size_of::<T>(),
+        );
+    }
+
+    /// Cleans and invalidates D-cache by address.
+    ///
+    /// * `addr`: The address to clean and invalidate.
+    /// * `size`: The number of bytes to clean and invalidate.
+    ///
+    /// Cleans and invalidates D-cache starting from the first cache line containing `addr`,
+    /// finishing once at least `size` bytes have been cleaned and invalidated.
+    ///
+    /// It is recommended that `addr` is aligned to the cache line size and `size` is a multiple of
+    /// the cache line size, otherwise surrounding data will also be cleaned.
+    ///
+    /// Cleaning and invalidating causes data in the D-cache to be written back to main memory,
+    /// and then marks that data in the D-cache as invalid, causing future reads to first fetch
+    /// from main memory.
     #[inline]
     pub fn clean_invalidate_dcache_by_address(&mut self, addr: usize, size: usize) {
         // No-op zero sized operations
@@ -567,7 +761,7 @@ impl SCB {
             return;
         }
 
-        // NOTE(unsafe) All CBP registers are write-only and stateless
+        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
         let mut cbp = unsafe { CBP::new() };
 
         crate::asm::dsb();
@@ -709,57 +903,38 @@ impl SCB {
 /// System handlers, exceptions with configurable priority
 #[allow(clippy::missing_inline_in_public_items)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[repr(u8)]
 pub enum SystemHandler {
     // NonMaskableInt, // priority is fixed
     // HardFault, // priority is fixed
     /// Memory management interrupt (not present on Cortex-M0 variants)
     #[cfg(not(armv6m))]
-    MemoryManagement,
+    MemoryManagement = 4,
 
     /// Bus fault interrupt (not present on Cortex-M0 variants)
     #[cfg(not(armv6m))]
-    BusFault,
+    BusFault = 5,
 
     /// Usage fault interrupt (not present on Cortex-M0 variants)
     #[cfg(not(armv6m))]
-    UsageFault,
+    UsageFault = 6,
 
     /// Secure fault interrupt (only on ARMv8-M)
     #[cfg(any(armv8m, target_arch = "x86_64"))]
-    SecureFault,
+    SecureFault = 7,
 
     /// SV call interrupt
-    SVCall,
+    SVCall = 11,
 
     /// Debug monitor interrupt (not present on Cortex-M0 variants)
     #[cfg(not(armv6m))]
-    DebugMonitor,
+    DebugMonitor = 12,
 
     /// Pend SV interrupt
-    PendSV,
+    PendSV = 14,
 
     /// System Tick interrupt
-    SysTick,
-}
-
-impl SystemHandler {
-    fn index(self) -> u8 {
-        match self {
-            #[cfg(not(armv6m))]
-            SystemHandler::MemoryManagement => 4,
-            #[cfg(not(armv6m))]
-            SystemHandler::BusFault => 5,
-            #[cfg(not(armv6m))]
-            SystemHandler::UsageFault => 6,
-            #[cfg(any(armv8m, target_arch = "x86_64"))]
-            SystemHandler::SecureFault => 7,
-            SystemHandler::SVCall => 11,
-            #[cfg(not(armv6m))]
-            SystemHandler::DebugMonitor => 12,
-            SystemHandler::PendSV => 14,
-            SystemHandler::SysTick => 15,
-        }
-    }
+    SysTick = 15,
 }
 
 impl SCB {
@@ -769,18 +944,28 @@ impl SCB {
     /// [`NVIC.get_priority`](struct.NVIC.html#method.get_priority) for more details.
     #[inline]
     pub fn get_priority(system_handler: SystemHandler) -> u8 {
-        let index = system_handler.index();
+        let index = system_handler as u8;
 
         #[cfg(not(armv6m))]
         {
             // NOTE(unsafe) atomic read with no side effects
-            unsafe { (*Self::ptr()).shpr[usize::from(index - 4)].read() }
+
+            // NOTE(unsafe): Index is bounded to [4,15] by SystemHandler design.
+            // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
+            let priority_ref = unsafe {(*Self::ptr()).shpr.get_unchecked(usize::from(index - 4))};
+
+            priority_ref.read()
         }
 
         #[cfg(armv6m)]
         {
             // NOTE(unsafe) atomic read with no side effects
-            let shpr = unsafe { (*Self::ptr()).shpr[usize::from((index - 8) / 4)].read() };
+
+            // NOTE(unsafe): Index is bounded to [11,15] by SystemHandler design.
+            // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
+            let priority_ref = unsafe {(*Self::ptr()).shpr.get_unchecked(usize::from((index - 8) / 4))};
+
+            let shpr = priority_ref.read();
             let prio = (shpr >> (8 * (index % 4))) & 0x0000_00ff;
             prio as u8
         }
@@ -800,16 +985,24 @@ impl SCB {
     /// [`register::basepri`](../register/basepri/index.html)) and compromise memory safety.
     #[inline]
     pub unsafe fn set_priority(&mut self, system_handler: SystemHandler, prio: u8) {
-        let index = system_handler.index();
+        let index = system_handler as u8;
 
         #[cfg(not(armv6m))]
         {
-            self.shpr[usize::from(index - 4)].write(prio)
+            // NOTE(unsafe): Index is bounded to [4,15] by SystemHandler design.
+            // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
+            let priority_ref = (*Self::ptr()).shpr.get_unchecked(usize::from(index - 4));
+
+            priority_ref.write(prio)
         }
 
         #[cfg(armv6m)]
         {
-            self.shpr[usize::from((index - 8) / 4)].modify(|value| {
+            // NOTE(unsafe): Index is bounded to [11,15] by SystemHandler design.
+            // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
+            let priority_ref = (*Self::ptr()).shpr.get_unchecked(usize::from((index - 8) / 4));
+
+            priority_ref.modify(|value| {
                 let shift = 8 * (index % 4);
                 let mask = 0x0000_00ff << shift;
                 let prio = u32::from(prio) << shift;

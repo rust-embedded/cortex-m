@@ -1,5 +1,4 @@
-#![allow(clippy::needless_doctest_main)]
-//! Core peripherals
+//! Core peripherals.
 //!
 //! # API
 //!
@@ -9,41 +8,32 @@
 //! the [`Peripherals::take`](struct.Peripherals.html#method.take) method.
 //!
 //! ``` no_run
-//! use cortex_m::peripheral::Peripherals;
-//!
-//! fn main() {
-//!     let mut peripherals = Peripherals::take().unwrap();
-//!     peripherals.DWT.enable_cycle_counter();
-//! }
+//! # use cortex_m::peripheral::Peripherals;
+//! let mut peripherals = Peripherals::take().unwrap();
+//! peripherals.DWT.enable_cycle_counter();
 //! ```
 //!
 //! This method can only be successfully called *once* -- this is why the method returns an
 //! `Option`. Subsequent calls to the method will result in a `None` value being returned.
 //!
-//! ``` no_run
-//! use cortex_m::peripheral::Peripherals;
-//!
-//! fn main() {
-//!     let ok = Peripherals::take().unwrap();
-//!     let panics = Peripherals::take().unwrap();
-//! }
+//! ``` no_run, should_panic
+//! # use cortex_m::peripheral::Peripherals;
+//! let ok = Peripherals::take().unwrap();
+//! let panics = Peripherals::take().unwrap();
 //! ```
 //! A part of the peripheral API doesn't require access to a peripheral instance. This part of the
 //! API is provided as static methods on the peripheral types. One example is the
 //! [`DWT::get_cycle_count`](struct.DWT.html#method.get_cycle_count) method.
 //!
 //! ``` no_run
-//! use cortex_m::peripheral::{DWT, Peripherals};
+//! # use cortex_m::peripheral::{DWT, Peripherals};
+//! {
+//!     let mut peripherals = Peripherals::take().unwrap();
+//!     peripherals.DWT.enable_cycle_counter();
+//! } // all the peripheral singletons are destroyed here
 //!
-//! fn main() {
-//!     {
-//!         let mut peripherals = Peripherals::take().unwrap();
-//!         peripherals.DWT.enable_cycle_counter();
-//!     } // all the peripheral singletons are destroyed here
-//!
-//!     // but this method can be called without a DWT instance
-//!     let cyccnt = DWT::get_cycle_count();
-//! }
+//! // but this method can be called without a DWT instance
+//! let cyccnt = DWT::get_cycle_count();
 //! ```
 //!
 //! The singleton property can be *unsafely* bypassed using the `ptr` static method which is
@@ -51,17 +41,14 @@
 //! safe higher level abstractions.
 //!
 //! ``` no_run
-//! use cortex_m::peripheral::{DWT, Peripherals};
+//! # use cortex_m::peripheral::{DWT, Peripherals};
+//! {
+//!     let mut peripherals = Peripherals::take().unwrap();
+//!     peripherals.DWT.enable_cycle_counter();
+//! } // all the peripheral singletons are destroyed here
 //!
-//! fn main() {
-//!     {
-//!         let mut peripherals = Peripherals::take().unwrap();
-//!         peripherals.DWT.enable_cycle_counter();
-//!     } // all the peripheral singletons are destroyed here
-//!
-//!     // actually safe because this is an atomic read with no side effects
-//!     let cyccnt = unsafe { (*DWT::ptr()).cyccnt.read() };
-//! }
+//! // actually safe because this is an atomic read with no side effects
+//! let cyccnt = unsafe { (*DWT::ptr()).cyccnt.read() };
 //! ```
 //!
 //! # References
@@ -69,7 +56,6 @@
 //! - ARMv7-M Architecture Reference Manual (Issue E.b) - Chapter B3
 
 // TODO stand-alone registers: ICTR, ACTLR and STIR
-
 
 use core::marker::PhantomData;
 use core::ops;
@@ -86,10 +72,12 @@ pub mod fpb;
 // NOTE(target_arch) is for documentation purposes
 #[cfg(any(has_fpu, target_arch = "x86_64"))]
 pub mod fpu;
-#[cfg(not(armv6m))]
+#[cfg(all(not(armv6m), not(armv8m_base)))]
 pub mod itm;
 pub mod mpu;
 pub mod nvic;
+#[cfg(armv8m)]
+pub mod sau;
 pub mod scb;
 pub mod syst;
 #[cfg(not(armv6m))]
@@ -103,7 +91,8 @@ mod test;
 /// Core peripherals
 #[allow(non_snake_case)]
 pub struct Peripherals {
-    /// Cache and branch predictor maintenance operations (not present on Cortex-M0 variants)
+    /// Cache and branch predictor maintenance operations.
+    /// Not available on Armv6-M.
     pub CBP: CBP,
 
     /// CPUID
@@ -115,13 +104,15 @@ pub struct Peripherals {
     /// Data Watchpoint and Trace unit
     pub DWT: DWT,
 
-    /// Flash Patch and Breakpoint unit (not present on Cortex-M0 variants)
+    /// Flash Patch and Breakpoint unit.
+    /// Not available on Armv6-M.
     pub FPB: FPB,
 
-    /// Floating Point Unit (only present on `thumbv7em-none-eabihf`)
+    /// Floating Point Unit.
     pub FPU: FPU,
 
-    /// Instrumentation Trace Macrocell (not present on Cortex-M0 variants)
+    /// Instrumentation Trace Macrocell.
+    /// Not available on Armv6-M and Armv8-M Baseline.
     pub ITM: ITM,
 
     /// Memory Protection Unit
@@ -130,14 +121,22 @@ pub struct Peripherals {
     /// Nested Vector Interrupt Controller
     pub NVIC: NVIC,
 
+    /// Security Attribution Unit
+    pub SAU: SAU,
+
     /// System Control Block
     pub SCB: SCB,
 
     /// SysTick: System Timer
     pub SYST: SYST,
 
-    /// Trace Port Interface Unit (not present on Cortex-M0 variants)
+    /// Trace Port Interface Unit.
+    /// Not available on Armv6-M.
     pub TPIU: TPIU,
+
+    // Private field making `Peripherals` non-exhaustive. We don't use `#[non_exhaustive]` so we
+    // can support older Rust versions.
+    _priv: (),
 }
 
 // NOTE `no_mangle` is used here to prevent linking different minor versions of this crate as that
@@ -191,6 +190,9 @@ impl Peripherals {
             NVIC: NVIC {
                 _marker: PhantomData,
             },
+            SAU: SAU {
+                _marker: PhantomData,
+            },
             SCB: SCB {
                 _marker: PhantomData,
             },
@@ -200,6 +202,7 @@ impl Peripherals {
             TPIU: TPIU {
                 _marker: PhantomData,
             },
+            _priv: (),
         }
     }
 }
@@ -368,7 +371,7 @@ pub struct ITM {
 
 unsafe impl Send for ITM {}
 
-#[cfg(not(armv6m))]
+#[cfg(all(not(armv6m), not(armv8m_base)))]
 impl ITM {
     /// Returns a pointer to the register block
     #[inline(always)]
@@ -377,7 +380,7 @@ impl ITM {
     }
 }
 
-#[cfg(not(armv6m))]
+#[cfg(all(not(armv6m), not(armv8m_base)))]
 impl ops::Deref for ITM {
     type Target = self::itm::RegisterBlock;
 
@@ -387,7 +390,7 @@ impl ops::Deref for ITM {
     }
 }
 
-#[cfg(not(armv6m))]
+#[cfg(all(not(armv6m), not(armv8m_base)))]
 impl ops::DerefMut for ITM {
     #[inline(always)]
     fn deref_mut(&mut self) -> &mut Self::Target {
@@ -436,6 +439,32 @@ impl NVIC {
 
 impl ops::Deref for NVIC {
     type Target = self::nvic::RegisterBlock;
+
+    #[inline(always)]
+    fn deref(&self) -> &Self::Target {
+        unsafe { &*Self::ptr() }
+    }
+}
+
+/// Security Attribution Unit
+pub struct SAU {
+    _marker: PhantomData<*const ()>,
+}
+
+unsafe impl Send for SAU {}
+
+#[cfg(armv8m)]
+impl SAU {
+    /// Returns a pointer to the register block
+    #[inline(always)]
+    pub fn ptr() -> *const sau::RegisterBlock {
+        0xE000_EDD0 as *const _
+    }
+}
+
+#[cfg(armv8m)]
+impl ops::Deref for SAU {
+    type Target = self::sau::RegisterBlock;
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {

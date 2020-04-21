@@ -1,4 +1,8 @@
 //! Implementation of a critical section based mutex that also implements the `mutex-trait`.
+//!
+//! ## Safety
+//!
+//! Note that this is only safe in single core applications.
 
 use core::cell::UnsafeCell;
 

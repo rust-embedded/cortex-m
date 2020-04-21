@@ -2,7 +2,7 @@
 
 use core::cell::UnsafeCell;
 
-/// A critical section based mutex
+/// A critical section based mutex.
 pub struct CriticalSectionMutex<T> {
     data: UnsafeCell<T>,
 }

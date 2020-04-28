@@ -163,7 +163,7 @@ pub fn read() -> Control {
                 #[cfg(feature = "inline-asm")]
                 () => {
                     let r: u32;
-                    unsafe { asm!("mrs $0, CONTROL" : "=r"(r) ::: "volatile") }
+                    unsafe { llvm_asm!("mrs $0, CONTROL" : "=r"(r) ::: "volatile") }
                     r
                 }
 
@@ -194,7 +194,7 @@ pub unsafe fn write(_control: Control) {
             #[cfg(feature = "inline-asm")]
             () => {
                 let control = _control.bits();
-                asm!("msr CONTROL, $0" :: "r"(control) : "memory" : "volatile");
+                llvm_asm!("msr CONTROL, $0" :: "r"(control) : "memory" : "volatile");
             }
 
             #[cfg(not(feature = "inline-asm"))]

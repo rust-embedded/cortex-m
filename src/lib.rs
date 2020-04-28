@@ -1,3 +1,4 @@
+#![feature(llvm_asm)]
 //! Low level access to Cortex-M processors
 //!
 //! This crate provides:
@@ -12,7 +13,7 @@
 //! ## `inline-asm`
 //!
 //! When this feature is enabled the implementation of all the functions inside the `asm` and
-//! `register` modules use inline assembly (`asm!`) instead of external assembly (FFI into separate
+//! `register` modules use inline assembly (`llvm_asm!`) instead of external assembly (FFI into separate
 //! assembly files pre-compiled using `arm-none-eabi-gcc`). The advantages of enabling `inline-asm`
 //! are:
 //!

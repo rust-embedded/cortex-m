@@ -8,7 +8,7 @@
 pub fn bkpt() {
     match () {
         #[cfg(all(cortex_m, feature = "inline-asm"))]
-        () => unsafe { asm!("bkpt" :::: "volatile") },
+        () => unsafe { llvm_asm!("bkpt" :::: "volatile") },
 
         #[cfg(all(cortex_m, not(feature = "inline-asm")))]
         () => unsafe {
@@ -36,7 +36,7 @@ pub fn delay(_n: u32) {
     match () {
         #[cfg(all(cortex_m, feature = "inline-asm"))]
         () => unsafe {
-            asm!("1:
+            llvm_asm!("1:
                   nop
                   subs $0, $$1
                   bne.n 1b"
@@ -65,7 +65,7 @@ pub fn delay(_n: u32) {
 pub fn nop() {
     match () {
         #[cfg(all(cortex_m, feature = "inline-asm"))]
-        () => unsafe { asm!("nop" :::: "volatile") },
+        () => unsafe { llvm_asm!("nop" :::: "volatile") },
 
         #[cfg(all(cortex_m, not(feature = "inline-asm")))]
         () => unsafe {
@@ -90,7 +90,7 @@ pub fn udf() -> ! {
     match () {
         #[cfg(all(cortex_m, feature = "inline-asm"))]
         () => unsafe {
-            asm!("udf" :::: "volatile");
+            llvm_asm!("udf" :::: "volatile");
             core::hint::unreachable_unchecked();
         },
 
@@ -115,7 +115,7 @@ pub fn udf() -> ! {
 pub fn wfe() {
     match () {
         #[cfg(all(cortex_m, feature = "inline-asm"))]
-        () => unsafe { asm!("wfe" :::: "volatile") },
+        () => unsafe { llvm_asm!("wfe" :::: "volatile") },
 
         #[cfg(all(cortex_m, not(feature = "inline-asm")))]
         () => unsafe {
@@ -136,7 +136,7 @@ pub fn wfe() {
 pub fn wfi() {
     match () {
         #[cfg(all(cortex_m, feature = "inline-asm"))]
-        () => unsafe { asm!("wfi" :::: "volatile") },
+        () => unsafe { llvm_asm!("wfi" :::: "volatile") },
 
         #[cfg(all(cortex_m, not(feature = "inline-asm")))]
         () => unsafe {
@@ -157,7 +157,7 @@ pub fn wfi() {
 pub fn sev() {
     match () {
         #[cfg(all(cortex_m, feature = "inline-asm"))]
-        () => unsafe { asm!("sev" :::: "volatile") },
+        () => unsafe { llvm_asm!("sev" :::: "volatile") },
 
         #[cfg(all(cortex_m, not(feature = "inline-asm")))]
         () => unsafe {
@@ -181,7 +181,7 @@ pub fn sev() {
 pub fn isb() {
     match () {
         #[cfg(all(cortex_m, feature = "inline-asm"))]
-        () => unsafe { asm!("isb 0xF" ::: "memory" : "volatile") },
+        () => unsafe { llvm_asm!("isb 0xF" ::: "memory" : "volatile") },
 
         #[cfg(all(cortex_m, not(feature = "inline-asm")))]
         () => unsafe {
@@ -209,7 +209,7 @@ pub fn isb() {
 pub fn dsb() {
     match () {
         #[cfg(all(cortex_m, feature = "inline-asm"))]
-        () => unsafe { asm!("dsb 0xF" ::: "memory" : "volatile") },
+        () => unsafe { llvm_asm!("dsb 0xF" ::: "memory" : "volatile") },
 
         #[cfg(all(cortex_m, not(feature = "inline-asm")))]
         () => unsafe {
@@ -235,7 +235,7 @@ pub fn dsb() {
 pub fn dmb() {
     match () {
         #[cfg(all(cortex_m, feature = "inline-asm"))]
-        () => unsafe { asm!("dmb 0xF" ::: "memory" : "volatile") },
+        () => unsafe { llvm_asm!("dmb 0xF" ::: "memory" : "volatile") },
 
         #[cfg(all(cortex_m, not(feature = "inline-asm")))]
         () => unsafe {
@@ -267,7 +267,7 @@ pub fn tt(addr: *mut u32) -> u32 {
         () => {
             let tt_resp: u32;
             unsafe {
-                asm!("tt $0, $1" : "=r"(tt_resp) : "r"(addr) :: "volatile");
+                llvm_asm!("tt $0, $1" : "=r"(tt_resp) : "r"(addr) :: "volatile");
             }
             tt_resp
         }
@@ -302,7 +302,7 @@ pub fn ttt(addr: *mut u32) -> u32 {
         () => {
             let tt_resp: u32;
             unsafe {
-                asm!("ttt $0, $1" : "=r"(tt_resp) : "r"(addr) :: "volatile");
+                llvm_asm!("ttt $0, $1" : "=r"(tt_resp) : "r"(addr) :: "volatile");
             }
             tt_resp
         }
@@ -338,7 +338,7 @@ pub fn tta(addr: *mut u32) -> u32 {
         () => {
             let tt_resp: u32;
             unsafe {
-                asm!("tta $0, $1" : "=r"(tt_resp) : "r"(addr) :: "volatile");
+                llvm_asm!("tta $0, $1" : "=r"(tt_resp) : "r"(addr) :: "volatile");
             }
             tt_resp
         }
@@ -374,7 +374,7 @@ pub fn ttat(addr: *mut u32) -> u32 {
         () => {
             let tt_resp: u32;
             unsafe {
-                asm!("ttat $0, $1" : "=r"(tt_resp) : "r"(addr) :: "volatile");
+                llvm_asm!("ttat $0, $1" : "=r"(tt_resp) : "r"(addr) :: "volatile");
             }
             tt_resp
         }

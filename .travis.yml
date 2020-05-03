@@ -88,6 +88,10 @@ branches:
     - staging
     - trying
 
+jobs:
+  allow_failures:
+    - rust: nightly
+
 notifications:
   email:
     on_success: never

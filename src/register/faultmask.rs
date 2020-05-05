@@ -34,7 +34,7 @@ pub fn read() -> Faultmask {
                 #[cfg(feature = "inline-asm")]
                 () => {
                     let r: u32;
-                    unsafe { asm!("mrs $0, FAULTMASK" : "=r"(r) ::: "volatile") }
+                    unsafe { llvm_asm!("mrs $0, FAULTMASK" : "=r"(r) ::: "volatile") }
                     r
                 }
 

@@ -7,7 +7,7 @@ pub fn read() -> u32 {
         #[cfg(all(cortex_m, feature = "inline-asm"))]
         () => {
             let r;
-            unsafe { asm!("mrs $0,PSPLIM" : "=r"(r) ::: "volatile") }
+            unsafe { llvm_asm!("mrs $0,PSPLIM" : "=r"(r) ::: "volatile") }
             r
         }
 
@@ -30,7 +30,7 @@ pub fn read() -> u32 {
 pub unsafe fn write(_bits: u32) {
     match () {
         #[cfg(all(cortex_m, feature = "inline-asm"))]
-        () => asm!("msr PSPLIM,$0" :: "r"(_bits) :: "volatile"),
+        () => llvm_asm!("msr PSPLIM,$0" :: "r"(_bits) :: "volatile"),
 
         #[cfg(all(cortex_m, not(feature = "inline-asm")))]
         () => {

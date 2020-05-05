@@ -1,4 +1,3 @@
-#![feature(llvm_asm)]
 //! Low level access to Cortex-M processors
 //!
 //! This crate provides:
@@ -30,7 +29,7 @@
 //! This crate is guaranteed to compile on stable Rust 1.31 and up. It *might*
 //! compile with older versions but that may change in any new patch release.
 
-#![cfg_attr(feature = "inline-asm", feature(asm))]
+#![cfg_attr(feature = "inline-asm", feature(llvm_asm))]
 #![deny(missing_docs)]
 #![no_std]
 #![allow(clippy::identity_op)]

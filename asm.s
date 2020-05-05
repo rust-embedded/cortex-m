@@ -4,6 +4,7 @@
 __bkpt:
   bkpt
   bx lr
+  .size __bkpt, . - __bkpt
 
   .section .text.__control_r
   .global __control_r
@@ -11,6 +12,7 @@ __bkpt:
 __control_r:
   mrs r0, CONTROL
   bx lr
+  .size __control_r, . - __control_r
 
   .section .text.__control_w
   .global __control_w
@@ -18,6 +20,7 @@ __control_r:
 __control_w:
   msr CONTROL, r0
   bx lr
+  .size __control_w, . - __control_w
 
 
   .section .text.__cpsid
@@ -26,6 +29,7 @@ __control_w:
 __cpsid:
   cpsid i
   bx lr
+  .size __cpsid, . - __cpsid
 
   .section .text.__cpsie
   .global __cpsie
@@ -33,6 +37,7 @@ __cpsid:
 __cpsie:
   cpsie i
   bx lr
+  .size __cpsie, . - __cpsie
 
   .section .text.__delay
   .global __delay
@@ -44,6 +49,7 @@ __delay:
   subs r0, #1
   bne 1b  // Branch to 1 instead of __delay does not generate R_ARM_THM_JUMP8 relocation, which breaks linking on the thumbv6m-none-eabi target
   bx lr
+  .size __delay, . - __delay
 
   .section .text.__dmb
   .global __dmb
@@ -51,6 +57,7 @@ __delay:
 __dmb:
   dmb 0xF
   bx lr
+  .size __dmb, . - __dmb
 
   .section .text.__dsb
   .global __dsb
@@ -58,6 +65,7 @@ __dmb:
 __dsb:
   dsb 0xF
   bx lr
+  .size __dsb, . - __dsb
 
   .section .text.__isb
   .global __isb
@@ -65,6 +73,7 @@ __dsb:
 __isb:
   isb 0xF
   bx lr
+  .size __isb, . - __isb
 
   .section .text.__msp_r
   .global __msp_r
@@ -72,6 +81,7 @@ __isb:
 __msp_r:
   mrs r0, MSP
   bx lr
+  .size __msp_r, . - __msp_r
 
   .section .text.__msp_w
   .global __msp_w
@@ -79,12 +89,14 @@ __msp_r:
 __msp_w:
   msr MSP, r0
   bx lr
+  .size __msp_w, . - __msp_w
 
   .section .text.__nop
   .global __nop
   .thumb_func
 __nop:
   bx lr
+  .size __nop, . - __nop
 
   .section .text.__primask
   .global __primask
@@ -92,6 +104,7 @@ __nop:
 __primask:
   mrs r0, PRIMASK
   bx lr
+  .size __primask, . - __primask
 
   .section .text.__psp_r
   .global __psp_r
@@ -99,6 +112,7 @@ __primask:
 __psp_r:
   mrs r0, PSP
   bx lr
+  .size __psp_r, . - __psp_r
 
   .section .text.__psp_w
   .global __psp_w
@@ -106,6 +120,7 @@ __psp_r:
 __psp_w:
   msr PSP, r0
   bx lr
+  .size __psp_w, . - __psp_w
 
   .section .text.__sev
   .global __sev
@@ -113,6 +128,7 @@ __psp_w:
 __sev:
   sev
   bx lr
+  .size __sev, . - __sev
 
 
   .section .text.__udf
@@ -120,6 +136,7 @@ __sev:
   .thumb_func
 __udf:
   udf
+  .size __udf, . - __udf
 
   .section .text.__wfe
   .global __wfe
@@ -127,10 +144,13 @@ __udf:
 __wfe:
   wfe
   bx lr
+  .size __wfe, . - __wfe
+
 
   .section .text.__wfi
   .global __wfi
   .thumb_func
 __wfi:
   wfi
+  .size __wfi, . - __wfi
   bx lr

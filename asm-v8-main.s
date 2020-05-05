@@ -4,6 +4,7 @@
 __msplim_r:
   mrs r0, MSPLIM
   bx lr
+  .size __msplim_r, . - __msplim_r
 
   .section .text.__msplim_w
   .global __msplim_w
@@ -11,6 +12,7 @@ __msplim_r:
 __msplim_w:
   msr MSPLIM, r0
   bx lr
+  .size __msplim_w, . - __msplim_w
 
   .section .text.__psplim_r
   .global __psplim_r
@@ -18,6 +20,7 @@ __msplim_w:
 __psplim_r:
   mrs r0, PSPLIM
   bx lr
+  .size __psplim_r, . - __psplim_r
 
   .section .text.__psplim_w
   .global __psplim_w
@@ -25,4 +28,5 @@ __psplim_r:
 __psplim_w:
   msr PSPLIM, r0
   bx lr
+  .size __psplim_w, . - __psplim_w
 

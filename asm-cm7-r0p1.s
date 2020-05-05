@@ -11,6 +11,7 @@ __basepri_max_cm7_r0p1:
   bxne lr
   cpsie i
   bx lr
+  .size __basepri_max_cm7_r0p1, . - __basepri_max_cm7_r0p1
 
   .section .text.__basepri_w_cm7_r0p1
   .global __basepri_w_cm7_r0p1
@@ -25,3 +26,4 @@ __basepri_w_cm7_r0p1:
   bxne lr
   cpsie i
   bx lr
+  .size __basepri_w_cm7_r0p1, . - __basepri_w_cm7_r0p1

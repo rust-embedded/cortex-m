@@ -108,11 +108,9 @@ __msp_r:
   .section .text.__msp_w
   .global __msp_w
   .thumb_func
-  .cfi_startproc
 __msp_w:
   msr MSP, r0
   bx lr
-  .cfi_endproc
   .size __msp_w, . - __msp_w
 
   .section .text.__nop
@@ -147,11 +145,9 @@ __psp_r:
   .section .text.__psp_w
   .global __psp_w
   .thumb_func
-  .cfi_startproc
 __psp_w:
   msr PSP, r0
   bx lr
-  .cfi_endproc
   .size __psp_w, . - __psp_w
 
   .section .text.__sev

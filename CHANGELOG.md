@@ -572,7 +572,7 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.6.1...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.6.2...HEAD
 [v0.6.2]: https://github.com/rust-embedded/cortex-m/compare/v0.6.1...v0.6.2
 [v0.6.1]: https://github.com/rust-embedded/cortex-m/compare/v0.6.0...v0.6.1
 [v0.6.0]: https://github.com/rust-embedded/cortex-m/compare/v0.5.8...v0.6.0

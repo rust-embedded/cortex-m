@@ -401,7 +401,6 @@
 // here will appear in the linker script (`link.x`) in conjunction with the `KEEP` command.
 
 #![deny(missing_docs)]
-#![deny(warnings)]
 #![no_std]
 
 extern crate cortex_m_rt_macros as macros;

@@ -2,8 +2,6 @@
 //!
 //! Do not use this crate directly.
 
-#![deny(warnings)]
-
 extern crate proc_macro;
 
 use proc_macro::TokenStream;

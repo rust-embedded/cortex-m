@@ -55,6 +55,6 @@ impl Stim {
     /// Returns `true` if the stimulus port is ready to accept more data
     #[inline]
     pub fn is_fifo_ready(&self) -> bool {
-        unsafe { ptr::read_volatile(self.register.get()) == 1 }
+        unsafe { ptr::read_volatile(self.register.get()) & 1 == 1 }
     }
 }

@@ -50,19 +50,19 @@ impl Fpscr {
     /// Read the Alternative Half Precision bit
     #[inline]
     pub fn ahp(self) -> bool {
-        if self.bits & (1 << 26) != 0
+        self.bits & (1 << 26) != 0
     }
 
     /// Read the Default NaN mode bit
     #[inline]
     pub fn dn(self) -> bool {
-        if self.bits & (1 << 25) != 0
+        self.bits & (1 << 25) != 0
     }
 
     /// Read the Flush to Zero mode bit
     #[inline]
     pub fn fz(self) -> bool {
-        if self.bits & (1 << 24) != 0
+        self.bits & (1 << 24) != 0
     }
 
     /// Read the Rounding Mode control field
@@ -79,37 +79,37 @@ impl Fpscr {
     /// Read the Input Denormal cumulative exception bit
     #[inline]
     pub fn idc(self) -> bool {
-        if self.bits & (1 << 7) != 0
+        self.bits & (1 << 7) != 0
     }
 
     /// Read the Inexact cumulative exception bit
     #[inline]
     pub fn ixc(self) -> bool {
-        if self.bits & (1 << 4) != 0
+        self.bits & (1 << 4) != 0
     }
 
     /// Read the Underflow cumulative exception bit
     #[inline]
     pub fn ufc(self) -> bool {
-        if self.bits & (1 << 3) != 0
+        self.bits & (1 << 3) != 0
     }
 
     /// Read the Overflow cumulative exception bit
     #[inline]
     pub fn ofc(self) -> bool {
-        if self.bits & (1 << 2) != 0
+        self.bits & (1 << 2) != 0
     }
 
     /// Read the Division by Zero cumulative exception bit
     #[inline]
     pub fn dzc(self) -> bool {
-        if self.bits & (1 << 1) != 0
+        self.bits & (1 << 1) != 0
     }
 
     /// Read the Invalid Operation cumulative exception bit
     #[inline]
     pub fn ioc(self) -> bool {
-        if self.bits & (1 << 0) != 0
+        self.bits & (1 << 0) != 0
     }
 }
 

@@ -10,9 +10,13 @@ pub struct Fpscr {
 /// Rounding mode
 #[derive(Clone, Copy, Debug)]
 pub enum RMode {
+    /// Round to Nearest (RN) mode. This is the reset value.
     Nearest,
+    /// Round towards Plus Infinity (RP) mode.
     PlusInfinity,
+    /// Round towards Minus Infinity (RM) mode.
     MinusInfinity,
+    /// Round towards Zero (RZ) mode.
     Zero,
 }
 
@@ -68,11 +72,11 @@ impl Fpscr {
     /// Read the Rounding Mode control field
     #[inline]
     pub fn rmode(self) -> RMode {
-        match self.bits & (3 << 22) {
-            0 << 22 => RMode::Nearest,
-            1 << 22 => RMode::PlusInfinity,
-            2 << 22 => RMode::MinusInfinity,
-            3 << 22 => RMode::Zero,
+        match (self.bits & (3 << 22)) >> 22 {
+            0 => RMode::Nearest,
+            1 => RMode::PlusInfinity,
+            2 => RMode::MinusInfinity,
+            _ => RMode::Zero,
         }
     }
 

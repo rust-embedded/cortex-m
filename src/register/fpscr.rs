@@ -145,7 +145,7 @@ pub unsafe fn write(value: u32) {
         #[cfg(all(cortex_m, feature = "inline-asm"))]
         () => {
             unsafe {
-                llvm_asm!("vmrs fpscr, $0" :: "r"(value) :: "volatile");
+                llvm_asm!("vmsr fpscr, $0" :: "r"(value) :: "volatile");
             }
         }
 

@@ -15,7 +15,7 @@ __get_FPSCR:
   .thumb_func
   .cfi_startproc
 __set_FPSCR:
-  vmrs fpscr, r0
+  vmsr fpscr, r0
   bx lr
   .cfi_endproc
   .size __set_FPSCR, . - __set_FPSCR

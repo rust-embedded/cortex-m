@@ -22,6 +22,10 @@
 //! - BASEPRI
 //! - FAULTMASK
 //!
+//! The following registers are only available for devices with an FPU:
+//!
+//! - FPSCR
+//!
 //! # References
 //!
 //! - Cortex-M* Devices Generic User Guide - Section 2.1.3 Core registers
@@ -36,6 +40,9 @@ pub mod control;
 
 #[cfg(all(not(armv6m), not(armv8m_base)))]
 pub mod faultmask;
+
+#[cfg(has_fpu)]
+pub mod fpscr;
 
 pub mod msp;
 

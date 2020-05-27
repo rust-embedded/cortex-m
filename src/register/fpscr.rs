@@ -7,7 +7,7 @@ pub struct Fpscr {
     bits: u32,
 }
 
-//! Rounding mode
+/// Rounding mode
 #[derive(Clone, Copy, Debug)]
 pub enum RMode {
     Nearest,
@@ -23,49 +23,49 @@ impl Fpscr {
         self.bits
     }
 
-    //! Read the Negative condition code flag
+    /// Read the Negative condition code flag
     #[inline]
     pub fn n(self) -> bool {
         self.bits & (1 << 31) != 0
     }
 
-    //! Read the Zero condition code flag
+    /// Read the Zero condition code flag
     #[inline]
     pub fn z(self) -> bool {
         self.bits & (1 << 30) != 0
     }
 
-    //! Read the Carry condition code flag
+    /// Read the Carry condition code flag
     #[inline]
     pub fn c(self) -> bool {
         self.bits & (1 << 29) != 0
     }
 
-    //! Read the Overflow condition code flag
+    /// Read the Overflow condition code flag
     #[inline]
     pub fn v(self) -> bool {
         self.bits & (1 << 28) != 0
     }
 
-    //! Read the Alternative Half Precision bit
+    /// Read the Alternative Half Precision bit
     #[inline]
     pub fn ahp(self) -> bool {
         if self.bits & (1 << 26) != 0
     }
 
-    //! Read the Default NaN mode bit
+    /// Read the Default NaN mode bit
     #[inline]
     pub fn dn(self) -> bool {
         if self.bits & (1 << 25) != 0
     }
 
-    //! Read the Flush to Zero mode bit
+    /// Read the Flush to Zero mode bit
     #[inline]
     pub fn fz(self) -> bool {
         if self.bits & (1 << 24) != 0
     }
 
-    //! Read the Rounding Mode control field
+    /// Read the Rounding Mode control field
     #[inline]
     pub fn rmode(self) -> RMode {
         match self.bits & (3 << 22) {
@@ -76,37 +76,37 @@ impl Fpscr {
         }
     }
 
-    //! Read the Input Denormal cumulative exception bit
+    /// Read the Input Denormal cumulative exception bit
     #[inline]
     pub fn idc(self) -> bool {
         if self.bits & (1 << 7) != 0
     }
 
-    //! Read the Inexact cumulative exception bit
+    /// Read the Inexact cumulative exception bit
     #[inline]
     pub fn ixc(self) -> bool {
         if self.bits & (1 << 4) != 0
     }
 
-    //! Read the Underflow cumulative exception bit
+    /// Read the Underflow cumulative exception bit
     #[inline]
     pub fn ufc(self) -> bool {
         if self.bits & (1 << 3) != 0
     }
 
-    //! Read the Overflow cumulative exception bit
+    /// Read the Overflow cumulative exception bit
     #[inline]
     pub fn ofc(self) -> bool {
         if self.bits & (1 << 2) != 0
     }
 
-    //! Read the Division by Zero cumulative exception bit
+    /// Read the Division by Zero cumulative exception bit
     #[inline]
     pub fn dzc(self) -> bool {
         if self.bits & (1 << 1) != 0
     }
 
-    //! Read the Invalid Operation cumulative exception bit
+    /// Read the Invalid Operation cumulative exception bit
     #[inline]
     pub fn ioc(self) -> bool {
         if self.bits & (1 << 0) != 0

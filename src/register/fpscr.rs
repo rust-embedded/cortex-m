@@ -21,6 +21,12 @@ pub enum RMode {
 }
 
 impl Fpscr {
+    /// Creates a `Fspcr` value from raw bits.
+    #[inline]
+    pub fn from_bits(bits: u32) -> Self {
+        Self { bits }
+    }
+
     /// Returns the contents of the register as raw bits
     #[inline]
     pub fn bits(self) -> u32 {
@@ -118,6 +124,7 @@ impl Fpscr {
 }
 
 /// Read the FPSCR register
+#[inline]
 pub fn read() -> Fpscr {
     match () {
         #[cfg(all(cortex_m, feature = "inline-asm"))]
@@ -126,7 +133,7 @@ pub fn read() -> Fpscr {
             unsafe {
                 llvm_asm!("vmrs $0, fpscr" : "=r"(r) ::: "volatile");
             }
-            Fpscr { bits: r }
+            Fpscr::from_bits(r)
         }
 
         #[cfg(all(cortex_m, not(feature = "inline-asm")))]
@@ -134,8 +141,7 @@ pub fn read() -> Fpscr {
             extern "C" {
                 fn __get_FPSCR() -> u32;
             }
-
-            Fpscr { bits: __get_FPSCR() }
+            Fpscr::from_bits(__get_FPSCR())
         },
 
         #[cfg(not(cortex_m))]
@@ -144,23 +150,23 @@ pub fn read() -> Fpscr {
 }
 
 /// Set the value of the FPSCR register
-pub unsafe fn write(value: u32) {
+#[inline]
+pub unsafe fn write(_fspcr: Fpscr) {
     match () {
         #[cfg(all(cortex_m, feature = "inline-asm"))]
         () => {
-            unsafe {
-                llvm_asm!("vmsr fpscr, $0" :: "r"(value) :: "volatile");
-            }
+            let bits = _fspcr.bits();
+            llvm_asm!("vmsr fpscr, $0" :: "r"(bits) :: "volatile");
         }
 
         #[cfg(all(cortex_m, not(feature = "inline-asm")))]
-        () => unsafe {
+        () => {
             extern "C" {
-                fn __set_FPSCR(value: u32);
+                fn __set_FPSCR(bits: u32);
             }
 
-            __set_FPSCR(value);
-        },
+            __set_FPSCR(_fspcr.bits());
+        }
 
         #[cfg(not(cortex_m))]
         () => unimplemented!(),

@@ -7,19 +7,6 @@ pub struct Fpscr {
     bits: u32,
 }
 
-/// Rounding mode
-#[derive(Clone, Copy, Debug)]
-pub enum RMode {
-    /// Round to Nearest (RN) mode. This is the reset value.
-    Nearest,
-    /// Round towards Plus Infinity (RP) mode.
-    PlusInfinity,
-    /// Round towards Minus Infinity (RM) mode.
-    MinusInfinity,
-    /// Round towards Zero (RZ) mode.
-    Zero,
-}
-
 impl Fpscr {
     /// Creates a `Fspcr` value from raw bits.
     #[inline]
@@ -248,6 +235,45 @@ impl Fpscr {
             true => self.bits |= mask,
             false => self.bits &= !mask,
         }
+    }
+}
+
+/// Rounding mode
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum RMode {
+    /// Round to Nearest (RN) mode. This is the reset value.
+    Nearest,
+    /// Round towards Plus Infinity (RP) mode.
+    PlusInfinity,
+    /// Round towards Minus Infinity (RM) mode.
+    MinusInfinity,
+    /// Round towards Zero (RZ) mode.
+    Zero,
+}
+
+impl RMode {
+    /// Is Nearest the current rounding mode?
+    #[inline]
+    fn is_nearest(self) -> bool {
+        self == RMode::Nearest
+    }
+
+    /// Is Plus Infinity the current rounding mode?
+    #[inline]
+    fn is_plus_infinity(self) -> bool {
+        self == RMode::PlusInfinity
+    }
+
+    /// Is Minus Infinity the current rounding mode?
+    #[inline]
+    fn is_minus_infinity(self) -> bool {
+        self == RMode::MinusInfinity
+    }
+
+    /// Is Zero the current rounding mode?
+    #[inline]
+    fn is_zero(self) -> bool {
+        self == RMode::Zero
     }
 }
 

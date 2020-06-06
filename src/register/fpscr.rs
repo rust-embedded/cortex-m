@@ -39,10 +39,28 @@ impl Fpscr {
         self.bits & (1 << 31) != 0
     }
 
+    /// Sets the Negative condition code flag
+    pub fn set_n(&mut self, n: bool) {
+        let mask = 1 << 31;
+        match n {
+            true => self.bits |= mask,
+            false => self.bits &= !mask,
+        }
+    }
+
     /// Read the Zero condition code flag
     #[inline]
     pub fn z(self) -> bool {
         self.bits & (1 << 30) != 0
+    }
+
+    /// Sets the Zero condition code flag
+    pub fn set_z(&mut self, z: bool) {
+        let mask = 1 << 30;
+        match z {
+            true => self.bits |= mask,
+            false => self.bits &= !mask,
+        }
     }
 
     /// Read the Carry condition code flag
@@ -51,10 +69,28 @@ impl Fpscr {
         self.bits & (1 << 29) != 0
     }
 
+    /// Sets the Carry condition code flag
+    pub fn set_c(&mut self, c: bool) {
+        let mask = 1 << 29;
+        match c {
+            true => self.bits |= mask,
+            false => self.bits &= !mask,
+        }
+    }
+
     /// Read the Overflow condition code flag
     #[inline]
     pub fn v(self) -> bool {
         self.bits & (1 << 28) != 0
+    }
+
+    /// Sets the Zero condition code flag
+    pub fn set_v(&mut self, v: bool) {
+        let mask = 1 << 28;
+        match v {
+            true => self.bits |= mask,
+            false => self.bits &= !mask,
+        }
     }
 
     /// Read the Alternative Half Precision bit
@@ -63,16 +99,43 @@ impl Fpscr {
         self.bits & (1 << 26) != 0
     }
 
+    /// Sets the Alternative Half Precision bit
+    pub fn set_ahp(&mut self, ahp: bool) {
+        let mask = 1 << 26;
+        match ahp {
+            true => self.bits |= mask,
+            false => self.bits &= !mask,
+        }
+    }
+
     /// Read the Default NaN mode bit
     #[inline]
     pub fn dn(self) -> bool {
         self.bits & (1 << 25) != 0
     }
 
+    /// Sets the Default NaN mode bit
+    pub fn set_dn(&mut self, dn: bool) {
+        let mask = 1 << 25;
+        match dn {
+            true => self.bits |= mask,
+            false => self.bits &= !mask,
+        }
+    }
+
     /// Read the Flush to Zero mode bit
     #[inline]
     pub fn fz(self) -> bool {
         self.bits & (1 << 24) != 0
+    }
+
+    /// Sets the Flush to Zero mode bit
+    pub fn set_fz(&mut self, fz: bool) {
+        let mask = 1 << 24;
+        match fz {
+            true => self.bits |= mask,
+            false => self.bits &= !mask,
+        }
     }
 
     /// Read the Rounding Mode control field
@@ -86,10 +149,30 @@ impl Fpscr {
         }
     }
 
+    /// Sets the Rounding Mode control field
+    pub fn set_rmode(&mut self, rmode: RMode) {
+        let mask = 3 << 22;
+        match rmode {
+            RMode::Nearest => self.bits = (self.bits & !mask),
+            RMode::Nearest => self.bits = (self.bits & !mask) | (1 << 22),
+            RMode::Nearest => self.bits = (self.bits & !mask) | (2 << 22),
+            RMode::Nearest => self.bits = self.bits | mask,
+        }
+    }
+
     /// Read the Input Denormal cumulative exception bit
     #[inline]
     pub fn idc(self) -> bool {
         self.bits & (1 << 7) != 0
+    }
+
+    /// Sets the Input Denormal cumulative exception bit
+    pub fn set_idc(&mut self, idc: bool) {
+        let mask = 1 << 7;
+        match idc {
+            true => self.bits |= mask,
+            false => self.bits &= !mask,
+        }
     }
 
     /// Read the Inexact cumulative exception bit
@@ -98,10 +181,28 @@ impl Fpscr {
         self.bits & (1 << 4) != 0
     }
 
+    /// Sets the Inexact cumulative exception bit
+    pub fn set_ixc(&mut self, ixc: bool) {
+        let mask = 1 << 4;
+        match ixc {
+            true => self.bits |= mask,
+            false => self.bits &= !mask,
+        }
+    }
+
     /// Read the Underflow cumulative exception bit
     #[inline]
     pub fn ufc(self) -> bool {
         self.bits & (1 << 3) != 0
+    }
+
+    /// Sets the Underflow cumulative exception bit
+    pub fn set_ufc(&mut self, ufc: bool) {
+        let mask = 1 << 3;
+        match ufc {
+            true => self.bits |= mask,
+            false => self.bits &= !mask,
+        }
     }
 
     /// Read the Overflow cumulative exception bit
@@ -110,16 +211,43 @@ impl Fpscr {
         self.bits & (1 << 2) != 0
     }
 
+    /// Sets the Overflow cumulative exception bit
+    pub fn set_ofc(&mut self, ofc: bool) {
+        let mask = 1 << 2;
+        match ofc {
+            true => self.bits |= mask,
+            false => self.bits &= !mask,
+        }
+    }
+
     /// Read the Division by Zero cumulative exception bit
     #[inline]
     pub fn dzc(self) -> bool {
         self.bits & (1 << 1) != 0
     }
 
+    /// Sets the Division by Zero cumulative exception bit
+    pub fn set_dzc(&mut self, dzc: bool) {
+        let mask = 1 << 1;
+        match dzc {
+            true => self.bits |= mask,
+            false => self.bits &= !mask,
+        }
+    }
+
     /// Read the Invalid Operation cumulative exception bit
     #[inline]
     pub fn ioc(self) -> bool {
         self.bits & (1 << 0) != 0
+    }
+
+    /// Sets the Invalid Operation cumulative exception bit
+    pub fn set_ioc(&mut self, ioc: bool) {
+        let mask = 1 << 0;
+        match ioc {
+            true => self.bits |= mask,
+            false => self.bits &= !mask,
+        }
     }
 }
 

@@ -268,25 +268,25 @@ pub enum RMode {
 impl RMode {
     /// Is Nearest the current rounding mode?
     #[inline]
-    fn is_nearest(self) -> bool {
+    pub fn is_nearest(self) -> bool {
         self == RMode::Nearest
     }
 
     /// Is Plus Infinity the current rounding mode?
     #[inline]
-    fn is_plus_infinity(self) -> bool {
+    pub fn is_plus_infinity(self) -> bool {
         self == RMode::PlusInfinity
     }
 
     /// Is Minus Infinity the current rounding mode?
     #[inline]
-    fn is_minus_infinity(self) -> bool {
+    pub fn is_minus_infinity(self) -> bool {
         self == RMode::MinusInfinity
     }
 
     /// Is Zero the current rounding mode?
     #[inline]
-    fn is_zero(self) -> bool {
+    pub fn is_zero(self) -> bool {
         self == RMode::Zero
     }
 }

@@ -140,10 +140,10 @@ impl Fpscr {
     pub fn set_rmode(&mut self, rmode: RMode) {
         let mask = 3 << 22;
         match rmode {
-            RMode::Nearest => self.bits = (self.bits & !mask),
-            RMode::Nearest => self.bits = (self.bits & !mask) | (1 << 22),
-            RMode::Nearest => self.bits = (self.bits & !mask) | (2 << 22),
-            RMode::Nearest => self.bits = self.bits | mask,
+            RMode::Nearest => self.bits = self.bits & !mask,
+            RMode::PlusInfinity => self.bits = (self.bits & !mask) | (1 << 22),
+            RMode::MinusInfinity => self.bits = (self.bits & !mask) | (2 << 22),
+            RMode::Zero => self.bits = self.bits | mask,
         }
     }
 

@@ -90,6 +90,7 @@ mod test;
 
 /// Core peripherals
 #[allow(non_snake_case)]
+#[allow(clippy::manual_non_exhaustive)]
 pub struct Peripherals {
     /// Cache and branch predictor maintenance operations.
     /// Not available on Armv6-M.

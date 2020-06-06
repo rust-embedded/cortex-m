@@ -27,6 +27,7 @@ impl Fpscr {
     }
 
     /// Sets the Negative condition code flag
+    #[inline]
     pub fn set_n(&mut self, n: bool) {
         let mask = 1 << 31;
         match n {
@@ -42,6 +43,7 @@ impl Fpscr {
     }
 
     /// Sets the Zero condition code flag
+    #[inline]
     pub fn set_z(&mut self, z: bool) {
         let mask = 1 << 30;
         match z {
@@ -57,6 +59,7 @@ impl Fpscr {
     }
 
     /// Sets the Carry condition code flag
+    #[inline]
     pub fn set_c(&mut self, c: bool) {
         let mask = 1 << 29;
         match c {
@@ -72,6 +75,7 @@ impl Fpscr {
     }
 
     /// Sets the Zero condition code flag
+    #[inline]
     pub fn set_v(&mut self, v: bool) {
         let mask = 1 << 28;
         match v {
@@ -87,6 +91,7 @@ impl Fpscr {
     }
 
     /// Sets the Alternative Half Precision bit
+    #[inline]
     pub fn set_ahp(&mut self, ahp: bool) {
         let mask = 1 << 26;
         match ahp {
@@ -102,6 +107,7 @@ impl Fpscr {
     }
 
     /// Sets the Default NaN mode bit
+    #[inline]
     pub fn set_dn(&mut self, dn: bool) {
         let mask = 1 << 25;
         match dn {
@@ -117,6 +123,7 @@ impl Fpscr {
     }
 
     /// Sets the Flush to Zero mode bit
+    #[inline]
     pub fn set_fz(&mut self, fz: bool) {
         let mask = 1 << 24;
         match fz {
@@ -137,6 +144,7 @@ impl Fpscr {
     }
 
     /// Sets the Rounding Mode control field
+    #[inline]
     pub fn set_rmode(&mut self, rmode: RMode) {
         let mask = 3 << 22;
         match rmode {
@@ -154,6 +162,7 @@ impl Fpscr {
     }
 
     /// Sets the Input Denormal cumulative exception bit
+    #[inline]
     pub fn set_idc(&mut self, idc: bool) {
         let mask = 1 << 7;
         match idc {
@@ -169,6 +178,7 @@ impl Fpscr {
     }
 
     /// Sets the Inexact cumulative exception bit
+    #[inline]
     pub fn set_ixc(&mut self, ixc: bool) {
         let mask = 1 << 4;
         match ixc {
@@ -184,6 +194,7 @@ impl Fpscr {
     }
 
     /// Sets the Underflow cumulative exception bit
+    #[inline]
     pub fn set_ufc(&mut self, ufc: bool) {
         let mask = 1 << 3;
         match ufc {
@@ -199,6 +210,7 @@ impl Fpscr {
     }
 
     /// Sets the Overflow cumulative exception bit
+    #[inline]
     pub fn set_ofc(&mut self, ofc: bool) {
         let mask = 1 << 2;
         match ofc {
@@ -214,6 +226,7 @@ impl Fpscr {
     }
 
     /// Sets the Division by Zero cumulative exception bit
+    #[inline]
     pub fn set_dzc(&mut self, dzc: bool) {
         let mask = 1 << 1;
         match dzc {
@@ -229,6 +242,7 @@ impl Fpscr {
     }
 
     /// Sets the Invalid Operation cumulative exception bit
+    #[inline]
     pub fn set_ioc(&mut self, ioc: bool) {
         let mask = 1 << 0;
         match ioc {

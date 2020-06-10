@@ -55,7 +55,7 @@
 //!
 //! - ARMv7-M Architecture Reference Manual (Issue E.b) - Chapter B3
 
-// TODO stand-alone registers: ICTR, ACTLR and STIR
+// TODO stand-alone register: STIR
 
 use core::marker::PhantomData;
 use core::ops;
@@ -72,6 +72,7 @@ pub mod fpb;
 // NOTE(target_arch) is for documentation purposes
 #[cfg(any(has_fpu, target_arch = "x86_64"))]
 pub mod fpu;
+pub mod icb;
 #[cfg(all(not(armv6m), not(armv8m_base)))]
 pub mod itm;
 pub mod mpu;
@@ -111,6 +112,12 @@ pub struct Peripherals {
 
     /// Floating Point Unit.
     pub FPU: FPU,
+
+    /// Implementation Control Block.
+    ///
+    /// The name is from the v8-M spec, but the block existed in earlier
+    /// revisions, without a name.
+    pub ICB: ICB,
 
     /// Instrumentation Trace Macrocell.
     /// Not available on Armv6-M and Armv8-M Baseline.
@@ -180,6 +187,9 @@ impl Peripherals {
                 _marker: PhantomData,
             },
             FPU: FPU {
+                _marker: PhantomData,
+            },
+            ICB: ICB {
                 _marker: PhantomData,
             },
             ITM: ITM {
@@ -362,6 +372,42 @@ impl ops::Deref for FPU {
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
         unsafe { &*Self::ptr() }
+    }
+}
+
+/// Implementation Control Block.
+///
+/// This block contains implementation-defined registers like `ictr` and
+/// `actlr`. It's called the "implementation control block" in the ARMv8-M
+/// standard, but earlier standards contained the registers, just without a
+/// name.
+pub struct ICB {
+    _marker: PhantomData<*const ()>,
+}
+
+unsafe impl Send for ICB {}
+
+impl ICB {
+    /// Returns a pointer to the register block
+    #[inline(always)]
+    pub fn ptr() -> *mut icb::RegisterBlock {
+        0xE000_E004 as *mut _
+    }
+}
+
+impl ops::Deref for ICB {
+    type Target = self::icb::RegisterBlock;
+
+    #[inline(always)]
+    fn deref(&self) -> &Self::Target {
+        unsafe { &*Self::ptr() }
+    }
+}
+
+impl ops::DerefMut for ICB {
+    #[inline(always)]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        unsafe { &mut *Self::ptr() }
     }
 }
 

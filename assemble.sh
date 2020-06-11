@@ -31,7 +31,7 @@ arm-none-eabi-as -g -march=armv8-m.main asm.s -o bin/$crate.o
 arm-none-eabi-as -g -march=armv8-m.main asm-v7.s -o bin/$crate-v7.o
 arm-none-eabi-as -g -march=armv8-m.main asm-v8.s -o bin/$crate-v8.o
 arm-none-eabi-as -g -march=armv8-m.main asm-v8-main.s -o bin/$crate-v8-main.o
-arm-none-eabi-as -g -march=armv7e-m asm-fpu.s -mfpu=fpv5-sp-d16 -o bin/$crate-v8-fpu.o
+arm-none-eabi-as -g -march=armv8-m.main asm-fpu.s -mfpu=fpv5-sp-d16 -o bin/$crate-v8-fpu.o
 ar crs bin/thumbv8m.main-none-eabi.a bin/$crate.o bin/$crate-v7.o bin/$crate-v8.o bin/$crate-v8-main.o
 ar crs bin/thumbv8m.main-none-eabihf.a bin/$crate.o bin/$crate-v7.o bin/$crate-v8.o bin/$crate-v8-main.o bin/$crate-v8-fpu.o
 

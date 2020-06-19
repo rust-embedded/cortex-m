@@ -706,7 +706,7 @@ impl SCB {
         }
     }
 
-    /// Set the PENDSTCLR bit in the ICSR register which will clear a pending SysTick interrupt
+    /// Set the PENDSTSET bit in the ICSR register which will pend a SysTick interrupt
     #[inline]
     pub fn set_pendst() {
         unsafe {

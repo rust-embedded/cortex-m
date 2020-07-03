@@ -14,6 +14,7 @@ readme = "README.md"
 repository = "https://github.com/rust-embedded/cortex-m-rt"
 version = "0.6.11"
 autoexamples = true
+links = "cortex-m-rt" # Prevent multiple versions of cortex-m-rt being linked
 
 [dependencies]
 r0 = "1.0"

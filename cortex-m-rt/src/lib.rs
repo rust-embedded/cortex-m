@@ -689,10 +689,6 @@ pub use macros::exception;
 /// [rfc1414]: https://github.com/rust-lang/rfcs/blob/master/text/1414-rvalue_static_promotion.md
 pub use macros::pre_init;
 
-#[export_name = "error: cortex-m-rt appears more than once in the dependency graph"]
-#[doc(hidden)]
-pub static __ONCE__: () = ();
-
 /// Registers stacked (pushed onto the stack) during an exception.
 #[derive(Clone, Copy)]
 #[repr(C)]

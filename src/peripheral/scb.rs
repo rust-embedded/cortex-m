@@ -330,11 +330,16 @@ impl SCB {
         // Invalidate I-Cache
         cbp.iciallu();
 
-        // Enable I-Cache
-        unsafe { self.ccr.modify(|r| r | SCB_CCR_IC_MASK) };
+        // Enable I-cache
+        extern "C" {
+            // see asm-v7m.s
+            fn __enable_icache();
+        }
 
-        crate::asm::dsb();
-        crate::asm::isb();
+        // NOTE(unsafe): The asm routine manages exclusive access to the SCB
+        // registers and applies the proper barriers; it is technically safe on
+        // its own, and is only `unsafe` here because it's `extern "C"`.
+        unsafe { __enable_icache(); }
     }
 
     /// Disables I-Cache if currently enabled
@@ -392,11 +397,16 @@ impl SCB {
         // Invalidate anything currently in the DCache
         self.invalidate_dcache(cpuid);
 
-        // Now turn on the DCache
-        unsafe { self.ccr.modify(|r| r | SCB_CCR_DC_MASK) };
+        // Now turn on the D-cache
+        extern "C" {
+            // see asm-v7m.s
+            fn __enable_dcache();
+        }
 
-        crate::asm::dsb();
-        crate::asm::isb();
+        // NOTE(unsafe): The asm routine manages exclusive access to the SCB
+        // registers and applies the proper barriers; it is technically safe on
+        // its own, and is only `unsafe` here because it's `extern "C"`.
+        unsafe { __enable_dcache(); }
     }
 
     /// Disables D-cache if currently enabled

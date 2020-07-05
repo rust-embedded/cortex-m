@@ -1019,4 +1019,79 @@ impl SCB {
             });
         }
     }
+
+    /// Return the bit position of the exception enable bit in the SHCSR register
+    #[inline]
+    #[cfg(not(any(armv6m, armv8m_base)))]
+    fn shcsr_enable_shift(exception: Exception) -> Option<u32> {
+        match exception {
+            Exception::MemoryManagement => Some(16),
+            Exception::BusFault => Some(17),
+            Exception::UsageFault => Some(18),
+            #[cfg(armv8m_main)]
+            Exception::SecureFault => Some(19),
+            _ => None,
+        }
+    }
+
+    /// Enable the exception
+    ///
+    /// If the exception is enabled, when the exception is triggered, the exception handler will be executed instead of the
+    /// HardFault handler.
+    /// This function is only allowed on the following exceptions:
+    /// * `MemoryManagement`
+    /// * `BusFault`
+    /// * `UsageFault`
+    /// * `SecureFault` (can only be enabled from Secure state)
+    ///
+    /// Calling this function with any other exception will do nothing.
+    #[inline]
+    #[cfg(not(any(armv6m, armv8m_base)))]
+    pub fn enable(&mut self, exception: Exception) {
+        if let Some(shift) = SCB::shcsr_enable_shift(exception) {
+            // The mutable reference to SCB makes sure that only this code is currently modifying
+            // the register.
+            unsafe { self.shcsr.modify(|value| value | (1 << shift)) }
+        }
+    }
+
+    /// Disable the exception
+    ///
+    /// If the exception is disabled, when the exception is triggered, the HardFault handler will be executed instead of the
+    /// exception handler.
+    /// This function is only allowed on the following exceptions:
+    /// * `MemoryManagement`
+    /// * `BusFault`
+    /// * `UsageFault`
+    /// * `SecureFault` (can not be changed from Non-secure state)
+    ///
+    /// Calling this function with any other exception will do nothing.
+    #[inline]
+    #[cfg(not(any(armv6m, armv8m_base)))]
+    pub fn disable(&mut self, exception: Exception) {
+        if let Some(shift) = SCB::shcsr_enable_shift(exception) {
+            // The mutable reference to SCB makes sure that only this code is currently modifying
+            // the register.
+            unsafe { self.shcsr.modify(|value| value & !(1 << shift)) }
+        }
+    }
+
+    /// Check if an exception is enabled
+    ///
+    /// This function is only allowed on the following exception:
+    /// * `MemoryManagement`
+    /// * `BusFault`
+    /// * `UsageFault`
+    /// * `SecureFault` (can not be read from Non-secure state)
+    ///
+    /// Calling this function with any other exception will read `false`.
+    #[inline]
+    #[cfg(not(any(armv6m, armv8m_base)))]
+    pub fn is_enabled(&self, exception: Exception) -> bool {
+        if let Some(shift) = SCB::shcsr_enable_shift(exception) {
+            (self.shcsr.read() & (1 << shift)) > 0
+        } else {
+            false
+        }
+    }
 }

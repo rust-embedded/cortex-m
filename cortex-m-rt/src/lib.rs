@@ -897,12 +897,11 @@ pub unsafe extern "C" fn Reset() -> ! {
         static mut __edata: u32;
         static __sidata: u32;
 
+        // This symbol will be provided by the user via `#[entry]`
+        fn main() -> !;
     }
 
     extern "Rust" {
-        // This symbol will be provided by the user via `#[entry]`
-        fn main() -> !;
-
         // This symbol will be provided by the user via `#[pre_init]`
         fn __pre_init();
     }

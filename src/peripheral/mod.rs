@@ -231,7 +231,7 @@ unsafe impl Send for CBP {}
 #[cfg(not(armv6m))]
 impl CBP {
     #[inline(always)]
-    pub(crate) unsafe fn new() -> Self {
+    pub(crate) const unsafe fn new() -> Self {
         CBP {
             _marker: PhantomData,
         }
@@ -239,7 +239,7 @@ impl CBP {
 
     /// Returns a pointer to the register block
     #[inline(always)]
-    pub fn ptr() -> *const self::cbp::RegisterBlock {
+    pub const fn ptr() -> *const self::cbp::RegisterBlock {
         0xE000_EF50 as *const _
     }
 }
@@ -264,7 +264,7 @@ unsafe impl Send for CPUID {}
 impl CPUID {
     /// Returns a pointer to the register block
     #[inline(always)]
-    pub fn ptr() -> *const self::cpuid::RegisterBlock {
+    pub const fn ptr() -> *const self::cpuid::RegisterBlock {
         0xE000_ED00 as *const _
     }
 }
@@ -288,7 +288,7 @@ unsafe impl Send for DCB {}
 impl DCB {
     /// Returns a pointer to the register block
     #[inline(always)]
-    pub fn ptr() -> *const dcb::RegisterBlock {
+    pub const fn ptr() -> *const dcb::RegisterBlock {
         0xE000_EDF0 as *const _
     }
 }
@@ -312,7 +312,7 @@ unsafe impl Send for DWT {}
 impl DWT {
     /// Returns a pointer to the register block
     #[inline(always)]
-    pub fn ptr() -> *const dwt::RegisterBlock {
+    pub const fn ptr() -> *const dwt::RegisterBlock {
         0xE000_1000 as *const _
     }
 }
@@ -337,7 +337,7 @@ unsafe impl Send for FPB {}
 impl FPB {
     /// Returns a pointer to the register block
     #[inline(always)]
-    pub fn ptr() -> *const fpb::RegisterBlock {
+    pub const fn ptr() -> *const fpb::RegisterBlock {
         0xE000_2000 as *const _
     }
 }
@@ -363,7 +363,7 @@ unsafe impl Send for FPU {}
 impl FPU {
     /// Returns a pointer to the register block
     #[inline(always)]
-    pub fn ptr() -> *const fpu::RegisterBlock {
+    pub const fn ptr() -> *const fpu::RegisterBlock {
         0xE000_EF30 as *const _
     }
 }
@@ -393,7 +393,7 @@ unsafe impl Send for ICB {}
 impl ICB {
     /// Returns a pointer to the register block
     #[inline(always)]
-    pub fn ptr() -> *mut icb::RegisterBlock {
+    pub const fn ptr() -> *mut icb::RegisterBlock {
         0xE000_E004 as *mut _
     }
 }
@@ -425,7 +425,7 @@ unsafe impl Send for ITM {}
 impl ITM {
     /// Returns a pointer to the register block
     #[inline(always)]
-    pub fn ptr() -> *mut itm::RegisterBlock {
+    pub const fn ptr() -> *mut itm::RegisterBlock {
         0xE000_0000 as *mut _
     }
 }
@@ -458,7 +458,7 @@ unsafe impl Send for MPU {}
 impl MPU {
     /// Returns a pointer to the register block
     #[inline(always)]
-    pub fn ptr() -> *const mpu::RegisterBlock {
+    pub const fn ptr() -> *const mpu::RegisterBlock {
         0xE000_ED90 as *const _
     }
 }
@@ -482,7 +482,7 @@ unsafe impl Send for NVIC {}
 impl NVIC {
     /// Returns a pointer to the register block
     #[inline(always)]
-    pub fn ptr() -> *const nvic::RegisterBlock {
+    pub const fn ptr() -> *const nvic::RegisterBlock {
         0xE000_E100 as *const _
     }
 }
@@ -507,7 +507,7 @@ unsafe impl Send for SAU {}
 impl SAU {
     /// Returns a pointer to the register block
     #[inline(always)]
-    pub fn ptr() -> *const sau::RegisterBlock {
+    pub const fn ptr() -> *const sau::RegisterBlock {
         0xE000_EDD0 as *const _
     }
 }
@@ -532,7 +532,7 @@ unsafe impl Send for SCB {}
 impl SCB {
     /// Returns a pointer to the register block
     #[inline(always)]
-    pub fn ptr() -> *const scb::RegisterBlock {
+    pub const fn ptr() -> *const scb::RegisterBlock {
         0xE000_ED04 as *const _
     }
 }
@@ -556,7 +556,7 @@ unsafe impl Send for SYST {}
 impl SYST {
     /// Returns a pointer to the register block
     #[inline(always)]
-    pub fn ptr() -> *const syst::RegisterBlock {
+    pub const fn ptr() -> *const syst::RegisterBlock {
         0xE000_E010 as *const _
     }
 }
@@ -581,7 +581,7 @@ unsafe impl Send for TPIU {}
 impl TPIU {
     /// Returns a pointer to the register block
     #[inline(always)]
-    pub fn ptr() -> *const tpiu::RegisterBlock {
+    pub const fn ptr() -> *const tpiu::RegisterBlock {
         0xE004_0000 as *const _
     }
 }

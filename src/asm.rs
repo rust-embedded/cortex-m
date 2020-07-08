@@ -30,7 +30,7 @@ pub fn bkpt() {
 /// level, however it is dependent on the specific architecture and core configuration.
 ///
 /// NOTE that the delay can take much longer if interrupts are serviced during its execution 
-/// and the execution time may wary with other factors. This delay is mainly useful for simple
+/// and the execution time may vary with other factors. This delay is mainly useful for simple
 /// timer-less initialisation of peripherals iff accurate timing is not essential. In any other
 /// case please use more accurate methods to cause a delay.
 #[inline]

@@ -31,8 +31,8 @@ pub fn bkpt() {
 ///
 /// NOTE that the delay can take much longer if interrupts are serviced during its execution 
 /// and the execution time may vary with other factors. This delay is mainly useful for simple
-/// timer-less initialization of peripherals iff accurate timing is not essential. In any other
-/// case please use more accurate methods to cause a delay.
+/// timer-less initialization of peripherals if and only if accurate timing is not essential. In
+/// any other case please use a more accurate method to produce a delay.
 #[inline]
 pub fn delay(_n: u32) {
     // NOTE(divide by 4) is easier to compute than `/ 3` because it's just a shift (`>> 2`).

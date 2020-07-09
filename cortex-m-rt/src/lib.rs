@@ -689,6 +689,14 @@ pub use macros::exception;
 /// [rfc1414]: https://github.com/rust-lang/rfcs/blob/master/text/1414-rvalue_static_promotion.md
 pub use macros::pre_init;
 
+// We export this static with an informative name so that if an application attempts to link
+// two copies of cortex-m-rt together, linking will fail. We also declare a links key in
+// Cargo.toml which is the more modern way to solve the same problem, but we have to keep
+// __ONCE__ around to prevent linking with versions before the links key was added.
+#[export_name = "error: cortex-m-rt appears more than once in the dependency graph"]
+#[doc(hidden)]
+pub static __ONCE__: () = ();
+
 /// Registers stacked (pushed onto the stack) during an exception.
 #[derive(Clone, Copy)]
 #[repr(C)]

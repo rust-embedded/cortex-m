@@ -4,7 +4,7 @@ use volatile_register::RW;
 #[cfg(not(armv6m))]
 use volatile_register::{RO, WO};
 
-use crate::interrupt::Nr;
+use crate::interrupt::InterruptNumber;
 use crate::peripheral::NVIC;
 
 /// Register block
@@ -86,9 +86,9 @@ impl NVIC {
     #[inline]
     pub fn request<I>(&mut self, interrupt: I)
     where
-        I: Nr,
+        I: InterruptNumber,
     {
-        let nr = interrupt.nr();
+        let nr = interrupt.number();
 
         unsafe {
             self.stir.write(u32::from(nr));
@@ -99,9 +99,9 @@ impl NVIC {
     #[inline]
     pub fn mask<I>(interrupt: I)
     where
-        I: Nr,
+        I: InterruptNumber,
     {
-        let nr = interrupt.nr();
+        let nr = interrupt.number();
         // NOTE(unsafe) this is a write to a stateless register
         unsafe { (*Self::ptr()).icer[usize::from(nr / 32)].write(1 << (nr % 32)) }
     }
@@ -112,9 +112,9 @@ impl NVIC {
     #[inline]
     pub unsafe fn unmask<I>(interrupt: I)
     where
-        I: Nr,
+        I: InterruptNumber,
     {
-        let nr = interrupt.nr();
+        let nr = interrupt.number();
         // NOTE(ptr) this is a write to a stateless register
         (*Self::ptr()).iser[usize::from(nr / 32)].write(1 << (nr % 32))
     }
@@ -127,11 +127,11 @@ impl NVIC {
     #[inline]
     pub fn get_priority<I>(interrupt: I) -> u8
     where
-        I: Nr,
+        I: InterruptNumber,
     {
         #[cfg(not(armv6m))]
         {
-            let nr = interrupt.nr();
+            let nr = interrupt.number();
             // NOTE(unsafe) atomic read with no side effects
             unsafe { (*Self::ptr()).ipr[usize::from(nr)].read() }
         }
@@ -139,8 +139,8 @@ impl NVIC {
         #[cfg(armv6m)]
         {
             // NOTE(unsafe) atomic read with no side effects
-            let ipr_n = unsafe { (*Self::ptr()).ipr[Self::ipr_index(&interrupt)].read() };
-            let prio = (ipr_n >> Self::ipr_shift(&interrupt)) & 0x0000_00ff;
+            let ipr_n = unsafe { (*Self::ptr()).ipr[Self::ipr_index(interrupt)].read() };
+            let prio = (ipr_n >> Self::ipr_shift(interrupt)) & 0x0000_00ff;
             prio as u8
         }
     }
@@ -150,9 +150,9 @@ impl NVIC {
     #[inline]
     pub fn is_active<I>(interrupt: I) -> bool
     where
-        I: Nr,
+        I: InterruptNumber,
     {
-        let nr = interrupt.nr();
+        let nr = interrupt.number();
         let mask = 1 << (nr % 32);
 
         // NOTE(unsafe) atomic read with no side effects
@@ -163,9 +163,9 @@ impl NVIC {
     #[inline]
     pub fn is_enabled<I>(interrupt: I) -> bool
     where
-        I: Nr,
+        I: InterruptNumber,
     {
-        let nr = interrupt.nr();
+        let nr = interrupt.number();
         let mask = 1 << (nr % 32);
 
         // NOTE(unsafe) atomic read with no side effects
@@ -176,9 +176,9 @@ impl NVIC {
     #[inline]
     pub fn is_pending<I>(interrupt: I) -> bool
     where
-        I: Nr,
+        I: InterruptNumber,
     {
-        let nr = interrupt.nr();
+        let nr = interrupt.number();
         let mask = 1 << (nr % 32);
 
         // NOTE(unsafe) atomic read with no side effects
@@ -189,9 +189,9 @@ impl NVIC {
     #[inline]
     pub fn pend<I>(interrupt: I)
     where
-        I: Nr,
+        I: InterruptNumber,
     {
-        let nr = interrupt.nr();
+        let nr = interrupt.number();
 
         // NOTE(unsafe) atomic stateless write; ICPR doesn't store any state
         unsafe { (*Self::ptr()).ispr[usize::from(nr / 32)].write(1 << (nr % 32)) }
@@ -212,19 +212,19 @@ impl NVIC {
     #[inline]
     pub unsafe fn set_priority<I>(&mut self, interrupt: I, prio: u8)
     where
-        I: Nr,
+        I: InterruptNumber,
     {
         #[cfg(not(armv6m))]
         {
-            let nr = interrupt.nr();
+            let nr = interrupt.number();
             self.ipr[usize::from(nr)].write(prio)
         }
 
         #[cfg(armv6m)]
         {
-            self.ipr[Self::ipr_index(&interrupt)].modify(|value| {
-                let mask = 0x0000_00ff << Self::ipr_shift(&interrupt);
-                let prio = u32::from(prio) << Self::ipr_shift(&interrupt);
+            self.ipr[Self::ipr_index(interrupt)].modify(|value| {
+                let mask = 0x0000_00ff << Self::ipr_shift(interrupt);
+                let prio = u32::from(prio) << Self::ipr_shift(interrupt);
 
                 (value & !mask) | prio
             })
@@ -235,9 +235,9 @@ impl NVIC {
     #[inline]
     pub fn unpend<I>(interrupt: I)
     where
-        I: Nr,
+        I: InterruptNumber,
     {
-        let nr = interrupt.nr();
+        let nr = interrupt.number();
 
         // NOTE(unsafe) atomic stateless write; ICPR doesn't store any state
         unsafe { (*Self::ptr()).icpr[usize::from(nr / 32)].write(1 << (nr % 32)) }
@@ -245,19 +245,19 @@ impl NVIC {
 
     #[cfg(armv6m)]
     #[inline]
-    fn ipr_index<I>(interrupt: &I) -> usize
+    fn ipr_index<I>(interrupt: I) -> usize
     where
-        I: Nr,
+        I: InterruptNumber,
     {
-        usize::from(interrupt.nr()) / 4
+        usize::from(interrupt.number()) / 4
     }
 
     #[cfg(armv6m)]
     #[inline]
-    fn ipr_shift<I>(interrupt: &I) -> usize
+    fn ipr_shift<I>(interrupt: I) -> usize
     where
-        I: Nr,
+        I: InterruptNumber,
     {
-        (usize::from(interrupt.nr()) % 4) * 8
+        (usize::from(interrupt.number()) % 4) * 8
     }
 }

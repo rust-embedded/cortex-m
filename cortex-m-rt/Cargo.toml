@@ -19,9 +19,9 @@ links = "cortex-m-rt" # Prevent multiple versions of cortex-m-rt being linked
 [dependencies]
 r0 = "1.0"
 cortex-m-rt-macros = { path = "macros", version = "=0.6.11" }
+cortex-m = "0.6"
 
 [dev-dependencies]
-cortex-m = "0.6"
 panic-halt = "0.2.0"
 cortex-m-semihosting = "0.3"
 

@@ -916,12 +916,12 @@ pub unsafe extern "C" fn Reset() -> ! {
     r0::zero_bss(&mut __sbss, &mut __ebss);
     r0::init_data(&mut __sdata, &mut __edata, &__sidata);
 
+    #[allow(clippy::match_single_binding)]
     match () {
         #[cfg(not(has_fpu))]
         () => main(),
         #[cfg(has_fpu)]
         () => {
-            // We redefine these here to avoid pulling the `cortex-m` crate as a dependency
             const SCB_CPACR: *mut u32 = 0xE000_ED88 as *mut u32;
             const SCB_CPACR_FPU_ENABLE: u32 = 0b01_01 << 20;
             const SCB_CPACR_FPU_USER: u32 = 0b10_10 << 20;
@@ -931,6 +931,9 @@ pub unsafe extern "C" fn Reset() -> ! {
                 SCB_CPACR,
                 *SCB_CPACR | SCB_CPACR_FPU_ENABLE | SCB_CPACR_FPU_USER,
             );
+
+            cortex_m::asm::dsb();
+            cortex_m::asm::isb();
 
             // this is used to prevent the compiler from inlining the user `main` into the reset
             // handler. Inlining can cause the FPU instructions in the user `main` to be executed

@@ -150,14 +150,17 @@ pub struct Peripherals {
 // NOTE `no_mangle` is used here to prevent linking different minor versions of this crate as that
 // would let you `take` the core peripherals more than once (one per minor version)
 #[no_mangle]
-static mut CORE_PERIPHERALS: bool = false;
+static CORE_PERIPHERALS: () = ();
+
+/// Set to `true` when `take` or `steal` was called to make `Peripherals` a singleton.
+static mut TAKEN: bool = false;
 
 impl Peripherals {
     /// Returns all the core peripherals *once*
     #[inline]
     pub fn take() -> Option<Self> {
         interrupt::free(|_| {
-            if unsafe { CORE_PERIPHERALS } {
+            if unsafe { TAKEN } {
                 None
             } else {
                 Some(unsafe { Peripherals::steal() })
@@ -168,7 +171,7 @@ impl Peripherals {
     /// Unchecked version of `Peripherals::take`
     #[inline]
     pub unsafe fn steal() -> Self {
-        CORE_PERIPHERALS = true;
+        TAKEN = true;
 
         Peripherals {
             CBP: CBP {

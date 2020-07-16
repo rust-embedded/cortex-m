@@ -6,7 +6,7 @@ fn main() {
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
     let name = env::var("CARGO_PKG_NAME").unwrap();
 
-    if target.starts_with("thumb") && env::var_os("CARGO_FEATURE_INLINE_ASM").is_none() {
+    if target.starts_with("thumb") {
         fs::copy(
             format!("bin/{}.a", target),
             out_dir.join(format!("lib{}.a", name)),

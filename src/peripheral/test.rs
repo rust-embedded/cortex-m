@@ -100,11 +100,11 @@ fn mpu() {
     assert_eq!(address(&mpu.rbar), 0xE000ED9C);
     assert_eq!(address(&mpu.rasr), 0xE000EDA0);
     assert_eq!(address(&mpu.rbar_a1), 0xE000EDA4);
-    assert_eq!(address(&mpu.rsar_a1), 0xE000EDA8);
+    assert_eq!(address(&mpu.rasr_a1), 0xE000EDA8);
     assert_eq!(address(&mpu.rbar_a2), 0xE000EDAC);
-    assert_eq!(address(&mpu.rsar_a2), 0xE000EDB0);
+    assert_eq!(address(&mpu.rasr_a2), 0xE000EDB0);
     assert_eq!(address(&mpu.rbar_a3), 0xE000EDB4);
-    assert_eq!(address(&mpu.rsar_a3), 0xE000EDB8);
+    assert_eq!(address(&mpu.rasr_a3), 0xE000EDB8);
 }
 
 #[test]

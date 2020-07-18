@@ -18,16 +18,16 @@ pub struct RegisterBlock {
     pub rasr: RW<u32>,
     /// Alias 1 of RBAR
     pub rbar_a1: RW<u32>,
-    /// Alias 1 of RSAR
-    pub rsar_a1: RW<u32>,
+    /// Alias 1 of RASR
+    pub rasr_a1: RW<u32>,
     /// Alias 2 of RBAR
     pub rbar_a2: RW<u32>,
-    /// Alias 2 of RSAR
-    pub rsar_a2: RW<u32>,
+    /// Alias 2 of RASR
+    pub rasr_a2: RW<u32>,
     /// Alias 3 of RBAR
     pub rbar_a3: RW<u32>,
-    /// Alias 3 of RSAR
-    pub rsar_a3: RW<u32>,
+    /// Alias 3 of RASR
+    pub rasr_a3: RW<u32>,
 }
 
 /// Register block for ARMv8-M

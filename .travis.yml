@@ -89,6 +89,7 @@ branches:
     - master
     - staging
     - trying
+    - v0.6.x
 
 notifications:
   email:

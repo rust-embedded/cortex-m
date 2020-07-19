@@ -10,7 +10,7 @@ pub fn disable() {
     match () {
         #[cfg(all(cortex_m, feature = "inline-asm"))]
         () => unsafe {
-            asm!("cpsid i" ::: "memory" : "volatile");
+            llvm_asm!("cpsid i" ::: "memory" : "volatile");
         },
 
         #[cfg(all(cortex_m, not(feature = "inline-asm")))]
@@ -37,7 +37,7 @@ pub fn disable() {
 pub unsafe fn enable() {
     match () {
         #[cfg(all(cortex_m, feature = "inline-asm"))]
-        () => asm!("cpsie i" ::: "memory" : "volatile"),
+        () => llvm_asm!("cpsie i" ::: "memory" : "volatile"),
 
         #[cfg(all(cortex_m, not(feature = "inline-asm")))]
         () => {

@@ -8,7 +8,7 @@ pub fn read() -> u8 {
         () => {
             let r: u32;
             unsafe {
-                asm!("mrs $0, BASEPRI" : "=r"(r) ::: "volatile");
+                llvm_asm!("mrs $0, BASEPRI" : "=r"(r) ::: "volatile");
             }
             r as u8
         }
@@ -37,10 +37,10 @@ pub unsafe fn write(_basepri: u8) {
         #[cfg(all(cortex_m, feature = "inline-asm"))]
         () => match () {
             #[cfg(not(feature = "cm7-r0p1"))]
-            () => asm!("msr BASEPRI, $0" :: "r"(_basepri) : "memory" : "volatile"),
+            () => llvm_asm!("msr BASEPRI, $0" :: "r"(_basepri) : "memory" : "volatile"),
             #[cfg(feature = "cm7-r0p1")]
             () => crate::interrupt::free(
-                |_| asm!("msr BASEPRI, $0" :: "r"(_basepri) : "memory" : "volatile"),
+                |_| llvm_asm!("msr BASEPRI, $0" :: "r"(_basepri) : "memory" : "volatile"),
             ),
         },
 

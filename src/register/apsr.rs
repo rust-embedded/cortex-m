@@ -55,7 +55,7 @@ pub fn read() -> Apsr {
         () => {
             let r: u32;
             unsafe {
-                asm!("mrs $0, APSR" : "=r"(r) ::: "volatile");
+                llvm_asm!("mrs $0, APSR" : "=r"(r) ::: "volatile");
             }
             Apsr { bits: r }
         }

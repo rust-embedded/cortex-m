@@ -34,7 +34,7 @@ pub fn read() -> Primask {
                 #[cfg(feature = "inline-asm")]
                 () => {
                     let r: u32;
-                    unsafe { asm!("mrs $0, PRIMASK" : "=r"(r) ::: "volatile") }
+                    unsafe { llvm_asm!("mrs $0, PRIMASK" : "=r"(r) ::: "volatile") }
                     r
                 }
 

@@ -13,11 +13,11 @@ use core::ptr;
 use rt::entry;
 
 // This large static array uses most of .rodata
-static RODATA: [u8; 48*1024] = [1u8; 48*1024];
+static RODATA: [u8; 48 * 1024] = [1u8; 48 * 1024];
 
 // This large mutable array causes .data to use the rest of FLASH
 // without also overflowing RAM.
-static mut DATA: [u8; 16*1024] = [1u8; 16*1024];
+static mut DATA: [u8; 16 * 1024] = [1u8; 16 * 1024];
 
 #[entry]
 fn main() -> ! {

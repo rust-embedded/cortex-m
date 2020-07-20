@@ -1,0 +1,34 @@
+on:
+  push:
+    branches: [ staging, trying, master ]
+  pull_request:
+
+name: Continuous integration
+
+jobs:
+  ci-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # All generated code should be running on stable now
+        rust: [nightly, stable, 1.39.0]
+
+        # The default target we're compiling on and for
+        TARGET: [thumbv6m-none-eabi, thumbv7m-none-eabi, thumbv7em-none-eabi, thumbv7em-none-eabihf, thumbv8m.main-none-eabi]
+
+        include:
+          # Nightly is only for reference and allowed to fail
+          - rust: nightly
+            experimental: true
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          target: ${{ matrix.TARGET }}
+          override: true
+          components: rustfmt
+      - name: Run CI script for ${{ matrix.TARGET }} under ${{ matrix.rust }}
+        run: TARGET=${{ matrix.TARGET }} bash ci/script.sh

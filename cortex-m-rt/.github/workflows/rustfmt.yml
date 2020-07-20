@@ -3,9 +3,11 @@ on:
     branches: [ staging, trying, master ]
   pull_request:
 
-name: Clippy check
+name: Code formatting check
+
 jobs:
-  clippy_check:
+  fmt:
+    name: Rustfmt
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -14,7 +16,8 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-          components: clippy
-      - uses: actions-rs/clippy-check@v1
+          components: rustfmt
+      - uses: actions-rs/cargo@v1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          command: fmt
+          args: --all -- --check

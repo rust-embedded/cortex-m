@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.6.3] - 2020-07-20
+
+### Added
+
+- Initial Cortex-M Security Extension support for armv8m
+- `UDF` intrinsic
+- Methods to enable/disable exceptions in SCB
+
+### Fixed
+
+- Fix bug in `asm::delay` not updating status clobber flags
+- Swapped to `llvm_asm!` to support inline assembly on new nightlies
+- Our precompiled assembly routines have additional debug information
+- ITM `is_fifo_ready` improved to support armv8
+- Cache enabling moved to pre-built assembly routines to prevent possible
+  undefined behaviour
+
 ## [v0.6.2] - 2020-01-12
 
 ### Added
@@ -572,7 +589,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.6.2...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.6.3...HEAD
+[v0.6.3]: https://github.com/rust-embedded/cortex-m/compare/v0.6.2...v0.6.3
 [v0.6.2]: https://github.com/rust-embedded/cortex-m/compare/v0.6.1...v0.6.2
 [v0.6.1]: https://github.com/rust-embedded/cortex-m/compare/v0.6.0...v0.6.1
 [v0.6.0]: https://github.com/rust-embedded/cortex-m/compare/v0.5.8...v0.6.0

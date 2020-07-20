@@ -53,8 +53,19 @@ impl Stim {
     }
 
     /// Returns `true` if the stimulus port is ready to accept more data
+    #[cfg(not(armv8m))]
     #[inline]
     pub fn is_fifo_ready(&self) -> bool {
-        unsafe { ptr::read_volatile(self.register.get()) == 1 }
+        unsafe { ptr::read_volatile(self.register.get()) & 0b1 == 1 }
+    }
+
+    /// Returns `true` if the stimulus port is ready to accept more data
+    #[cfg(armv8m)]
+    #[inline]
+    pub fn is_fifo_ready(&self) -> bool {
+        // ARMv8-M adds a disabled bit; we indicate that we are ready to
+        // proceed with a stimulus write if the port is either ready (bit 0) or
+        // disabled (bit 1).
+        unsafe { ptr::read_volatile(self.register.get()) & 0b11 != 0 }
     }
 }

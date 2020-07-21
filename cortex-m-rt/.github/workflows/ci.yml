@@ -36,4 +36,4 @@ jobs:
       - name: Install qemu
         run: sudo apt-get install qemu-system-arm
       - name: Run CI script for ${{ matrix.TARGET }} under ${{ matrix.rust }}
-        run: TARGET=${{ matrix.TARGET }} bash ci/script.sh
+        run: TARGET=${{ matrix.TARGET }} TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh

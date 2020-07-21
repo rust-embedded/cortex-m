@@ -33,5 +33,7 @@ jobs:
           target: ${{ matrix.TARGET }}
           override: true
           components: rustfmt
+      - name: Install qemu
+        run: sudo apt-get install qemu-system-arm
       - name: Run CI script for ${{ matrix.TARGET }} under ${{ matrix.rust }}
         run: TARGET=${{ matrix.TARGET }} bash ci/script.sh

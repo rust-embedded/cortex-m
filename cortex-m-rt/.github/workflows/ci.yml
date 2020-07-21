@@ -14,7 +14,7 @@ jobs:
         rust: [nightly, stable, 1.39.0]
 
         # The default target we're compiling on and for
-        TARGET: [thumbv6m-none-eabi, thumbv7m-none-eabi, thumbv7em-none-eabi, thumbv7em-none-eabihf, thumbv8m.main-none-eabi]
+        TARGET: [x86_64-unknown-linux-gnu, thumbv6m-none-eabi, thumbv7m-none-eabi, thumbv7em-none-eabi, thumbv7em-none-eabihf, thumbv8m.main-none-eabi]
 
         include:
           # Nightly is only for reference and allowed to fail

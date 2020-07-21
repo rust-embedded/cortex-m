@@ -13,5 +13,6 @@ status = [
   "ci-linux (1.39.0, thumbv7m-none-eabi)",
   "ci-linux (1.39.0, thumbv7em-none-eabi)",
   "ci-linux (1.39.0, thumbv7em-none-eabihf)",
-  "ci-linux (1.39.0, thumbv8m.main-none-eabi)"
+  "ci-linux (1.39.0, thumbv8m.main-none-eabi)",
+  "Rustfmt"
 ]

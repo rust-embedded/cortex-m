@@ -13,7 +13,8 @@ fn main() {
         fs::copy(
             format!("bin/{}.a", target),
             out_dir.join("libcortex-m-rt.a"),
-        ).unwrap();
+        )
+        .unwrap();
         println!("cargo:rustc-link-lib=static=cortex-m-rt");
     }
 
@@ -34,7 +35,8 @@ fn main() {
 /* Provides weak aliases (cf. PROVIDED) for device specific interrupt handlers */
 /* This will usually be provided by a device crate generated using svd2rust (see `device.x`) */
 INCLUDE device.x"#
-        ).unwrap();
+        )
+        .unwrap();
         f
     } else {
         let mut f = File::create(out.join("link.x")).unwrap();
@@ -55,9 +57,9 @@ INCLUDE device.x"#
         println!("cargo:rustc-cfg=armv8m");
         240
     } else {
-       // Non ARM target. We assume you're just testing the syntax.
-       // This value seems as soon as any
-       240
+        // Non ARM target. We assume you're just testing the syntax.
+        // This value seems as soon as any
+        240
     };
 
     // checking the size of the interrupts portion of the vector table is sub-architecture dependent
@@ -71,7 +73,8 @@ handlers.");
 "#,
         max_int_handlers * 4 + 0x40,
         max_int_handlers
-    ).unwrap();
+    )
+    .unwrap();
 
     println!("cargo:rustc-link-search={}", out.display());
 

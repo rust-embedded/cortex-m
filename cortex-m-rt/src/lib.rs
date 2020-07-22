@@ -283,7 +283,7 @@
 //! IRQ number = 2, and `Bar`, with IRQ number = 4.
 //!
 //! ```no_run
-//! union Vector {
+//! pub union Vector {
 //!     handler: unsafe extern "C" fn(),
 //!     reserved: usize,
 //! }

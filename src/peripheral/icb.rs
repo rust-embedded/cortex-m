@@ -1,6 +1,8 @@
 //! Implementation Control Block
 
-use volatile_register::{RO, RW};
+#[cfg(any(armv7m, armv8m, target_arch = "x86_64"))]
+use volatile_register::RO;
+use volatile_register::RW;
 
 /// Register block
 #[repr(C)]

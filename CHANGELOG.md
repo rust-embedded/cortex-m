@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- New `InterruptNumber` trait is now required on interrupt arguments to the
+  various NVIC functions, replacing the previous use of `Nr` from bare-metal.
+
 ## [v0.6.2] - 2020-01-12
 
 ### Added

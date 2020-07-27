@@ -238,7 +238,7 @@ impl CBP {
     }
 
     /// Pointer to the register block
-    pub const CBP_PTR: *const self::cbp::RegisterBlock = 0xE000_EF50 as *const _;
+    pub const PTR: *const self::cbp::RegisterBlock = 0xE000_EF50 as *const _;
 
     /// Returns a pointer to the register block (to be deprecated in 0.7)
     #[inline(always)]
@@ -266,7 +266,7 @@ unsafe impl Send for CPUID {}
 
 impl CPUID {
     /// Pointer to the register block
-    pub const CPUID_PTR: *const self::cpuid::RegisterBlock = 0xE000_ED00 as *const _;
+    pub const PTR: *const self::cpuid::RegisterBlock = 0xE000_ED00 as *const _;
 
     /// Returns a pointer to the register block (to be deprecated in 0.7)
     #[inline(always)]
@@ -293,7 +293,7 @@ unsafe impl Send for DCB {}
 
 impl DCB {
     /// Pointer to the register block
-    pub const DCB_PTR: *const dcb::RegisterBlock = 0xE000_EDF0 as *const _;
+    pub const PTR: *const dcb::RegisterBlock = 0xE000_EDF0 as *const _;
 
     /// Returns a pointer to the register block (to be deprecated in 0.7)
     #[inline(always)]
@@ -320,7 +320,7 @@ unsafe impl Send for DWT {}
 
 impl DWT {
     /// Pointer to the register block
-    pub const DWT_PTR: *const dwt::RegisterBlock = 0xE000_1000 as *const _;
+    pub const PTR: *const dwt::RegisterBlock = 0xE000_1000 as *const _;
 
     /// Returns a pointer to the register block (to be deprecated in 0.7)
     #[inline(always)]
@@ -348,7 +348,7 @@ unsafe impl Send for FPB {}
 #[cfg(not(armv6m))]
 impl FPB {
     /// Pointer to the register block
-    pub const FPB_PTR: *const fpb::RegisterBlock = 0xE000_2000 as *const _;
+    pub const PTR: *const fpb::RegisterBlock = 0xE000_2000 as *const _;
 
     /// Returns a pointer to the register block (to be deprecated in 0.7)
     #[inline(always)]
@@ -377,7 +377,7 @@ unsafe impl Send for FPU {}
 #[cfg(any(has_fpu, target_arch = "x86_64"))]
 impl FPU {
     /// Pointer to the register block
-    pub const FPU_PTR: *const fpu::RegisterBlock = 0xE000_EF30 as *const _;
+    pub const PTR: *const fpu::RegisterBlock = 0xE000_EF30 as *const _;
 
     /// Returns a pointer to the register block (to be deprecated in 0.7)
     #[inline(always)]
@@ -410,7 +410,7 @@ unsafe impl Send for ICB {}
 
 impl ICB {
     /// Pointer to the register block
-    pub const ICB_PTR: *mut icb::RegisterBlock = 0xE000_E004 as *mut _;
+    pub const PTR: *mut icb::RegisterBlock = 0xE000_E004 as *mut _;
 
     /// Returns a pointer to the register block (to be deprecated in 0.7)
     #[inline(always)]
@@ -445,7 +445,7 @@ unsafe impl Send for ITM {}
 #[cfg(all(not(armv6m), not(armv8m_base)))]
 impl ITM {
     /// Pointer to the register block
-    pub const ITM_PTR: *mut itm::RegisterBlock = 0xE000_0000 as *mut _;
+    pub const PTR: *mut itm::RegisterBlock = 0xE000_0000 as *mut _;
 
     /// Returns a pointer to the register block (to be deprecated in 0.7)
     #[inline(always)]
@@ -481,7 +481,7 @@ unsafe impl Send for MPU {}
 
 impl MPU {
     /// Pointer to the register block
-    pub const MPU_PTR: *const mpu::RegisterBlock = 0xE000_ED90 as *const _;
+    pub const PTR: *const mpu::RegisterBlock = 0xE000_ED90 as *const _;
 
     /// Returns a pointer to the register block (to be deprecated in 0.7)
     #[inline(always)]
@@ -508,7 +508,7 @@ unsafe impl Send for NVIC {}
 
 impl NVIC {
     /// Pointer to the register block
-    pub const NVIC_PTR: *const nvic::RegisterBlock = 0xE000_E100 as *const _;
+    pub const PTR: *const nvic::RegisterBlock = 0xE000_E100 as *const _;
 
     /// Returns a pointer to the register block (to be deprecated in 0.7)
     #[inline(always)]
@@ -536,7 +536,7 @@ unsafe impl Send for SAU {}
 #[cfg(armv8m)]
 impl SAU {
     /// Pointer to the register block
-    pub const SAU_PTR: *const sau::RegisterBlock = 0xE000_EDD0 as *const _;
+    pub const PTR: *const sau::RegisterBlock = 0xE000_EDD0 as *const _;
 
     /// Returns a pointer to the register block (to be deprecated in 0.7)
     #[inline(always)]
@@ -564,7 +564,7 @@ unsafe impl Send for SCB {}
 
 impl SCB {
     /// Pointer to the register block
-    pub const SCB_PTR: *const scb::RegisterBlock = 0xE000_ED04 as *const _;
+    pub const PTR: *const scb::RegisterBlock = 0xE000_ED04 as *const _;
 
     /// Returns a pointer to the register block (to be deprecated in 0.7)
     #[inline(always)]
@@ -591,7 +591,7 @@ unsafe impl Send for SYST {}
 
 impl SYST {
     /// Pointer to the register block
-    pub const SYST_PTR: *const syst::RegisterBlock = 0xE000_E010 as *const _;
+    pub const PTR: *const syst::RegisterBlock = 0xE000_E010 as *const _;
 
     /// Returns a pointer to the register block (to be deprecated in 0.7)
     #[inline(always)]
@@ -619,7 +619,7 @@ unsafe impl Send for TPIU {}
 #[cfg(not(armv6m))]
 impl TPIU {
     /// Pointer to the register block
-    pub const TPIU_PTR: *const tpiu::RegisterBlock = 0xE004_0000 as *const _;
+    pub const PTR: *const tpiu::RegisterBlock = 0xE004_0000 as *const _;
 
     /// Returns a pointer to the register block (to be deprecated in 0.7)
     #[inline(always)]

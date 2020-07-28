@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - New `InterruptNumber` trait is now required on interrupt arguments to the
   various NVIC functions, replacing the previous use of `Nr` from bare-metal.
+- Associated const `PTR` is introduced to Core Peripherals to
+  eventually replace the existing `ptr()` API.
 
 ## [v0.6.2] - 2020-01-12
 

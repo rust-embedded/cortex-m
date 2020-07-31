@@ -387,6 +387,41 @@
 //! undefined behavior. At some point in the future we may add an attribute to safely place static
 //! variables in this section.
 //!
+//! ## Extra Sections
+//!
+//! Some microcontrollers provide additional memory regions beyond RAM and FLASH.
+//! For example, some STM32 devices provide "CCM" or core-coupled RAM that is
+//! only accessible from the core. In order to access these using
+//! [`link_section`] attributes from your code, you need to modify `memory.x`
+//! to declare the additional sections:
+//!
+//! [`link_section`]: https://doc.rust-lang.org/reference/abi.html#the-link_section-attribute
+//!
+//! ```text
+//! MEMORY
+//! {
+//!     FLASH  (rx) : ORIGIN = 0x08000000, LENGTH = 1024K
+//!     RAM    (rw) : ORIGIN = 0x20000000, LENGTH = 128K
+//!     CCMRAM (rw) : ORIGIN = 0x10000000, LENGTH = 64K
+//! }
+//!
+//! SECTIONS
+//! {
+//!     .ccmram (NOLOAD) : ALIGN(4)
+//!     {
+//!         *(.ccmram .ccmram.*);
+//!         . = ALIGN(4);
+//!     } > CCMRAM
+//! } INSERT AFTER .bss;
+//! ```
+//!
+//! You can then use something like this to place a variable into this specific section of memory:
+//!
+//! ```no_run,edition2018
+//! #[link_section=".ccmram.BUFFERS"]
+//! static mut BUF: [u8; 1024] = [0u8; 1024];
+//! ```
+//!
 //! [attr-entry]: attr.entry.html
 //! [attr-exception]: attr.exception.html
 //! [attr-pre_init]: attr.pre_init.html

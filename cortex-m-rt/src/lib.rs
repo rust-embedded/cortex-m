@@ -392,8 +392,10 @@
 //! Some microcontrollers provide additional memory regions beyond RAM and FLASH.
 //! For example, some STM32 devices provide "CCM" or core-coupled RAM that is
 //! only accessible from the core. In order to access these using
-//! `#[link_section=".foo"]` from your code, you need to modify `memory.x`
+//! [`link_section`] attributes from your code, you need to modify `memory.x`
 //! to declare the additional sections:
+//!
+//! [`link_section`]: https://doc.rust-lang.org/reference/abi.html#the-link_section-attribute
 //!
 //! ```text
 //! MEMORY

@@ -92,7 +92,6 @@
 //! _stext = ORIGIN(FLASH) + 0x40C
 //! ```
 //!
-//!
 //! # An example
 //!
 //! This section presents a minimal application built on top of `cortex-m-rt`. Apart from the

@@ -31,6 +31,6 @@ jobs:
           override: true
           components: rustfmt
       - name: Install qemu and gcc
-        run: sudo apt-get install qemu-system-arm gcc-arm-none-eabi
+        run: sudo apt-get update && sudo apt-get install qemu-system-arm gcc-arm-none-eabi
       - name: Run CI script for ${{ matrix.TARGET }} under ${{ matrix.rust }}
         run: TARGET=${{ matrix.TARGET }} TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh

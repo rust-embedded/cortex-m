@@ -13,9 +13,6 @@ jobs:
         # All generated code should be running on stable now
         rust: [nightly, stable, 1.39.0]
 
-        # The default target we're compiling on and for
-        TARGET: [x86_64-unknown-linux-gnu, thumbv6m-none-eabi, thumbv7m-none-eabi, thumbv7em-none-eabi, thumbv7em-none-eabihf, thumbv8m.main-none-eabi]
-
         include:
           # Nightly is only for reference and allowed to fail
           - rust: nightly
@@ -27,10 +24,20 @@ jobs:
         with:
           profile: minimal
           toolchain: ${{ matrix.rust }}
-          target: ${{ matrix.TARGET }}
           override: true
-          components: rustfmt
+      - name: Install all Rust targets for ${{ matrix.rust }}      
+        run: rustup target install --toolchain=${{ matrix.rust }} thumbv6m-none-eabi thumbv7m-none-eabi thumbv7em-none-eabi thumbv7em-none-eabihf thumbv8m.main-none-eabi
       - name: Install qemu and gcc
         run: sudo apt-get update && sudo apt-get install qemu-system-arm gcc-arm-none-eabi
-      - name: Run CI script for ${{ matrix.TARGET }} under ${{ matrix.rust }}
-        run: TARGET=${{ matrix.TARGET }} TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
+      - name: Run CI script for x86_64-unknown-linux-gnu under ${{ matrix.rust }}
+        run: TARGET=x86_64-unknown-linux-gnu TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
+      - name: Run CI script for thumbv6m-none-eabi under ${{ matrix.rust }}
+        run: TARGET=thumbv6m-none-eabi TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
+      - name: Run CI script for thumbv7m-none-eabi under ${{ matrix.rust }}
+        run: TARGET=thumbv7m-none-eabi TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
+      - name: Run CI script for thumbv7em-none-eabi under ${{ matrix.rust }}
+        run: TARGET=thumbv7em-none-eabi TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
+      - name: Run CI script for thumbv7em-none-eabihf under ${{ matrix.rust }}
+        run: TARGET=thumbv7em-none-eabihf TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
+      - name: Run CI script for thumbv8m.main-none-eabi under ${{ matrix.rust }}
+        run: TARGET=thumbv8m.main-none-eabi TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh

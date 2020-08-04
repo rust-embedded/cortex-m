@@ -7,7 +7,7 @@ name: Continuous integration
 
 jobs:
   ci-linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         # All generated code should be running on stable now
@@ -22,9 +22,6 @@ jobs:
             experimental: true
 
     steps:
-      - uses: fiam/arm-none-eabi-gcc@v1
-        with:
-          release: '7-2018-q2'
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
@@ -33,7 +30,7 @@ jobs:
           target: ${{ matrix.TARGET }}
           override: true
           components: rustfmt
-      - name: Install qemu
-        run: sudo apt-get install qemu-system-arm
+      - name: Install qemu and gcc
+        run: sudo apt-get update && sudo apt-get install qemu-system-arm gcc-arm-none-eabi
       - name: Run CI script for ${{ matrix.TARGET }} under ${{ matrix.rust }}
         run: TARGET=${{ matrix.TARGET }} TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh

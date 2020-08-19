@@ -88,9 +88,9 @@ SECTIONS
     *(.text .text.*);
     *(.HardFaultTrampoline);
     *(.HardFault.*);
-    . = ALIGN(4);
-    __etext = .;
   } > FLASH
+  . = ALIGN(4);
+  __etext = .; /* Define outside of .text to allow using INSERT AFTER .text */
 
   /* ### .rodata */
   .rodata __etext : ALIGN(4)
@@ -119,14 +119,15 @@ SECTIONS
   __sidata = LOADADDR(.data);
 
   /* ### .bss */
+  . = ALIGN(4);
+  __sbss = .; /* Define outside of section to include INSERT BEFORE/AFTER symbols */
   .bss (NOLOAD) : ALIGN(4)
   {
-    . = ALIGN(4);
-    __sbss = .;
     *(.bss .bss.*);
-    . = ALIGN(4); /* 4-byte align the end (VMA) of this section */
-    __ebss = .;
+    *(COMMON); /* Uninitialized C statics */
   } > RAM
+  . = ALIGN(4); /* 4-byte align the end (VMA) of this section */
+  __ebss = .;
 
   /* ### .uninit */
   .uninit (NOLOAD) : ALIGN(4)

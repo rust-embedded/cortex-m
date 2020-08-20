@@ -88,8 +88,9 @@ SECTIONS
     *(.text .text.*);
     *(.HardFaultTrampoline);
     *(.HardFault.*);
+    . = ALIGN(4); /* Pad .text to the alignment to workaround overlapping load section bug in old lld */
   } > FLASH
-  . = ALIGN(4);
+  . = ALIGN(4); /* Ensure __etext is aligned if something unaligned is inserted after .text */
   __etext = .; /* Define outside of .text to allow using INSERT AFTER .text */
 
   /* ### .rodata */
@@ -125,8 +126,9 @@ SECTIONS
   {
     *(.bss .bss.*);
     *(COMMON); /* Uninitialized C statics */
+    . = ALIGN(4); /* 4-byte align the end (VMA) of this section */
   } > RAM
-  . = ALIGN(4); /* 4-byte align the end (VMA) of this section */
+  . = ALIGN(4); /* Ensure __ebss is aligned if something unaligned is inserted after .bss */
   __ebss = .;
 
   /* ### .uninit */

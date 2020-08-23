@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Fixes
+
+- Various fixes to the linker script ([#265], [#286]).
+- Use the correct ABI for the `main` symbol ([#278]).
+- Add barriers after FPU enabling ([#279]).
+
+[#265]: https://github.com/rust-embedded/cortex-m-rt/pull/265
+[#278]: https://github.com/rust-embedded/cortex-m-rt/pull/278
+[#279]: https://github.com/rust-embedded/cortex-m-rt/pull/279
+[#286]: https://github.com/rust-embedded/cortex-m-rt/pull/286
+
+### Breaking Changes
+
+- Make `ExceptionFrame`s fields private, adding setters and getters instead
+  ([#239]).
+- Only allow certain attributes on handlers, and apply them to the trampoline
+  too ([#228]).
+
+[#239]: https://github.com/rust-embedded/cortex-m-rt/pull/239
+[#228]: https://github.com/rust-embedded/cortex-m-rt/pull/228
+
 ## [v0.6.11] - 2019-12-04
 
 ### Changed

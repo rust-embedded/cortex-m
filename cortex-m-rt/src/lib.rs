@@ -657,29 +657,13 @@ pub use macros::entry;
 ///
 /// # Examples
 ///
-/// - Setting the `HardFault` handler
-///
-/// ```
-/// # extern crate cortex_m_rt;
-/// # extern crate cortex_m_rt_macros;
-/// use cortex_m_rt::{ExceptionFrame, exception};
-///
-/// #[exception]
-/// fn HardFault(ef: &ExceptionFrame) -> ! {
-///     // prints the exception frame as a panic message
-///     panic!("{:#?}", ef);
-/// }
-///
-/// # fn main() {}
-/// ```
-///
 /// - Setting the default handler
 ///
 /// ```
 /// use cortex_m_rt::exception;
 ///
 /// #[exception]
-/// fn DefaultHandler(irqn: i16) {
+/// unsafe fn DefaultHandler(irqn: i16) {
 ///     println!("IRQn = {}", irqn);
 /// }
 ///

@@ -113,6 +113,14 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
     .into()
 }
 
+#[derive(Debug, PartialEq)]
+enum Exception {
+    DefaultHandler,
+    HardFault,
+    NonMaskableInt,
+    Other,
+}
+
 #[proc_macro_attribute]
 pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
     let mut f = parse_macro_input!(input as ItemFn);
@@ -130,20 +138,15 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
     let fspan = f.span();
     let ident = f.sig.ident.clone();
 
-    enum Exception {
-        DefaultHandler,
-        HardFault,
-        Other,
-    }
-
     let ident_s = ident.to_string();
     let exn = match &*ident_s {
         "DefaultHandler" => Exception::DefaultHandler,
         "HardFault" => Exception::HardFault,
+        "NonMaskableInt" => Exception::NonMaskableInt,
         // NOTE that at this point we don't check if the exception is available on the target (e.g.
         // MemoryManagement is not available on Cortex-M0)
-        "NonMaskableInt" | "MemoryManagement" | "BusFault" | "UsageFault" | "SecureFault"
-        | "SVCall" | "DebugMonitor" | "PendSV" | "SysTick" => Exception::Other,
+        "MemoryManagement" | "BusFault" | "UsageFault" | "SecureFault" | "SVCall"
+        | "DebugMonitor" | "PendSV" | "SysTick" => Exception::Other,
         _ => {
             return parse::Error::new(ident.span(), "This is not a valid exception name")
                 .to_compile_error()
@@ -151,7 +154,22 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
         }
     };
 
-    // XXX should we blacklist other attributes?
+    if f.sig.unsafety.is_none() {
+        match exn {
+            Exception::DefaultHandler | Exception::HardFault | Exception::NonMaskableInt => {
+                // These are unsafe to define.
+                let name = if exn == Exception::DefaultHandler {
+                    format!("`DefaultHandler`")
+                } else {
+                    format!("`{:?}` handler", exn)
+                };
+                return parse::Error::new(ident.span(), format_args!("defining a {} is unsafe and requires an `unsafe fn` (see the cortex-m-rt docs)", name))
+                    .to_compile_error()
+                    .into();
+            }
+            Exception::Other => {}
+        }
+    }
 
     match exn {
         Exception::DefaultHandler => {
@@ -174,7 +192,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             if !valid_signature {
                 return parse::Error::new(
                     fspan,
-                    "`DefaultHandler` must have signature `[unsafe] fn(i16) [-> !]`",
+                    "`DefaultHandler` must have signature `unsafe fn(i16) [-> !]`",
                 )
                 .to_compile_error()
                 .into();
@@ -231,7 +249,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             if !valid_signature {
                 return parse::Error::new(
                     fspan,
-                    "`HardFault` handler must have signature `[unsafe] fn(&ExceptionFrame) -> !`",
+                    "`HardFault` handler must have signature `unsafe fn(&ExceptionFrame) -> !`",
                 )
                 .to_compile_error()
                 .into();
@@ -257,7 +275,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             )
             .into()
         }
-        Exception::Other => {
+        Exception::NonMaskableInt | Exception::Other => {
             let valid_signature = f.sig.constness.is_none()
                 && f.vis == Visibility::Inherited
                 && f.sig.abi.is_none()

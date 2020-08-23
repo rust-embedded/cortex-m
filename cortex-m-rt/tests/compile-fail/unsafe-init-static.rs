@@ -29,12 +29,12 @@ fn SVCall() {
 }
 
 #[exception]
-fn DefaultHandler(_irq: i16) {
+unsafe fn DefaultHandler(_irq: i16) {
     static mut X: u32 = init();  //~ ERROR requires unsafe
 }
 
 #[exception]
-fn HardFault(_frame: &cortex_m_rt::ExceptionFrame) -> ! {
+unsafe fn HardFault(_frame: &cortex_m_rt::ExceptionFrame) -> ! {
     static mut X: u32 = init();  //~ ERROR requires unsafe
     loop {}
 }

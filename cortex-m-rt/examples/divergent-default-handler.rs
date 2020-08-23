@@ -1,4 +1,3 @@
-#![deny(unsafe_code)]
 #![deny(warnings)]
 #![no_main]
 #![no_std]
@@ -14,6 +13,6 @@ fn foo() -> ! {
 }
 
 #[exception]
-fn DefaultHandler(_irqn: i16) -> ! {
+unsafe fn DefaultHandler(_irqn: i16) -> ! {
     loop {}
 }

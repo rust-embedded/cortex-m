@@ -24,9 +24,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   ([#239]).
 - Only allow certain attributes on handlers, and apply them to the trampoline
   too ([#228]).
+- Make it unsafe to define exception handlers for NMIs ([#289]).
 
 [#239]: https://github.com/rust-embedded/cortex-m-rt/pull/239
 [#228]: https://github.com/rust-embedded/cortex-m-rt/pull/228
+[#289]: https://github.com/rust-embedded/cortex-m-rt/pull/289
 
 ## [v0.6.11] - 2019-12-04
 

@@ -612,13 +612,13 @@ pub use macros::entry;
 ///
 /// # Usage
 ///
-/// `#[exception] fn HardFault(..` sets the hard fault handler. The handler must have signature
-/// `[unsafe] fn(&ExceptionFrame) -> !`. This handler is not allowed to return as that can cause
-/// undefined behavior.
+/// `#[exception] unsafe fn HardFault(..` sets the hard fault handler. The handler must have
+/// signature `unsafe fn(&ExceptionFrame) -> !`. This handler is not allowed to return as that can
+/// cause undefined behavior.
 ///
-/// `#[exception] fn DefaultHandler(..` sets the *default* handler. All exceptions which have not
-/// been assigned a handler will be serviced by this handler. This handler must have signature
-/// `[unsafe] fn(irqn: i16) [-> !]`. `irqn` is the IRQ number (See CMSIS); `irqn` will be a negative
+/// `#[exception] unsafe fn DefaultHandler(..` sets the *default* handler. All exceptions which have
+/// not been assigned a handler will be serviced by this handler. This handler must have signature
+/// `unsafe fn(irqn: i16) [-> !]`. `irqn` is the IRQ number (See CMSIS); `irqn` will be a negative
 /// number when the handler is servicing a core exception; `irqn` will be a positive number when the
 /// handler is servicing a device specific exception (interrupt).
 ///
@@ -636,6 +636,24 @@ pub use macros::entry;
 /// to preserve state across invocations of the handler. The compiler can't prove this is safe so
 /// the attribute will help by making a transformation to the source code: for this reason a
 /// variable like `static mut FOO: u32` will become `let FOO: &mut u32;`.
+///
+/// # Safety
+///
+/// It is not generally safe to register handlers for non-maskable interrupts. On Cortex-M,
+/// `HardFault` is non-maskable (at least in general), and there is an explicitly non-maskable
+/// interrupt `NonMaskableInt`.
+///
+/// The reason for that is that non-maskable interrupts will preempt any currently running function,
+/// even if that function executes within a critical section. Thus, if it was safe to define NMI
+/// handlers, critical sections wouldn't work safely anymore.
+///
+/// This also means that defining a `DefaultHandler` must be unsafe, as that will catch
+/// `NonMaskableInt` and `HardFault` if no handlers for those are defined.
+///
+/// The safety requirements on those handlers is as follows: The handler must not access any data
+/// that is protected via a critical section and shared with other interrupts that may be preempted
+/// by the NMI while holding the critical section. As long as this requirement is fulfilled, it is
+/// safe to handle NMIs.
 ///
 /// # Examples
 ///

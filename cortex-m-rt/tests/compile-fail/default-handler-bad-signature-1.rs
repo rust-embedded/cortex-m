@@ -12,5 +12,5 @@ fn foo() -> ! {
 }
 
 #[exception]
-fn DefaultHandler(_irqn: i16, undef: u32) {}
-//~^ ERROR `DefaultHandler` must have signature `[unsafe] fn(i16) [-> !]`
+unsafe fn DefaultHandler(_irqn: i16, undef: u32) {}
+//~^ ERROR `DefaultHandler` must have signature `unsafe fn(i16) [-> !]`

@@ -1,6 +1,5 @@
 //! How to override the hard fault exception handler and the default exception handler
 
-#![deny(unsafe_code)]
 #![deny(warnings)]
 #![no_main]
 #![no_std]
@@ -18,12 +17,12 @@ fn main() -> ! {
 }
 
 #[exception]
-fn DefaultHandler(_irqn: i16) {
+unsafe fn DefaultHandler(_irqn: i16) {
     asm::bkpt();
 }
 
 #[exception]
-fn HardFault(_ef: &ExceptionFrame) -> ! {
+unsafe fn HardFault(_ef: &ExceptionFrame) -> ! {
     asm::bkpt();
 
     loop {}

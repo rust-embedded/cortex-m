@@ -18,5 +18,5 @@ mod hidden {
     use cortex_m_rt::exception;
 
     #[exception]
-    fn DefaultHandler(_irqn: i16) {}
+    unsafe fn DefaultHandler(_irqn: i16) {}
 }

@@ -199,15 +199,14 @@
 //! won't find it.
 //!
 //! - `DefaultHandler`. This is the default handler. If not overridden using `#[exception] fn
-//! DefaultHandler(..` this will cause a panic with the message "DefaultHandler #`i`", where `i` is
-//! the number of the interrupt handler.
+//! DefaultHandler(..` this will be an infinite loop.
 //!
 //! - `HardFaultTrampoline`. This is the real hard fault handler. This function is simply a
 //! trampoline that jumps into the user defined hard fault handler named `HardFault`. The
 //! trampoline is required to set up the pointer to the stacked exception frame.
 //!
 //! - `HardFault`. This is the user defined hard fault handler. If not overridden using
-//! `#[exception] fn HardFault(..` it will default to a panic with message "HardFault".
+//! `#[exception] fn HardFault(..` it will default to an infinite loop.
 //!
 //! - `__STACK_START`. This is the first entry in the `.vector_table` section. This symbol contains
 //! the initial value of the stack pointer; this is where the stack will be located -- the stack
@@ -442,6 +441,7 @@ extern crate cortex_m_rt_macros as macros;
 extern crate r0;
 
 use core::fmt;
+use core::sync::atomic::{self, Ordering};
 
 /// Attribute to declare an interrupt (AKA device-specific exception) handler
 ///
@@ -612,13 +612,13 @@ pub use macros::entry;
 ///
 /// # Usage
 ///
-/// `#[exception] fn HardFault(..` sets the hard fault handler. The handler must have signature
-/// `[unsafe] fn(&ExceptionFrame) -> !`. This handler is not allowed to return as that can cause
-/// undefined behavior.
+/// `#[exception] unsafe fn HardFault(..` sets the hard fault handler. The handler must have
+/// signature `unsafe fn(&ExceptionFrame) -> !`. This handler is not allowed to return as that can
+/// cause undefined behavior.
 ///
-/// `#[exception] fn DefaultHandler(..` sets the *default* handler. All exceptions which have not
-/// been assigned a handler will be serviced by this handler. This handler must have signature
-/// `[unsafe] fn(irqn: i16) [-> !]`. `irqn` is the IRQ number (See CMSIS); `irqn` will be a negative
+/// `#[exception] unsafe fn DefaultHandler(..` sets the *default* handler. All exceptions which have
+/// not been assigned a handler will be serviced by this handler. This handler must have signature
+/// `unsafe fn(irqn: i16) [-> !]`. `irqn` is the IRQ number (See CMSIS); `irqn` will be a negative
 /// number when the handler is servicing a core exception; `irqn` will be a positive number when the
 /// handler is servicing a device specific exception (interrupt).
 ///
@@ -637,23 +637,25 @@ pub use macros::entry;
 /// the attribute will help by making a transformation to the source code: for this reason a
 /// variable like `static mut FOO: u32` will become `let FOO: &mut u32;`.
 ///
+/// # Safety
+///
+/// It is not generally safe to register handlers for non-maskable interrupts. On Cortex-M,
+/// `HardFault` is non-maskable (at least in general), and there is an explicitly non-maskable
+/// interrupt `NonMaskableInt`.
+///
+/// The reason for that is that non-maskable interrupts will preempt any currently running function,
+/// even if that function executes within a critical section. Thus, if it was safe to define NMI
+/// handlers, critical sections wouldn't work safely anymore.
+///
+/// This also means that defining a `DefaultHandler` must be unsafe, as that will catch
+/// `NonMaskableInt` and `HardFault` if no handlers for those are defined.
+///
+/// The safety requirements on those handlers is as follows: The handler must not access any data
+/// that is protected via a critical section and shared with other interrupts that may be preempted
+/// by the NMI while holding the critical section. As long as this requirement is fulfilled, it is
+/// safe to handle NMIs.
+///
 /// # Examples
-///
-/// - Setting the `HardFault` handler
-///
-/// ```
-/// # extern crate cortex_m_rt;
-/// # extern crate cortex_m_rt_macros;
-/// use cortex_m_rt::{ExceptionFrame, exception};
-///
-/// #[exception]
-/// fn HardFault(ef: &ExceptionFrame) -> ! {
-///     // prints the exception frame as a panic message
-///     panic!("{:#?}", ef);
-/// }
-///
-/// # fn main() {}
-/// ```
 ///
 /// - Setting the default handler
 ///
@@ -661,7 +663,7 @@ pub use macros::entry;
 /// use cortex_m_rt::exception;
 ///
 /// #[exception]
-/// fn DefaultHandler(irqn: i16) {
+/// unsafe fn DefaultHandler(irqn: i16) {
 ///     println!("IRQn = {}", irqn);
 /// }
 ///
@@ -990,17 +992,21 @@ pub unsafe extern "C" fn Reset() -> ! {
 #[link_section = ".HardFault.default"]
 #[no_mangle]
 pub unsafe extern "C" fn HardFault_(ef: &ExceptionFrame) -> ! {
-    panic!("HardFault");
+    loop {
+        // add some side effect to prevent this from turning into a UDF instruction
+        // see rust-lang/rust#28728 for details
+        atomic::compiler_fence(Ordering::SeqCst);
+    }
 }
 
 #[doc(hidden)]
 #[no_mangle]
 pub unsafe extern "C" fn DefaultHandler_() -> ! {
-    const SCB_ICSR: *const u32 = 0xE000_ED04 as *const u32;
-
-    let irqn = core::ptr::read(SCB_ICSR) as u8 as i16 - 16;
-
-    panic!("DefaultHandler #{}", irqn);
+    loop {
+        // add some side effect to prevent this from turning into a UDF instruction
+        // see rust-lang/rust#28728 for details
+        atomic::compiler_fence(Ordering::SeqCst);
+    }
 }
 
 #[doc(hidden)]

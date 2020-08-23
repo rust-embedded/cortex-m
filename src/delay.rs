@@ -1,4 +1,4 @@
-//! A delay driver based on SysTick
+//! A delay driver based on SysTick.
 
 use crate::peripheral::{syst::SystClkSource, SYST};
 use embedded_hal::blocking::delay::{DelayMs, DelayUs};

@@ -3,16 +3,16 @@
 use crate::peripheral::{syst::SystClkSource, SYST};
 use embedded_hal::blocking::delay::{DelayMs, DelayUs};
 
-/// System timer (SysTick) as a delay provider
+/// System timer (SysTick) as a delay provider.
 pub struct Delay {
     syst: SYST,
     ahb_frequency: u32,
 }
 
 impl Delay {
-    /// Configures the system timer (SysTick) as a delay provider
+    /// Configures the system timer (SysTick) as a delay provider.
     ///
-    /// `ahb_frequency` is a frequency of the AHB bus in Hz
+    /// `ahb_frequency` is a frequency of the AHB bus in Hz.
     #[inline]
     pub fn new(mut syst: SYST, ahb_frequency: u32) -> Self {
         syst.set_clock_source(SystClkSource::Core);
@@ -20,7 +20,7 @@ impl Delay {
         Delay { syst, ahb_frequency }
     }
 
-    /// Releases the system timer (SysTick) resource
+    /// Releases the system timer (SysTick) resource.
     #[inline]
     pub fn free(self) -> SYST {
         self.syst

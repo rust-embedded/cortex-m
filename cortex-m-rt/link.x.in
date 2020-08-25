@@ -102,8 +102,9 @@ SECTIONS
        This is required by LLD to ensure the LMA of the following .data
        section will have the correct alignment. */
     . = ALIGN(4);
-    __erodata = .;
   } > FLASH
+  . = ALIGN(4); /* Ensure __erodata is aligned if something unaligned is inserted after .rodata */
+  __erodata = .;
 
   /* ## Sections in RAM */
   /* ### .data */
@@ -113,8 +114,9 @@ SECTIONS
     __sdata = .;
     *(.data .data.*);
     . = ALIGN(4); /* 4-byte align the end (VMA) of this section */
-    __edata = .;
   } > RAM AT>FLASH
+  . = ALIGN(4); /* Ensure __edata is aligned if something unaligned is inserted after .data */
+  __edata = .;
 
   /* LMA of .data */
   __sidata = LOADADDR(.data);

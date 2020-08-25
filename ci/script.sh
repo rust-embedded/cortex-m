@@ -29,7 +29,7 @@ main() {
     esac
 
     if [ $TARGET = x86_64-unknown-linux-gnu ]; then
-        ./check-blobs.sh
+        cargo xtask check-blobs
     fi
 
     if [ $TRAVIS_RUST_VERSION = nightly ]; then

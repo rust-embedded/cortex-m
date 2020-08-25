@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   various NVIC functions, replacing the previous use of `Nr` from bare-metal.
 - Associated const `PTR` is introduced to Core Peripherals to
   eventually replace the existing `ptr()` API.
+- A delay driver based on SysTick.
 
 ## [v0.6.2] - 2020-01-12
 

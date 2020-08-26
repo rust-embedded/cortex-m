@@ -4,6 +4,7 @@
 //!
 //! Also see the docs in `asm.rs`.
 
+use process::Stdio;
 use std::env::{self, current_dir};
 use std::{
     collections::BTreeMap,
@@ -11,9 +12,16 @@ use std::{
     process::{self, Command},
 };
 
+fn toolchain() -> String {
+    fs::read_to_string("asm-toolchain")
+        .unwrap()
+        .trim()
+        .to_string()
+}
+
 fn rustc() -> Command {
     let mut cmd = Command::new("rustc");
-    cmd.arg("+nightly");
+    cmd.arg(format!("+{}", toolchain()));
     cmd
 }
 
@@ -105,6 +113,34 @@ static TARGETS: &[(&str, &[&str])] = &[
 ];
 
 fn assemble_blobs() {
+    let mut cmd = rustc();
+    cmd.arg("-V");
+    cmd.stdout(Stdio::null());
+    let status = cmd.status().unwrap();
+
+    if !status.success() {
+        let toolchain = toolchain();
+        println!(
+            "asm toolchain {} does not seem to be installed. installing it now.",
+            toolchain
+        );
+
+        let mut rustup = Command::new("rustup");
+        let status = rustup.arg("install").arg(&toolchain).status().unwrap();
+        assert!(status.success(), "rustup command failed: {:?}", rustup);
+
+        let mut rustup = Command::new("rustup");
+        let status = rustup
+            .arg("target")
+            .arg("add")
+            .args(TARGETS.iter().map(|(target, _)| *target))
+            .arg("--toolchain")
+            .arg(toolchain)
+            .status()
+            .unwrap();
+        assert!(status.success(), "rustup command failed: {:?}", rustup);
+    }
+
     for (target, cfgs) in TARGETS {
         println!("building artifacts for {}", target);
         assemble(target, cfgs);

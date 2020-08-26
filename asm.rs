@@ -14,10 +14,19 @@
 //! assembly.
 //!
 //! For developers and contributors to `cortex-m`, this setup means that they don't have to install
-//! any binutils, assembler, or C compiler to hack on the crate. All they need is a nightly rustc
-//! and run `cargo xtask assemble` to rebuild the archives from this file.
+//! any binutils, assembler, or C compiler to hack on the crate. All they need is to run `cargo
+//! xtask assemble` to rebuild the archives from this file.
 //!
 //! Cool, right?
+//!
+//! # Rust version management
+//!
+//! Since inline assembly is still unstable, and we want to ensure that the created blobs are
+//! up-to-date in CI, we have to pin the nightly version we use for this. The nightly toolchain is
+//! stored in `asm-toolchain`.
+//!
+//! The `cargo xtask` automation will automatically install the `asm-toolchain` as well as all
+//! Cortex-M targets needed to generate the blobs.
 //!
 //! [linker plugin LTO]: https://doc.rust-lang.org/stable/rustc/linker-plugin-lto.html
 

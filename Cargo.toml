@@ -24,11 +24,6 @@ embedded-hal = "0.2.4"
 [features]
 cm7-r0p1 = []
 inline-asm = []
-
-# Link against prebuilt assembly blobs that are compatible with Linker-Plugin LTO.
-# When using this feature, you *must* pass `-Clinker-plugin-lto` to rustc. See this link for
-# details:
-# https://doc.rust-lang.org/stable/rustc/linker-plugin-lto.html
 linker-plugin-lto = []
 
 [workspace]

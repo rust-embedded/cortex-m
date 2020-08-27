@@ -55,8 +55,6 @@
 //!
 //! - ARMv7-M Architecture Reference Manual (Issue E.b) - Chapter B3
 
-// TODO stand-alone register: STIR
-
 use core::marker::PhantomData;
 use core::ops;
 

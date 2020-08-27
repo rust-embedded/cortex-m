@@ -7,10 +7,17 @@ fn main() {
     let name = env::var("CARGO_PKG_NAME").unwrap();
 
     if target.starts_with("thumb") {
+        let suffix = if env::var_os("CARGO_FEATURE_LINKER_PLUGIN_LTO").is_some() {
+            "-lto"
+        } else {
+            ""
+        };
+
         fs::copy(
-            format!("bin/{}.a", target),
+            format!("bin/{}{}.a", target, suffix),
             out_dir.join(format!("lib{}.a", name)),
-        ).unwrap();
+        )
+        .unwrap();
 
         println!("cargo:rustc-link-lib=static={}", name);
         println!("cargo:rustc-link-search={}", out_dir.display());
@@ -25,7 +32,7 @@ fn main() {
     } else if target.starts_with("thumbv7em-") {
         println!("cargo:rustc-cfg=cortex_m");
         println!("cargo:rustc-cfg=armv7m");
-        println!("cargo:rustc-cfg=armv7em");  // (not currently used)
+        println!("cargo:rustc-cfg=armv7em"); // (not currently used)
     } else if target.starts_with("thumbv8m.base") {
         println!("cargo:rustc-cfg=cortex_m");
         println!("cargo:rustc-cfg=armv8m");

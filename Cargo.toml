@@ -21,6 +21,14 @@ volatile-register = "0.2.0"
 bitfield = "0.13.2"
 embedded-hal = "0.2.4"
 
+[features]
+cm7-r0p1 = []
+inline-asm = []
+linker-plugin-lto = []
+
+[workspace]
+members = ["xtask"]
+
 [package.metadata.docs.rs]
 targets = [
     "thumbv8m.main-none-eabihf",
@@ -31,7 +39,3 @@ targets = [
     "thumbv8m.base-none-eabi",
     "thumbv8m.main-none-eabi"
 ]
-
-[features]
-cm7-r0p1 = []
-inline-asm = []

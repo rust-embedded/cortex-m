@@ -5,5 +5,9 @@ authors = ["The Cortex-M Team <cortex-m@teams.rust-embedded.org>"]
 edition = "2018"
 publish = false
 
+[[test]]
+name = "ci"
+harness = false
+
 [dependencies]
 ar = "0.8.0"

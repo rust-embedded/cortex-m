@@ -73,7 +73,8 @@ shims! {
     fn __wfi();
 }
 
-#[cfg(armv7m)]
+// v7m *AND* v8m.main, but *NOT* v8m.base 
+#[cfg(any(armv7m, armv8m_main))]
 shims! {
     fn __basepri_max(val: u8);
     fn __basepri_r() -> u8;

@@ -27,36 +27,10 @@ impl Faultmask {
 /// Reads the CPU register
 #[inline]
 pub fn read() -> Faultmask {
-    match () {
-        #[cfg(cortex_m)]
-        () => {
-            let r = match () {
-                #[cfg(feature = "inline-asm")]
-                () => {
-                    let r: u32;
-                    unsafe { llvm_asm!("mrs $0, FAULTMASK" : "=r"(r) ::: "volatile") }
-                    r
-                }
-
-                #[cfg(not(feature = "inline-asm"))]
-                () => unsafe {
-                    extern "C" {
-                        fn __faultmask() -> u32;
-
-                    }
-
-                    __faultmask()
-                },
-            };
-
-            if r & (1 << 0) == (1 << 0) {
-                Faultmask::Inactive
-            } else {
-                Faultmask::Active
-            }
-        }
-
-        #[cfg(not(cortex_m))]
-        () => unimplemented!(),
+    let r: u32 = call_asm!(__faultmask_r() -> u32);
+    if r & (1 << 0) == (1 << 0) {
+        Faultmask::Inactive
+    } else {
+        Faultmask::Active
     }
 }

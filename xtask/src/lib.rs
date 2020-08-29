@@ -68,7 +68,7 @@ fn assemble_really(target: &str, cfgs: &[&str], plugin_lto: bool) {
 
     // Pass output and input file.
     cmd.arg("-o").arg(&obj_file);
-    cmd.arg("asm.rs");
+    cmd.arg("asm/lib.rs");
 
     println!("{:?}", cmd);
     let status = cmd.status().unwrap();
@@ -198,7 +198,10 @@ pub fn check_blobs() {
 
     for ((file, before), (_, after)) in files_before.iter().zip(files_after.iter()) {
         if before != after {
-            panic!("{} differs between rebuilds", file);
+            panic!(
+                "{} is not up-to-date, please run `cargo xtask assemble`",
+                file
+            );
         }
     }
 

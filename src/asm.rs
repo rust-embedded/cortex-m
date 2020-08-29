@@ -1,27 +1,18 @@
 //! Miscellaneous assembly instructions
 
+// When inline assembly is enabled, pull in the assembly routines here. `call_asm!` will invoke
+// these routines.
+#[cfg(feature = "inline-asm")]
+#[path = "../asm/inline.rs"]
+pub(crate) mod inline;
+
 /// Puts the processor in Debug state. Debuggers can pick this up as a "breakpoint".
 ///
 /// **NOTE** calling `bkpt` when the processor is not connected to a debugger will cause an
 /// exception.
 #[inline(always)]
 pub fn bkpt() {
-    match () {
-        #[cfg(all(cortex_m, feature = "inline-asm"))]
-        () => unsafe { llvm_asm!("bkpt" :::: "volatile") },
-
-        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
-        () => unsafe {
-            extern "C" {
-                fn __bkpt();
-            }
-
-            __bkpt();
-        },
-
-        #[cfg(not(cortex_m))]
-        () => unimplemented!(),
-    }
+    call_asm!(__bkpt());
 }
 
 /// Blocks the program for *at least* `n` instruction cycles
@@ -29,151 +20,47 @@ pub fn bkpt() {
 /// This is implemented in assembly so its execution time is independent of the optimization
 /// level, however it is dependent on the specific architecture and core configuration.
 ///
-/// NOTE that the delay can take much longer if interrupts are serviced during its execution 
+/// NOTE that the delay can take much longer if interrupts are serviced during its execution
 /// and the execution time may vary with other factors. This delay is mainly useful for simple
 /// timer-less initialization of peripherals if and only if accurate timing is not essential. In
 /// any other case please use a more accurate method to produce a delay.
 #[inline]
-pub fn delay(_n: u32) {
+pub fn delay(n: u32) {
     // NOTE(divide by 4) is easier to compute than `/ 3` because it's just a shift (`>> 2`).
-    match () {
-        #[cfg(all(cortex_m, feature = "inline-asm"))]
-        () => unsafe {
-            llvm_asm!("1:
-                  nop
-                  subs $0, $$1
-                  bne.n 1b"
-                 : "+r"(_n / 4 + 1)
-                 :
-                 : "cpsr"
-                 : "volatile");
-        },
-
-        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
-        () => unsafe {
-            extern "C" {
-                fn __delay(n: u32);
-            }
-
-            __delay(_n / 4 + 1);
-        },
-
-        #[cfg(not(cortex_m))]
-        () => unimplemented!(),
-    }
+    let real_cyc = n / 4 + 1;
+    call_asm!(__delay(real_cyc: u32));
 }
 
 /// A no-operation. Useful to prevent delay loops from being optimized away.
 #[inline]
 pub fn nop() {
-    match () {
-        #[cfg(all(cortex_m, feature = "inline-asm"))]
-        () => unsafe { llvm_asm!("nop" :::: "volatile") },
-
-        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
-        () => unsafe {
-            extern "C" {
-                fn __nop();
-            }
-
-            __nop()
-        },
-
-        #[cfg(not(cortex_m))]
-        () => unimplemented!(),
-    }
+    call_asm!(__nop());
 }
-
 
 /// Generate an Undefined Instruction exception.
 ///
 /// Can be used as a stable alternative to `core::intrinsics::abort`.
 #[inline]
 pub fn udf() -> ! {
-    match () {
-        #[cfg(all(cortex_m, feature = "inline-asm"))]
-        () => unsafe {
-            llvm_asm!("udf" :::: "volatile");
-            core::hint::unreachable_unchecked();
-        },
-
-        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
-        () => unsafe {
-            extern "C" {
-                fn __udf();
-            }
-
-            __udf();
-
-            core::hint::unreachable_unchecked();
-        },
-
-        #[cfg(not(cortex_m))]
-        () => unimplemented!(),
-    }
+    call_asm!(__udf() -> !)
 }
 
 /// Wait For Event
 #[inline]
 pub fn wfe() {
-    match () {
-        #[cfg(all(cortex_m, feature = "inline-asm"))]
-        () => unsafe { llvm_asm!("wfe" :::: "volatile") },
-
-        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
-        () => unsafe {
-            extern "C" {
-                fn __wfe();
-            }
-
-            __wfe()
-        },
-
-        #[cfg(not(cortex_m))]
-        () => unimplemented!(),
-    }
+    call_asm!(__wfe())
 }
 
 /// Wait For Interrupt
 #[inline]
 pub fn wfi() {
-    match () {
-        #[cfg(all(cortex_m, feature = "inline-asm"))]
-        () => unsafe { llvm_asm!("wfi" :::: "volatile") },
-
-        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
-        () => unsafe {
-            extern "C" {
-                fn __wfi();
-            }
-
-            __wfi()
-        },
-
-        #[cfg(not(cortex_m))]
-        () => unimplemented!(),
-    }
+    call_asm!(__wfi())
 }
 
 /// Send Event
 #[inline]
 pub fn sev() {
-    match () {
-        #[cfg(all(cortex_m, feature = "inline-asm"))]
-        () => unsafe { llvm_asm!("sev" :::: "volatile") },
-
-        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
-        () => unsafe {
-            extern "C" {
-                fn __sev();
-            }
-
-            __sev()
-        },
-
-        #[cfg(not(cortex_m))]
-        () => unimplemented!(),
-    }
+    call_asm!(__sev())
 }
 
 /// Instruction Synchronization Barrier
@@ -182,23 +69,7 @@ pub fn sev() {
 /// from cache or memory, after the instruction has been completed.
 #[inline]
 pub fn isb() {
-    match () {
-        #[cfg(all(cortex_m, feature = "inline-asm"))]
-        () => unsafe { llvm_asm!("isb 0xF" ::: "memory" : "volatile") },
-
-        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
-        () => unsafe {
-            extern "C" {
-                fn __isb();
-            }
-
-            __isb()
-            // XXX do we need a explicit compiler barrier here?
-        },
-
-        #[cfg(not(cortex_m))]
-        () => unimplemented!(),
-    }
+    call_asm!(__isb())
 }
 
 /// Data Synchronization Barrier
@@ -210,23 +81,7 @@ pub fn isb() {
 ///  * all cache and branch predictor maintenance operations before this instruction complete
 #[inline]
 pub fn dsb() {
-    match () {
-        #[cfg(all(cortex_m, feature = "inline-asm"))]
-        () => unsafe { llvm_asm!("dsb 0xF" ::: "memory" : "volatile") },
-
-        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
-        () => unsafe {
-            extern "C" {
-                fn __dsb();
-            }
-
-            __dsb()
-            // XXX do we need a explicit compiler barrier here?
-        },
-
-        #[cfg(not(cortex_m))]
-        () => unimplemented!(),
-    }
+    call_asm!(__dsb())
 }
 
 /// Data Memory Barrier
@@ -236,23 +91,7 @@ pub fn dsb() {
 /// after the `DMB` instruction.
 #[inline]
 pub fn dmb() {
-    match () {
-        #[cfg(all(cortex_m, feature = "inline-asm"))]
-        () => unsafe { llvm_asm!("dmb 0xF" ::: "memory" : "volatile") },
-
-        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
-        () => unsafe {
-            extern "C" {
-                fn __dmb();
-            }
-
-            __dmb()
-            // XXX do we need a explicit compiler barrier here?
-        },
-
-        #[cfg(not(cortex_m))]
-        () => unimplemented!(),
-    }
+    call_asm!(__dmb())
 }
 
 /// Test Target
@@ -265,28 +104,8 @@ pub fn dmb() {
 // The __tt function does not dereference the pointer received.
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub fn tt(addr: *mut u32) -> u32 {
-    match () {
-        #[cfg(all(cortex_m, feature = "inline-asm"))]
-        () => {
-            let tt_resp: u32;
-            unsafe {
-                llvm_asm!("tt $0, $1" : "=r"(tt_resp) : "r"(addr) :: "volatile");
-            }
-            tt_resp
-        }
-
-        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
-        () => unsafe {
-            extern "C" {
-                fn __tt(_: *mut u32) -> u32;
-            }
-
-            __tt(addr)
-        },
-
-        #[cfg(not(cortex_m))]
-        () => unimplemented!(),
-    }
+    let addr = addr as u32;
+    call_asm!(__tt(addr: u32) -> u32)
 }
 
 /// Test Target Unprivileged
@@ -300,28 +119,8 @@ pub fn tt(addr: *mut u32) -> u32 {
 // The __ttt function does not dereference the pointer received.
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub fn ttt(addr: *mut u32) -> u32 {
-    match () {
-        #[cfg(all(cortex_m, feature = "inline-asm"))]
-        () => {
-            let tt_resp: u32;
-            unsafe {
-                llvm_asm!("ttt $0, $1" : "=r"(tt_resp) : "r"(addr) :: "volatile");
-            }
-            tt_resp
-        }
-
-        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
-        () => unsafe {
-            extern "C" {
-                fn __ttt(_: *mut u32) -> u32;
-            }
-
-            __ttt(addr)
-        },
-
-        #[cfg(not(cortex_m))]
-        () => unimplemented!(),
-    }
+    let addr = addr as u32;
+    call_asm!(__ttt(addr: u32) -> u32)
 }
 
 /// Test Target Alternate Domain
@@ -336,28 +135,8 @@ pub fn ttt(addr: *mut u32) -> u32 {
 // The __tta function does not dereference the pointer received.
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub fn tta(addr: *mut u32) -> u32 {
-    match () {
-        #[cfg(all(cortex_m, feature = "inline-asm"))]
-        () => {
-            let tt_resp: u32;
-            unsafe {
-                llvm_asm!("tta $0, $1" : "=r"(tt_resp) : "r"(addr) :: "volatile");
-            }
-            tt_resp
-        }
-
-        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
-        () => unsafe {
-            extern "C" {
-                fn __tta(_: *mut u32) -> u32;
-            }
-
-            __tta(addr)
-        },
-
-        #[cfg(not(cortex_m))]
-        () => unimplemented!(),
-    }
+    let addr = addr as u32;
+    call_asm!(__tta(addr: u32) -> u32)
 }
 
 /// Test Target Alternate Domain Unprivileged
@@ -372,26 +151,6 @@ pub fn tta(addr: *mut u32) -> u32 {
 // The __ttat function does not dereference the pointer received.
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub fn ttat(addr: *mut u32) -> u32 {
-    match () {
-        #[cfg(all(cortex_m, feature = "inline-asm"))]
-        () => {
-            let tt_resp: u32;
-            unsafe {
-                llvm_asm!("ttat $0, $1" : "=r"(tt_resp) : "r"(addr) :: "volatile");
-            }
-            tt_resp
-        }
-
-        #[cfg(all(cortex_m, not(feature = "inline-asm")))]
-        () => unsafe {
-            extern "C" {
-                fn __ttat(_: *mut u32) -> u32;
-            }
-
-            __ttat(addr)
-        },
-
-        #[cfg(not(cortex_m))]
-        () => unimplemented!(),
-    }
+    let addr = addr as u32;
+    call_asm!(__ttat(addr: u32) -> u32)
 }

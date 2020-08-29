@@ -50,17 +50,6 @@ impl Apsr {
 /// **NOTE** This function is available if `cortex-m` is built with the `"inline-asm"` feature.
 #[inline]
 pub fn read() -> Apsr {
-    match () {
-        #[cfg(cortex_m)]
-        () => {
-            let r: u32;
-            unsafe {
-                llvm_asm!("mrs $0, APSR" : "=r"(r) ::: "volatile");
-            }
-            Apsr { bits: r }
-        }
-
-        #[cfg(not(cortex_m))]
-        () => unimplemented!(),
-    }
+    let bits: u32 = call_asm!(__apsr_r() -> u32);
+    Apsr { bits }
 }

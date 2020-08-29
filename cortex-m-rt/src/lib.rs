@@ -937,9 +937,6 @@ pub unsafe extern "C" fn Reset() -> ! {
         static mut __sdata: u32;
         static mut __edata: u32;
         static __sidata: u32;
-
-        // This symbol will be provided by the user via `#[entry]`
-        fn main() -> !;
     }
 
     extern "Rust" {
@@ -956,33 +953,20 @@ pub unsafe extern "C" fn Reset() -> ! {
     #[allow(clippy::match_single_binding)]
     match () {
         #[cfg(not(has_fpu))]
-        () => main(),
+        () => {
+            extern "C" {
+                // This symbol will be provided by the user via `#[entry]`
+                fn main() -> !;
+            }
+            main()
+        }
         #[cfg(has_fpu)]
         () => {
-            const SCB_CPACR: *mut u32 = 0xE000_ED88 as *mut u32;
-            const SCB_CPACR_FPU_ENABLE: u32 = 0b01_01 << 20;
-            const SCB_CPACR_FPU_USER: u32 = 0b10_10 << 20;
-
-            // enable the FPU
-            core::ptr::write_volatile(
-                SCB_CPACR,
-                *SCB_CPACR | SCB_CPACR_FPU_ENABLE | SCB_CPACR_FPU_USER,
-            );
-
-            cortex_m::asm::dsb();
-            cortex_m::asm::isb();
-
-            // this is used to prevent the compiler from inlining the user `main` into the reset
-            // handler. Inlining can cause the FPU instructions in the user `main` to be executed
-            // before enabling the FPU, and that would produce a hard to diagnose hard fault at
-            // runtime.
-            #[inline(never)]
-            #[export_name = "ResetTrampoline"]
-            fn trampoline() -> ! {
-                unsafe { main() }
+            extern "C" {
+                fn FpuTrampoline() -> !;
             }
 
-            trampoline()
+            FpuTrampoline()
         }
     }
 }

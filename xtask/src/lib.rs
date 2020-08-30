@@ -4,12 +4,16 @@
 //!
 //! Also see the docs in `asm.rs`.
 
-use process::Stdio;
+use object::{
+    read::{Object as _, ObjectSection as _},
+    write::{Object, Symbol, SymbolSection},
+    SymbolFlags,
+};
 use std::env::current_dir;
 use std::{
     collections::BTreeMap,
     fs::{self, File},
-    process::{self, Command},
+    process::{Command, Stdio},
 };
 
 fn toolchain() -> String {
@@ -23,6 +27,88 @@ fn rustc() -> Command {
     let mut cmd = Command::new("rustc");
     cmd.arg(format!("+{}", toolchain()));
     cmd
+}
+
+/// Patches an object file so that it doesn't contain a panic handler.
+///
+/// The panic handler defined in `asm/lib.rs` should never get linked to the final program.
+/// Unfortunately, Rust uses the same symbol for all panic handlers, and doesn't really like it if
+/// that ends up with multiple ones. It also demands that we define a panic handler for the inline
+/// assembly shim, even though none of that code should ever be able to panic. The result of this is
+/// that the supposedly unreachable panic handler does end up getting linked into the final program,
+/// unless it is built with optimizations enabled.
+///
+/// To fix that, we put the never-to-be-used panic handler into its own section via
+/// `#[link_section]`, and then use this function to delete that section.
+fn trim_panic_handler(obj_file: &str) {
+    let objdata = fs::read(&obj_file).unwrap();
+    let obj = object::File::parse(&objdata).unwrap();
+
+    let mut writer = Object::new(obj.format(), obj.architecture(), obj.endianness());
+    for (sec_index, section) in obj.sections().enumerate() {
+        assert_eq!(section.index().0, sec_index);
+
+        let name = section.name().unwrap();
+        if name.starts_with(".ARM")
+            || name.starts_with(".rel.ARM")
+            || name.contains("cortex_m_asm_panic")
+            || name == ".strtab"
+            || name == ".symtab"
+        {
+            // We drop the ARM exception handling tables since they refer back to the panic handler
+            // symbol. They aren't used either way. We also drop `.strtab` and `.symtab` since they
+            // otherwise end up having the wrong section type. The object crate should rebuild any
+            // index tables when writing the file.
+            continue;
+        }
+
+        let segment = section
+            .segment_name()
+            .unwrap()
+            .map(|s| s.as_bytes())
+            .unwrap_or(&[]);
+        let sec_id = writer.add_section(segment.to_vec(), name.as_bytes().to_vec(), section.kind());
+
+        let align = if section.align() == 0 {
+            // Not sure why but `section.align()` can return 0.
+            1
+        } else {
+            section.align()
+        };
+        writer.append_section_data(sec_id, section.data().unwrap(), align);
+
+        // Import all symbols from the section.
+        for (_sym_idx, symbol) in obj.symbols() {
+            if symbol.section_index() == Some(section.index()) {
+                writer.add_symbol(Symbol {
+                    name: symbol.name().unwrap_or("").as_bytes().to_vec(),
+                    value: symbol.address(),
+                    size: symbol.size(),
+                    kind: symbol.kind(),
+                    scope: symbol.scope(),
+                    weak: symbol.is_weak(),
+                    section: match symbol.section() {
+                        object::SymbolSection::Unknown => unimplemented!(),
+                        object::SymbolSection::None => SymbolSection::None,
+                        object::SymbolSection::Undefined => SymbolSection::Undefined,
+                        object::SymbolSection::Absolute => SymbolSection::Absolute,
+                        object::SymbolSection::Common => SymbolSection::Common,
+                        object::SymbolSection::Section(_) => SymbolSection::Section(sec_id),
+                    },
+                    flags: match symbol.flags() {
+                        SymbolFlags::None => SymbolFlags::None,
+                        SymbolFlags::Elf { st_info, st_other } => {
+                            SymbolFlags::Elf { st_info, st_other }
+                        }
+                        _ => unimplemented!(),
+                    },
+                });
+            }
+        }
+    }
+
+    let obj = writer.write().unwrap();
+    fs::write(&obj_file, obj).unwrap();
 }
 
 fn assemble_really(target: &str, cfgs: &[&str], plugin_lto: bool) {
@@ -73,6 +159,11 @@ fn assemble_really(target: &str, cfgs: &[&str], plugin_lto: bool) {
     println!("{:?}", cmd);
     let status = cmd.status().unwrap();
     assert!(status.success());
+
+    if !plugin_lto {
+        // Post-process the object file.
+        trim_panic_handler(&obj_file);
+    }
 
     // Archive `target.o` -> `bin/target.a`.
     let mut builder = ar::Builder::new(File::create(format!("bin/{}.a", file_stub)).unwrap());

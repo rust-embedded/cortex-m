@@ -7,7 +7,7 @@ branches:
     - trying
 
 rust:
-  - 1.35.0
+  - 1.38.0
   - stable
   - nightly
 

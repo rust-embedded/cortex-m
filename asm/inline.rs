@@ -175,6 +175,13 @@ pub unsafe fn __wfi() {
     asm!("wfi");
 }
 
+/// Semihosting syscall.
+#[inline(always)]
+pub unsafe fn __syscall(mut nr: u32, arg: u32) -> u32 {
+    asm!("bkpt #0xab", inout("r0") nr, in("r1") arg);
+    nr
+}
+
 // v7m *AND* v8m.main, but *NOT* v8m.base
 #[cfg(any(armv7m, armv8m_main))]
 pub use self::v7m::*;

@@ -156,58 +156,13 @@ impl Fpca {
 /// Reads the CPU register
 #[inline]
 pub fn read() -> Control {
-    match () {
-        #[cfg(cortex_m)]
-        () => {
-            let r = match () {
-                #[cfg(feature = "inline-asm")]
-                () => {
-                    let r: u32;
-                    unsafe { llvm_asm!("mrs $0, CONTROL" : "=r"(r) ::: "volatile") }
-                    r
-                }
-
-                #[cfg(not(feature = "inline-asm"))]
-                () => unsafe {
-                    extern "C" {
-                        fn __control_r() -> u32;
-                    }
-
-                    __control_r()
-                },
-            };
-
-            Control { bits: r }
-        }
-
-        #[cfg(not(cortex_m))]
-        () => unimplemented!(),
-    }
+    let bits: u32 = call_asm!(__control_r() -> u32);
+    Control { bits }
 }
 
 /// Writes to the CPU register.
 #[inline]
-pub unsafe fn write(_control: Control) {
-    match () {
-        #[cfg(cortex_m)]
-        () => match () {
-            #[cfg(feature = "inline-asm")]
-            () => {
-                let control = _control.bits();
-                llvm_asm!("msr CONTROL, $0" :: "r"(control) : "memory" : "volatile");
-            }
-
-            #[cfg(not(feature = "inline-asm"))]
-            () => {
-                extern "C" {
-                    fn __control_w(bits: u32);
-                }
-
-                __control_w(_control.bits());
-            }
-        },
-
-        #[cfg(not(cortex_m))]
-        () => unimplemented!(),
-    }
+pub unsafe fn write(control: Control) {
+    let control = control.bits();
+    call_asm!(__control_w(control: u32));
 }

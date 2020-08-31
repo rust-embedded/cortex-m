@@ -27,35 +27,14 @@ impl Primask {
 /// Reads the CPU register
 #[inline]
 pub fn read() -> Primask {
-    match () {
-        #[cfg(cortex_m)]
-        () => {
-            let r = match () {
-                #[cfg(feature = "inline-asm")]
-                () => {
-                    let r: u32;
-                    unsafe { llvm_asm!("mrs $0, PRIMASK" : "=r"(r) ::: "volatile") }
-                    r
-                }
+    fn read_raw() -> u32 {
+        call_asm!(__primask_r() -> u32)
+    }
 
-                #[cfg(not(feature = "inline-asm"))]
-                () => {
-                    extern "C" {
-                        fn __primask() -> u32;
-                    }
-
-                    unsafe { __primask() }
-                }
-            };
-
-            if r & (1 << 0) == (1 << 0) {
-                Primask::Inactive
-            } else {
-                Primask::Active
-            }
-        }
-
-        #[cfg(not(cortex_m))]
-        () => unimplemented!(),
+    let r = read_raw();
+    if r & (1 << 0) == (1 << 0) {
+        Primask::Inactive
+    } else {
+        Primask::Active
     }
 }

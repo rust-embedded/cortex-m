@@ -12,7 +12,7 @@
 //! ## `inline-asm`
 //!
 //! When this feature is enabled the implementation of all the functions inside the `asm` and
-//! `register` modules use inline assembly (`llvm_asm!`) instead of external assembly (FFI into separate
+//! `register` modules use inline assembly (`asm!`) instead of external assembly (FFI into separate
 //! assembly files pre-compiled using `arm-none-eabi-gcc`). The advantages of enabling `inline-asm`
 //! are:
 //!
@@ -52,17 +52,16 @@
 //!
 //! # Minimum Supported Rust Version (MSRV)
 //!
-//! This crate is guaranteed to compile on stable Rust 1.31 and up. It *might*
+//! This crate is guaranteed to compile on stable Rust 1.38 and up. It *might*
 //! compile with older versions but that may change in any new patch release.
 
-#![cfg_attr(feature = "inline-asm", feature(llvm_asm))]
+#![cfg_attr(feature = "inline-asm", feature(asm))]
 #![deny(missing_docs)]
 #![no_std]
 #![allow(clippy::identity_op)]
 #![allow(clippy::missing_safety_doc)]
 // Prevent clippy from complaining about empty match expression that are used for cfg gating.
 #![allow(clippy::match_single_binding)]
-
 // This makes clippy warn about public functions which are not #[inline].
 //
 // Almost all functions in this crate result in trivial or even no assembly.
@@ -81,6 +80,8 @@
 extern crate bare_metal;
 extern crate volatile_register;
 
+#[macro_use]
+mod call_asm;
 #[macro_use]
 mod macros;
 

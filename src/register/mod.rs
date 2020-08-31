@@ -58,11 +58,11 @@ pub mod psplim;
 
 // Accessing these registers requires inline assembly because their contents are tied to the current
 // stack frame
-#[cfg(any(feature = "inline-asm", target_arch = "x86_64"))]
+#[cfg(feature = "inline-asm")]
 pub mod apsr;
 
-#[cfg(any(feature = "inline-asm", target_arch = "x86_64"))]
+#[cfg(feature = "inline-asm")]
 pub mod lr;
 
-#[cfg(any(feature = "inline-asm", target_arch = "x86_64"))]
+#[cfg(feature = "inline-asm")]
 pub mod pc;

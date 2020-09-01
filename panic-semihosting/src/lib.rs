@@ -56,6 +56,7 @@
 //! When this feature is disabled semihosting is implemented using FFI calls into an external
 //! assembly file and compiling this crate works on stable and beta.
 
+#![cfg(all(target_arch = "arm", target_os = "none"))]
 #![deny(missing_docs)]
 #![deny(warnings)]
 #![no_std]

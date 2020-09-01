@@ -13,8 +13,8 @@ repository = "https://github.com/rust-embedded/panic-semihosting"
 version = "0.5.3"
 
 [dependencies]
-cortex-m = ">= 0.5.6, < 0.7"
-cortex-m-semihosting = "0.3"
+cortex-m = { path = "..", version = ">= 0.5.6, < 0.7" }
+cortex-m-semihosting = { path = "../cortex-m-semihosting", version = "0.3" }
 
 [features]
 exit = []

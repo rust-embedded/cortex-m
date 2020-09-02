@@ -40,3 +40,17 @@ FpuTrampoline:
   # Hand execution over to `main`.
   bl main
   # Note: `main` must not return. `bl` is used only because it has a wider range than `b`.
+
+  # ARMv6-M leaves LR in an unknown state on Reset
+  # this trampoline sets LR before it's pushed onto the stack by Reset
+  .section .PreResetTrampoline, "ax"
+  .global PreResetTrampoline
+  # .type and .thumb_func are both required; otherwise its Thumb bit does not
+  # get set and an invalid vector table is generated
+  .type PreResetTrampoline,%function
+  .thumb_func
+PreResetTrampoline:
+  # set LR to the initial value used by the ARMv7-M (0xFFFF_FFFF)
+  ldr r0,=0xffffffff
+  mov lr,r0
+  b Reset

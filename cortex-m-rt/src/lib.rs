@@ -923,9 +923,17 @@ pub fn heap_start() -> *mut u32 {
 #[doc(hidden)]
 #[link_section = ".vector_table.reset_vector"]
 #[no_mangle]
+#[cfg(not(armv6m))]
 pub static __RESET_VECTOR: unsafe extern "C" fn() -> ! = Reset;
 
 #[doc(hidden)]
+#[link_section = ".vector_table.reset_vector"]
+#[no_mangle]
+#[cfg(armv6m)]
+pub static __RESET_VECTOR: unsafe extern "C" fn() -> ! = PreResetTrampoline;
+
+#[doc(hidden)]
+#[link_section = ".Reset"]
 #[no_mangle]
 pub unsafe extern "C" fn Reset() -> ! {
     extern "C" {
@@ -1030,6 +1038,9 @@ pub enum Exception {
 pub use self::Exception as exception;
 
 extern "C" {
+    #[cfg(armv6m)]
+    fn PreResetTrampoline() -> !;
+
     fn NonMaskableInt();
 
     fn HardFaultTrampoline();

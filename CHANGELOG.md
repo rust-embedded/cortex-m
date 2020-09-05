@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Associated const `PTR` is introduced to Core Peripherals to
   eventually replace the existing `ptr()` API.
 - A delay driver based on SysTick.
+- You can now use LTO to inline assembly calls, even on stable Rust.
+  See the `asm/lib.rs` documentation for more details.
 
 ### Changed
 

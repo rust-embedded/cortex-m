@@ -24,9 +24,13 @@ pub unsafe fn __control_r() -> u32 {
 pub unsafe fn __control_w(w: u32) {
     // ISB is required after writing to CONTROL,
     // per ARM architectural requirements (see Application Note 321).
-    asm!("msr CONTROL, {}", "isb", in(reg) w);
+    asm!(
+        "msr CONTROL, {}",
+        "isb",
+        in(reg) w
+    );
 
-    // Ensure instructions are not reordered around the CONTROL update.
+    // Ensure memory accesses are not reordered around the CONTROL update.
     compiler_fence(Ordering::SeqCst);
 }
 
@@ -34,13 +38,13 @@ pub unsafe fn __control_w(w: u32) {
 pub unsafe fn __cpsid() {
     asm!("cpsid i");
 
-    // Ensure no subsequent instructions are reordered to before interrupts are disabled.
+    // Ensure no subsequent memory accesses are reordered to before interrupts are disabled.
     compiler_fence(Ordering::SeqCst);
 }
 
 #[inline(always)]
 pub unsafe fn __cpsie() {
-    // Ensure no preceeding instructions are reordered to after interrupts are enabled.
+    // Ensure no preceeding memory accesses are reordered to after interrupts are enabled.
     compiler_fence(Ordering::SeqCst);
 
     asm!("cpsie i");
@@ -61,7 +65,7 @@ pub unsafe fn __delay(cyc: u32) {
 #[inline(always)]
 pub unsafe fn __dmb() {
     asm!("dmb");
-    compiler_fence(Ordering::AcqRel);
+    compiler_fence(Ordering::SeqCst);
 }
 
 #[inline(always)]

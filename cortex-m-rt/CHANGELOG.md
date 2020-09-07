@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Various fixes to the linker script ([#265], [#286]).
 - Use the correct ABI for the `main` symbol ([#278]).
 - Add barriers after FPU enabling ([#279]).
+- (ARMv6-M) Set LR value to a known value on reset (as the ARM spec requires)
+- Added CFI and size info to external assembly subroutines (`HardFaultTrampoline` and `FpuTrampoline`)
 
 [#265]: https://github.com/rust-embedded/cortex-m-rt/pull/265
 [#278]: https://github.com/rust-embedded/cortex-m-rt/pull/278

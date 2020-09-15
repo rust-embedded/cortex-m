@@ -6,6 +6,8 @@
 //! All of these functions should be blanket-`unsafe`. `cortex-m` provides safe wrappers where
 //! applicable.
 
+use core::sync::atomic::{Ordering, compiler_fence};
+
 #[inline(always)]
 pub unsafe fn __bkpt() {
     asm!("bkpt");
@@ -20,45 +22,62 @@ pub unsafe fn __control_r() -> u32 {
 
 #[inline(always)]
 pub unsafe fn __control_w(w: u32) {
-    asm!("msr CONTROL, {}", in(reg) w);
+    // ISB is required after writing to CONTROL,
+    // per ARM architectural requirements (see Application Note 321).
+    asm!(
+        "msr CONTROL, {}",
+        "isb",
+        in(reg) w
+    );
+
+    // Ensure memory accesses are not reordered around the CONTROL update.
+    compiler_fence(Ordering::SeqCst);
 }
 
 #[inline(always)]
 pub unsafe fn __cpsid() {
     asm!("cpsid i");
+
+    // Ensure no subsequent memory accesses are reordered to before interrupts are disabled.
+    compiler_fence(Ordering::SeqCst);
 }
 
 #[inline(always)]
 pub unsafe fn __cpsie() {
+    // Ensure no preceeding memory accesses are reordered to after interrupts are enabled.
+    compiler_fence(Ordering::SeqCst);
+
     asm!("cpsie i");
 }
 
 #[inline(always)]
 pub unsafe fn __delay(cyc: u32) {
-    asm!("
-    1:
-        nop
-        subs {}, #1
-        bne 1b
-        // Branch to 1 instead of delay does not generate R_ARM_THM_JUMP8 relocation, which breaks
-        // linking on the thumbv6m-none-eabi target
-    ", in(reg) cyc);
+    // Use local labels to avoid R_ARM_THM_JUMP8 relocations which fail on thumbv6m.
+    asm!(
+        "1:",
+        "nop",
+        "subs {}, #1",
+        "bne 1b",
+        in(reg) cyc
+    );
 }
 
-// FIXME do we need compiler fences here or should we expect them in the caller?
 #[inline(always)]
 pub unsafe fn __dmb() {
-    asm!("dmb 0xF");
+    asm!("dmb");
+    compiler_fence(Ordering::SeqCst);
 }
 
 #[inline(always)]
 pub unsafe fn __dsb() {
-    asm!("dsb 0xF");
+    asm!("dsb");
+    compiler_fence(Ordering::SeqCst);
 }
 
 #[inline(always)]
 pub unsafe fn __isb() {
-    asm!("isb 0xF");
+    asm!("isb");
+    compiler_fence(Ordering::SeqCst);
 }
 
 #[inline(always)]
@@ -93,28 +112,28 @@ pub unsafe fn __nop() {
 #[inline(always)]
 pub unsafe fn __pc_r() -> u32 {
     let r;
-    asm!("mov {}, R15", out(reg) r);
+    asm!("mov {}, pc", out(reg) r);
     r
 }
 
 // NOTE: No FFI shim, this requires inline asm.
 #[inline(always)]
 pub unsafe fn __pc_w(val: u32) {
-    asm!("mov R15, {}", in(reg) val);
+    asm!("mov pc, {}", in(reg) val);
 }
 
 // NOTE: No FFI shim, this requires inline asm.
 #[inline(always)]
 pub unsafe fn __lr_r() -> u32 {
     let r;
-    asm!("mov {}, R14", out(reg) r);
+    asm!("mov {}, lr", out(reg) r);
     r
 }
 
 // NOTE: No FFI shim, this requires inline asm.
 #[inline(always)]
 pub unsafe fn __lr_w(val: u32) {
-    asm!("mov R14, {}", in(reg) val);
+    asm!("mov lr, {}", in(reg) val);
 }
 
 #[inline(always)]
@@ -161,6 +180,8 @@ pub unsafe fn __wfi() {
 pub use self::v7m::*;
 #[cfg(any(armv7m, armv8m_main))]
 mod v7m {
+    use core::sync::atomic::{Ordering, compiler_fence};
+
     #[inline(always)]
     pub unsafe fn __basepri_max(val: u8) {
         asm!("msr BASEPRI_MAX, {}", in(reg) val);
@@ -185,45 +206,42 @@ mod v7m {
         r
     }
 
-    // FIXME: compiler_fences necessary?
     #[inline(always)]
     pub unsafe fn __enable_icache() {
         asm!(
-            "
-            ldr r0, =0xE000ED14       @ CCR
-            mrs r2, PRIMASK           @ save critical nesting info
-            cpsid i                   @ mask interrupts
-            ldr r1, [r0]              @ read CCR
-            orr.w r1, r1, #(1 << 17)  @ Set bit 17, IC
-            str r1, [r0]              @ write it back
-            dsb                       @ ensure store completes
-            isb                       @ synchronize pipeline
-            msr PRIMASK, r2           @ unnest critical section
-            ",
-            out("r0") _,
-            out("r1") _,
-            out("r2") _,
+            "ldr {0}, =0xE000ED14",         // CCR
+            "mrs {2}, PRIMASK",             // save critical nesting info
+            "cpsid i",                      // mask interrupts
+            "ldr {1}, [{0}]",               // read CCR
+            "orr.w {1}, {1}, #(1 << 17)",   // Set bit 17, IC
+            "str {1}, [{0}]",               // write it back
+            "dsb",                          // ensure store completes
+            "isb",                          // synchronize pipeline
+            "msr PRIMASK, {2}",             // unnest critical section
+            out(reg) _,
+            out(reg) _,
+            out(reg) _,
         );
+        compiler_fence(Ordering::SeqCst);
     }
 
     #[inline(always)]
     pub unsafe fn __enable_dcache() {
         asm!(
-            "
-            ldr r0, =0xE000ED14       @ CCR
-            mrs r2, PRIMASK           @ save critical nesting info
-            cpsid i                   @ mask interrupts
-            ldr r1, [r0]              @ read CCR
-            orr.w r1, r1, #(1 << 16)  @ Set bit 16, DC
-            str r1, [r0]              @ write it back
-            dsb                       @ ensure store completes
-            isb                       @ synchronize pipeline
-            msr PRIMASK, r2           @ unnest critical section
-            ",
-            out("r0") _,
-            out("r1") _,
-            out("r2") _,
+            "ldr {0}, =0xE000ED14",         // CCR
+            "mrs {2}, PRIMASK",             // save critical nesting info
+            "cpsid i",                      // mask interrupts
+            "ldr {1}, [{0}]",               // read CCR
+            "orr.w {1}, {1}, #(1 << 16)",   // Set bit 16, DC
+            "str {1}, [{0}]",               // write it back
+            "dsb",                          // ensure store completes
+            "isb",                          // synchronize pipeline
+            "msr PRIMASK, {2}",             // unnest critical section
+            out(reg) _,
+            out(reg) _,
+            out(reg) _,
         );
+        compiler_fence(Ordering::SeqCst);
     }
 }
 
@@ -234,34 +252,30 @@ mod v7em {
     #[inline(always)]
     pub unsafe fn __basepri_max_cm7_r0p1(val: u8) {
         asm!(
-            "
-            mrs r1, PRIMASK
-            cpsid i
-            tst.w r1, #1
-            msr BASEPRI_MAX, {}
-            it ne
-            bxne lr
-            cpsie i
-            ",
+            "mrs {1}, PRIMASK",
+            "cpsid i",
+            "tst.w {1}, #1",
+            "msr BASEPRI_MAX, {0}",
+            "it ne",
+            "bxne lr",
+            "cpsie i",
             in(reg) val,
-            out("r1") _,
+            out(reg) _,
         );
     }
 
     #[inline(always)]
     pub unsafe fn __basepri_w_cm7_r0p1(val: u8) {
         asm!(
-            "
-            mrs r1, PRIMASK
-            cpsid i
-            tst.w r1, #1
-            msr BASEPRI, {}
-            it ne
-            bxne lr
-            cpsie i
-            ",
+            "mrs {1}, PRIMASK",
+            "cpsid i",
+            "tst.w {1}, #1",
+            "msr BASEPRI, {0}",
+            "it ne",
+            "bxne lr",
+            "cpsie i",
             in(reg) val,
-            out("r1") _,
+            out(reg) _,
         );
     }
 }

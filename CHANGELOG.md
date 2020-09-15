@@ -14,6 +14,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Associated const `PTR` is introduced to Core Peripherals to
   eventually replace the existing `ptr()` API.
 - A delay driver based on SysTick.
+- You can now use LTO to inline assembly calls, even on stable Rust.
+  See the `asm/lib.rs` documentation for more details.
+
+### Changed
+
+- Previously, asm calls without the `inline-asm` feature enabled used pre-built
+  objects which were built by a GCC compiler, while `inline-asm` enabled the
+  use of `llvm_asm!` calls. The asm system has been replaced with a new
+  technique which generates Rust static libs for stable calling, and uses the
+  new `asm!` macro with `inline-asm`. See the `asm/lib.rs` documentation for
+  more details.
 
 ## [v0.6.3] - 2020-07-20
 

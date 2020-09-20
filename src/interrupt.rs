@@ -1,6 +1,6 @@
 //! Interrupts
 
-pub use bare_metal::{CriticalSection, Mutex};
+pub use bare_metal::{CriticalSection, Mutex, Nr};
 
 /// Trait for enums of external interrupt numbers.
 ///
@@ -21,6 +21,15 @@ pub unsafe trait InterruptNumber: Copy {
     ///
     /// See trait documentation for safety requirements.
     fn number(self) -> u16;
+}
+
+/// Implement InterruptNumber for the old bare_metal::Nr trait.
+/// This implementation is for backwards compatibility only and will be removed in cortex-m 0.8.
+#[deprecated(since="0.7.0", note="Please update your PAC to one using the latest svd2rust")]
+unsafe impl<T: Nr + Copy> InterruptNumber for T {
+    fn number(self) -> u16 {
+        self.nr() as u16
+    }
 }
 
 /// Disables all interrupts

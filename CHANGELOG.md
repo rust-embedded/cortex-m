@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - New `InterruptNumber` trait is now required on interrupt arguments to the
   various NVIC functions, replacing the previous use of `Nr` from bare-metal.
+  For backwards compatibility, `InterruptNumber` is implemented for types
+  which are `Nr + Copy`, but this will be removed in a future version.
 - Associated const `PTR` is introduced to Core Peripherals to
   eventually replace the existing `ptr()` API.
 - A delay driver based on SysTick.

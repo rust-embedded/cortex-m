@@ -110,6 +110,18 @@ SECTIONS
   . = ALIGN(4); /* Ensure __erodata is aligned if something unaligned is inserted after .rodata */
   __erodata = .;
 
+  /* ### .gnu.sgstubs
+     This section contains the TrustZone-M veneers put there by the Arm GNU linker. */
+  . = ALIGN(32); /* Security Attribution Unit blocks must be 32 bytes aligned. */
+  __veneer_base = ALIGN(4);
+  .gnu.sgstubs : ALIGN(4)
+  {
+    *(.gnu.sgstubs*)
+    . = ALIGN(4); /* 4-byte align the end (VMA) of this section */
+  } > FLASH
+  . = ALIGN(4); /* Ensure __veneer_limit is aligned if something unaligned is inserted after .gnu.sgstubs */
+  __veneer_limit = .;
+
   /* ## Sections in RAM */
   /* ### .data */
   .data : ALIGN(4)

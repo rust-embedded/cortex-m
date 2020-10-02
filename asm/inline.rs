@@ -308,6 +308,23 @@ mod v8m {
         asm!("ttat {target}, {target}", target = inout(reg) target);
         target
     }
+
+    #[inline(always)]
+    pub unsafe fn __msp_ns_r() -> u32 {
+        let r;
+        asm!("mrs {}, MSP_NS", out(reg) r);
+        r
+    }
+
+    #[inline(always)]
+    pub unsafe fn __msp_ns_w(val: u32) {
+        asm!("msr MSP_NS, {}", in(reg) val);
+    }
+
+    #[inline(always)]
+    pub unsafe fn __bxns(val: u32) {
+        asm!("BXNS {}", in(reg) val);
+    }
 }
 
 #[cfg(armv8m_main)]

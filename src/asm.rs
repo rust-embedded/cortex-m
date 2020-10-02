@@ -154,3 +154,13 @@ pub fn ttat(addr: *mut u32) -> u32 {
     let addr = addr as u32;
     call_asm!(__ttat(addr: u32) -> u32)
 }
+
+/// Branch and Exchange Non-secure
+///
+/// See section C2.4.26 of Armv8-M Architecture Reference Manual for details.
+/// Undefined if executed in Non-Secure state.
+#[inline]
+#[cfg(armv8m)]
+pub unsafe fn bx_ns(addr: u32) {
+    call_asm!(__bxns(addr: u32));
+}

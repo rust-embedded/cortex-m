@@ -60,6 +60,7 @@ shims! {
     fn __cpsie();
     fn __delay(cyc: u32);
     fn __dmb();
+    fn __dsb();
     fn __isb();
     fn __msp_r() -> u32;
     fn __msp_w(val: u32);
@@ -97,6 +98,9 @@ shims! {
     fn __ttt(target: u32) -> u32;
     fn __tta(target: u32) -> u32;
     fn __ttat(target: u32) -> u32;
+    fn __msp_ns_r() -> u32;
+    fn __msp_ns_w(val: u32);
+    fn __bxns(val: u32);
 }
 
 // Mainline only.

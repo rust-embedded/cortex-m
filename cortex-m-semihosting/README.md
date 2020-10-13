@@ -18,9 +18,9 @@ compile with older versions but that may change in any new patch release.
 
 Licensed under either of
 
-- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or
+- Apache License, Version 2.0 ([LICENSE-APACHE](../LICENSE-APACHE) or
   http://www.apache.org/licenses/LICENSE-2.0)
-- MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+- MIT license ([LICENSE-MIT](../LICENSE-MIT) or http://opensource.org/licenses/MIT)
 
 at your option.
 
@@ -36,5 +36,5 @@ Contribution to this crate is organized under the terms of the [Rust Code of
 Conduct][CoC], the maintainer of this crate, the [Cortex-M team][team], promises
 to intervene to uphold that code of conduct.
 
-[CoC]: CODE_OF_CONDUCT.md
+[CoC]: ../CODE_OF_CONDUCT.md
 [team]: https://github.com/rust-embedded/wg#the-cortex-m-team

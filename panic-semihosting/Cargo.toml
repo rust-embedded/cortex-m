@@ -9,7 +9,7 @@ documentation = "https://docs.rs/panic-semihosting"
 keywords = ["panic-handler", "panic-impl", "panic", "semihosting"]
 license = "MIT OR Apache-2.0"
 name = "panic-semihosting"
-repository = "https://github.com/rust-embedded/panic-semihosting"
+repository = "https://github.com/rust-embedded/cortex-m"
 version = "0.5.3"
 
 [dependencies]

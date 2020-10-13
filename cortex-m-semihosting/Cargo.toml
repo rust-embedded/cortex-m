@@ -9,7 +9,7 @@ keywords = ["semihosting", "arm", "cortex-m"]
 license = "MIT OR Apache-2.0"
 name = "cortex-m-semihosting"
 readme = "README.md"
-repository = "https://github.com/rust-embedded/cortex-m-semihosting"
+repository = "https://github.com/rust-embedded/cortex-m"
 version = "0.3.5"
 edition = "2018"
 

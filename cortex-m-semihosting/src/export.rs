@@ -4,9 +4,9 @@ use core::fmt::{self, Write};
 
 use cortex_m::interrupt;
 
-use crate::hio::{self, HStderr, HStdout};
+use crate::hio::{self, HostStream};
 
-static mut HSTDOUT: Option<HStdout> = None;
+static mut HSTDOUT: Option<HostStream> = None;
 
 pub fn hstdout_str(s: &str) {
     let _result = interrupt::free(|_| unsafe {
@@ -28,7 +28,7 @@ pub fn hstdout_fmt(args: fmt::Arguments) {
     });
 }
 
-static mut HSTDERR: Option<HStderr> = None;
+static mut HSTDERR: Option<HostStream> = None;
 
 pub fn hstderr_str(s: &str) {
     let _result = interrupt::free(|_| unsafe {

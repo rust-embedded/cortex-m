@@ -5,6 +5,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+- Merge `HStdout` and `HStderr` into one type: `HostStream`
+
 ## [v0.3.5] - 2019-08-29
 
 ### Added

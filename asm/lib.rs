@@ -46,7 +46,7 @@ macro_rules! shims {
             pub unsafe extern "C" fn $name(
                 $($arg: $argty),*
             ) $(-> $ret)? {
-                crate::inline::$name($($arg)*)
+                crate::inline::$name($($arg),*)
             }
         )+
     };
@@ -72,9 +72,10 @@ shims! {
     fn __udf();
     fn __wfe();
     fn __wfi();
+    fn __syscall(nr: u32, arg: u32) -> u32;
 }
 
-// v7m *AND* v8m.main, but *NOT* v8m.base 
+// v7m *AND* v8m.main, but *NOT* v8m.base
 #[cfg(any(armv7m, armv8m_main))]
 shims! {
     fn __basepri_max(val: u8);

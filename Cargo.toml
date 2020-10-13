@@ -27,7 +27,7 @@ inline-asm = []
 linker-plugin-lto = []
 
 [workspace]
-members = ["xtask"]
+members = ["xtask", "cortex-m-semihosting", "panic-semihosting"]
 
 [package.metadata.docs.rs]
 targets = [

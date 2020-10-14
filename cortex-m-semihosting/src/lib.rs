@@ -25,7 +25,7 @@
 //!
 //! # Example
 //!
-//! ## Using `hio::HStdout`
+//! ## Using `hio::hstdout`
 //!
 //! This example will demonstrate how to print formatted strings.
 //!
@@ -35,11 +35,7 @@
 //!
 //! // This function will be called by the application
 //! fn print() -> Result<(), core::fmt::Error> {
-//!     let mut stdout = match hio::hstdout() {
-//!         Ok(fd) => fd,
-//!         Err(()) => return Err(core::fmt::Error),
-//!     };
-//!
+//!     let mut stdout = hio::hstdout().map_err(|_| core::fmt::Error)?;
 //!     let language = "Rust";
 //!     let ranking = 1;
 //!

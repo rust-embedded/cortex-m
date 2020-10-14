@@ -5,7 +5,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.4.0] - 2020-10-14
+
+- Moved into cortex-m repository
 - Merge `HStdout` and `HStderr` into one type: `HostStream`
+- Support cortex-m v0.7
 
 ## [v0.3.5] - 2019-08-29
 
@@ -111,7 +115,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 - Initial release
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m-semihosting/compare/v0.3.5...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/c-m-sh-v0.4.0...HEAD
+[v0.4.0]: https://github.com/rust-embedded/cortex-m/compare/c-m-sh-v0.3.5...c-m-sh-v0.4.0
 [v0.3.5]: https://github.com/rust-embedded/cortex-m-semihosting/compare/v0.3.4...v0.3.5
 [v0.3.4]: https://github.com/rust-embedded/cortex-m-semihosting/compare/v0.3.3...v0.3.4
 [v0.3.3]: https://github.com/rust-embedded/cortex-m-semihosting/compare/v0.3.2...v0.3.3

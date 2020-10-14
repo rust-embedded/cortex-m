@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.5.4] - 2020-10-14
+
+- Moved into cortex-m repository
+- Support cortex-m v0.7, cortex-m-semihosting v0.4
+
 ## [v0.5.3] - 2019-09-01
 
 - Added feature `jlink-quirks` to work with JLink
@@ -56,7 +61,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 Initial release
 
-[Unreleased]: https://github.com/rust-embedded/panic-semihosting/compare/v0.5.3...HEAD
+[Unreleased]: https://github.com/rust-embedded/panic-semihosting/compare/p-sh-v0.5.4...HEAD
+[v0.5.4]: https://github.com/rust-embedded/cortex-m/compare/p-sh-v0.5.3...p-sh-v0.5.4
 [v0.5.3]: https://github.com/rust-embedded/panic-semihosting/compare/v0.5.2...v0.5.3
 [v0.5.2]: https://github.com/rust-embedded/panic-semihosting/compare/v0.5.1...v0.5.2
 [v0.5.1]: https://github.com/rust-embedded/panic-semihosting/compare/v0.5.0...v0.5.1

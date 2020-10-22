@@ -9,7 +9,7 @@ fn main() {
     if target.starts_with("thumbv") {
         if env::var_os("CARGO_FEATURE_INLINE_ASM").is_none() {
             fs::copy(
-                format!("../bin/{}.a", target),
+                format!("bin/{}.a", target),
                 out_dir.join(format!("lib{}.a", name)),
             )
             .unwrap();

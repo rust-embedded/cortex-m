@@ -1,7 +1,7 @@
 on:
   push:
     branches: [ staging, trying, master ]
-  pull_request:
+  pull_request_target:
 
 name: Clippy check
 jobs:

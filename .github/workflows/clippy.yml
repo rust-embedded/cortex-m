@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: refs/pull/${{ github.event.number }}/head
+          ref: ${{ github.head_ref || github.ref }}
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal

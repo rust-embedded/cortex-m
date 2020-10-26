@@ -140,9 +140,7 @@ pub fn write_all(port: &mut Stim, buffer: &[u8]) {
 /// ```
 #[allow(clippy::missing_inline_in_public_items)]
 pub fn write_aligned(port: &mut Stim, buffer: &Aligned<[u8]>) {
-    unsafe {
-        write_aligned_impl(port, &buffer.0)
-    }
+    unsafe { write_aligned_impl(port, &buffer.0) }
 }
 
 /// Writes `fmt::Arguments` to the ITM `port`

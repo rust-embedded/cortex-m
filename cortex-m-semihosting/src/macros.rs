@@ -11,12 +11,13 @@ macro_rules! syscall {
         $crate::syscall($crate::nr::$nr, &[$a1 as usize, $a2 as usize])
     };
     ($nr:ident, $a1:expr, $a2:expr, $a3:expr) => {
-        $crate::syscall($crate::nr::$nr, &[$a1 as usize, $a2 as usize,
-                                           $a3 as usize])
+        $crate::syscall($crate::nr::$nr, &[$a1 as usize, $a2 as usize, $a3 as usize])
     };
     ($nr:ident, $a1:expr, $a2:expr, $a3:expr, $a4:expr) => {
-        $crate::syscall($crate::nr::$nr, &[$a1 as usize, $a2 as usize,
-                                           $a3 as usize, $a4 as usize])
+        $crate::syscall(
+            $crate::nr::$nr,
+            &[$a1 as usize, $a2 as usize, $a3 as usize, $a4 as usize],
+        )
     };
 }
 

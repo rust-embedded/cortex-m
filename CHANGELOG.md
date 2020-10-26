@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.6.4] - 2020-10-26
+
 ### Changed
 
 - MSRV bumped to 1.36.0 due to `aligned` dependency.
@@ -597,7 +599,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.6.3...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.6.4...HEAD
+[v0.6.4]: https://github.com/rust-embedded/cortex-m/compare/v0.6.3...v0.6.4
 [v0.6.3]: https://github.com/rust-embedded/cortex-m/compare/v0.6.2...v0.6.3
 [v0.6.2]: https://github.com/rust-embedded/cortex-m/compare/v0.6.1...v0.6.2
 [v0.6.1]: https://github.com/rust-embedded/cortex-m/compare/v0.6.0...v0.6.1

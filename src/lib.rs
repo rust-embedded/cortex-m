@@ -26,7 +26,7 @@
 //!
 //! # Minimum Supported Rust Version (MSRV)
 //!
-//! This crate is guaranteed to compile on stable Rust 1.31 and up. It *might*
+//! This crate is guaranteed to compile on stable Rust 1.36 and up. It *might*
 //! compile with older versions but that may change in any new patch release.
 
 #![cfg_attr(feature = "inline-asm", feature(llvm_asm))]
@@ -34,7 +34,6 @@
 #![no_std]
 #![allow(clippy::identity_op)]
 #![allow(clippy::missing_safety_doc)]
-
 // This makes clippy warn about public functions which are not #[inline].
 //
 // Almost all functions in this crate result in trivial or even no assembly.

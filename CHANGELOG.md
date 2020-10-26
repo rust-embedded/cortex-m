@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- MSRV bumped to 1.36.0 due to `aligned` dependency.
+
+### Fixed
+
+- Drop AT&T syntax from inline asm, which was causing miscompilations with newer versions of the compiler.
+
 ## [v0.6.3] - 2020-07-20
 
 ### Added

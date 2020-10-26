@@ -38,7 +38,7 @@ pub fn delay(_n: u32) {
         () => unsafe {
             llvm_asm!("1:
                   nop
-                  subs $0, $$1
+                  subs $0, #1
                   bne.n 1b"
                  : "+r"(_n / 4 + 1)
                  :
@@ -80,7 +80,6 @@ pub fn nop() {
         () => unimplemented!(),
     }
 }
-
 
 /// Generate an Undefined Instruction exception.
 ///

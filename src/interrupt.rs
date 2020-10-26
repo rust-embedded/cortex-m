@@ -30,6 +30,7 @@ pub unsafe trait InterruptNumber: Copy {
     note = "Please update your PAC to one using the latest svd2rust"
 )]
 unsafe impl<T: Nr + Copy> InterruptNumber for T {
+    #[inline]
     fn number(self) -> u16 {
         self.nr() as u16
     }

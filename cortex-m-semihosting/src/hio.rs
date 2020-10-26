@@ -1,7 +1,7 @@
 //! Host I/O
 
-use core::{fmt, slice};
 use crate::nr;
+use core::{fmt, slice};
 
 /// A byte stream to the host (e.g., host's stdout or stderr).
 #[derive(Clone, Copy)]
@@ -38,8 +38,7 @@ pub fn hstdout() -> Result<HostStream, ()> {
 
 fn open(name: &str, mode: usize) -> Result<HostStream, ()> {
     let name = name.as_bytes();
-    match unsafe { syscall!(OPEN, name.as_ptr(), mode, name.len() - 1) } as
-        isize {
+    match unsafe { syscall!(OPEN, name.as_ptr(), mode, name.len() - 1) } as isize {
         -1 => Err(()),
         fd => Ok(HostStream { fd: fd as usize }),
     }
@@ -53,9 +52,7 @@ fn write_all(fd: usize, mut buffer: &[u8]) -> Result<(), ()> {
             // `n` bytes were not written
             n if n <= buffer.len() => {
                 let offset = (buffer.len() - n) as isize;
-                buffer = unsafe {
-                    slice::from_raw_parts(buffer.as_ptr().offset(offset), n)
-                }
+                buffer = unsafe { slice::from_raw_parts(buffer.as_ptr().offset(offset), n) }
             }
             #[cfg(feature = "jlink-quirks")]
             // Error (-1) - should be an error but JLink can return -1, -2, -3,...

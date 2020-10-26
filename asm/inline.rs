@@ -6,7 +6,7 @@
 //! All of these functions should be blanket-`unsafe`. `cortex-m` provides safe wrappers where
 //! applicable.
 
-use core::sync::atomic::{Ordering, compiler_fence};
+use core::sync::atomic::{compiler_fence, Ordering};
 
 #[inline(always)]
 pub unsafe fn __bkpt() {
@@ -187,7 +187,7 @@ pub unsafe fn __syscall(mut nr: u32, arg: u32) -> u32 {
 pub use self::v7m::*;
 #[cfg(any(armv7m, armv8m_main))]
 mod v7m {
-    use core::sync::atomic::{Ordering, compiler_fence};
+    use core::sync::atomic::{compiler_fence, Ordering};
 
     #[inline(always)]
     pub unsafe fn __basepri_max(val: u8) {

@@ -2,8 +2,8 @@
 
 use volatile_register::{RW, WO};
 
-use core::ptr;
 use crate::peripheral::DCB;
+use core::ptr;
 
 const DCB_DEMCR_TRCENA: u32 = 1 << 24;
 

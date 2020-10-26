@@ -339,7 +339,9 @@ impl SCB {
         // NOTE(unsafe): The asm routine manages exclusive access to the SCB
         // registers and applies the proper barriers; it is technically safe on
         // its own, and is only `unsafe` here because it's `extern "C"`.
-        unsafe { __enable_icache(); }
+        unsafe {
+            __enable_icache();
+        }
     }
 
     /// Disables I-cache if currently enabled.
@@ -412,7 +414,9 @@ impl SCB {
         // NOTE(unsafe): The asm routine manages exclusive access to the SCB
         // registers and applies the proper barriers; it is technically safe on
         // its own, and is only `unsafe` here because it's `extern "C"`.
-        unsafe { __enable_dcache(); }
+        unsafe {
+            __enable_dcache();
+        }
     }
 
     /// Disables D-cache if currently enabled.
@@ -960,7 +964,7 @@ impl SCB {
 
             // NOTE(unsafe): Index is bounded to [4,15] by SystemHandler design.
             // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
-            let priority_ref = unsafe {(*Self::ptr()).shpr.get_unchecked(usize::from(index - 4))};
+            let priority_ref = unsafe { (*Self::ptr()).shpr.get_unchecked(usize::from(index - 4)) };
 
             priority_ref.read()
         }
@@ -971,7 +975,11 @@ impl SCB {
 
             // NOTE(unsafe): Index is bounded to [11,15] by SystemHandler design.
             // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
-            let priority_ref = unsafe {(*Self::ptr()).shpr.get_unchecked(usize::from((index - 8) / 4))};
+            let priority_ref = unsafe {
+                (*Self::ptr())
+                    .shpr
+                    .get_unchecked(usize::from((index - 8) / 4))
+            };
 
             let shpr = priority_ref.read();
             let prio = (shpr >> (8 * (index % 4))) & 0x0000_00ff;
@@ -1008,7 +1016,9 @@ impl SCB {
         {
             // NOTE(unsafe): Index is bounded to [11,15] by SystemHandler design.
             // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
-            let priority_ref = (*Self::ptr()).shpr.get_unchecked(usize::from((index - 8) / 4));
+            let priority_ref = (*Self::ptr())
+                .shpr
+                .get_unchecked(usize::from((index - 8) / 4));
 
             priority_ref.modify(|value| {
                 let shift = 8 * (index % 4);

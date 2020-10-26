@@ -17,7 +17,10 @@ impl Delay {
     pub fn new(mut syst: SYST, ahb_frequency: u32) -> Self {
         syst.set_clock_source(SystClkSource::Core);
 
-        Delay { syst, ahb_frequency }
+        Delay {
+            syst,
+            ahb_frequency,
+        }
     }
 
     /// Releases the system timer (SysTick) resource.

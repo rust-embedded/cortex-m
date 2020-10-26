@@ -218,9 +218,7 @@ pub unsafe fn syscall1(_nr: usize, _arg: usize) -> usize {
         }
 
         #[cfg(all(thumb, feature = "no-semihosting"))]
-        () => {
-            0
-        }
+        () => 0,
 
         #[cfg(not(thumb))]
         () => unimplemented!(),

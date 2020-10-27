@@ -14,8 +14,6 @@ jobs:
           ref: refs/pull/${{ github.event.number }}/head
       - uses: actions/checkout@v2
         if: github.event_name != 'pull_request_target'
-        with:
-          ref: ${{ github.head_ref }}
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal

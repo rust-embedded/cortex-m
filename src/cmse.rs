@@ -33,7 +33,7 @@
 //! ```
 
 use crate::asm::{tt, tta, ttat, ttt};
-use bitfield::bitfield;
+use modular_bitfield::bitfield;
 
 /// Memory access behaviour: determine which privilege execution mode is used and which Memory
 /// Protection Unit (MPU) is used.
@@ -62,24 +62,24 @@ pub struct TestTarget {
     access_type: AccessType,
 }
 
-bitfield! {
-    /// Test Target Response Payload
-    ///
-    /// Provides the response payload from a TT, TTA, TTT or TTAT instruction.
-    #[derive(PartialEq, Copy, Clone)]
-    struct TtResp(u32);
-    impl Debug;
-    mregion, _: 7, 0;
-    sregion, _: 15, 8;
-    mrvalid, _: 16;
-    srvalid, _: 17;
-    r, _: 18;
-    rw, _: 19;
-    nsr, _: 20;
-    nsrw, _: 21;
-    s, _: 22;
-    irvalid, _: 23;
-    iregion, _: 31, 24;
+/// Test Target Response Payload
+///
+/// Provides the response payload from a TT, TTA, TTT or TTAT instruction.
+#[bitfield]
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub struct TtResp {
+    mregion: u8,
+    sregion: u8,
+    mrvalid: bool,
+    srvalid: bool,
+    r: bool,
+    rw: bool,
+    nsr: bool,
+    nsrw: bool,
+    s: bool,
+    irvalid: bool,
+    iregion: u8,
 }
 
 impl TestTarget {
@@ -87,10 +87,10 @@ impl TestTarget {
     #[inline]
     pub fn check(addr: *mut u32, access_type: AccessType) -> Self {
         let tt_resp = match access_type {
-            AccessType::Current => TtResp(tt(addr)),
-            AccessType::Unprivileged => TtResp(ttt(addr)),
-            AccessType::NonSecure => TtResp(tta(addr)),
-            AccessType::NonSecureUnprivileged => TtResp(ttat(addr)),
+            AccessType::Current => TtResp::from(tt(addr)),
+            AccessType::Unprivileged => TtResp::from(ttt(addr)),
+            AccessType::NonSecure => TtResp::from(tta(addr)),
+            AccessType::NonSecureUnprivileged => TtResp::from(ttat(addr)),
         };
 
         TestTarget {
@@ -140,7 +140,7 @@ impl TestTarget {
     /// Get the raw u32 value returned by the TT instruction used.
     #[inline]
     pub fn as_u32(self) -> u32 {
-        self.tt_resp.0
+        u32::from(self.tt_resp)
     }
 
     /// Read accessibility of the target address. Only returns the MPU settings without checking

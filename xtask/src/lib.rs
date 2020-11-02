@@ -4,17 +4,13 @@
 //!
 //! Also see the docs in `asm.rs`.
 
-use object::{
-    read::{Object as _, ObjectSection as _},
-    write::{Object, Symbol, SymbolSection},
-    SymbolFlags,
-};
+use object::read::{Object as _, ObjectSection as _};
+use object::write::{Object, Symbol, SymbolSection};
+use object::{ObjectSymbol, SymbolFlags};
+use std::collections::BTreeMap;
 use std::env::current_dir;
-use std::{
-    collections::BTreeMap,
-    fs::{self, File},
-    process::{Command, Stdio},
-};
+use std::fs::{self, File};
+use std::process::{Command, Stdio};
 
 fn toolchain() -> String {
     fs::read_to_string("asm-toolchain")
@@ -78,7 +74,7 @@ fn trim_panic_handler(obj_file: &str) {
         writer.append_section_data(sec_id, section.data().unwrap(), align);
 
         // Import all symbols from the section.
-        for (_sym_idx, symbol) in obj.symbols() {
+        for symbol in obj.symbols() {
             if symbol.section_index() == Some(section.index()) {
                 writer.add_symbol(Symbol {
                     name: symbol.name().unwrap_or("").as_bytes().to_vec(),

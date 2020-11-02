@@ -13,5 +13,5 @@ harness = false
 ar = "0.8.0"
 
 [dependencies.object]
-version = "0.21.1"
+version = "0.22.0"
 features = ["write"]

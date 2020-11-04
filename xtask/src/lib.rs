@@ -41,6 +41,8 @@ fn trim_panic_handler(obj_file: &str) {
     let obj = object::File::parse(&objdata).unwrap();
 
     let mut writer = Object::new(obj.format(), obj.architecture(), obj.endianness());
+    writer.flags = obj.flags(); // Preserve flags of input file
+
     for (sec_index, section) in obj.sections().enumerate() {
         assert_eq!(section.index().0, sec_index);
 

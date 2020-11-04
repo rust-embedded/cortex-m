@@ -47,7 +47,7 @@ fn trim_panic_handler(obj_file: &str) {
         let name = section.name().unwrap();
         if name.starts_with(".ARM")
             || name.starts_with(".rel.ARM")
-            || name.contains("cortex_m_asm_panic")
+            || name.contains("asm_panic_handler")
             || name == ".strtab"
             || name == ".symtab"
         {

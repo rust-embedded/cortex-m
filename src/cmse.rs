@@ -69,17 +69,17 @@ pub struct TestTarget {
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct TtResp {
-    mregion: u8,
-    sregion: u8,
-    mrvalid: bool,
-    srvalid: bool,
-    r: bool,
-    rw: bool,
-    nsr: bool,
-    nsrw: bool,
-    s: bool,
-    irvalid: bool,
-    iregion: u8,
+    pub mregion: u8,
+    pub sregion: u8,
+    pub mrvalid: bool,
+    pub srvalid: bool,
+    pub r: bool,
+    pub rw: bool,
+    pub nsr: bool,
+    pub nsrw: bool,
+    pub s: bool,
+    pub irvalid: bool,
+    pub iregion: u8,
 }
 
 impl TestTarget {

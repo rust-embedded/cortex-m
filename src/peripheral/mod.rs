@@ -57,6 +57,7 @@
 
 use core::marker::PhantomData;
 use core::ops;
+use core::ptr::NonNull;
 
 use crate::interrupt;
 
@@ -408,12 +409,12 @@ unsafe impl Send for ICB {}
 
 impl ICB {
     /// Pointer to the register block
-    pub const PTR: *mut icb::RegisterBlock = 0xE000_E004 as *mut _;
+    pub const PTR: NonNull<icb::RegisterBlock> = unsafe { NonNull::new_unchecked(0xE000_E004 as *mut _) };
 
     /// Returns a pointer to the register block (to be deprecated in 0.7)
     #[inline(always)]
     pub const fn ptr() -> *mut icb::RegisterBlock {
-        Self::PTR
+        Self::PTR.as_ptr()
     }
 }
 
@@ -422,14 +423,14 @@ impl ops::Deref for ICB {
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
-        unsafe { &*Self::PTR }
+        unsafe { Self::PTR.as_ref() }
     }
 }
 
 impl ops::DerefMut for ICB {
     #[inline(always)]
     fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { &mut *Self::PTR }
+        unsafe { &mut *Self::ptr() }
     }
 }
 
@@ -443,12 +444,12 @@ unsafe impl Send for ITM {}
 #[cfg(all(not(armv6m), not(armv8m_base)))]
 impl ITM {
     /// Pointer to the register block
-    pub const PTR: *mut itm::RegisterBlock = 0xE000_0000 as *mut _;
+    pub const PTR: NonNull<itm::RegisterBlock> = unsafe { NonNull::new_unchecked(0xE000_0000 as *mut _) };
 
     /// Returns a pointer to the register block (to be deprecated in 0.7)
     #[inline(always)]
     pub const fn ptr() -> *mut itm::RegisterBlock {
-        Self::PTR
+        Self::PTR.as_ptr()
     }
 }
 
@@ -458,7 +459,7 @@ impl ops::Deref for ITM {
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
-        unsafe { &*Self::PTR }
+        unsafe { Self::PTR.as_ref() }
     }
 }
 
@@ -466,7 +467,7 @@ impl ops::Deref for ITM {
 impl ops::DerefMut for ITM {
     #[inline(always)]
     fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { &mut *Self::PTR }
+        unsafe { &mut *Self::ptr() }
     }
 }
 

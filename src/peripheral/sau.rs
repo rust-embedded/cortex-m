@@ -9,8 +9,8 @@
 
 use crate::interrupt;
 use crate::peripheral::SAU;
-use bitfield::bitfield;
 use volatile_register::{RO, RW};
+use modular_bitfield::prelude::*;
 
 /// Register block
 #[repr(C)]
@@ -31,75 +31,78 @@ pub struct RegisterBlock {
     pub sfar: RO<Sfar>,
 }
 
-bitfield! {
-    /// Control Register description
-    #[repr(C)]
-    #[derive(Copy, Clone)]
-    pub struct Ctrl(u32);
-    get_enable, set_enable: 0;
-    get_allns, set_allns: 1;
+#[bitfield(bits = 32)]
+#[derive(Copy, Clone)]
+#[repr(u32)]
+/// Control Register description.
+pub struct Ctrl {
+    pub enable: bool,
+    pub allns: bool,
+    #[skip] __: B30,
 }
 
-bitfield! {
-    /// Type Register description
-    #[repr(C)]
-    #[derive(Copy, Clone)]
-    pub struct Type(u32);
-    u8;
-    sregion, _: 7, 0;
+#[bitfield(bits = 32)]
+#[derive(Copy, Clone)]
+#[repr(C, u32)]
+/// Type Register description.
+pub struct Type {
+    #[skip(setters)]
+    pub sregion: u8,
+    #[skip] __: B24,
 }
 
-bitfield! {
-    /// Region Number Register description
-    #[repr(C)]
-    #[derive(Copy, Clone)]
-    pub struct Rnr(u32);
-    u8;
-    get_region, set_region: 7, 0;
+#[bitfield(bits = 32)]
+#[derive(Copy, Clone)]
+#[repr(C, u32)]
+/// Region Number Register description.
+pub struct Rnr {
+    pub region: u8,
+    #[skip] __: B24,
 }
 
-bitfield! {
-    /// Region Base Address Register description
-    #[repr(C)]
-    #[derive(Copy, Clone)]
-    pub struct Rbar(u32);
-    u32;
-    get_baddr, set_baddr: 31, 5;
+#[bitfield(bits = 32)]
+#[derive(Copy, Clone)]
+#[repr(C, u32)]
+/// Region Base Address Register description.
+pub struct Rbar {
+    #[skip] __: B5,
+    pub baddr: B27,
 }
 
-bitfield! {
-    /// Region Limit Address Register description
-    #[repr(C)]
-    #[derive(Copy, Clone)]
-    pub struct Rlar(u32);
-    u32;
-    get_laddr, set_laddr: 31, 5;
-    get_nsc, set_nsc: 1;
-    get_enable, set_enable: 0;
+#[bitfield(bits = 32)]
+#[derive(Copy, Clone)]
+#[repr(C, u32)]
+/// Region Limit Address Register description.
+pub struct Rlar {
+    pub enable: bool,
+    pub nsc: bool,
+    #[skip] __: B3,
+    pub laddr: B27,
 }
 
-bitfield! {
-    /// Secure Fault Status Register description
-    #[repr(C)]
-    #[derive(Copy, Clone)]
-    pub struct Sfsr(u32);
-    invep, _: 0;
-    invis, _: 1;
-    inver, _: 2;
-    auviol, _: 3;
-    invtran, _: 4;
-    lsperr, _: 5;
-    sfarvalid, _: 6;
-    lserr, _: 7;
+#[bitfield(bits = 32)]
+#[derive(Copy, Clone)]
+#[repr(C, u32)]
+/// Secure Fault Status Register description.
+pub struct Sfsr {
+    #[skip(setters)] pub invep: bool,
+    #[skip(setters)] pub invis: bool,
+    #[skip(setters)] pub inver: bool,
+    #[skip(setters)] pub auviol: bool,
+    #[skip(setters)] pub invtran: bool,
+    #[skip(setters)] pub lsperr: bool,
+    #[skip(setters)] pub sfarvalid: bool,
+    #[skip(setters)] pub lserr: bool,
+    #[skip] __: B24,
 }
 
-bitfield! {
-    /// Secure Fault Address Register description
-    #[repr(C)]
-    #[derive(Copy, Clone)]
-    pub struct Sfar(u32);
-    u32;
-    address, _: 31, 0;
+#[bitfield(bits = 32)]
+#[derive(Copy, Clone)]
+#[repr(C, u32)]
+/// Secure Fault Address Register description.
+pub struct Sfar {
+    #[skip(setters)]
+    pub address: u32,
 }
 
 /// Possible attribute of a SAU region.
@@ -176,9 +179,9 @@ impl SAU {
             } else {
                 // All fields of these registers are going to be modified so we don't need to read them
                 // before.
-                let mut rnr = Rnr(0);
-                let mut rbar = Rbar(0);
-                let mut rlar = Rlar(0);
+                let mut rnr = Rnr::from(0u32);
+                let mut rbar = Rbar::from(0u32);
+                let mut rlar = Rlar::from(0u32);
 
                 rnr.set_region(region_number);
                 rbar.set_baddr(base_address >> 5);
@@ -220,21 +223,21 @@ impl SAU {
                 Err(SauError::RegionNumberTooBig)
             } else {
                 unsafe {
-                    self.rnr.write(Rnr(region_number.into()));
+                    self.rnr.write(Rnr::from(region_number as u32));
                 }
 
                 let rbar = self.rbar.read();
                 let rlar = self.rlar.read();
 
-                let attribute = match (rlar.get_enable(), rlar.get_nsc()) {
+                let attribute = match (rlar.enable(), rlar.nsc()) {
                     (false, _) => SauRegionAttribute::Secure,
                     (true, false) => SauRegionAttribute::NonSecure,
                     (true, true) => SauRegionAttribute::NonSecureCallable,
                 };
 
                 Ok(SauRegion {
-                    base_address: rbar.get_baddr() << 5,
-                    limit_address: (rlar.get_laddr() << 5) | 0x1F,
+                    base_address: rbar.baddr() << 5,
+                    limit_address: (rlar.laddr() << 5) | 0x1F,
                     attribute,
                 })
             }

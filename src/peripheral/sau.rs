@@ -9,8 +9,8 @@
 
 use crate::interrupt;
 use crate::peripheral::SAU;
-use volatile_register::{RO, RW};
 use modular_bitfield::prelude::*;
+use volatile_register::{RO, RW};
 
 /// Register block
 #[repr(C)]
@@ -38,7 +38,8 @@ pub struct RegisterBlock {
 pub struct Ctrl {
     pub enable: bool,
     pub allns: bool,
-    #[skip] __: B30,
+    #[skip]
+    __: B30,
 }
 
 #[bitfield(bits = 32)]
@@ -48,7 +49,8 @@ pub struct Ctrl {
 pub struct Type {
     #[skip(setters)]
     pub sregion: u8,
-    #[skip] __: B24,
+    #[skip]
+    __: B24,
 }
 
 #[bitfield(bits = 32)]
@@ -57,7 +59,8 @@ pub struct Type {
 /// Region Number Register description.
 pub struct Rnr {
     pub region: u8,
-    #[skip] __: B24,
+    #[skip]
+    __: B24,
 }
 
 #[bitfield(bits = 32)]
@@ -65,7 +68,8 @@ pub struct Rnr {
 #[repr(C, u32)]
 /// Region Base Address Register description.
 pub struct Rbar {
-    #[skip] __: B5,
+    #[skip]
+    __: B5,
     pub baddr: B27,
 }
 
@@ -76,7 +80,8 @@ pub struct Rbar {
 pub struct Rlar {
     pub enable: bool,
     pub nsc: bool,
-    #[skip] __: B3,
+    #[skip]
+    __: B3,
     pub laddr: B27,
 }
 
@@ -85,15 +90,24 @@ pub struct Rlar {
 #[repr(C, u32)]
 /// Secure Fault Status Register description.
 pub struct Sfsr {
-    #[skip(setters)] pub invep: bool,
-    #[skip(setters)] pub invis: bool,
-    #[skip(setters)] pub inver: bool,
-    #[skip(setters)] pub auviol: bool,
-    #[skip(setters)] pub invtran: bool,
-    #[skip(setters)] pub lsperr: bool,
-    #[skip(setters)] pub sfarvalid: bool,
-    #[skip(setters)] pub lserr: bool,
-    #[skip] __: B24,
+    #[skip(setters)]
+    pub invep: bool,
+    #[skip(setters)]
+    pub invis: bool,
+    #[skip(setters)]
+    pub inver: bool,
+    #[skip(setters)]
+    pub auviol: bool,
+    #[skip(setters)]
+    pub invtran: bool,
+    #[skip(setters)]
+    pub lsperr: bool,
+    #[skip(setters)]
+    pub sfarvalid: bool,
+    #[skip(setters)]
+    pub lserr: bool,
+    #[skip]
+    __: B24,
 }
 
 #[bitfield(bits = 32)]

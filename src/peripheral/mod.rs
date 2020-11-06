@@ -409,7 +409,8 @@ unsafe impl Send for ICB {}
 
 impl ICB {
     /// Pointer to the register block
-    pub const PTR: NonNull<icb::RegisterBlock> = unsafe { NonNull::new_unchecked(0xE000_E004 as *mut _) };
+    pub const PTR: NonNull<icb::RegisterBlock> =
+        unsafe { NonNull::new_unchecked(0xE000_E004 as *mut _) };
 
     /// Returns a pointer to the register block (to be deprecated in 0.7)
     #[inline(always)]
@@ -444,7 +445,8 @@ unsafe impl Send for ITM {}
 #[cfg(all(not(armv6m), not(armv8m_base)))]
 impl ITM {
     /// Pointer to the register block
-    pub const PTR: NonNull<itm::RegisterBlock> = unsafe { NonNull::new_unchecked(0xE000_0000 as *mut _) };
+    pub const PTR: NonNull<itm::RegisterBlock> =
+        unsafe { NonNull::new_unchecked(0xE000_0000 as *mut _) };
 
     /// Returns a pointer to the register block (to be deprecated in 0.7)
     #[inline(always)]

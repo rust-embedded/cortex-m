@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   See the `asm/lib.rs` documentation for more details.
 - Initial ARMv8-M MPU support
 - ICTR and ACTLR registers added
+- Support for the Security Attribution Unit on ARMv8-M
 
 ### Changed
 

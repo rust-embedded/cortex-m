@@ -28,6 +28,7 @@
 //! panicked at 'FOO', src/main.rs:6:5
 //! ```
 
+#![cfg(all(target_arch = "arm", target_os = "none"))]
 #![deny(missing_docs)]
 #![deny(warnings)]
 #![no_std]

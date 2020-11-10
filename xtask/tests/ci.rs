@@ -5,12 +5,21 @@ use xtask::{check_blobs, install_targets};
 /// List of all compilation targets we support.
 ///
 /// This should generally list all of the bare-metal thumb targets starting at thumbv6.
-static TARGETS: &[&str] = &[
+static ALL_TARGETS: &[&str] = &[
     "thumbv6m-none-eabi",
     "thumbv7m-none-eabi",
     "thumbv7em-none-eabi",
     "thumbv7em-none-eabihf",
     "thumbv8m.base-none-eabi",
+    "thumbv8m.main-none-eabi",
+    "thumbv8m.main-none-eabihf",
+];
+
+/// Same as the list above, except with all "base" targets that have a reduced feature set removed.
+static NON_BASE_TARGETS: &[&str] = &[
+    "thumbv7m-none-eabi",
+    "thumbv7em-none-eabi",
+    "thumbv7em-none-eabihf",
     "thumbv8m.main-none-eabi",
     "thumbv8m.main-none-eabihf",
 ];
@@ -34,29 +43,30 @@ fn build(package: &str, target: &str, features: &[&str]) {
 }
 
 #[rustfmt::skip]
-static PACKAGE_FEATURES: &[(&str, &[&str])] = &[
-    ("cortex-m", &["inline-asm", "cm7-r0p1"]), // no `linker-plugin-lto` since it's experimental
-    ("cortex-m-semihosting", &["inline-asm", "no-semihosting", "jlink-quirks"]),
-    ("panic-semihosting", &["inline-asm", "exit", "jlink-quirks"]),
+static PACKAGE_FEATURES: &[(&str, &[&str], &[&str])] = &[
+    ("cortex-m", ALL_TARGETS, &["inline-asm", "cm7-r0p1"]), // no `linker-plugin-lto` since it's experimental
+    ("cortex-m-semihosting", ALL_TARGETS, &["inline-asm", "no-semihosting", "jlink-quirks"]),
+    ("panic-semihosting", ALL_TARGETS, &["inline-asm", "exit", "jlink-quirks"]),
+    ("panic-itm", NON_BASE_TARGETS, &[]),
 ];
 
 fn check_crates_build(is_nightly: bool) {
     // Build all crates for each supported target.
-    for &target in TARGETS {
-        // Filters crate features, keeping only those that are supported.
-        // Relies on all crates in this repo to use the same convention.
-        let should_use_feature = |feat: &str| {
-            match feat {
-                // This is nightly-only, so don't use it on stable.
-                "inline-asm" => is_nightly,
-                // This only affects thumbv7em targets.
-                "cm7-r0p1" => target.starts_with("thumbv7em"),
+    for (package, targets, all_features) in PACKAGE_FEATURES {
+        for target in *targets {
+            // Filters crate features, keeping only those that are supported.
+            // Relies on all crates in this repo to use the same convention.
+            let should_use_feature = |feat: &str| {
+                match feat {
+                    // This is nightly-only, so don't use it on stable.
+                    "inline-asm" => is_nightly,
+                    // This only affects thumbv7em targets.
+                    "cm7-r0p1" => target.starts_with("thumbv7em"),
 
-                _ => true,
-            }
-        };
+                    _ => true,
+                }
+            };
 
-        for (package, all_features) in PACKAGE_FEATURES {
             // Every crate must build with the default feature set.
             build(package, target, &[]);
 
@@ -86,7 +96,7 @@ fn main() {
     // Tests execute in the containing crate's root dir, `cd ..` so that we find `asm` etc.
     env::set_current_dir("..").unwrap();
 
-    install_targets(&mut TARGETS.iter().cloned(), None);
+    install_targets(&mut ALL_TARGETS.iter().cloned(), None);
 
     // Check that the ASM blobs are up-to-date.
     check_blobs();

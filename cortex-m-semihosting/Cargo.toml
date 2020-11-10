@@ -6,6 +6,7 @@ authors = [
 description = "Semihosting for ARM Cortex-M processors"
 documentation = "https://docs.rs/cortex-m-semihosting"
 keywords = ["semihosting", "arm", "cortex-m"]
+categories = ["no-std", "embedded"]
 license = "MIT OR Apache-2.0"
 name = "cortex-m-semihosting"
 readme = "README.md"

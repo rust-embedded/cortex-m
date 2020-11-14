@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.4.2] - 2020-11-14
+
+- Support cortex-m v0.7.0
+
 ## [v0.4.1] - 2019-04-28
 
 - Updated `cortex-m` version to not have the issue when linking multiple
@@ -46,7 +50,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 Initial release
 
-[Unreleased]: https://github.com/rust-embedded/panic-itm/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/p-i-v0.4.2...HEAD
+[v0.4.2]: https://github.com/rust-embedded/cortex-m/compare/p-i-v0.4.1...p-i-v0.4.2
 [v0.4.1]: https://github.com/rust-embedded/panic-itm/compare/v0.4.0...v0.4.1
 [v0.4.0]: https://github.com/rust-embedded/panic-itm/compare/v0.3.0...v0.4.0
 [v0.3.0]: https://github.com/rust-embedded/panic-itm/compare/v0.2.0...v0.3.0

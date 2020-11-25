@@ -438,7 +438,6 @@
 #![no_std]
 
 extern crate cortex_m_rt_macros as macros;
-extern crate r0;
 
 use core::fmt;
 use core::sync::atomic::{self, Ordering};
@@ -923,41 +922,12 @@ pub fn heap_start() -> *mut u32 {
 #[doc(hidden)]
 #[link_section = ".vector_table.reset_vector"]
 #[no_mangle]
-#[cfg(not(armv6m))]
-pub static __RESET_VECTOR: unsafe extern "C" fn() -> ! = Reset;
-
-#[doc(hidden)]
-#[link_section = ".vector_table.reset_vector"]
-#[no_mangle]
-#[cfg(armv6m)]
 pub static __RESET_VECTOR: unsafe extern "C" fn() -> ! = PreResetTrampoline;
 
 #[doc(hidden)]
 #[link_section = ".Reset"]
 #[no_mangle]
 pub unsafe extern "C" fn Reset() -> ! {
-    extern "C" {
-
-        // These symbols come from `link.x`
-        static mut __sbss: u32;
-        static mut __ebss: u32;
-
-        static mut __sdata: u32;
-        static mut __edata: u32;
-        static __sidata: u32;
-    }
-
-    extern "Rust" {
-        // This symbol will be provided by the user via `#[pre_init]`
-        fn __pre_init();
-    }
-
-    __pre_init();
-
-    // Initialize RAM
-    r0::zero_bss(&mut __sbss, &mut __ebss);
-    r0::init_data(&mut __sdata, &mut __edata, &__sidata);
-
     #[allow(clippy::match_single_binding)]
     match () {
         #[cfg(not(has_fpu))]
@@ -1038,7 +1008,6 @@ pub enum Exception {
 pub use self::Exception as exception;
 
 extern "C" {
-    #[cfg(armv6m)]
     fn PreResetTrampoline() -> !;
 
     fn NonMaskableInt();

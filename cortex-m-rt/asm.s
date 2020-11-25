@@ -62,6 +62,38 @@ PreResetTrampoline:
   # set LR to the initial value used by the ARMv7-M (0xFFFF_FFFF)
   ldr r0,=0xffffffff
   mov lr,r0
+
+  # run the pre-init code
+  bl __pre_init
+
+  # initialize .data and .bss memory
+  ldr r0,=__sbss
+  ldr r1,=__ebss
+  ldr r2,=0
+0:
+  cmp r1, r0
+  beq 1f
+  stm r0!, {r2}
+  b 0b
+1:
+
+  # copy to here
+  ldr r0,=__sdata
+  # ...up to here
+  ldr r1,=__edata
+  # copy from here
+  ldr r2,=__sidata
+2:
+  cmp r1, r0
+  beq 3f
+  # load 1 word from r2 to r3, inc r2
+  ldm r2!, {r3}
+  # store 1 word from r3 to r0, inc r0
+  stm r0!, {r3}
+  b 2b
+3:
+
+  # jump to Rust
   b Reset
   .cfi_endproc
   .size PreResetTrampoline, . - PreResetTrampoline

@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
-- New assembly methods `asm::sh_syscall`, `asm::bootstrap`, and
+- New assembly methods `asm::semihosting_syscall`, `asm::bootstrap`, and
   `asm::bootload`.
 
 ## [v0.7.0] - 2020-11-09

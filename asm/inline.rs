@@ -182,17 +182,23 @@ pub unsafe fn __sh_syscall(mut nr: u32, arg: u32) -> u32 {
     nr
 }
 
-/// Bootstrap: ensure we are using the main stack, then write `msp` to MSP and jump to `rv`.
+/// Set CONTROL.SPSEL to 0, write `msp` to MSP, branch to `rv`.
 #[inline(always)]
-pub unsafe fn __bootstrap(msp: u32, rv: u32) {
+pub unsafe fn __bootstrap(msp: u32, rv: u32) -> ! {
     asm!(
-        "msr CONTROL, {}",
+        "mrs {tmp}, CONTROL",
+        "bics {tmp}, {spsel}",
+        "msr CONTROL, {tmp}",
         "isb",
-        "msr MSP, {}",
-        "bx {}",
-        in(reg) 0,
-        in(reg) msp,
-        in(reg) rv,
+        "msr MSP, {msp}",
+        "bx {rv}",
+        // `out(reg) _` is not permitted in a `noreturn` asm! call,
+        // so instead use `in(reg) 0` and don't restore it afterwards.
+        tmp = in(reg) 0,
+        spsel = in(reg) 2,
+        msp = in(reg) msp,
+        rv = in(reg) rv,
+        options(noreturn),
     );
 }
 

@@ -165,7 +165,7 @@ pub unsafe fn bx_ns(addr: u32) {
     call_asm!(__bxns(addr: u32));
 }
 
-/// Semihosing syscall.
+/// Semihosting syscall.
 ///
 /// This method is used by cortex-m-semihosting to provide semihosting syscalls.
 #[inline]
@@ -175,15 +175,20 @@ pub unsafe fn sh_syscall(nr: u32, arg: u32) -> u32 {
 
 /// Bootstrap.
 ///
-/// Sets the active stack to the main stack, updates the main stack pointer to `msp`,
-/// then jumps execution to the address in `rv`.
-/// Writes `msp` to the MSP special register, then jumps to the address in `rv`.
+/// Clears CONTROL.SPSEL (setting the main stack to be the active stack),
+/// updates the main stack pointer to the address in `msp`, then jumps
+/// to the address in `rv`.
+///
+/// # Safety
+///
+/// `msp` and `rv` must point to valid stack memory and executable code,
+/// respectively.
 #[inline]
 pub unsafe fn bootstrap(msp: *const u32, rv: *const u32) -> ! {
+    // Ensure thumb mode is set.
+    let rv = (rv as u32) | 1;
     let msp = msp as u32;
-    let rv = rv as u32;
-    call_asm!(__bootstrap(msp: u32, rv: u32));
-    core::hint::unreachable_unchecked();
+    call_asm!(__bootstrap(msp: u32, rv: u32) -> !);
 }
 
 /// Bootload.
@@ -191,14 +196,13 @@ pub unsafe fn bootstrap(msp: *const u32, rv: *const u32) -> ! {
 /// Reads the initial stack pointer value and reset vector from
 /// the provided vector table address, sets the active stack to
 /// the main stack, sets the main stack pointer to the new initial
-/// stack pointer view, then jumps to the reset vector.
+/// stack pointer, then jumps to the reset vector.
 ///
 /// # Safety
 ///
 /// The provided `vector_table` must point to a valid vector
 /// table, with a valid stack pointer as the first word and
-/// a valid reset vector (in thumb mode, with the least significant
-/// bit cleared) as the second word.
+/// a valid reset vector as the second word.
 #[inline]
 pub unsafe fn bootload(vector_table: *const u32) -> ! {
     let msp = core::ptr::read_volatile(vector_table);

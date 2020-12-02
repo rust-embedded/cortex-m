@@ -69,11 +69,11 @@ shims! {
     fn __psp_r() -> u32;
     fn __psp_w(val: u32);
     fn __sev();
-    fn __udf();
+    fn __udf() -> !;
     fn __wfe();
     fn __wfi();
     fn __sh_syscall(nr: u32, arg: u32) -> u32;
-    fn __bootstrap(msp: u32, rv: u32);
+    fn __bootstrap(msp: u32, rv: u32) -> !;
 }
 
 // v7m *AND* v8m.main, but *NOT* v8m.base

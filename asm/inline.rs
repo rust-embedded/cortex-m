@@ -177,9 +177,23 @@ pub unsafe fn __wfi() {
 
 /// Semihosting syscall.
 #[inline(always)]
-pub unsafe fn __syscall(mut nr: u32, arg: u32) -> u32 {
+pub unsafe fn __sh_syscall(mut nr: u32, arg: u32) -> u32 {
     asm!("bkpt #0xab", inout("r0") nr, in("r1") arg);
     nr
+}
+
+/// Bootstrap: ensure we are using the main stack, then write `msp` to MSP and jump to `rv`.
+#[inline(always)]
+pub unsafe fn __bootstrap(msp: u32, rv: u32) {
+    asm!(
+        "msr CONTROL, {}",
+        "isb",
+        "msr MSP, {}",
+        "bx {}",
+        in(reg) 0,
+        in(reg) msp,
+        in(reg) rv,
+    );
 }
 
 // v7m *AND* v8m.main, but *NOT* v8m.base

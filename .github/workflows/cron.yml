@@ -1,0 +1,31 @@
+on:
+  schedule:
+    # Run every week at 7pm UTC Wednesday.
+    - cron: '0 19 * * WED'
+
+name: Cron CI
+
+jobs:
+  ci-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Run tests
+        run: cargo test --all
+      - name: Deliberate failure to test issue opening
+        run: false
+      - uses: imjohnbo/issue-bot@v2
+        if: failure()
+        with:
+          title: CI Failure
+          body: |
+            Scheduled CI run failed. Details:
+
+            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

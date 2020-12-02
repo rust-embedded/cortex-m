@@ -169,7 +169,7 @@ pub unsafe fn bx_ns(addr: u32) {
 ///
 /// This method is used by cortex-m-semihosting to provide semihosting syscalls.
 #[inline]
-pub unsafe fn sh_syscall(nr: u32, arg: u32) -> u32 {
+pub unsafe fn semihosting_syscall(nr: u32, arg: u32) -> u32 {
     call_asm!(__sh_syscall(nr: u32, arg: u32) -> u32)
 }
 

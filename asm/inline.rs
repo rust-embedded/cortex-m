@@ -177,9 +177,29 @@ pub unsafe fn __wfi() {
 
 /// Semihosting syscall.
 #[inline(always)]
-pub unsafe fn __syscall(mut nr: u32, arg: u32) -> u32 {
+pub unsafe fn __sh_syscall(mut nr: u32, arg: u32) -> u32 {
     asm!("bkpt #0xab", inout("r0") nr, in("r1") arg);
     nr
+}
+
+/// Set CONTROL.SPSEL to 0, write `msp` to MSP, branch to `rv`.
+#[inline(always)]
+pub unsafe fn __bootstrap(msp: u32, rv: u32) -> ! {
+    asm!(
+        "mrs {tmp}, CONTROL",
+        "bics {tmp}, {spsel}",
+        "msr CONTROL, {tmp}",
+        "isb",
+        "msr MSP, {msp}",
+        "bx {rv}",
+        // `out(reg) _` is not permitted in a `noreturn` asm! call,
+        // so instead use `in(reg) 0` and don't restore it afterwards.
+        tmp = in(reg) 0,
+        spsel = in(reg) 2,
+        msp = in(reg) msp,
+        rv = in(reg) rv,
+        options(noreturn),
+    );
 }
 
 // v7m *AND* v8m.main, but *NOT* v8m.base

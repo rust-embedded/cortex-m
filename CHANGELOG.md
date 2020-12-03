@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - New assembly methods `asm::semihosting_syscall`, `asm::bootstrap`, and
   `asm::bootload`.
 
+### Changed
+
+- `msp::write` has been deprecated in favor of `asm::bootstrap`. It was not
+  possible to use `msp::write` without causing Undefined Behavior, so all
+  existing users are encouraged to migrate.
+
 ## [v0.7.0] - 2020-11-09
 
 ### Added

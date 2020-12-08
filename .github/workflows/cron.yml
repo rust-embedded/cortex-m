@@ -1,7 +1,7 @@
 on:
   schedule:
-    # Run every week at 7pm UTC Wednesday.
-    - cron: '0 19 * * WED'
+    # Run every week at 10pm UTC Tuesday.
+    - cron: '0 22 * * TUE'
 
 name: Cron CI
 
@@ -23,6 +23,7 @@ jobs:
         if: failure()
         with:
           title: CI Failure
+          labels: ci
           body: |
             Scheduled CI run failed. Details:
 

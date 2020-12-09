@@ -1,7 +1,7 @@
 on:
   schedule:
-    # Run every week at 10pm UTC Tuesday.
-    - cron: '0 22 * * TUE'
+    # Run every week at 8am UTC Saturday.
+    - cron: '0 8 * * SAT'
 
 name: Cron CI
 
@@ -17,8 +17,6 @@ jobs:
           override: true
       - name: Run tests
         run: cargo test --all
-      - name: Deliberate failure to test issue opening
-        run: false
       - uses: imjohnbo/issue-bot@v2
         if: failure()
         with:

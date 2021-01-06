@@ -64,6 +64,11 @@ PreResetTrampoline:
   mov lr,r4
 
   # run the pre-init code
+  # use cases of __pre_init include
+  # a) disabling an on-by-default watchdog and
+  # b) enabling off-by-default RAM
+  # this means it must be done before the potentially slow RAM init code below is executed, and RAM
+  # must not be accessed before this call
   bl __pre_init
 
   # the call above clobbers LR, but tools may expect LR to be 0xFFFFFFFF when reaching the first

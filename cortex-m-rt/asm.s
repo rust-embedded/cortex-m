@@ -49,8 +49,6 @@ FpuTrampoline:
   .cfi_endproc
   .size FpuTrampoline, . - FpuTrampoline
 
-  # ARMv6-M leaves LR in an unknown state on Reset
-  # this trampoline sets LR before it's pushed onto the stack by Reset
   .section .PreResetTrampoline, "ax"
   .global PreResetTrampoline
   # .type and .thumb_func are both required; otherwise its Thumb bit does not
@@ -58,6 +56,8 @@ FpuTrampoline:
   .type PreResetTrampoline,%function
   .thumb_func
   .cfi_startproc
+  # Main entry point. This initializes RAM and invokes __pre_init, which cannot be done in Rust code
+  # without invoking UB. It then jumps to the Rust `Reset` function.
 PreResetTrampoline:
   # set LR to the initial value used by the ARMv7-M (0xFFFF_FFFF)
   ldr r4,=0xffffffff

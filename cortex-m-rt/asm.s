@@ -60,11 +60,15 @@ FpuTrampoline:
   .cfi_startproc
 PreResetTrampoline:
   # set LR to the initial value used by the ARMv7-M (0xFFFF_FFFF)
-  ldr r0,=0xffffffff
-  mov lr,r0
+  ldr r4,=0xffffffff
+  mov lr,r4
 
   # run the pre-init code
   bl __pre_init
+
+  # the call above clobbers LR, but tools may expect LR to be 0xFFFFFFFF when reaching the first
+  # call frame, so we restore it to its previous value (r4 is preserved by subroutines)
+  mov lr,r4
 
   # initialize .data and .bss memory
   ldr r0,=__sbss

@@ -64,18 +64,21 @@ pub unsafe fn __delay(cyc: u32) {
 
 #[inline(always)]
 pub unsafe fn __dmb() {
+    compiler_fence(Ordering::SeqCst);
     asm!("dmb");
     compiler_fence(Ordering::SeqCst);
 }
 
 #[inline(always)]
 pub unsafe fn __dsb() {
+    compiler_fence(Ordering::SeqCst);
     asm!("dsb");
     compiler_fence(Ordering::SeqCst);
 }
 
 #[inline(always)]
 pub unsafe fn __isb() {
+    compiler_fence(Ordering::SeqCst);
     asm!("isb");
     compiler_fence(Ordering::SeqCst);
 }

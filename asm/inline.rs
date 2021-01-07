@@ -52,13 +52,16 @@ pub unsafe fn __cpsie() {
 
 #[inline(always)]
 pub unsafe fn __delay(cyc: u32) {
-    // Use local labels to avoid R_ARM_THM_JUMP8 relocations which fail on thumbv6m.
+    // The loop will normally take 3 to 4 CPU cycles per iteration, but superscalar cores
+    // (eg. Cortex-M7) can potentially do it in 2, so we use that as the lower bound, since delaying
+    // for more cycles is okay.
+    let real_cyc = cyc / 2;
     asm!(
+        // Use local labels to avoid R_ARM_THM_JUMP8 relocations which fail on thumbv6m.
         "1:",
-        "nop",
         "subs {}, #1",
         "bne 1b",
-        in(reg) cyc
+        in(reg) real_cyc
     );
 }
 

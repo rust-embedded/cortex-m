@@ -15,7 +15,7 @@ pub fn bkpt() {
     call_asm!(__bkpt());
 }
 
-/// Blocks the program for *at least* `n` instruction cycles
+/// Blocks the program for *at least* `cycles` CPU cycles.
 ///
 /// This is implemented in assembly so its execution time is independent of the optimization
 /// level, however it is dependent on the specific architecture and core configuration.
@@ -25,10 +25,8 @@ pub fn bkpt() {
 /// timer-less initialization of peripherals if and only if accurate timing is not essential. In
 /// any other case please use a more accurate method to produce a delay.
 #[inline]
-pub fn delay(n: u32) {
-    // NOTE(divide by 4) is easier to compute than `/ 3` because it's just a shift (`>> 2`).
-    let real_cyc = n / 4 + 1;
-    call_asm!(__delay(real_cyc: u32));
+pub fn delay(cycles: u32) {
+    call_asm!(__delay(cycles: u32));
 }
 
 /// A no-operation. Useful to prevent delay loops from being optimized away.

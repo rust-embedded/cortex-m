@@ -18,7 +18,6 @@ pub struct RegisterBlock {
 }
 
 /// SysTick clock source
-#[allow(clippy::missing_inline_in_public_items)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SystClkSource {
     /// Core-provided clock

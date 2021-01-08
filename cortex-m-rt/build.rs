@@ -1,10 +1,21 @@
-use std::env;
 use std::fs::{self, File};
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+use std::{env, ffi::OsStr};
 
 fn main() {
-    let target = env::var("TARGET").unwrap();
+    let mut target = env::var("TARGET").unwrap();
+
+    // When using a custom target JSON, `$TARGET` contains the path to that JSON file. By
+    // convention, these files are named after the actual target triple, eg.
+    // `thumbv7m-customos-elf.json`, so we extract the file stem here to allow custom target specs.
+    let path = Path::new(&target);
+    if path.extension() == Some(OsStr::new("json")) {
+        target = path
+            .file_stem()
+            .map_or(target.clone(), |stem| stem.to_str().unwrap().to_string());
+    }
+
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
     has_fpu(&target);

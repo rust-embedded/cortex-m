@@ -27,7 +27,7 @@
 //! - Cortex-M* Devices Generic User Guide - Section 2.1.3 Core registers
 
 #[cfg(all(not(armv6m), not(armv8m_base)))]
-pub mod basepri;
+pub use cortex_m_0_7::register::basepri;
 
 #[cfg(armv8m_base)]
 #[deprecated(
@@ -37,7 +37,7 @@ pub mod basepri;
 pub mod basepri;
 
 #[cfg(all(not(armv6m), not(armv8m_base)))]
-pub mod basepri_max;
+pub use cortex_m_0_7::register::basepri_max;
 
 #[cfg(armv8m_base)]
 #[deprecated(
@@ -46,10 +46,10 @@ pub mod basepri_max;
 )]
 pub mod basepri_max;
 
-pub mod control;
+pub use cortex_m_0_7::register::control;
 
 #[cfg(all(not(armv6m), not(armv8m_base)))]
-pub mod faultmask;
+pub use cortex_m_0_7::register::faultmask;
 
 #[cfg(armv8m_base)]
 #[deprecated(
@@ -58,25 +58,21 @@ pub mod faultmask;
 )]
 pub mod faultmask;
 
-pub mod msp;
-
-pub mod primask;
-
-pub mod psp;
+pub use cortex_m_0_7::register::{msp, primask, psp};
 
 #[cfg(armv8m_main)]
-pub mod msplim;
-
-#[cfg(armv8m_main)]
-pub mod psplim;
+pub use cortex_m_0_7::register::{msplim, psplim};
 
 // Accessing these registers requires inline assembly because their contents are tied to the current
 // stack frame
-#[cfg(any(feature = "inline-asm", target_arch = "x86_64"))]
+#[cfg(feature = "inline-asm")]
+pub use cortex_m_0_7::register::{apsr, lr, pc};
+
+#[cfg(target_arch = "x86_64")]
 pub mod apsr;
 
-#[cfg(any(feature = "inline-asm", target_arch = "x86_64"))]
+#[cfg(target_arch = "x86_64")]
 pub mod lr;
 
-#[cfg(any(feature = "inline-asm", target_arch = "x86_64"))]
+#[cfg(target_arch = "x86_64")]
 pub mod pc;

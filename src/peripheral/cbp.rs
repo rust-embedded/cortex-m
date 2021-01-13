@@ -2,35 +2,9 @@
 //!
 //! *NOTE* Available only on ARMv7-M (`thumbv7*m-none-eabi*`)
 
-use volatile_register::WO;
-
 use crate::peripheral::CBP;
 
-/// Register block
-#[repr(C)]
-pub struct RegisterBlock {
-    /// I-cache invalidate all to PoU
-    pub iciallu: WO<u32>,
-    reserved0: u32,
-    /// I-cache invalidate by MVA to PoU
-    pub icimvau: WO<u32>,
-    /// D-cache invalidate by MVA to PoC
-    pub dcimvac: WO<u32>,
-    /// D-cache invalidate by set-way
-    pub dcisw: WO<u32>,
-    /// D-cache clean by MVA to PoU
-    pub dccmvau: WO<u32>,
-    /// D-cache clean by MVA to PoC
-    pub dccmvac: WO<u32>,
-    /// D-cache clean by set-way
-    pub dccsw: WO<u32>,
-    /// D-cache clean and invalidate by MVA to PoC
-    pub dccimvac: WO<u32>,
-    /// D-cache clean and invalidate by set-way
-    pub dccisw: WO<u32>,
-    /// Branch predictor invalidate all
-    pub bpiall: WO<u32>,
-}
+pub use cortex_m_0_7::peripheral::cbp::RegisterBlock;
 
 const CBP_SW_WAY_POS: u32 = 30;
 const CBP_SW_WAY_MASK: u32 = 0x3 << CBP_SW_WAY_POS;

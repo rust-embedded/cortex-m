@@ -11,17 +11,17 @@ license = "MIT OR Apache-2.0"
 name = "cortex-m"
 readme = "README.md"
 repository = "https://github.com/rust-embedded/cortex-m"
-version = "0.6.4"
+version = "0.6.5"
 edition = "2018"
-links = "cortex-m"  # prevent multiple versions of this crate to be linked together
 
 [dependencies]
 aligned = "0.3.1"
 bare-metal = { version = "0.2.0", features = ["const-fn"] }
 volatile-register = "0.2.0"
 bitfield = "0.13.2"
+cortex_m_0_7 = { package = "cortex-m", version = "0.7.0" }
 
 [features]
 const-fn = []
-cm7-r0p1 = []
-inline-asm = []
+cm7-r0p1 = ["cortex_m_0_7/cm7-r0p1"]
+inline-asm = ["cortex_m_0_7/inline-asm"]

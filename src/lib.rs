@@ -52,16 +52,19 @@
 extern crate aligned;
 extern crate bare_metal;
 extern crate volatile_register;
+extern crate cortex_m_0_7;
 
 #[macro_use]
 mod macros;
 
-pub mod asm;
+pub use cortex_m_0_7::{asm, interrupt};
+
 #[cfg(armv8m)]
-pub mod cmse;
-pub mod interrupt;
+pub use cortex_m_0_7::cmse;
+
 #[cfg(not(armv6m))]
 pub mod itm;
+
 pub mod peripheral;
 pub mod register;
 

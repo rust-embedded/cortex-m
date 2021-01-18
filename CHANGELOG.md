@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.6.5] - 2021-01-13
+
+### Changed
+
+- This release is forwards-compatible with cortex-m 0.7, and depends on and
+  re-exports many types from that version. Both 0.6.5 and 0.7 may co-exist
+  in a build.
+
 ## [v0.6.4] - 2020-10-26
 
 ### Changed

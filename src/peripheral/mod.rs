@@ -78,22 +78,17 @@ use crate::interrupt;
 
 #[cfg(not(armv6m))]
 pub mod cbp;
-pub mod cpuid;
-pub mod dcb;
-pub mod dwt;
-#[cfg(not(armv6m))]
-pub mod fpb;
-// NOTE(target_arch) is for documentation purposes
-#[cfg(any(has_fpu, target_arch = "x86_64"))]
-pub mod fpu;
-#[cfg(not(armv6m))]
+#[cfg(armv8m_base)]
 pub mod itm;
 pub mod mpu;
 pub mod nvic;
 pub mod scb;
-pub mod syst;
+
+pub use cortex_m_0_7::peripheral::{cpuid, dcb, dwt, syst};
 #[cfg(not(armv6m))]
-pub mod tpiu;
+pub use cortex_m_0_7::peripheral::{fpb, tpiu};
+#[cfg(any(has_fpu, target_arch="x86_64"))]
+pub use cortex_m_0_7::peripheral::fpu;
 
 #[cfg(test)]
 mod test;
@@ -140,70 +135,31 @@ pub struct Peripherals {
     pub TPIU: TPIU,
 }
 
-// NOTE `no_mangle` is used here to prevent linking different minor versions of this crate as that
-// would let you `take` the core peripherals more than once (one per minor version)
-#[no_mangle]
-static CORE_PERIPHERALS: () = ();
-
-/// Set to `true` when `take` or `steal` was called to make `Peripherals` a singleton.
-static mut TAKEN: bool = false;
+// NOTE: CORE_PERIPHERALS removed because this crate deliberately allows linking to other cortex-m
+// versions by proxying calls to take() and steal() through cortex-m 0.7.
+// Since TAKEN is no longer no_mangle nor public we can't set it ourselves.
 
 impl Peripherals {
     /// Returns all the core peripherals *once*
     #[inline]
     pub fn take() -> Option<Self> {
-        interrupt::free(|_| {
-            if unsafe { TAKEN } {
-                None
-            } else {
-                Some(unsafe { Peripherals::steal() })
-            }
+        interrupt::free(|_| match cortex_m_0_7::peripheral::Peripherals::take() {
+            Some(_) => { Some(unsafe { Peripherals::steal() }) },
+            None    => None,
         })
     }
 
     /// Unchecked version of `Peripherals::take`
     #[inline]
     pub unsafe fn steal() -> Self {
-        TAKEN = true;
+        // Ensure peripherals are marked as taken.
+        cortex_m_0_7::peripheral::Peripherals::steal();
 
-        Peripherals {
-            CBP: CBP {
-                _marker: PhantomData,
-            },
-            CPUID: CPUID {
-                _marker: PhantomData,
-            },
-            DCB: DCB {
-                _marker: PhantomData,
-            },
-            DWT: DWT {
-                _marker: PhantomData,
-            },
-            FPB: FPB {
-                _marker: PhantomData,
-            },
-            FPU: FPU {
-                _marker: PhantomData,
-            },
-            ITM: ITM {
-                _marker: PhantomData,
-            },
-            MPU: MPU {
-                _marker: PhantomData,
-            },
-            NVIC: NVIC {
-                _marker: PhantomData,
-            },
-            SCB: SCB {
-                _marker: PhantomData,
-            },
-            SYST: SYST {
-                _marker: PhantomData,
-            },
-            TPIU: TPIU {
-                _marker: PhantomData,
-            },
-        }
+        // We can't create the imported types like CPUID because
+        // their _marker field is private, but we can create an
+        // entire Peripherals out of thin air because all the
+        // types are zero-sized.
+        core::mem::transmute(())
     }
 }
 
@@ -240,138 +196,21 @@ impl ops::Deref for CBP {
     }
 }
 
-/// CPUID
-pub struct CPUID {
-    _marker: PhantomData<*const ()>,
-}
+pub use cortex_m_0_7::peripheral::{CPUID, DCB, DWT, FPB, FPU, SYST, TPIU};
 
-unsafe impl Send for CPUID {}
+#[cfg(not(armv8m_base))]
+pub use cortex_m_0_7::peripheral::ITM;
 
-impl CPUID {
-    /// Returns a pointer to the register block
-    #[inline(always)]
-    pub fn ptr() -> *const self::cpuid::RegisterBlock {
-        0xE000_ED00 as *const _
-    }
-}
-
-impl ops::Deref for CPUID {
-    type Target = self::cpuid::RegisterBlock;
-
-    #[inline(always)]
-    fn deref(&self) -> &Self::Target {
-        unsafe { &*Self::ptr() }
-    }
-}
-
-/// Debug Control Block
-pub struct DCB {
-    _marker: PhantomData<*const ()>,
-}
-
-unsafe impl Send for DCB {}
-
-impl DCB {
-    /// Returns a pointer to the register block
-    #[inline(always)]
-    pub fn ptr() -> *const dcb::RegisterBlock {
-        0xE000_EDF0 as *const _
-    }
-}
-
-impl ops::Deref for DCB {
-    type Target = self::dcb::RegisterBlock;
-
-    #[inline(always)]
-    fn deref(&self) -> &Self::Target {
-        unsafe { &*DCB::ptr() }
-    }
-}
-
-/// Data Watchpoint and Trace unit
-pub struct DWT {
-    _marker: PhantomData<*const ()>,
-}
-
-unsafe impl Send for DWT {}
-
-impl DWT {
-    /// Returns a pointer to the register block
-    #[inline(always)]
-    pub fn ptr() -> *const dwt::RegisterBlock {
-        0xE000_1000 as *const _
-    }
-}
-
-impl ops::Deref for DWT {
-    type Target = self::dwt::RegisterBlock;
-
-    #[inline(always)]
-    fn deref(&self) -> &Self::Target {
-        unsafe { &*Self::ptr() }
-    }
-}
-
-/// Flash Patch and Breakpoint unit
-pub struct FPB {
-    _marker: PhantomData<*const ()>,
-}
-
-unsafe impl Send for FPB {}
-
-#[cfg(not(armv6m))]
-impl FPB {
-    /// Returns a pointer to the register block
-    #[inline(always)]
-    pub fn ptr() -> *const fpb::RegisterBlock {
-        0xE000_2000 as *const _
-    }
-}
-
-#[cfg(not(armv6m))]
-impl ops::Deref for FPB {
-    type Target = self::fpb::RegisterBlock;
-
-    #[inline(always)]
-    fn deref(&self) -> &Self::Target {
-        unsafe { &*Self::ptr() }
-    }
-}
-
-/// Floating Point Unit
-pub struct FPU {
-    _marker: PhantomData<*const ()>,
-}
-
-unsafe impl Send for FPU {}
-
-#[cfg(any(has_fpu, target_arch = "x86_64"))]
-impl FPU {
-    /// Returns a pointer to the register block
-    #[inline(always)]
-    pub fn ptr() -> *const fpu::RegisterBlock {
-        0xE000_EF30 as *const _
-    }
-}
-
-#[cfg(any(has_fpu, target_arch = "x86_64"))]
-impl ops::Deref for FPU {
-    type Target = self::fpu::RegisterBlock;
-
-    #[inline(always)]
-    fn deref(&self) -> &Self::Target {
-        unsafe { &*Self::ptr() }
-    }
-}
-
+#[cfg(armv8m_base)]
 /// Instrumentation Trace Macrocell
 pub struct ITM {
     _marker: PhantomData<*const ()>,
 }
 
+#[cfg(armv8m_base)]
 unsafe impl Send for ITM {}
 
-#[cfg(not(armv6m))]
+#[cfg(armv8m_base)]
 impl ITM {
     /// Returns a pointer to the register block
     #[inline(always)]
@@ -380,7 +219,7 @@ impl ITM {
     }
 }
 
-#[cfg(not(armv6m))]
+#[cfg(armv8m_base)]
 impl ops::Deref for ITM {
     type Target = self::itm::RegisterBlock;
 
@@ -390,7 +229,7 @@ impl ops::Deref for ITM {
     }
 }
 
-#[cfg(not(armv6m))]
+#[cfg(armv8m_base)]
 impl ops::DerefMut for ITM {
     #[inline(always)]
     fn deref_mut(&mut self) -> &mut Self::Target {
@@ -463,56 +302,6 @@ impl SCB {
 
 impl ops::Deref for SCB {
     type Target = self::scb::RegisterBlock;
-
-    #[inline(always)]
-    fn deref(&self) -> &Self::Target {
-        unsafe { &*Self::ptr() }
-    }
-}
-
-/// SysTick: System Timer
-pub struct SYST {
-    _marker: PhantomData<*const ()>,
-}
-
-unsafe impl Send for SYST {}
-
-impl SYST {
-    /// Returns a pointer to the register block
-    #[inline(always)]
-    pub fn ptr() -> *const syst::RegisterBlock {
-        0xE000_E010 as *const _
-    }
-}
-
-impl ops::Deref for SYST {
-    type Target = self::syst::RegisterBlock;
-
-    #[inline(always)]
-    fn deref(&self) -> &Self::Target {
-        unsafe { &*Self::ptr() }
-    }
-}
-
-/// Trace Port Interface Unit
-pub struct TPIU {
-    _marker: PhantomData<*const ()>,
-}
-
-unsafe impl Send for TPIU {}
-
-#[cfg(not(armv6m))]
-impl TPIU {
-    /// Returns a pointer to the register block
-    #[inline(always)]
-    pub fn ptr() -> *const tpiu::RegisterBlock {
-        0xE004_0000 as *const _
-    }
-}
-
-#[cfg(not(armv6m))]
-impl ops::Deref for TPIU {
-    type Target = self::tpiu::RegisterBlock;
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {

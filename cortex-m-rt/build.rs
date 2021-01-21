@@ -7,8 +7,6 @@ fn main() {
     let target = env::var("TARGET").unwrap();
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
-    has_fpu(&target);
-
     if target.starts_with("thumbv") {
         fs::copy(
             format!("bin/{}.a", target),
@@ -80,10 +78,4 @@ handlers.");
 
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=link.x.in");
-}
-
-fn has_fpu(target: &str) {
-    if target.ends_with("eabihf") {
-        println!("cargo:rustc-cfg=has_fpu");
-    }
 }

@@ -23,8 +23,9 @@
 INCLUDE memory.x
 
 /* # Entry point = reset vector */
+EXTERN(__RESET_VECTOR);
+EXTERN(Reset);
 ENTRY(Reset);
-EXTERN(__RESET_VECTOR); /* depends on the `Reset` symbol */
 
 /* # Exception vectors */
 /* This is effectively weak aliasing at the linker level */
@@ -85,13 +86,15 @@ SECTIONS
   /* ### .text */
   .text _stext :
   {
-    /* place these 2 close to each other or the `b` instruction will fail to link */
-    *(.PreResetTrampoline);
     *(.Reset);
 
     *(.text .text.*);
+
+    /* The HardFaultTrampoline uses the `b` instruction to enter `HardFault`,
+       so must be placed close to it. */
     *(.HardFaultTrampoline);
     *(.HardFault.*);
+
     . = ALIGN(4); /* Pad .text to the alignment to workaround overlapping load section bug in old lld */
   } > FLASH
   . = ALIGN(4); /* Ensure __etext is aligned if something unaligned is inserted after .text */

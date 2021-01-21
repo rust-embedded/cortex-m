@@ -192,11 +192,9 @@
 //!
 //! One will always find the following (unmangled) symbols in `cortex-m-rt` applications:
 //!
-//! - `Reset`. This is the reset handler. The microcontroller will executed this function upon
+//! - `Reset`. This is the reset handler. The microcontroller will execute this function upon
 //! booting. This function will call the user program entry point (cf. [`#[entry]`][attr-entry])
-//! using the `main` symbol so you may also find that symbol in your program; if you do, `main`
-//! will contain your application code. Some other times `main` gets inlined into `Reset` so you
-//! won't find it.
+//! using the `main` symbol so you will also find that symbol in your program.
 //!
 //! - `DefaultHandler`. This is the default handler. If not overridden using `#[exception] fn
 //! DefaultHandler(..` this will be an infinite loop.
@@ -212,8 +210,8 @@
 //! the initial value of the stack pointer; this is where the stack will be located -- the stack
 //! grows downwards towards smaller addresses.
 //!
-//! - `__RESET_VECTOR`. This is the reset vector, a pointer into the `Reset` handler. This vector is
-//! located in the `.vector_table` section after `__STACK_START`.
+//! - `__RESET_VECTOR`. This is the reset vector, a pointer to the `Reset` function. This vector
+//! is located in the `.vector_table` section after `__STACK_START`.
 //!
 //! - `__EXCEPTIONS`. This is the core exceptions portion of the vector table; it's an array of 14
 //! exception vectors, which includes exceptions like `HardFault` and `SysTick`. This array is
@@ -226,18 +224,10 @@
 //!
 //! - `__pre_init`. This is a function to be run before RAM is initialized. It defaults to an empty
 //! function. The function called can be changed by applying the [`#[pre_init]`][attr-pre_init]
-//! attribute to a function. The empty function is not optimized out by default, but if an empty
-//! function is passed to [`#[pre_init]`][attr-pre_init] the function call will be optimized out.
+//! attribute to a function.
 //!
 //! If you override any exception handler you'll find it as an unmangled symbol, e.g. `SysTick` or
 //! `SVCall`, in the output of `objdump`,
-//!
-//! If you are targeting the `thumbv7em-none-eabihf` target you'll also see a `ResetTrampoline`
-//! symbol in the output. To avoid the compiler placing FPU instructions before the FPU has been
-//! enabled (cf. `vpush`) `Reset` calls the function `ResetTrampoline` which is marked as
-//! `#[inline(never)]` and `ResetTrampoline` calls `main`. The compiler is free to inline `main`
-//! into `ResetTrampoline` but it can't inline `ResetTrampoline` into `Reset` -- the FPU is enabled
-//! in `Reset`.
 //!
 //! # Advanced usage
 //!
@@ -248,9 +238,9 @@
 //! guarantees.
 //!
 //! The `Reset` handler will call a symbol named `main` (unmangled) *after* initializing `.bss` and
-//! `.data`, and enabling the FPU (if the target is `thumbv7em-none-eabihf`). A function with the
-//! `entry` attribute will be set to have the export name "`main`"; in addition, its mutable
-//! statics are turned into safe mutable references (see [`#[entry]`][attr-entry] for details).
+//! `.data`, and enabling the FPU (if the target has an FPU). A function with the `entry` attribute
+//! will be set to have the export name "`main`"; in addition, its mutable statics are turned into
+//! safe mutable references (see [`#[entry]`][attr-entry] for details).
 //!
 //! The unmangled `main` symbol must have signature `extern "C" fn() -> !` or its invocation from
 //! `Reset`  will result in undefined behavior.
@@ -411,7 +401,7 @@
 //!         *(.ccmram .ccmram.*);
 //!         . = ALIGN(4);
 //!     } > CCMRAM
-//! } INSERT AFTER .bss;
+//! }
 //! ```
 //!
 //! You can then use something like this to place a variable into this specific section of memory:
@@ -438,7 +428,6 @@
 #![no_std]
 
 extern crate cortex_m_rt_macros as macros;
-extern crate r0;
 
 use core::fmt;
 use core::sync::atomic::{self, Ordering};
@@ -701,8 +690,8 @@ pub use macros::exception;
 ///
 /// # Safety
 ///
-/// The function will be called before static variables are initialized. Any access of static
-/// variables will result in undefined behavior.
+/// The function will be called before memory is initialized, as soon as possible after reset. Any
+/// access of memory, including any static variables, will result in undefined behavior.
 ///
 /// **Warning**: Due to [rvalue static promotion][rfc1414] static variables may be accessed whenever
 /// taking a reference to a constant. This means that even trivial expressions such as `&1` in the
@@ -919,65 +908,11 @@ pub fn heap_start() -> *mut u32 {
     unsafe { &mut __sheap }
 }
 
-/* Entry point */
+// Entry point is Reset.
 #[doc(hidden)]
 #[link_section = ".vector_table.reset_vector"]
 #[no_mangle]
-#[cfg(not(armv6m))]
 pub static __RESET_VECTOR: unsafe extern "C" fn() -> ! = Reset;
-
-#[doc(hidden)]
-#[link_section = ".vector_table.reset_vector"]
-#[no_mangle]
-#[cfg(armv6m)]
-pub static __RESET_VECTOR: unsafe extern "C" fn() -> ! = PreResetTrampoline;
-
-#[doc(hidden)]
-#[link_section = ".Reset"]
-#[no_mangle]
-pub unsafe extern "C" fn Reset() -> ! {
-    extern "C" {
-
-        // These symbols come from `link.x`
-        static mut __sbss: u32;
-        static mut __ebss: u32;
-
-        static mut __sdata: u32;
-        static mut __edata: u32;
-        static __sidata: u32;
-    }
-
-    extern "Rust" {
-        // This symbol will be provided by the user via `#[pre_init]`
-        fn __pre_init();
-    }
-
-    __pre_init();
-
-    // Initialize RAM
-    r0::zero_bss(&mut __sbss, &mut __ebss);
-    r0::init_data(&mut __sdata, &mut __edata, &__sidata);
-
-    #[allow(clippy::match_single_binding)]
-    match () {
-        #[cfg(not(has_fpu))]
-        () => {
-            extern "C" {
-                // This symbol will be provided by the user via `#[entry]`
-                fn main() -> !;
-            }
-            main()
-        }
-        #[cfg(has_fpu)]
-        () => {
-            extern "C" {
-                fn FpuTrampoline() -> !;
-            }
-
-            FpuTrampoline()
-        }
-    }
-}
 
 #[allow(unused_variables)]
 #[doc(hidden)]
@@ -1038,8 +973,7 @@ pub enum Exception {
 pub use self::Exception as exception;
 
 extern "C" {
-    #[cfg(armv6m)]
-    fn PreResetTrampoline() -> !;
+    fn Reset() -> !;
 
     fn NonMaskableInt();
 

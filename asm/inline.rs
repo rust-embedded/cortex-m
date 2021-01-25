@@ -61,7 +61,7 @@ pub unsafe fn __delay(cyc: u32) {
         "1:",
         "subs {}, #1",
         "bne 1b",
-        in(reg) real_cyc
+        inout(reg) real_cyc => _
     );
 }
 

@@ -12,11 +12,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - New assembly methods `asm::semihosting_syscall`, `asm::bootstrap`, and
   `asm::bootload`.
 
-### Changed
+### Deprecated
 
 - `msp::write` has been deprecated in favor of `asm::bootstrap`. It was not
   possible to use `msp::write` without causing Undefined Behavior, so all
   existing users are encouraged to migrate.
+
+### Fixed
+
+- Fixed a bug in `asm::delay` which could lead to incorrect codegen and
+  infinite loops.
+- Improved timing guarantees of `asm::delay` on multiple-issue CPU cores.
+- Additional compiler fences added to inline assembly where necessary.
+- Fixed DWARF debug information in pre-built assembly binaries.
 
 ## [v0.7.0] - 2020-11-09
 
@@ -59,6 +67,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     - `NVIC::set_pending`
     - `SCB::system_reset`
 - Removed `basepri`, `basepri_max`, and `faultmask` registers from thumbv8m.base
+
+## [v0.6.5] - 2021-01-24
+
+### Changed
+
+- This release is forwards-compatible with cortex-m 0.7, and depends on and
+  re-exports many types from that version. Both 0.6.5 and 0.7 may co-exist
+  in a build.
 
 ## [v0.6.4] - 2020-10-26
 

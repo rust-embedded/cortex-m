@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.7.1] - 2021-01-25
+
 ### Added
 
 - New assembly methods `asm::semihosting_syscall`, `asm::bootstrap`, and
@@ -668,8 +670,10 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.7.1...HEAD
+[v0.7.1]: https://github.com/rust-embedded/cortex-m/compare/v0.7.0...v0.7.1
 [v0.7.0]: https://github.com/rust-embedded/cortex-m/compare/v0.6.4...v0.7.0
+[v0.6.5]: https://github.com/rust-embedded/cortex-m/compare/v0.6.4...v0.6.5
 [v0.6.4]: https://github.com/rust-embedded/cortex-m/compare/v0.6.3...v0.6.4
 [v0.6.3]: https://github.com/rust-embedded/cortex-m/compare/v0.6.2...v0.6.3
 [v0.6.2]: https://github.com/rust-embedded/cortex-m/compare/v0.6.1...v0.6.2

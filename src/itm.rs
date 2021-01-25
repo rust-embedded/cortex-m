@@ -6,9 +6,9 @@ use core::{fmt, mem, ptr, slice};
 
 use aligned::{Aligned, A4};
 
-#[cfg(thumbv8m_base)]
+#[cfg(armv8m_base)]
 use crate::peripheral::itm::Stim;
-#[cfg(not(thumbv8m_base))]
+#[cfg(not(armv8m_base))]
 use cortex_m_0_7::peripheral::itm::Stim;
 
 // NOTE assumes that `bytes` is 32-bit aligned

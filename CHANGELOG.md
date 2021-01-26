@@ -70,6 +70,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     - `SCB::system_reset`
 - Removed `basepri`, `basepri_max`, and `faultmask` registers from thumbv8m.base
 
+## [v0.6.7] - 2021-01-26
+
+### Fixed
+
+- Fixed missing `peripheral::itm` reexport.
+
+## [v0.6.6] - 2021-01-26
+
+### Fixed
+
+- Fixed missing ITM reexport on `thumbv8m.base` targets.
+
 ## [v0.6.5] - 2021-01-24
 
 ### Changed
@@ -673,6 +685,8 @@ fn main() {
 [Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.7.1...HEAD
 [v0.7.1]: https://github.com/rust-embedded/cortex-m/compare/v0.7.0...v0.7.1
 [v0.7.0]: https://github.com/rust-embedded/cortex-m/compare/v0.6.4...v0.7.0
+[v0.6.7]: https://github.com/rust-embedded/cortex-m/compare/v0.6.6...v0.6.7
+[v0.6.6]: https://github.com/rust-embedded/cortex-m/compare/v0.6.5...v0.6.6
 [v0.6.5]: https://github.com/rust-embedded/cortex-m/compare/v0.6.4...v0.6.5
 [v0.6.4]: https://github.com/rust-embedded/cortex-m/compare/v0.6.3...v0.6.4
 [v0.6.3]: https://github.com/rust-embedded/cortex-m/compare/v0.6.2...v0.6.3

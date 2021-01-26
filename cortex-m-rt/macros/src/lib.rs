@@ -266,7 +266,8 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                 #(#attrs)*
                 #[doc(hidden)]
                 #[export_name = "HardFault"]
-                #[link_section = ".HardFault.user"]
+                #[cfg_attr(target_os = "macos", link_section = ".HardFault,user")]
+                #[cfg_attr(not(target_os = "macos"), link_section = ".HardFault.user")]
                 pub unsafe extern "C" fn #tramp_ident(frame: &::cortex_m_rt::ExceptionFrame) {
                     #ident(frame)
                 }

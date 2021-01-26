@@ -910,13 +910,15 @@ pub fn heap_start() -> *mut u32 {
 
 // Entry point is Reset.
 #[doc(hidden)]
-#[link_section = ".vector_table.reset_vector"]
+#[cfg_attr(target_os = "macos", link_section = ".vector_table,reset_vector")]
+#[cfg_attr(not(target_os = "macos"), link_section = ".vector_table.reset_vector")]
 #[no_mangle]
 pub static __RESET_VECTOR: unsafe extern "C" fn() -> ! = Reset;
 
 #[allow(unused_variables)]
 #[doc(hidden)]
-#[link_section = ".HardFault.default"]
+#[cfg_attr(target_os = "macos", link_section = ".HardFault,default")]
+#[cfg_attr(not(target_os = "macos"), link_section = ".HardFault.default")]
 #[no_mangle]
 pub unsafe extern "C" fn HardFault_(ef: &ExceptionFrame) -> ! {
     loop {
@@ -1008,7 +1010,8 @@ pub union Vector {
 }
 
 #[doc(hidden)]
-#[link_section = ".vector_table.exceptions"]
+#[cfg_attr(target_os = "macos", link_section = ".vector_table,exceptions")]
+#[cfg_attr(not(target_os = "macos"), link_section = ".vector_table.exceptions")]
 #[no_mangle]
 pub static __EXCEPTIONS: [Vector; 14] = [
     // Exception 2: Non Maskable Interrupt.
@@ -1070,7 +1073,8 @@ pub static __EXCEPTIONS: [Vector; 14] = [
 // to the default handler
 #[cfg(all(any(not(feature = "device"), test), not(armv6m)))]
 #[doc(hidden)]
-#[link_section = ".vector_table.interrupts"]
+#[cfg_attr(target_os = "macos", link_section = ".vector_table,interrupts")]
+#[cfg_attr(not(target_os = "macos"), link_section = ".vector_table.interrupts")]
 #[no_mangle]
 pub static __INTERRUPTS: [unsafe extern "C" fn(); 240] = [{
     extern "C" {

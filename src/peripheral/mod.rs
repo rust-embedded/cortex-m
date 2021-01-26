@@ -84,6 +84,9 @@ pub mod mpu;
 pub mod nvic;
 pub mod scb;
 
+#[cfg(all(not(armv6m), not(armv8m_base)))]
+pub use cortex_m_0_7::peripheral::itm;
+
 pub use cortex_m_0_7::peripheral::{cpuid, dcb, dwt, syst};
 #[cfg(not(armv6m))]
 pub use cortex_m_0_7::peripheral::{fpb, tpiu};

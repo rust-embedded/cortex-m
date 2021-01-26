@@ -171,7 +171,20 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
         }
     }
 
-    match exn {
+    // Emit a reference to the `Exception` variant corresponding to our exception.
+    // This will fail compilation when the target doesn't have that exception.
+    let assertion = match exn {
+        Exception::Other => {
+            quote! {
+                const _: () = {
+                    let _ = cortex_m_rt::Exception::#ident;
+                };
+            }
+        }
+        _ => quote!(),
+    };
+
+    let handler = match exn {
         Exception::DefaultHandler => {
             let valid_signature = f.sig.constness.is_none()
                 && f.vis == Visibility::Inherited
@@ -221,7 +234,6 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
 
                 #f
             )
-            .into()
         }
         Exception::HardFault => {
             let valid_signature = f.sig.constness.is_none()
@@ -274,7 +286,6 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
 
                 #f
             )
-            .into()
         }
         Exception::NonMaskableInt | Exception::Other => {
             let valid_signature = f.sig.constness.is_none()
@@ -364,9 +375,14 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
 
                 #f
             )
-            .into()
         }
-    }
+    };
+
+    quote!(
+        #assertion
+        #handler
+    )
+    .into()
 }
 
 #[proc_macro_attribute]

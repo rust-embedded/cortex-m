@@ -64,17 +64,19 @@ jobs:
           override: true
       - name: Install all Rust targets
         run: rustup target install thumbv6m-none-eabi thumbv7m-none-eabi thumbv7em-none-eabi thumbv7em-none-eabihf thumbv8m.base-none-eabi thumbv8m.main-none-eabi thumbv8m.main-none-eabihf
-      - name: Build crate for thumbv6m-none-eabi
+      - name: Build examples for thumbv6m-none-eabi
         run: cargo build --target=thumbv6m-none-eabi --examples
-      - name: Build crate for thumbv7m-none-eabi
+      - name: Build examples for thumbv7m-none-eabi
         run: cargo build --target=thumbv7m-none-eabi --examples
-      - name: Build crate for thumbv7em-none-eabi
+      - name: Build examples for thumbv7em-none-eabi
         run: cargo build --target=thumbv7em-none-eabi --examples
-      - name: Build crate for thumbv7em-none-eabihf
+      - name: Build examples for thumbv7em-none-eabihf
         run: cargo build --target=thumbv7em-none-eabihf --examples
-      - name: Build crate for thumbv8m.base-none-eabi
+      - name: Build examples for thumbv8m.base-none-eabi
         run: cargo build --target=thumbv8m.base-none-eabi --examples
-      - name: Build crate for thumbv8m.main-none-eabi
+      - name: Build examples for thumbv8m.main-none-eabi
         run: cargo build --target=thumbv8m.main-none-eabi --examples
-      - name: Build crate for thumbv8m.main-none-eabihf
+      - name: Build examples for thumbv8m.main-none-eabihf
         run: cargo build --target=thumbv8m.main-none-eabihf --examples
+      - name: Build crate for host OS
+        run: cargo build

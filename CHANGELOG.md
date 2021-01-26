@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.6.7] - 2021-01-26
+
+### Fixed
+
+- Fixed missing `peripheral::itm` reexport.
+
 ## [v0.6.6] - 2021-01-26
 
 ### Fixed
@@ -613,7 +619,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.6.6...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.6.7...HEAD
+[v0.6.6]: https://github.com/rust-embedded/cortex-m/compare/v0.6.6...v0.6.7
 [v0.6.6]: https://github.com/rust-embedded/cortex-m/compare/v0.6.5...v0.6.6
 [v0.6.5]: https://github.com/rust-embedded/cortex-m/compare/v0.6.4...v0.6.5
 [v0.6.4]: https://github.com/rust-embedded/cortex-m/compare/v0.6.3...v0.6.4

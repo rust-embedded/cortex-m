@@ -32,6 +32,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 [#228]: https://github.com/rust-embedded/cortex-m-rt/pull/228
 [#289]: https://github.com/rust-embedded/cortex-m-rt/pull/289
 
+## [v0.6.13] - 2020-09-07
+
+### Fixed
+
+- (ARMv6-M) Set LR value to a known value on reset (as the ARM spec requires)
+- Added CFI and size info to external assembly subroutines (`HardFaultTrampoline`)
+
+## [v0.6.12] - 2020-01-26
+
+### Fixed
+
+- Fixed lint warnings getting emitted on macro-generated code.
+
 ## [v0.6.11] - 2019-12-04
 
 ### Changed
@@ -493,7 +506,9 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.11...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.13...HEAD
+[v0.6.13]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.12...v0.6.13
+[v0.6.12]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.11...v0.6.12
 [v0.6.11]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.10...v0.6.11
 [v0.6.10]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.9...v0.6.10
 [v0.6.9]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.8...v0.6.9

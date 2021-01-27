@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### New Features
+
+- Add support for CMSE secure gateway veneers ([#297]).
+- Allow using the crate with custom target JSON specs ([#304]).
+
+[#297]: https://github.com/rust-embedded/cortex-m-rt/pull/297
+[#304]: https://github.com/rust-embedded/cortex-m-rt/pull/304
+
 ### Fixes
 
 - Various fixes to the linker script ([#265], [#286]).
@@ -14,11 +22,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add barriers after FPU enabling ([#279]).
 - (ARMv6-M) Set LR value to a known value on reset (as the ARM spec requires)
 - Added CFI and size info to external assembly subroutines (`HardFaultTrampoline` and `FpuTrampoline`)
+- Allow building the crate for macOS targets ([#306], [#310]).
+- Perform RAM initialization in assembly, to avoid potential UB in Rust ([#301]).
 
 [#265]: https://github.com/rust-embedded/cortex-m-rt/pull/265
 [#278]: https://github.com/rust-embedded/cortex-m-rt/pull/278
 [#279]: https://github.com/rust-embedded/cortex-m-rt/pull/279
 [#286]: https://github.com/rust-embedded/cortex-m-rt/pull/286
+[#301]: https://github.com/rust-embedded/cortex-m-rt/pull/301
+[#306]: https://github.com/rust-embedded/cortex-m-rt/pull/306
+[#310]: https://github.com/rust-embedded/cortex-m-rt/pull/310
 
 ### Breaking Changes
 
@@ -27,10 +40,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Only allow certain attributes on handlers, and apply them to the trampoline
   too ([#228]).
 - Make it unsafe to define exception handlers for NMIs ([#289]).
+- Check that exceptions exist on the target chip when registering a handler for
+  them ([#308]).
 
 [#239]: https://github.com/rust-embedded/cortex-m-rt/pull/239
 [#228]: https://github.com/rust-embedded/cortex-m-rt/pull/228
 [#289]: https://github.com/rust-embedded/cortex-m-rt/pull/289
+[#308]: https://github.com/rust-embedded/cortex-m-rt/pull/308
 
 ## [v0.6.13] - 2020-09-07
 

@@ -6,16 +6,6 @@ fn main() {
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
     let name = env::var("CARGO_PKG_NAME").unwrap();
 
-    if target.starts_with("thumb") && env::var_os("CARGO_FEATURE_INLINE_ASM").is_none() {
-        fs::copy(
-            format!("bin/{}.a", target),
-            out_dir.join(format!("lib{}.a", name)),
-        ).unwrap();
-
-        println!("cargo:rustc-link-lib=static={}", name);
-        println!("cargo:rustc-link-search={}", out_dir.display());
-    }
-
     if target.starts_with("thumbv6m-") {
         println!("cargo:rustc-cfg=cortex_m");
         println!("cargo:rustc-cfg=armv6m");

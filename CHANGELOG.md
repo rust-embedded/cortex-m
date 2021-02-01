@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.5.11] - 2021-01-31
+
+* This release stops linking the pre-built assembly files, as those methods are
+  instead provided by depending on cortex-m 0.6.x.
+
+## [v0.5.10] - 2019-04-29
+
+* This release ensures features set on this cortex-m crate are forwarded to
+  the included cortex-m 0.6.x crate.
+
+## [v0.5.9] - 2019-04-28
+
+* This release re-exports compatible types from cortex-m 0.6.x, allowing use
+  of both versions in one project.
+
 ## [v0.5.8] - 2018-10-27
 
 ### Added
@@ -529,7 +544,10 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.5.8...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.5.11...HEAD
+[v0.5.11]: https://github.com/rust-embedded/cortex-m/compare/v0.5.10...v0.5.11
+[v0.5.10]: https://github.com/rust-embedded/cortex-m/compare/v0.5.9...v0.5.10
+[v0.5.9]: https://github.com/rust-embedded/cortex-m/compare/v0.5.8...v0.5.9
 [v0.5.8]: https://github.com/rust-embedded/cortex-m/compare/v0.5.7...v0.5.8
 [v0.5.7]: https://github.com/rust-embedded/cortex-m/compare/v0.5.6...v0.5.7
 [v0.5.6]: https://github.com/rust-embedded/cortex-m/compare/v0.5.5...v0.5.6

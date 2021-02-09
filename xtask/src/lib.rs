@@ -159,7 +159,8 @@ pub fn check_blobs() {
     let mut files_before = BTreeMap::new();
     for entry in fs::read_dir("bin").unwrap() {
         let entry = entry.unwrap();
-        if entry.path().extension().unwrap() == "a" {
+        // Only check -lto.a files since those have the same symbol order between Linux and macOS
+        if entry.path().to_str().unwrap().ends_with("-lto.a") {
             files_before.insert(
                 entry
                     .path()
@@ -178,7 +179,8 @@ pub fn check_blobs() {
     let mut files_after = BTreeMap::new();
     for entry in fs::read_dir("bin").unwrap() {
         let entry = entry.unwrap();
-        if entry.path().extension().unwrap() == "a" {
+        // Only check -lto.a files since those have the same symbol order between Linux and macOS
+        if entry.path().to_str().unwrap().ends_with("-lto.a") {
             files_after.insert(
                 entry
                     .path()

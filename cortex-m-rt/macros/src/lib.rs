@@ -227,7 +227,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
 
                     const SCB_ICSR: *const u32 = 0xE000_ED04 as *const u32;
 
-                    let irqn = unsafe { core::ptr::read_volatile(SCB_ICSR) as u8 as i16 - 16 };
+                    let irqn = unsafe { (core::ptr::read_volatile(SCB_ICSR) & 0x1FF) as i16 - 16 };
 
                     #ident(irqn)
                 }

@@ -26,6 +26,7 @@ extern "C" {
     fn PVD();
 }
 
+#[allow(unsafe_code)]
 #[link_section = ".vector_table.interrupts"]
 #[no_mangle]
 pub static __INTERRUPTS: [Vector; 3] = [

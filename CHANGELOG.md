@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.7.2] - 2021-03-07
+
+### Fixed
+
+- Fixed a bug where calling `asm::delay()` with an argument of 0 or 1 would
+  underflow, leading to a very long delay.
+
 ## [v0.7.1] - 2021-01-25
 
 ### Added
@@ -682,7 +689,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.7.1...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.7.2...HEAD
+[v0.7.2]: https://github.com/rust-embedded/cortex-m/compare/v0.7.1...v0.7.2
 [v0.7.1]: https://github.com/rust-embedded/cortex-m/compare/v0.7.0...v0.7.1
 [v0.7.0]: https://github.com/rust-embedded/cortex-m/compare/v0.6.4...v0.7.0
 [v0.6.7]: https://github.com/rust-embedded/cortex-m/compare/v0.6.6...v0.6.7

@@ -7,13 +7,35 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [v0.4.1] - 2020-10-20
 
+0.4.1 was yanked because the pre-built binaries contain conflicting symbols
+with a supported version of cortex-m.
+
 - Fix missing prebuilt binaries (#271)
 
 ## [v0.4.0] - 2020-10-14
 
+v0.4.0 was yanked because it did not include the required pre-built binaries
+in the final crate.
+
 - Moved into cortex-m repository
 - Merge `HStdout` and `HStderr` into one type: `HostStream`
 - Support cortex-m v0.7
+- Semihosting macros no longer return a Result, instead errors are ignored.
+
+## [v0.3.7] - 2020-12-02
+
+- Replaces the yanked v0.3.6 by reverting #48, so the semihosting macros
+  continue to return a Result.
+
+## [v0.3.6] - 2020-12-01
+
+v0.3.6 was yanked because it incorrectly included #48, which was a breaking
+change.
+
+### Added
+
+- Update cortex-m dependency to support version 0.7.
+- Add `no-semihosting` feature to disable all semihosting calls.
 
 ## [v0.3.5] - 2019-08-29
 
@@ -122,6 +144,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 [Unreleased]: https://github.com/rust-embedded/cortex-m/compare/c-m-sh-v0.4.1...HEAD
 [v0.4.1]: https://github.com/rust-embedded/cortex-m/compare/c-m-sh-v0.4.0...c-m-sh-v0.4.1
 [v0.4.0]: https://github.com/rust-embedded/cortex-m/compare/c-m-sh-v0.3.5...c-m-sh-v0.4.0
+[v0.3.7]: https://github.com/rust-embedded/cortex-m-semihosting/compare/v0.3.6...v0.3.7
+[v0.3.6]: https://github.com/rust-embedded/cortex-m-semihosting/compare/v0.3.5...v0.3.6
 [v0.3.5]: https://github.com/rust-embedded/cortex-m-semihosting/compare/v0.3.4...v0.3.5
 [v0.3.4]: https://github.com/rust-embedded/cortex-m-semihosting/compare/v0.3.3...v0.3.4
 [v0.3.3]: https://github.com/rust-embedded/cortex-m-semihosting/compare/v0.3.2...v0.3.3

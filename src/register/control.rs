@@ -1,7 +1,6 @@
 //! Control register
 
 /// Control register
-#[allow(clippy::missing_inline_in_public_items)]
 #[derive(Clone, Copy, Debug)]
 pub struct Control {
     bits: u32,
@@ -82,7 +81,6 @@ impl Control {
 }
 
 /// Thread mode privilege level
-#[allow(clippy::missing_inline_in_public_items)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Npriv {
     /// Privileged
@@ -106,7 +104,6 @@ impl Npriv {
 }
 
 /// Currently active stack pointer
-#[allow(clippy::missing_inline_in_public_items)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Spsel {
     /// MSP is the current stack pointer
@@ -130,7 +127,6 @@ impl Spsel {
 }
 
 /// Whether context floating-point is currently active
-#[allow(clippy::missing_inline_in_public_items)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Fpca {
     /// Floating-point context active.

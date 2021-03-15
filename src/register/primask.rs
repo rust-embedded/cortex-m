@@ -1,7 +1,6 @@
 //! Priority mask register
 
 /// All exceptions with configurable priority are ...
-#[allow(clippy::missing_inline_in_public_items)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Primask {
     /// Active
@@ -27,11 +26,7 @@ impl Primask {
 /// Reads the CPU register
 #[inline]
 pub fn read() -> Primask {
-    fn read_raw() -> u32 {
-        call_asm!(__primask_r() -> u32)
-    }
-
-    let r = read_raw();
+    let r: u32 = call_asm!(__primask_r() -> u32);
     if r & (1 << 0) == (1 << 0) {
         Primask::Inactive
     } else {

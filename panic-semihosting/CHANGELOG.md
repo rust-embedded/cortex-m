@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.5.6] - 2020-11-14
+
+- Fix update to docs.rs to build for an embedded target
+
+## [v0.5.5] - 2020-11-14
+
+- Update docs.rs to build for an embedded target
+
 ## [v0.5.4] - 2020-10-14
 
 - Moved into cortex-m repository
@@ -61,7 +69,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 Initial release
 
-[Unreleased]: https://github.com/rust-embedded/panic-semihosting/compare/p-sh-v0.5.4...HEAD
+[Unreleased]: https://github.com/rust-embedded/panic-semihosting/compare/p-sh-v0.5.6...HEAD
+[v0.5.6]: https://github.com/rust-embedded/cortex-m/compare/p-sh-v0.5.5...p-sh-v0.5.6
+[v0.5.5]: https://github.com/rust-embedded/cortex-m/compare/p-sh-v0.5.4...p-sh-v0.5.5
 [v0.5.4]: https://github.com/rust-embedded/cortex-m/compare/p-sh-v0.5.3...p-sh-v0.5.4
 [v0.5.3]: https://github.com/rust-embedded/panic-semihosting/compare/v0.5.2...v0.5.3
 [v0.5.2]: https://github.com/rust-embedded/panic-semihosting/compare/v0.5.1...v0.5.2

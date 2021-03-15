@@ -1,7 +1,6 @@
 //! Application Program Status Register
 
 /// Application Program Status Register
-#[allow(clippy::missing_inline_in_public_items)]
 #[derive(Clone, Copy, Debug)]
 pub struct Apsr {
     bits: u32,

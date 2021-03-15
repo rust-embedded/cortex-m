@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.7.2] - 2021-03-07
+
+### Fixed
+
+- Fixed a bug where calling `asm::delay()` with an argument of 0 or 1 would
+  underflow, leading to a very long delay.
+
+## [v0.7.1] - 2021-01-25
+
+### Added
+
+- New assembly methods `asm::semihosting_syscall`, `asm::bootstrap`, and
+  `asm::bootload`.
+
+### Deprecated
+
+- `msp::write` has been deprecated in favor of `asm::bootstrap`. It was not
+  possible to use `msp::write` without causing Undefined Behavior, so all
+  existing users are encouraged to migrate.
+
+### Fixed
+
+- Fixed a bug in `asm::delay` which could lead to incorrect codegen and
+  infinite loops.
+- Improved timing guarantees of `asm::delay` on multiple-issue CPU cores.
+- Additional compiler fences added to inline assembly where necessary.
+- Fixed DWARF debug information in pre-built assembly binaries.
+
+## [v0.7.0] - 2020-11-09
+
 ### Added
 
 - New `InterruptNumber` trait is now required on interrupt arguments to the
@@ -18,6 +48,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - A delay driver based on SysTick.
 - You can now use LTO to inline assembly calls, even on stable Rust.
   See the `asm/lib.rs` documentation for more details.
+- Initial ARMv8-M MPU support
+- ICTR and ACTLR registers added
+- Support for the Security Attribution Unit on ARMv8-M
 
 ### Changed
 
@@ -27,6 +60,52 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   technique which generates Rust static libs for stable calling, and uses the
   new `asm!` macro with `inline-asm`. See the `asm/lib.rs` documentation for
   more details.
+- Cache enabling now uses an assembly sequence to ensure correctness.
+- `ptr()` methods are now `const`.
+
+### Breaking Changes
+- `SCB::invalidate_dcache` and related methods are now unsafe, see #188
+- `Peripherals` struct is now non-exhaustive, so fields may be added in future
+  non-breaking changes
+- Removed `aligned` dependency
+- Removed const-fn feature
+- Removed previously deprecated APIs
+    - `NVIC::clear_pending`
+    - `NVIC::disable`
+    - `NVIC::enable`
+    - `NVIC::set_pending`
+    - `SCB::system_reset`
+- Removed `basepri`, `basepri_max`, and `faultmask` registers from thumbv8m.base
+
+## [v0.6.7] - 2021-01-26
+
+### Fixed
+
+- Fixed missing `peripheral::itm` reexport.
+
+## [v0.6.6] - 2021-01-26
+
+### Fixed
+
+- Fixed missing ITM reexport on `thumbv8m.base` targets.
+
+## [v0.6.5] - 2021-01-24
+
+### Changed
+
+- This release is forwards-compatible with cortex-m 0.7, and depends on and
+  re-exports many types from that version. Both 0.6.5 and 0.7 may co-exist
+  in a build.
+
+## [v0.6.4] - 2020-10-26
+
+### Changed
+
+- MSRV bumped to 1.36.0 due to `aligned` dependency.
+
+### Fixed
+
+- Drop AT&T syntax from inline asm, which was causing miscompilations with newer versions of the compiler.
 
 ## [v0.6.3] - 2020-07-20
 
@@ -610,7 +689,14 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.6.3...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.7.2...HEAD
+[v0.7.2]: https://github.com/rust-embedded/cortex-m/compare/v0.7.1...v0.7.2
+[v0.7.1]: https://github.com/rust-embedded/cortex-m/compare/v0.7.0...v0.7.1
+[v0.7.0]: https://github.com/rust-embedded/cortex-m/compare/v0.6.4...v0.7.0
+[v0.6.7]: https://github.com/rust-embedded/cortex-m/compare/v0.6.6...v0.6.7
+[v0.6.6]: https://github.com/rust-embedded/cortex-m/compare/v0.6.5...v0.6.6
+[v0.6.5]: https://github.com/rust-embedded/cortex-m/compare/v0.6.4...v0.6.5
+[v0.6.4]: https://github.com/rust-embedded/cortex-m/compare/v0.6.3...v0.6.4
 [v0.6.3]: https://github.com/rust-embedded/cortex-m/compare/v0.6.2...v0.6.3
 [v0.6.2]: https://github.com/rust-embedded/cortex-m/compare/v0.6.1...v0.6.2
 [v0.6.1]: https://github.com/rust-embedded/cortex-m/compare/v0.6.0...v0.6.1

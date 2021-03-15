@@ -15,7 +15,7 @@ pub fn bkpt() {
     call_asm!(__bkpt());
 }
 
-/// Blocks the program for *at least* `n` instruction cycles
+/// Blocks the program for *at least* `cycles` CPU cycles.
 ///
 /// This is implemented in assembly so its execution time is independent of the optimization
 /// level, however it is dependent on the specific architecture and core configuration.
@@ -25,10 +25,8 @@ pub fn bkpt() {
 /// timer-less initialization of peripherals if and only if accurate timing is not essential. In
 /// any other case please use a more accurate method to produce a delay.
 #[inline]
-pub fn delay(n: u32) {
-    // NOTE(divide by 4) is easier to compute than `/ 3` because it's just a shift (`>> 2`).
-    let real_cyc = n / 4 + 1;
-    call_asm!(__delay(real_cyc: u32));
+pub fn delay(cycles: u32) {
+    call_asm!(__delay(cycles: u32));
 }
 
 /// A no-operation. Useful to prevent delay loops from being optimized away.
@@ -163,4 +161,49 @@ pub fn ttat(addr: *mut u32) -> u32 {
 #[cfg(armv8m)]
 pub unsafe fn bx_ns(addr: u32) {
     call_asm!(__bxns(addr: u32));
+}
+
+/// Semihosting syscall.
+///
+/// This method is used by cortex-m-semihosting to provide semihosting syscalls.
+#[inline]
+pub unsafe fn semihosting_syscall(nr: u32, arg: u32) -> u32 {
+    call_asm!(__sh_syscall(nr: u32, arg: u32) -> u32)
+}
+
+/// Bootstrap.
+///
+/// Clears CONTROL.SPSEL (setting the main stack to be the active stack),
+/// updates the main stack pointer to the address in `msp`, then jumps
+/// to the address in `rv`.
+///
+/// # Safety
+///
+/// `msp` and `rv` must point to valid stack memory and executable code,
+/// respectively.
+#[inline]
+pub unsafe fn bootstrap(msp: *const u32, rv: *const u32) -> ! {
+    // Ensure thumb mode is set.
+    let rv = (rv as u32) | 1;
+    let msp = msp as u32;
+    call_asm!(__bootstrap(msp: u32, rv: u32) -> !);
+}
+
+/// Bootload.
+///
+/// Reads the initial stack pointer value and reset vector from
+/// the provided vector table address, sets the active stack to
+/// the main stack, sets the main stack pointer to the new initial
+/// stack pointer, then jumps to the reset vector.
+///
+/// # Safety
+///
+/// The provided `vector_table` must point to a valid vector
+/// table, with a valid stack pointer as the first word and
+/// a valid reset vector as the second word.
+#[inline]
+pub unsafe fn bootload(vector_table: *const u32) -> ! {
+    let msp = core::ptr::read_volatile(vector_table);
+    let rv = core::ptr::read_volatile(vector_table.offset(1));
+    bootstrap(msp as *const u32, rv as *const u32);
 }

@@ -8,6 +8,7 @@ pub fn read() -> u32 {
 
 /// Writes `bits` to the CPU register
 #[inline]
+#[deprecated = "calling this function invokes Undefined Behavior, consider asm::bootstrap as an alternative"]
 pub unsafe fn write(bits: u32) {
     call_asm!(__msp_w(bits: u32));
 }

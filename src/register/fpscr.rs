@@ -1,7 +1,6 @@
 //! Floating-point Status Control Register
 
 /// Floating-point Status Control Register
-#[allow(clippy::missing_inline_in_public_items)]
 #[derive(Clone, Copy, Debug)]
 pub struct Fpscr {
     bits: u32,
@@ -253,7 +252,6 @@ impl Fpscr {
 }
 
 /// Rounding mode
-#[allow(clippy::missing_inline_in_public_items)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RMode {
     /// Round to Nearest (RN) mode. This is the reset value.

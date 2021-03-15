@@ -69,10 +69,11 @@ shims! {
     fn __psp_r() -> u32;
     fn __psp_w(val: u32);
     fn __sev();
-    fn __udf();
+    fn __udf() -> !;
     fn __wfe();
     fn __wfi();
-    fn __syscall(nr: u32, arg: u32) -> u32;
+    fn __sh_syscall(nr: u32, arg: u32) -> u32;
+    fn __bootstrap(msp: u32, rv: u32) -> !;
 }
 
 // v7m *AND* v8m.main, but *NOT* v8m.base
@@ -126,6 +127,7 @@ shims! {
 /// handler gets linked in, this causes a linker error. We always build this file with optimizations
 /// enabled, but even without them the panic handler should never be linked in.
 #[panic_handler]
+#[link_section = ".text.asm_panic_handler"]
 fn panic(_: &core::panic::PanicInfo) -> ! {
     extern "C" {
         #[link_name = "cortex-m internal error: panic handler not optimized out, please file an \

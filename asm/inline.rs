@@ -52,30 +52,37 @@ pub unsafe fn __cpsie() {
 
 #[inline(always)]
 pub unsafe fn __delay(cyc: u32) {
-    // Use local labels to avoid R_ARM_THM_JUMP8 relocations which fail on thumbv6m.
+    // The loop will normally take 3 to 4 CPU cycles per iteration, but superscalar cores
+    // (eg. Cortex-M7) can potentially do it in 2, so we use that as the lower bound, since delaying
+    // for more cycles is okay.
+    // Add 1 to prevent an integer underflow which would cause a long freeze
+    let real_cyc = 1 + cyc / 2;
     asm!(
+        // Use local labels to avoid R_ARM_THM_JUMP8 relocations which fail on thumbv6m.
         "1:",
-        "nop",
         "subs {}, #1",
         "bne 1b",
-        in(reg) cyc
+        inout(reg) real_cyc => _
     );
 }
 
 #[inline(always)]
 pub unsafe fn __dmb() {
+    compiler_fence(Ordering::SeqCst);
     asm!("dmb");
     compiler_fence(Ordering::SeqCst);
 }
 
 #[inline(always)]
 pub unsafe fn __dsb() {
+    compiler_fence(Ordering::SeqCst);
     asm!("dsb");
     compiler_fence(Ordering::SeqCst);
 }
 
 #[inline(always)]
 pub unsafe fn __isb() {
+    compiler_fence(Ordering::SeqCst);
     asm!("isb");
     compiler_fence(Ordering::SeqCst);
 }
@@ -177,9 +184,29 @@ pub unsafe fn __wfi() {
 
 /// Semihosting syscall.
 #[inline(always)]
-pub unsafe fn __syscall(mut nr: u32, arg: u32) -> u32 {
+pub unsafe fn __sh_syscall(mut nr: u32, arg: u32) -> u32 {
     asm!("bkpt #0xab", inout("r0") nr, in("r1") arg);
     nr
+}
+
+/// Set CONTROL.SPSEL to 0, write `msp` to MSP, branch to `rv`.
+#[inline(always)]
+pub unsafe fn __bootstrap(msp: u32, rv: u32) -> ! {
+    asm!(
+        "mrs {tmp}, CONTROL",
+        "bics {tmp}, {spsel}",
+        "msr CONTROL, {tmp}",
+        "isb",
+        "msr MSP, {msp}",
+        "bx {rv}",
+        // `out(reg) _` is not permitted in a `noreturn` asm! call,
+        // so instead use `in(reg) 0` and don't restore it afterwards.
+        tmp = in(reg) 0,
+        spsel = in(reg) 2,
+        msp = in(reg) msp,
+        rv = in(reg) rv,
+        options(noreturn),
+    );
 }
 
 // v7m *AND* v8m.main, but *NOT* v8m.base

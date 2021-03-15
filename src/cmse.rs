@@ -37,7 +37,6 @@ use modular_bitfield::bitfield;
 
 /// Memory access behaviour: determine which privilege execution mode is used and which Memory
 /// Protection Unit (MPU) is used.
-#[allow(clippy::missing_inline_in_public_items)]
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub enum AccessType {
     /// Access using current privilege level and reading from current security state MPU.
@@ -55,7 +54,6 @@ pub enum AccessType {
 
 /// Abstraction of TT instructions and helper functions to determine the security and privilege
 /// attribute of a target address, accessed in different ways.
-#[allow(clippy::missing_inline_in_public_items)]
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct TestTarget {
     tt_resp: TtResp,

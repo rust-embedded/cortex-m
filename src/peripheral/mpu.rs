@@ -3,7 +3,7 @@
 use volatile_register::{RO, RW};
 
 /// Register block for ARMv7-M
-#[cfg(any(armv6m, armv7m, target_arch = "x86_64"))] // x86-64 is for rustdoc
+#[cfg(not(armv8m))]
 #[repr(C)]
 pub struct RegisterBlock {
     /// Type

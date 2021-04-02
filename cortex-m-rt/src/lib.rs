@@ -34,6 +34,7 @@
 //!
 //! This crate expects the user, or some other crate, to provide the memory layout of the target
 //! device via a linker script named `memory.x`. This section covers the contents of `memory.x`
+//! The `memory.x` file is used by during linking by the `link.x` script provided by this crate.
 //!
 //! ### `MEMORY`
 //!

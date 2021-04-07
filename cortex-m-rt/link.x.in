@@ -114,19 +114,6 @@ SECTIONS
     __erodata = .;
   } > FLASH
 
-  /* ### .gnu.sgstubs
-     This section contains the TrustZone-M veneers put there by the Arm GNU linker. */
-  /* Security Attribution Unit blocks must be 32 bytes aligned. */
-  /* Note that this does cost up to 28 bytes of FLASH. */
-  .gnu.sgstubs : ALIGN(32)
-  {
-    . = ALIGN(32);
-    __veneer_base = .;
-    *(.gnu.sgstubs*)
-    . = ALIGN(32);
-    __veneer_limit = .;
-  } > FLASH
-
   /* ## Sections in RAM */
   /* ### .data */
   .data : ALIGN(4)
@@ -144,6 +131,19 @@ SECTIONS
 
   /* LMA of .data */
   __sidata = LOADADDR(.data);
+
+  /* ### .gnu.sgstubs
+     This section contains the TrustZone-M veneers put there by the Arm GNU linker. */
+  /* Security Attribution Unit blocks must be 32 bytes aligned. */
+  /* Note that this pads the FLASH usage to 32 byte alignment. */
+  .gnu.sgstubs : ALIGN(32)
+  {
+    . = ALIGN(32);
+    __veneer_base = .;
+    *(.gnu.sgstubs*)
+    . = ALIGN(32);
+    __veneer_limit = .;
+  } > FLASH
 
   /* ### .bss */
   .bss (NOLOAD) : ALIGN(4)

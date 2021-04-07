@@ -86,6 +86,7 @@ SECTIONS
   /* ### .text */
   .text _stext :
   {
+    __stext = .;
     *(.Reset);
 
     *(.text .text.*);
@@ -96,34 +97,35 @@ SECTIONS
     *(.HardFault.*);
 
     . = ALIGN(4); /* Pad .text to the alignment to workaround overlapping load section bug in old lld */
+    __etext = .;
   } > FLASH
-  . = ALIGN(4); /* Ensure __etext is aligned if something unaligned is inserted after .text */
-  __etext = .; /* Define outside of .text to allow using INSERT AFTER .text */
 
   /* ### .rodata */
-  .rodata __etext : ALIGN(4)
+  .rodata : ALIGN(4)
   {
+    . = ALIGN(4);
+    __srodata = .;
     *(.rodata .rodata.*);
 
     /* 4-byte align the end (VMA) of this section.
        This is required by LLD to ensure the LMA of the following .data
        section will have the correct alignment. */
     . = ALIGN(4);
+    __erodata = .;
   } > FLASH
-  . = ALIGN(4); /* Ensure __erodata is aligned if something unaligned is inserted after .rodata */
-  __erodata = .;
 
   /* ### .gnu.sgstubs
      This section contains the TrustZone-M veneers put there by the Arm GNU linker. */
-  . = ALIGN(32); /* Security Attribution Unit blocks must be 32 bytes aligned. */
-  __veneer_base = ALIGN(4);
-  .gnu.sgstubs : ALIGN(4)
+  /* Security Attribution Unit blocks must be 32 bytes aligned. */
+  /* Note that this does cost up to 28 bytes of FLASH. */
+  .gnu.sgstubs : ALIGN(32)
   {
+    . = ALIGN(32);
+    __veneer_base = .;
     *(.gnu.sgstubs*)
-    . = ALIGN(4); /* 4-byte align the end (VMA) of this section */
+    . = ALIGN(32);
+    __veneer_limit = .;
   } > FLASH
-  . = ALIGN(4); /* Ensure __veneer_limit is aligned if something unaligned is inserted after .gnu.sgstubs */
-  __veneer_limit = .;
 
   /* ## Sections in RAM */
   /* ### .data */
@@ -134,35 +136,42 @@ SECTIONS
     *(.data .data.*);
     . = ALIGN(4); /* 4-byte align the end (VMA) of this section */
   } > RAM AT>FLASH
-  . = ALIGN(4); /* Ensure __edata is aligned if something unaligned is inserted after .data */
+  /* Allow sections from user `memory.x` injected using `INSERT AFTER .data` to
+   * use the .data loading mechanism by pushing __edata. Note: do not change
+   * output region or load region in those user sections! */
+  . = ALIGN(4);
   __edata = .;
 
   /* LMA of .data */
   __sidata = LOADADDR(.data);
 
   /* ### .bss */
-  . = ALIGN(4);
-  __sbss = .; /* Define outside of section to include INSERT BEFORE/AFTER symbols */
   .bss (NOLOAD) : ALIGN(4)
   {
+    . = ALIGN(4);
+    __sbss = .;
     *(.bss .bss.*);
     *(COMMON); /* Uninitialized C statics */
     . = ALIGN(4); /* 4-byte align the end (VMA) of this section */
   } > RAM
-  . = ALIGN(4); /* Ensure __ebss is aligned if something unaligned is inserted after .bss */
+  /* Allow sections from user `memory.x` injected using `INSERT AFTER .bss` to
+   * use the .bss zeroing mechanism by pushing __ebss. Note: do not change
+   * output region or load region in those user sections! */
+  . = ALIGN(4);
   __ebss = .;
 
   /* ### .uninit */
   .uninit (NOLOAD) : ALIGN(4)
   {
     . = ALIGN(4);
+    __suninit = .;
     *(.uninit .uninit.*);
     . = ALIGN(4);
+    __euninit = .;
   } > RAM
 
-  /* Place the heap right after `.uninit` */
-  . = ALIGN(4);
-  __sheap = .;
+  /* Place the heap right after `.uninit` in RAM */
+  PROVIDE(__sheap = __euninit);
 
   /* ## .got */
   /* Dynamic relocations are unsupported. This section is only used to detect relocatable code in

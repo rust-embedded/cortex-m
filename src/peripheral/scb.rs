@@ -832,7 +832,7 @@ impl SCB {
 }
 
 const SCB_AIRCR_VECTKEY: u32 = 0x05FA << 16;
-const SCB_AIRCR_PRIGROUP_MASK: u32 = 0x5 << 8;
+const SCB_AIRCR_PRIGROUP_MASK: u32 = 0x7 << 8;
 const SCB_AIRCR_SYSRESETREQ: u32 = 1 << 2;
 
 impl SCB {

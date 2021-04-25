@@ -44,8 +44,8 @@
 //! - You have to use a Rust version whose LLVM version is compatible with the toolchain in
 //!   `asm-toolchain`.
 //!
-//! - Due to a [Rust bug][rust-lang/rust#75940], this option does not work with optimization
-//!   levels `s` and `z`.
+//! - Due to a [Rust bug][rust-lang/rust#75940] in compiler versions **before 1.49**, this option
+//!   does not work with optimization levels `s` and `z`.
 //!
 //! [Linker-Plugin LTO]: https://doc.rust-lang.org/stable/rustc/linker-plugin-lto.html
 //! [rust-lang/rust#75940]: https://github.com/rust-lang/rust/issues/75940

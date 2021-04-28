@@ -70,6 +70,34 @@ impl DWT {
         unsafe { self.ctrl.modify(|r| r | 1) }
     }
 
+    /// Whether to enable exception tracing
+    // TODO find out if this is supported om armv6m
+    #[inline]
+    pub fn enable_exception_tracing(&mut self, bit: bool) {
+        unsafe {
+            // EXCTRCENA
+            if bit {
+                self.ctrl.modify(|r| r | (1 << 16));
+            } else {
+                self.ctrl.modify(|r| r & !(1 << 16));
+            }
+        }
+    }
+
+    /// Whether to periodically generate PC samples
+    // TODO find out if this is supported on armv6m
+    #[inline]
+    pub fn enable_pc_samples(&mut self, bit: bool) {
+        unsafe {
+            // PCSAMPLENA
+            if bit {
+                self.ctrl.modify(|r| r | (1 << 12));
+            } else {
+                self.ctrl.modify(|r| r & !(1 << 12));
+            }
+        }
+    }
+
     /// Returns the current clock cycle count
     #[cfg(not(armv6m))]
     #[inline]

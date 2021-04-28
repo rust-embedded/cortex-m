@@ -4,6 +4,8 @@
 
 use volatile_register::{RO, RW, WO};
 
+use crate::peripheral::TPIU;
+
 /// Register block
 #[repr(C)]
 pub struct RegisterBlock {
@@ -28,4 +30,72 @@ pub struct RegisterBlock {
     reserved4: [u32; 4],
     /// TPIU Type
     pub _type: RO<u32>,
+}
+
+/// The available protocols for the trace output.
+pub enum TraceProtocol {
+    /// Parallel trace port mode
+    Parallel = 0b00,
+    /// Asynchronous SWO, using Manchester encoding
+    AsyncSWOManchester = 0b01,
+    /// Asynchronous SWO, using NRZ encoding
+    AsyncSWONRZ = 0b10,
+}
+
+/// The SWO options supported by the TPIU.
+#[allow(dead_code)]
+pub struct SWOSupports {
+    /// Whether UART/NRZ encoding is supported for SWO.
+    nrz_encoding: bool,
+    /// Whether Manchester encoding is supported for SWO.
+    manchester_encoding: bool,
+    /// Whether parallel trace port operation is supported.
+    parallel_operation: bool,
+    /// The minimum implemented FIFO queue size of the TPIU for trace data.
+    min_queue_size: u8,
+}
+
+impl TPIU {
+    /// Sets the prescaler value for a wanted baud rate of the Serial
+    /// Wire Output (SWO) in relation to a given asynchronous refernce
+    /// clock rate.
+    #[inline]
+    pub fn set_swo_baud_rate(&mut self, ref_clk_rate: u32, baud_rate: u32) {
+        unsafe {
+            self.acpr.write((ref_clk_rate / baud_rate) - 1);
+        }
+    }
+
+    /// Sets the used protocol for the trace output.
+    #[inline]
+    pub fn set_trace_output_protocol(&mut self, proto: TraceProtocol) {
+        unsafe { self.sppr.write(proto as u32) }
+    }
+
+    /// Whether to enable the formatter. If disabled, only ITM and DWT
+    /// trace sources are passed through. Data from the ETM is
+    /// discarded.
+    #[inline]
+    pub fn enable_continuous_formatting(&mut self, bit: bool) {
+        unsafe {
+            if bit {
+                self.ffcr.modify(|r| r | (1 << 1));
+            } else {
+                self.ffcr.modify(|r| r & !(1 << 1));
+            }
+        }
+    }
+
+    /// Reads the supported trace output modes and the minimum size of
+    /// the TPIU FIFO queue for trace data.
+    #[inline]
+    pub fn get_swo_supports() -> SWOSupports {
+        let _type = unsafe { (*Self::ptr())._type.read() };
+        SWOSupports {
+            nrz_encoding: (_type & (1 << 11)) == 1,        // NRZVALID
+            manchester_encoding: (_type & (1 << 10)) == 1, // MANCVALID
+            parallel_operation: (_type & (1 << 9)) == 1,   // PTINVALID
+            min_queue_size: (_type & (0b111 << 6)) as u8,  // FIFOSZ
+        }
+    }
 }

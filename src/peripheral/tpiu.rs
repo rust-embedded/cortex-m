@@ -92,9 +92,9 @@ impl TPIU {
     pub fn get_swo_supports() -> SWOSupports {
         let _type = unsafe { (*Self::ptr())._type.read() };
         SWOSupports {
-            nrz_encoding: (_type & (1 << 11)) == 1,        // NRZVALID
-            manchester_encoding: (_type & (1 << 10)) == 1, // MANCVALID
-            parallel_operation: (_type & (1 << 9)) == 1,   // PTINVALID
+            nrz_encoding: (_type & (1 << 11)) != 0,        // NRZVALID
+            manchester_encoding: (_type & (1 << 10)) != 0, // MANCVALID
+            parallel_operation: (_type & (1 << 9)) != 0,   // PTINVALID
             min_queue_size: (_type & (0b111 << 6)) as u8,  // FIFOSZ
         }
     }

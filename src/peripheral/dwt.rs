@@ -116,3 +116,146 @@ impl DWT {
         unsafe { (*Self::ptr()).lar.write(0xC5AC_CE55) }
     }
 }
+
+/// Whether the comparator should match on read, write or read/write operations.
+#[derive(Debug, PartialEq)]
+pub enum AccessType {
+    /// Generate packet only when matched adress is read from.
+    ReadOnly,
+    /// Generate packet only when matched adress is written to.
+    WriteOnly,
+    /// Generate packet when matched adress is both read from and written to.
+    ReadWrite,
+}
+
+/// The sequence of packet(s) that should be emitted on comparator match.
+#[derive(Debug, PartialEq)]
+pub enum EmitOption {
+    /// Emit only trace data value packet.
+    Data,
+    /// Emit only trace address packet.
+    Address,
+    /// Emit only trace PC value packet
+    /// NOTE: only compatible with [AccessType::ReadWrite].
+    PC,
+    /// Emit trace address and data value packets.
+    AddressData,
+    /// Emit trace PC value and data value packets.
+    PCData,
+}
+
+/// Settings for address matching
+#[derive(Debug)]
+pub struct ComparatorAddressSettings {
+    /// The address to match against.
+    pub address: u32,
+    /// The address mask to match against.
+    pub mask: u32,
+    /// What sequence of packet(s) to emit on comparator match.
+    pub emit: EmitOption,
+    /// Whether to match on read, write or read/write operations.
+    pub access_type: AccessType,
+}
+
+/// The available functions of a DWT comparator.
+#[derive(Debug)]
+pub enum ComparatorFunction {
+    /// Compare accessed memory addresses.
+    Address(ComparatorAddressSettings),
+}
+
+/// Possible error values returned on [Comparator::configure].
+#[derive(Debug)]
+pub enum DWTError {
+    /// Invalid combination of [AccessType] and [EmitOption].
+    InvalidFunction,
+}
+
+impl Comparator {
+    /// Configure the function of the comparator
+    pub fn configure(&mut self, settings: ComparatorFunction) -> Result<(), DWTError> {
+        match settings {
+            ComparatorFunction::Address(settings) => unsafe {
+                if settings.emit == EmitOption::PC && settings.access_type != AccessType::ReadWrite
+                {
+                    return Err(DWTError::InvalidFunction);
+                }
+
+                self.function.modify(|mut r| {
+                    // clear DATAVMATCH; dont compare data value
+                    r &= !(1 << 8);
+
+                    // clear CYCMATCH: dont compare cycle counter value
+                    // NOTE: only needed for comparator 0, but is SBZP
+                    r &= !(1 << 7);
+
+                    let mut set_function = |fun, emit_range| {
+                        r &= u32::MAX << 4; // zero the FUNCTION field first
+                        r |= fun;
+
+                        if emit_range {
+                            r |= 1 << 5;
+                        } else {
+                            r &= !(1 << 5);
+                        }
+                    };
+
+                    // FUNCTION, EMITRANGE
+                    // See Table C1-14
+                    match (&settings.access_type, &settings.emit) {
+                        (AccessType::ReadOnly, EmitOption::Data) => {
+                            set_function(0b1100, false);
+                        }
+                        (AccessType::ReadOnly, EmitOption::Address) => {
+                            set_function(0b1100, true);
+                        }
+                        (AccessType::ReadOnly, EmitOption::AddressData) => {
+                            set_function(0b1110, true);
+                        }
+                        (AccessType::ReadOnly, EmitOption::PCData) => {
+                            set_function(0b1110, false);
+                        }
+
+                        (AccessType::WriteOnly, EmitOption::Data) => {
+                            set_function(0b1101, false);
+                        }
+                        (AccessType::WriteOnly, EmitOption::Address) => {
+                            set_function(0b1101, true);
+                        }
+                        (AccessType::WriteOnly, EmitOption::AddressData) => {
+                            set_function(0b1111, true);
+                        }
+                        (AccessType::WriteOnly, EmitOption::PCData) => {
+                            set_function(0b1111, false);
+                        }
+
+                        (AccessType::ReadWrite, EmitOption::Data) => {
+                            set_function(0b0010, false);
+                        }
+                        (AccessType::ReadWrite, EmitOption::Address) => {
+                            set_function(0b0001, true);
+                        }
+                        (AccessType::ReadWrite, EmitOption::AddressData) => {
+                            set_function(0b0010, true);
+                        }
+                        (AccessType::ReadWrite, EmitOption::PCData) => {
+                            set_function(0b0011, false);
+                        }
+
+                        (AccessType::ReadWrite, EmitOption::PC) => {
+                            set_function(0b0001, false);
+                        }
+                        (_, EmitOption::PC) => unreachable!(), // cannot return Err here; handled above
+                    }
+
+                    r
+                });
+
+                self.comp.write(settings.address);
+                self.mask.write(settings.mask);
+            },
+        }
+
+        Ok(())
+    }
+}

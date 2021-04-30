@@ -173,6 +173,7 @@ pub enum DWTError {
 
 impl Comparator {
     /// Configure the function of the comparator
+    #[inline]
     pub fn configure(&mut self, settings: ComparatorFunction) -> Result<(), DWTError> {
         match settings {
             ComparatorFunction::Address(settings) => unsafe {

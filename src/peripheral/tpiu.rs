@@ -5,6 +5,7 @@
 use volatile_register::{RO, RW, WO};
 
 use crate::peripheral::TPIU;
+use bitfield::bitfield;
 
 /// Register block
 #[repr(C)]
@@ -21,7 +22,7 @@ pub struct RegisterBlock {
     pub sppr: RW<u32>,
     reserved2: [u32; 132],
     /// Formatter and Flush Control
-    pub ffcr: RW<u32>,
+    pub ffcr: RW<Ffcr>,
     reserved3: [u32; 810],
     /// Lock Access
     pub lar: WO<u32>,
@@ -29,7 +30,26 @@ pub struct RegisterBlock {
     pub lsr: RO<u32>,
     reserved4: [u32; 4],
     /// TPIU Type
-    pub _type: RO<u32>,
+    pub _type: RO<Type>,
+}
+
+bitfield! {
+    /// Formatter and flush control register.
+    #[repr(C)]
+    #[derive(Clone, Copy)]
+    pub struct Ffcr(u32);
+    get_enfcont, set_enfcont: 1;
+}
+
+bitfield! {
+    /// Type Register.
+    #[repr(C)]
+    #[derive(Clone, Copy)]
+    pub struct Type(u32);
+    u8, fifosz, _: 8, 6;
+    ptinvalid, _: 9;
+    mancvalid, _: 10;
+    nrzvalid, _: 11;
 }
 
 /// The available protocols for the trace output.
@@ -78,11 +98,10 @@ impl TPIU {
     #[inline]
     pub fn enable_continuous_formatting(&mut self, bit: bool) {
         unsafe {
-            if bit {
-                self.ffcr.modify(|r| r | (1 << 1));
-            } else {
-                self.ffcr.modify(|r| r & !(1 << 1));
-            }
+            self.ffcr.modify(|mut r| {
+                r.set_enfcont(bit);
+                r
+            });
         }
     }
 
@@ -92,10 +111,10 @@ impl TPIU {
     pub fn get_swo_supports() -> SWOSupports {
         let _type = unsafe { (*Self::ptr())._type.read() };
         SWOSupports {
-            nrz_encoding: (_type & (1 << 11)) != 0,        // NRZVALID
-            manchester_encoding: (_type & (1 << 10)) != 0, // MANCVALID
-            parallel_operation: (_type & (1 << 9)) != 0,   // PTINVALID
-            min_queue_size: (_type & (0b111 << 6)) as u8,  // FIFOSZ
+            nrz_encoding: _type.nrzvalid(),
+            manchester_encoding: _type.mancvalid(),
+            parallel_operation: !_type.ptinvalid(),
+            min_queue_size: _type.fifosz(),
         }
     }
 }

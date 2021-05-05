@@ -5,12 +5,13 @@ use volatile_register::WO;
 use volatile_register::{RO, RW};
 
 use crate::peripheral::DWT;
+use bitfield::bitfield;
 
 /// Register block
 #[repr(C)]
 pub struct RegisterBlock {
     /// Control
-    pub ctrl: RW<u32>,
+    pub ctrl: RW<Ctrl>,
     /// Cycle Count
     #[cfg(not(armv6m))]
     pub cyccnt: RW<u32>,
@@ -50,6 +51,16 @@ pub struct RegisterBlock {
     pub lsr: RO<u32>,
 }
 
+bitfield! {
+    /// Control register.
+    #[repr(C)]
+    #[derive(Copy, Clone)]
+    pub struct Ctrl(u32);
+    get_cyccntena, set_cyccntena: 0;
+    get_pcsamplena, set_pcsamplena: 12;
+    get_exctrcena, set_exctrcena: 16;
+}
+
 /// Comparator
 #[repr(C)]
 pub struct Comparator {
@@ -58,8 +69,20 @@ pub struct Comparator {
     /// Comparator Mask
     pub mask: RW<u32>,
     /// Comparator Function
-    pub function: RW<u32>,
+    pub function: RW<Function>,
     reserved: u32,
+}
+
+bitfield! {
+    #[repr(C)]
+    #[derive(Copy, Clone)]
+    /// Comparator FUNCTIONn register.
+    pub struct Function(u32);
+    get_function, set_function: 3, 0;
+    get_emitrange, set_emitrange: 5;
+    get_cycmatch, set_cycmatch: 7;
+    get_datavmatch, set_datavmatch: 8;
+    get_matched, _: 24;
 }
 
 impl DWT {
@@ -67,7 +90,12 @@ impl DWT {
     #[cfg(not(armv6m))]
     #[inline]
     pub fn enable_cycle_counter(&mut self) {
-        unsafe { self.ctrl.modify(|r| r | 1) }
+        unsafe {
+            self.ctrl.modify(|mut r| {
+                r.set_cyccntena(true);
+                r
+            });
+        }
     }
 
     /// Whether to enable exception tracing
@@ -75,12 +103,10 @@ impl DWT {
     #[inline]
     pub fn enable_exception_tracing(&mut self, bit: bool) {
         unsafe {
-            // EXCTRCENA
-            if bit {
-                self.ctrl.modify(|r| r | (1 << 16));
-            } else {
-                self.ctrl.modify(|r| r & !(1 << 16));
-            }
+            self.ctrl.modify(|mut r| {
+                r.set_exctrcena(bit);
+                r
+            });
         }
     }
 
@@ -89,12 +115,10 @@ impl DWT {
     #[inline]
     pub fn enable_pc_samples(&mut self, bit: bool) {
         unsafe {
-            // PCSAMPLENA
-            if bit {
-                self.ctrl.modify(|r| r | (1 << 12));
-            } else {
-                self.ctrl.modify(|r| r & !(1 << 12));
-            }
+            self.ctrl.modify(|mut r| {
+                r.set_pcsamplena(bit);
+                r
+            });
         }
     }
 
@@ -174,7 +198,7 @@ pub enum DWTError {
 impl Comparator {
     /// Configure the function of the comparator
     #[inline]
-    pub fn configure(&mut self, settings: ComparatorFunction) -> Result<(), DWTError> {
+    pub fn configure(&self, settings: ComparatorFunction) -> Result<(), DWTError> {
         match settings {
             ComparatorFunction::Address(settings) => unsafe {
                 if settings.emit == EmitOption::PC && settings.access_type != AccessType::ReadWrite
@@ -183,71 +207,36 @@ impl Comparator {
                 }
 
                 self.function.modify(|mut r| {
-                    // clear DATAVMATCH; dont compare data value
-                    r &= !(1 << 8);
+                    // don't compare data value
+                    r.set_datavmatch(false);
 
-                    // clear CYCMATCH: dont compare cycle counter value
-                    // NOTE: only needed for comparator 0, but is SBZP
-                    r &= !(1 << 7);
-
-                    let mut set_function = |fun, emit_range| {
-                        r &= u32::MAX << 4; // zero the FUNCTION field first
-                        r |= fun;
-
-                        if emit_range {
-                            r |= 1 << 5;
-                        } else {
-                            r &= !(1 << 5);
-                        }
-                    };
+                    // dont compare cycle counter value
+                    // NOTE: only needed forp comparator 0, but is SBZP.
+                    r.set_cycmatch(false);
 
                     // FUNCTION, EMITRANGE
                     // See Table C1-14
-                    match (&settings.access_type, &settings.emit) {
-                        (AccessType::ReadOnly, EmitOption::Data) => {
-                            set_function(0b1100, false);
-                        }
-                        (AccessType::ReadOnly, EmitOption::Address) => {
-                            set_function(0b1100, true);
-                        }
-                        (AccessType::ReadOnly, EmitOption::AddressData) => {
-                            set_function(0b1110, true);
-                        }
-                        (AccessType::ReadOnly, EmitOption::PCData) => {
-                            set_function(0b1110, false);
-                        }
+                    let (function, emit_range) = match (&settings.access_type, &settings.emit) {
+                        (AccessType::ReadOnly, EmitOption::Data) => (0b1100, false),
+                        (AccessType::ReadOnly, EmitOption::Address) => (0b1100, true),
+                        (AccessType::ReadOnly, EmitOption::AddressData) => (0b1110, true),
+                        (AccessType::ReadOnly, EmitOption::PCData) => (0b1110, false),
 
-                        (AccessType::WriteOnly, EmitOption::Data) => {
-                            set_function(0b1101, false);
-                        }
-                        (AccessType::WriteOnly, EmitOption::Address) => {
-                            set_function(0b1101, true);
-                        }
-                        (AccessType::WriteOnly, EmitOption::AddressData) => {
-                            set_function(0b1111, true);
-                        }
-                        (AccessType::WriteOnly, EmitOption::PCData) => {
-                            set_function(0b1111, false);
-                        }
+                        (AccessType::WriteOnly, EmitOption::Data) => (0b1101, false),
+                        (AccessType::WriteOnly, EmitOption::Address) => (0b1101, true),
+                        (AccessType::WriteOnly, EmitOption::AddressData) => (0b1111, true),
+                        (AccessType::WriteOnly, EmitOption::PCData) => (0b1111, false),
 
-                        (AccessType::ReadWrite, EmitOption::Data) => {
-                            set_function(0b0010, false);
-                        }
-                        (AccessType::ReadWrite, EmitOption::Address) => {
-                            set_function(0b0001, true);
-                        }
-                        (AccessType::ReadWrite, EmitOption::AddressData) => {
-                            set_function(0b0010, true);
-                        }
-                        (AccessType::ReadWrite, EmitOption::PCData) => {
-                            set_function(0b0011, false);
-                        }
+                        (AccessType::ReadWrite, EmitOption::Data) => (0b0010, false),
+                        (AccessType::ReadWrite, EmitOption::Address) => (0b0001, true),
+                        (AccessType::ReadWrite, EmitOption::AddressData) => (0b0010, true),
+                        (AccessType::ReadWrite, EmitOption::PCData) => (0b0011, false),
 
-                        (AccessType::ReadWrite, EmitOption::PC) => {
-                            set_function(0b0001, false);
-                        }
+                        (AccessType::ReadWrite, EmitOption::PC) => (0b0001, false),
                         (_, EmitOption::PC) => unreachable!(), // cannot return Err here; handled above
-                    }
+                    };
+                    r.set_function(function);
+                    r.set_emitrange(emit_range);
 
                     r
                 });

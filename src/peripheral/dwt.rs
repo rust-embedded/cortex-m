@@ -78,7 +78,7 @@ bitfield! {
     #[derive(Copy, Clone)]
     /// Comparator FUNCTIONn register.
     pub struct Function(u32);
-    get_function, set_function: 3, 0;
+    u8, get_function, set_function: 3, 0;
     get_emitrange, set_emitrange: 5;
     get_cycmatch, set_cycmatch: 7;
     get_datavmatch, set_datavmatch: 8;

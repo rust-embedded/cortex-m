@@ -41,9 +41,9 @@ bitfield! {
     get_syncena, set_synena: 2;
     get_txena, set_txena: 3;
     get_swoena, set_swoena: 4;
-    get_tsprescale, set_tsprecale: 9, 8;
-    get_gtsfreq, set_gtsfreq: 11, 10;
-    get_tracebusid, set_tracebusid: 22, 16;
+    u8, get_tsprescale, set_tsprecale: 9, 8;
+    u8, get_gtsfreq, set_gtsfreq: 11, 10;
+    u8, get_tracebusid, set_tracebusid: 22, 16;
     busy, _: 23;
 }
 

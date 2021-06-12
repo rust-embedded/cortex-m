@@ -30,7 +30,6 @@ impl Delay {
     }
 
     /// Delay using the Cortex-M systick for a certain duration, in µs.
-    #[inline]
     pub fn delay_us(&mut self, us: u32) {
         let ticks = (us as u64) * (self.ahb_frequency as u64) / 1_000_000;
 
@@ -88,14 +87,14 @@ impl DelayMs<i32> for Delay {
 impl DelayMs<u16> for Delay {
     #[inline(always)]
     fn delay_ms(&mut self, ms: u16) {
-        Delay::delay_ms(self, u32::from(ms));
+        Delay::delay_ms(self, ms as u32);
     }
 }
 
 impl DelayMs<u8> for Delay {
     #[inline(always)]
     fn delay_ms(&mut self, ms: u8) {
-        Delay::delay_ms(self, u32::from(ms));
+        Delay::delay_ms(self, ms as u32);
     }
 }
 
@@ -118,13 +117,13 @@ impl DelayUs<i32> for Delay {
 impl DelayUs<u16> for Delay {
     #[inline(always)]
     fn delay_us(&mut self, us: u16) {
-        Delay::delay_us(self, u32::from(us))
+        Delay::delay_us(self, us as u32)
     }
 }
 
 impl DelayUs<u8> for Delay {
     #[inline(always)]
     fn delay_us(&mut self, us: u8) {
-        Delay::delay_us(self, u32::from(us))
+        Delay::delay_us(self, us as u32)
     }
 }

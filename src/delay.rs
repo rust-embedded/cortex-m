@@ -30,6 +30,7 @@ impl Delay {
     }
 
     /// Delay using the Cortex-M systick for a certain duration, µs.
+    #[inline]
     pub fn delay_us(&mut self, us: u32) {
         let ticks = (us as u64) * (self.ahb_frequency as u64) / 1_000_000;
 
@@ -57,20 +58,21 @@ impl Delay {
     }
 
     /// Delay using the Cortex-M systick for a certain duration, ms.
-    pub fn delay_ms(&mut self, ms: u32) {
-        self.delay_us(ms * 1_000);
-    }
-}
-
-impl DelayMs<u32> for Delay {
     #[inline]
-    fn delay_ms(&mut self, mut ms: u32) {
+    pub fn delay_ms(&mut self, mut ms: u32) {
         // 4294967 is the highest u32 value which you can multiply by 1000 without overflow
         while ms > 4294967 {
             Delay::delay_us(self, 4294967000u32);
             ms -= 4294967;
         }
         Delay::delay_us(self, ms * 1_000);
+    }
+}
+
+impl DelayMs<u32> for Delay {
+    #[inline]
+    fn delay_ms(&mut self, ms: u32) {
+        Delay::delay_ms(self, ms);
     }
 }
 

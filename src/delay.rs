@@ -30,6 +30,7 @@ impl Delay {
     }
 
     /// Delay using the Cortex-M systick for a certain duration, in µs.
+    #[allow(clippy::missing_inline_in_public_items)]
     pub fn delay_us(&mut self, us: u32) {
         let ticks = (u64::from(us)) * (u64::from(self.ahb_frequency)) / 1_000_000;
 

@@ -29,7 +29,8 @@ impl Delay {
         self.syst
     }
 
-    fn _delay_us(&mut self, us: u32) {
+    /// Delay using the Cortex-M systick for a certain duration, µs.
+    pub fn delay_us(&mut self, us: u32) {
         let ticks = (us as u64) * (self.ahb_frequency as u64) / 1_000_000;
 
         let full_cycles = ticks >> 24;
@@ -54,6 +55,11 @@ impl Delay {
 
         self.syst.disable_counter();
     }
+
+    /// Delay using the Cortex-M systick for a certain duration, ms.
+    pub fn delay_ms(&mut self, ms: u32) {
+        self.delay_us(ms * 1_000);
+    }
 }
 
 impl DelayMs<u32> for Delay {
@@ -61,10 +67,10 @@ impl DelayMs<u32> for Delay {
     fn delay_ms(&mut self, mut ms: u32) {
         // 4294967 is the highest u32 value which you can multiply by 1000 without overflow
         while ms > 4294967 {
-            self.delay_us(4294967000u32);
+            Delay::delay_us(self, 4294967000u32);
             ms -= 4294967;
         }
-        self.delay_us(ms * 1_000);
+        Delay::delay_us(self, ms * 1_000);
     }
 }
 
@@ -73,28 +79,28 @@ impl DelayMs<i32> for Delay {
     #[inline(always)]
     fn delay_ms(&mut self, ms: i32) {
         assert!(ms >= 0);
-        self.delay_ms(ms as u32);
+        Delay::delay_ms(self, ms as u32);
     }
 }
 
 impl DelayMs<u16> for Delay {
     #[inline(always)]
     fn delay_ms(&mut self, ms: u16) {
-        self.delay_ms(u32::from(ms));
+        Delay::delay_ms(self, u32::from(ms));
     }
 }
 
 impl DelayMs<u8> for Delay {
     #[inline(always)]
     fn delay_ms(&mut self, ms: u8) {
-        self.delay_ms(u32::from(ms));
+        Delay::delay_ms(self, u32::from(ms));
     }
 }
 
 impl DelayUs<u32> for Delay {
     #[inline]
     fn delay_us(&mut self, us: u32) {
-        self._delay_us(us);
+        Delay::delay_us(self, us);
     }
 }
 
@@ -103,20 +109,20 @@ impl DelayUs<i32> for Delay {
     #[inline(always)]
     fn delay_us(&mut self, us: i32) {
         assert!(us >= 0);
-        self.delay_us(us as u32);
+        Delay::delay_us(self, us as u32);
     }
 }
 
 impl DelayUs<u16> for Delay {
     #[inline(always)]
     fn delay_us(&mut self, us: u16) {
-        self.delay_us(u32::from(us))
+        Delay::delay_us(self, u32::from(us))
     }
 }
 
 impl DelayUs<u8> for Delay {
     #[inline(always)]
     fn delay_us(&mut self, us: u8) {
-        self.delay_us(u32::from(us))
+        Delay::delay_us(self, u32::from(us))
     }
 }

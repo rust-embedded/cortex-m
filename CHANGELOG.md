@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.7.3] - 2021-07-03
+
+### Fixed
+
+- Fixed compilation for native targets on non-x86 host systems (#336, #337).
+
+### Added
+
+- The `Delay` struct now offers direct `delay_us()` and `delay_ms()` methods
+  without having to go through the embedded-hal traits (#344).
+
 ## [v0.7.2] - 2021-03-07
 
 ### Fixed
@@ -689,7 +700,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.7.2...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.7.3...HEAD
+[v0.7.3]: https://github.com/rust-embedded/cortex-m/compare/v0.7.2...v0.7.3
 [v0.7.2]: https://github.com/rust-embedded/cortex-m/compare/v0.7.1...v0.7.2
 [v0.7.1]: https://github.com/rust-embedded/cortex-m/compare/v0.7.0...v0.7.1
 [v0.7.0]: https://github.com/rust-embedded/cortex-m/compare/v0.6.4...v0.7.0

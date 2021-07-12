@@ -12,12 +12,12 @@ license = "MIT OR Apache-2.0"
 name = "cortex-m-rt"
 readme = "README.md"
 repository = "https://github.com/rust-embedded/cortex-m-rt"
-version = "0.6.13"
+version = "0.7.0"
 autoexamples = true
 links = "cortex-m-rt" # Prevent multiple versions of cortex-m-rt being linked
 
 [dependencies]
-cortex-m-rt-macros = { path = "macros", version = "=0.6.11" }
+cortex-m-rt-macros = { path = "macros", version = "=0.7.0" }
 # Note: Do not depend on `cortex-m` here. This crate is used for testing `cortex-m`, so we need to
 # avoid pulling in multiple versions of `cortex-m`.
 

@@ -41,7 +41,10 @@ main() {
         ""
     )
     if [ "$TARGET" != x86_64-unknown-linux-gnu ]; then
-        RUSTDOCFLAGS="-Cpanic=abort" cargo test --doc
+        # Only test on stable and nightly, not MSRV.
+        if [ "$TRAVIS_RUST_VERSION" = stable ] || [ "$TRAVIS_RUST_VERSION" = nightly ]; then
+            RUSTDOCFLAGS="-Cpanic=abort" cargo test --doc
+        fi
 
         for linker in "${linkers[@]}"; do
             for ex in "${examples[@]}"; do

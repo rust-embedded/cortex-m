@@ -64,6 +64,13 @@ pub struct Comparator {
 
 impl DWT {
     /// Enables the cycle counter
+    ///
+    /// The global trace enable ([`DCB::enable_trace`]) should be set before
+    /// enabling the cycle counter, the processor may ignore writes to the
+    /// cycle counter enable if the global trace is disabled
+    /// (implementation defined behaviour).
+    ///
+    /// [`DCB::enable_trace`]: crate::peripheral::DCB::enable_trace
     #[cfg(not(armv6m))]
     #[inline]
     pub fn enable_cycle_counter(&mut self) {

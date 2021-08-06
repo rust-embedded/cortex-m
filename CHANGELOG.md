@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     - Exception overhead counter
     - LSU counter
     - Folded-instruction counter
+- Added `DWT.set_cycle_count` (#347).
 
 ### Deprecated
 

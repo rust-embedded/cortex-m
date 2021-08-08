@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Added support for additional DWT counters (#349)
+    - CPI counter
+    - Exception overhead counter
+    - LSU counter
+    - Folded-instruction counter
+
 ## [v0.7.3] - 2021-07-03
 
 ### Fixed

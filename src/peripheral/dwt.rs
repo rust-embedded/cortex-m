@@ -144,7 +144,18 @@ impl DWT {
     /// Returns the current clock cycle count
     #[cfg(not(armv6m))]
     #[inline]
+    #[deprecated(
+        since = "0.7.4",
+        note = "Use `cycle_count` which follows the C-GETTER convention"
+    )]
     pub fn get_cycle_count() -> u32 {
+        Self::cycle_count()
+    }
+
+    /// Returns the current clock cycle count
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn cycle_count() -> u32 {
         // NOTE(unsafe) atomic read with no side effects
         unsafe { (*Self::ptr()).cyccnt.read() }
     }

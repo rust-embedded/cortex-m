@@ -23,7 +23,7 @@
 //! ```
 //! A part of the peripheral API doesn't require access to a peripheral instance. This part of the
 //! API is provided as static methods on the peripheral types. One example is the
-//! [`DWT::get_cycle_count`](struct.DWT.html#method.get_cycle_count) method.
+//! [`DWT::cycle_count`](struct.DWT.html#method.cycle_count) method.
 //!
 //! ``` no_run
 //! # use cortex_m::peripheral::{DWT, Peripherals};
@@ -33,7 +33,7 @@
 //! } // all the peripheral singletons are destroyed here
 //!
 //! // but this method can be called without a DWT instance
-//! let cyccnt = DWT::get_cycle_count();
+//! let cyccnt = DWT::cycle_count();
 //! ```
 //!
 //! The singleton property can be *unsafely* bypassed using the `ptr` static method which is

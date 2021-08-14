@@ -160,6 +160,13 @@ impl DWT {
         unsafe { (*Self::ptr()).cyccnt.read() }
     }
 
+    /// Set the cycle count
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn set_cycle_count(&mut self, count: u32) {
+        unsafe { self.cyccnt.write(count) }
+    }
+
     /// Removes the software lock on the DWT
     ///
     /// Some devices, like the STM32F7, software lock the DWT after a power cycle.

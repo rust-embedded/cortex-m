@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Added support for additional DWT counters (#349)
+    - CPI counter
+    - Exception overhead counter
+    - LSU counter
+    - Folded-instruction counter
+
+### Deprecated
+
+- `DWT::get_cycle_count` has been deprecated in favor of `DWT::cycle_count`.
+  This change was made for consistency with the [C-GETTER] convention. (#349)
+
+[C-GETTER]: https://rust-lang.github.io/api-guidelines/naming.html#c-getter
+
 ## [v0.7.3] - 2021-07-03
 
 ### Fixed

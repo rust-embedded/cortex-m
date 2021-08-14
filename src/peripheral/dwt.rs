@@ -62,7 +62,56 @@ pub struct Comparator {
     reserved: u32,
 }
 
+// DWT CTRL register fields
+const NUMCOMP_OFFSET: u32 = 28;
+const NOTRCPKT: u32 = 1 << 27;
+const NOEXTTRIG: u32 = 1 << 26;
+const NOCYCCNT: u32 = 1 << 25;
+const NOPRFCNT: u32 = 1 << 24;
+const CYCCNTENA: u32 = 1 << 0;
+
 impl DWT {
+    /// Number of comparators implemented
+    ///
+    /// A value of zero indicates no comparator support.
+    #[inline]
+    pub fn num_comp() -> u8 {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { ((*Self::ptr()).ctrl.read() >> NUMCOMP_OFFSET) as u8 }
+    }
+
+    /// Returns `true` if the the implementation supports sampling and exception tracing
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn has_exception_trace() -> bool {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { (*Self::ptr()).ctrl.read() & NOTRCPKT == 0 }
+    }
+
+    /// Returns `true` if the implementation includes external match signals
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn has_external_match() -> bool {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { (*Self::ptr()).ctrl.read() & NOEXTTRIG == 0 }
+    }
+
+    /// Returns `true` if the implementation supports a cycle counter
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn has_cycle_counter() -> bool {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { (*Self::ptr()).ctrl.read() & NOCYCCNT == 0 }
+    }
+
+    /// Returns `true` if the implementation the profiling counters
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn has_profiling_counter() -> bool {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { (*Self::ptr()).ctrl.read() & NOPRFCNT == 0 }
+    }
+
     /// Enables the cycle counter
     ///
     /// The global trace enable ([`DCB::enable_trace`]) should be set before
@@ -74,13 +123,39 @@ impl DWT {
     #[cfg(not(armv6m))]
     #[inline]
     pub fn enable_cycle_counter(&mut self) {
-        unsafe { self.ctrl.modify(|r| r | 1) }
+        unsafe { self.ctrl.modify(|r| r | CYCCNTENA) }
+    }
+
+    /// Disables the cycle counter
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn disable_cycle_counter(&mut self) {
+        unsafe { self.ctrl.modify(|r| r & !CYCCNTENA) }
+    }
+
+    /// Returns `true` if the cycle counter is enabled
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn cycle_counter_enabled() -> bool {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { (*Self::ptr()).ctrl.read() & CYCCNTENA != 0 }
     }
 
     /// Returns the current clock cycle count
     #[cfg(not(armv6m))]
     #[inline]
+    #[deprecated(
+        since = "0.7.4",
+        note = "Use `cycle_count` which follows the C-GETTER convention"
+    )]
     pub fn get_cycle_count() -> u32 {
+        Self::cycle_count()
+    }
+
+    /// Returns the current clock cycle count
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn cycle_count() -> u32 {
         // NOTE(unsafe) atomic read with no side effects
         unsafe { (*Self::ptr()).cyccnt.read() }
     }
@@ -93,5 +168,94 @@ impl DWT {
     pub fn unlock() {
         // NOTE(unsafe) atomic write to a stateless, write-only register
         unsafe { (*Self::ptr()).lar.write(0xC5AC_CE55) }
+    }
+
+    /// Get the CPI count
+    ///
+    /// Counts additional cycles required to execute multi-cycle instructions,
+    /// except those recorded by [`lsu_count`], and counts any instruction fetch
+    /// stalls.
+    ///
+    /// [`lsu_count`]: DWT::lsu_count
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn cpi_count() -> u8 {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { (*Self::ptr()).cpicnt.read() as u8 }
+    }
+
+    /// Set the CPI count
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn set_cpi_count(&mut self, count: u8) {
+        unsafe { self.cpicnt.write(count as u32) }
+    }
+
+    /// Get the total cycles spent in exception processing
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn exception_count() -> u8 {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { (*Self::ptr()).exccnt.read() as u8 }
+    }
+
+    /// Set the exception count
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn set_exception_count(&mut self, count: u8) {
+        unsafe { self.exccnt.write(count as u32) }
+    }
+
+    /// Get the total number of cycles that the processor is sleeping
+    ///
+    /// ARM recommends that this counter counts all cycles when the processor is sleeping,
+    /// regardless of whether a WFI or WFE instruction, or the sleep-on-exit functionality,
+    /// caused the entry to sleep mode.
+    /// However, all sleep features are implementation defined and therefore when
+    /// this counter counts is implementation defined.
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn sleep_count() -> u8 {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { (*Self::ptr()).sleepcnt.read() as u8 }
+    }
+
+    /// Set the sleep count
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn set_sleep_count(&mut self, count: u8) {
+        unsafe { self.sleepcnt.write(count as u32) }
+    }
+
+    /// Get the additional cycles required to execute all load or store instructions
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn lsu_count() -> u8 {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { (*Self::ptr()).lsucnt.read() as u8 }
+    }
+
+    /// Set the lsu count
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn set_lsu_count(&mut self, count: u8) {
+        unsafe { self.lsucnt.write(count as u32) }
+    }
+
+    /// Get the folded instruction count
+    ///
+    /// Increments on each instruction that takes 0 cycles.
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn fold_count() -> u8 {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { (*Self::ptr()).foldcnt.read() as u8 }
+    }
+
+    /// Set the folded instruction count
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn set_fold_count(&mut self, count: u8) {
+        unsafe { self.foldcnt.write(count as u32) }
     }
 }

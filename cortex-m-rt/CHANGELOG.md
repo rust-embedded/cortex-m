@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.7.0]
+
 ### New Features
 
 - Add support for CMSE secure gateway veneers ([#297]).
@@ -570,7 +572,8 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.11...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.7.0...HEAD
+[v0.7.0]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.11...v0.7.0
 [v0.6.15]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.14...v0.6.15
 [v0.6.14]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.13...v0.6.14
 [v0.6.13]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.12...v0.6.13

@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Add support for CMSE secure gateway veneers ([#297]).
 - Allow using the crate with custom target JSON specs ([#304]).
-- Export Exception enum for other crates to use ([#224])
+- Export Exception enum for other crates to use ([#224]).
 
 [#224]: https://github.com/rust-embedded/cortex-m-rt/pull/224
 [#297]: https://github.com/rust-embedded/cortex-m-rt/pull/297
@@ -24,11 +24,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Various fixes to the linker script ([#265], [#286], [#287], [#323]).
 - Use the correct ABI for the `main` symbol ([#278]).
 - Add barriers after FPU enabling ([#279]).
-- (ARMv6-M) Set LR value to a known value on reset (#[293])
-- Added CFI and size info to external assembly subroutines (`HardFaultTrampoline` and `FpuTrampoline`) ([#294])
+- (ARMv6-M) Set LR value to a known value on reset ([#293]).
+- Added CFI and size info to external assembly subroutines (`HardFaultTrampoline` and `FpuTrampoline`) ([#294]).
 - Allow building the crate for macOS targets ([#306], [#310]).
 - Perform RAM initialization in assembly, to avoid potential UB in Rust ([#301]).
-- Perform volatile reads of ICSR in DefaultHandler (#[315])
+- Perform volatile reads of ICSR in DefaultHandler ([#315]).
 
 [#265]: https://github.com/rust-embedded/cortex-m-rt/pull/265
 [#278]: https://github.com/rust-embedded/cortex-m-rt/pull/278
@@ -60,10 +60,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Other
 
-- Change macros crate to use same version number as cortex-m-rt crate ([#245])
-- Discourage use of `pre_init` in documentation ([#248])
+- Change macros crate to use same version number as cortex-m-rt crate ([#245]).
+- Discourage use of `pre_init` in documentation ([#248]).
 - Backport: Use `links` in Cargo.toml to prevent multiple linking of
-  cortex-m-rt (#276)
+  cortex-m-rt ([#276]).
 
 [#245]: https://github.com/rust-embedded/cortex-m-rt/pull/245
 [#248]: https://github.com/rust-embedded/cortex-m-rt/pull/248
@@ -75,11 +75,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Backport: Mark .bss as NOLOAD ([#265])
 - Backport: Fix possible overflow of .data region ([#286])
-- Backport: Perform volatile reads of ICSR in DefaultHandler (#[315])
+- Backport: Perform volatile reads of ICSR in DefaultHandler ([#315])
 
 ### Other
 - Backport: Use `links` in Cargo.toml to prevent multiple linking of
-  cortex-m-rt (#276)
+  cortex-m-rt ([#276])
 - Backport: Use same verison for macros crate as for cortex-m-rt itself
   ([#245])
 

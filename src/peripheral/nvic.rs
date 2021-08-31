@@ -210,7 +210,7 @@ impl NVIC {
     /// # Unsafety
     ///
     /// Changing priority levels can break priority-based critical sections (see
-    /// [`register::basepri`](../register/basepri/index.html)) and compromise memory safety.
+    /// [`register::basepri`](crate::register::basepri)) and compromise memory safety.
     #[inline]
     pub unsafe fn set_priority<I>(&mut self, interrupt: I, prio: u8)
     where

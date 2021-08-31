@@ -994,7 +994,7 @@ impl SCB {
     /// # Unsafety
     ///
     /// Changing priority levels can break priority-based critical sections (see
-    /// [`register::basepri`](../register/basepri/index.html)) and compromise memory safety.
+    /// [`register::basepri`](crate::register::basepri)) and compromise memory safety.
     #[inline]
     pub unsafe fn set_priority(&mut self, system_handler: SystemHandler, prio: u8) {
         let index = system_handler as u8;

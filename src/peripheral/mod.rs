@@ -60,6 +60,8 @@ use core::ops;
 
 use crate::interrupt;
 
+#[cfg(cm7)]
+pub mod ac;
 #[cfg(not(armv6m))]
 pub mod cbp;
 pub mod cpuid;
@@ -91,6 +93,10 @@ mod test;
 #[allow(non_snake_case)]
 #[allow(clippy::manual_non_exhaustive)]
 pub struct Peripherals {
+    /// Cortex-M7 TCM and cache access control.
+    #[cfg(cm7)]
+    pub AC: AC,
+
     /// Cache and branch predictor maintenance operations.
     /// Not available on Armv6-M.
     pub CBP: CBP,
@@ -172,6 +178,10 @@ impl Peripherals {
         TAKEN = true;
 
         Peripherals {
+            #[cfg(cm7)]
+            AC: AC {
+                _marker: PhantomData,
+            },
             CBP: CBP {
                 _marker: PhantomData,
             },
@@ -216,6 +226,27 @@ impl Peripherals {
             },
             _priv: (),
         }
+    }
+}
+
+/// Access control
+#[cfg(cm7)]
+pub struct AC {
+    _marker: PhantomData<*const ()>,
+}
+
+#[cfg(cm7)]
+unsafe impl Send for AC {}
+
+#[cfg(cm7)]
+impl AC {
+    /// Pointer to the register block
+    pub const PTR: *const self::ac::RegisterBlock = 0xE000_EF90 as *const _;
+
+    /// Returns a pointer to the register block (to be deprecated in 0.7)
+    #[inline(always)]
+    pub const fn ptr() -> *const self::ac::RegisterBlock {
+        Self::PTR
     }
 }
 

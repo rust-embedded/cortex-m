@@ -4,7 +4,9 @@ use volatile_register::RW;
 #[cfg(not(armv6m))]
 use volatile_register::{RO, WO};
 
+#[cfg(feature = "interrupt")]
 use crate::interrupt::InterruptNumber;
+#[cfg(feature = "interrupt")]
 use crate::peripheral::NVIC;
 
 /// Register block
@@ -74,6 +76,7 @@ pub struct RegisterBlock {
     pub stir: WO<u32>,
 }
 
+#[cfg(feature = "interrupt")]
 impl NVIC {
     /// Request an IRQ in software
     ///

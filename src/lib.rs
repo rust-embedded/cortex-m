@@ -77,7 +77,9 @@
 //    to be applied to the struct).
 #![deny(clippy::missing_inline_in_public_items)]
 
+#[cfg(feature = "interrupt")]
 extern crate bare_metal;
+
 extern crate volatile_register;
 
 #[macro_use]
@@ -88,12 +90,18 @@ mod macros;
 pub mod asm;
 #[cfg(armv8m)]
 pub mod cmse;
+
+#[cfg(feature = "delay")]
 pub mod delay;
+#[cfg(feature = "interrupt")]
 pub mod interrupt;
 #[cfg(all(not(armv6m), not(armv8m_base)))]
 pub mod itm;
 pub mod peripheral;
+
+#[cfg(feature = "delay")]
 pub mod prelude;
+
 pub mod register;
 
 pub use crate::peripheral::Peripherals;

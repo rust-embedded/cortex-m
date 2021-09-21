@@ -58,6 +58,7 @@
 use core::marker::PhantomData;
 use core::ops;
 
+#[cfg(feature = "interrupt")]
 use crate::interrupt;
 
 #[cfg(not(armv6m))]
@@ -156,6 +157,7 @@ static mut TAKEN: bool = false;
 impl Peripherals {
     /// Returns all the core peripherals *once*
     #[inline]
+    #[cfg(feature = "interrupt")]
     pub fn take() -> Option<Self> {
         interrupt::free(|_| {
             if unsafe { TAKEN } {

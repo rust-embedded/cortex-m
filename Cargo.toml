@@ -16,15 +16,18 @@ edition = "2018"
 links = "cortex-m"  # prevent multiple versions of this crate to be linked together
 
 [dependencies]
-bare-metal = { version = "0.2.0", features = ["const-fn"] }
+bare-metal = { version = "0.2.0", features = ["const-fn"], optional = true }
 volatile-register = "0.2.0"
 bitfield = "0.13.2"
-embedded-hal = "0.2.4"
+embedded-hal = { version = "0.2.4", optional = true }
 
 [features]
+default = ["interrupt", "delay"]
 cm7-r0p1 = []
 inline-asm = []
 linker-plugin-lto = []
+interrupt = ["bare-metal"]
+delay = ["embedded-hal"]
 
 [workspace]
 members = ["xtask", "cortex-m-semihosting", "panic-semihosting", "panic-itm"]

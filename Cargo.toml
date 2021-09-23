@@ -22,7 +22,8 @@ bitfield = "0.13.2"
 embedded-hal = "0.2.4"
 
 [features]
-cm7-r0p1 = []
+cm7 = []
+cm7-r0p1 = ["cm7"]
 inline-asm = []
 linker-plugin-lto = []
 

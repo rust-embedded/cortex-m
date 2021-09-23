@@ -10,7 +10,7 @@
 //! ``` no_run
 //! # use cortex_m::peripheral::Peripherals;
 //! let mut peripherals = Peripherals::take().unwrap();
-//! peripherals.DWT.enable_cycle_counter();
+//! peripherals.DCB.enable_trace();
 //! ```
 //!
 //! This method can only be successfully called *once* -- this is why the method returns an
@@ -29,6 +29,7 @@
 //! # use cortex_m::peripheral::{DWT, Peripherals};
 //! {
 //!     let mut peripherals = Peripherals::take().unwrap();
+//!     peripherals.DCB.enable_trace();
 //!     peripherals.DWT.enable_cycle_counter();
 //! } // all the peripheral singletons are destroyed here
 //!
@@ -44,6 +45,7 @@
 //! # use cortex_m::peripheral::{DWT, Peripherals};
 //! {
 //!     let mut peripherals = Peripherals::take().unwrap();
+//!     peripherals.DCB.enable_trace();
 //!     peripherals.DWT.enable_cycle_counter();
 //! } // all the peripheral singletons are destroyed here
 //!

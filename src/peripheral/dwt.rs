@@ -99,7 +99,7 @@ impl DWT {
     }
 
     /// Whether to enable exception tracing
-    // TODO find out if this is supported om armv6m
+    #[cfg(not(armv6m))]
     #[inline]
     pub fn enable_exception_tracing(&mut self, bit: bool) {
         unsafe {
@@ -111,7 +111,7 @@ impl DWT {
     }
 
     /// Whether to periodically generate PC samples
-    // TODO find out if this is supported on armv6m
+    #[cfg(not(armv6m))]
     #[inline]
     pub fn enable_pc_samples(&mut self, bit: bool) {
         unsafe {
@@ -210,8 +210,8 @@ impl Comparator {
                     // don't compare data value
                     r.set_datavmatch(false);
 
-                    // dont compare cycle counter value
-                    // NOTE: only needed forp comparator 0, but is SBZP.
+                    // don't compare cycle counter value
+                    // NOTE: only needed for comparator 0, but is SBZP.
                     r.set_cycmatch(false);
 
                     // FUNCTION, EMITRANGE

@@ -41,7 +41,7 @@ bitfield! {
     get_syncena, set_synena: 2;
     get_txena, set_txena: 3;
     get_swoena, set_swoena: 4;
-    u8, get_tsprescale, set_tsprecale: 9, 8;
+    u8, get_tsprescale, set_tsprescale: 9, 8;
     u8, get_gtsfreq, set_gtsfreq: 11, 10;
     u8, get_tracebusid, set_tracebusid: 22, 16;
     busy, _: 23;
@@ -168,7 +168,7 @@ impl ITM {
                 r.set_itmena(settings.enable);
                 r.set_tsena(settings.local_timestamps != LocalTimestampOptions::Disabled);
                 r.set_txena(settings.forward_dwt);
-                r.set_tsprecale(match settings.local_timestamps {
+                r.set_tsprescale(match settings.local_timestamps {
                     LocalTimestampOptions::Disabled | LocalTimestampOptions::Enabled => 0b00,
                     LocalTimestampOptions::EnabledDiv4 => 0b10,
                     LocalTimestampOptions::EnabledDiv16 => 0b10,

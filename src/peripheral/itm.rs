@@ -184,7 +184,7 @@ impl ITM {
                     TimestampClkSrc::SystemClock => false,
                     TimestampClkSrc::AsyncTPIU => true,
                 });
-                r.set_tracebusid(settings.bus_id.unwrap_or(0).into());
+                r.set_tracebusid(settings.bus_id.unwrap_or(0));
 
                 r
             });

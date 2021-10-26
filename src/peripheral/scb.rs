@@ -832,7 +832,7 @@ impl SCB {
 }
 
 const SCB_AIRCR_VECTKEY: u32 = 0x05FA << 16;
-const SCB_AIRCR_PRIGROUP_MASK: u32 = 0x5 << 8;
+const SCB_AIRCR_PRIGROUP_MASK: u32 = 0x7 << 8;
 const SCB_AIRCR_SYSRESETREQ: u32 = 1 << 2;
 
 impl SCB {
@@ -994,7 +994,7 @@ impl SCB {
     /// # Unsafety
     ///
     /// Changing priority levels can break priority-based critical sections (see
-    /// [`register::basepri`](../register/basepri/index.html)) and compromise memory safety.
+    /// [`register::basepri`](crate::register::basepri)) and compromise memory safety.
     #[inline]
     pub unsafe fn set_priority(&mut self, system_handler: SystemHandler, prio: u8) {
         let index = system_handler as u8;

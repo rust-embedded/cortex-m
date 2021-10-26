@@ -29,8 +29,10 @@ impl Delay {
         self.syst
     }
 
-    fn _delay_us(&mut self, us: u32) {
-        let ticks = (us as u64) * (self.ahb_frequency as u64) / 1_000_000;
+    /// Delay using the Cortex-M systick for a certain duration, in µs.
+    #[allow(clippy::missing_inline_in_public_items)]
+    pub fn delay_us(&mut self, us: u32) {
+        let ticks = (u64::from(us)) * (u64::from(self.ahb_frequency)) / 1_000_000;
 
         let full_cycles = ticks >> 24;
         if full_cycles > 0 {
@@ -54,11 +56,10 @@ impl Delay {
 
         self.syst.disable_counter();
     }
-}
 
-impl DelayMs<u32> for Delay {
+    /// Delay using the Cortex-M systick for a certain duration, in ms.
     #[inline]
-    fn delay_ms(&mut self, mut ms: u32) {
+    pub fn delay_ms(&mut self, mut ms: u32) {
         // 4294967 is the highest u32 value which you can multiply by 1000 without overflow
         while ms > 4294967 {
             self.delay_us(4294967000u32);
@@ -68,33 +69,40 @@ impl DelayMs<u32> for Delay {
     }
 }
 
+impl DelayMs<u32> for Delay {
+    #[inline]
+    fn delay_ms(&mut self, ms: u32) {
+        Delay::delay_ms(self, ms);
+    }
+}
+
 // This is a workaround to allow `delay_ms(42)` construction without specifying a type.
 impl DelayMs<i32> for Delay {
     #[inline(always)]
     fn delay_ms(&mut self, ms: i32) {
         assert!(ms >= 0);
-        self.delay_ms(ms as u32);
+        Delay::delay_ms(self, ms as u32);
     }
 }
 
 impl DelayMs<u16> for Delay {
     #[inline(always)]
     fn delay_ms(&mut self, ms: u16) {
-        self.delay_ms(u32::from(ms));
+        Delay::delay_ms(self, u32::from(ms));
     }
 }
 
 impl DelayMs<u8> for Delay {
     #[inline(always)]
     fn delay_ms(&mut self, ms: u8) {
-        self.delay_ms(u32::from(ms));
+        Delay::delay_ms(self, u32::from(ms));
     }
 }
 
 impl DelayUs<u32> for Delay {
     #[inline]
     fn delay_us(&mut self, us: u32) {
-        self._delay_us(us);
+        Delay::delay_us(self, us);
     }
 }
 
@@ -103,20 +111,20 @@ impl DelayUs<i32> for Delay {
     #[inline(always)]
     fn delay_us(&mut self, us: i32) {
         assert!(us >= 0);
-        self.delay_us(us as u32);
+        Delay::delay_us(self, us as u32);
     }
 }
 
 impl DelayUs<u16> for Delay {
     #[inline(always)]
     fn delay_us(&mut self, us: u16) {
-        self.delay_us(u32::from(us))
+        Delay::delay_us(self, u32::from(us))
     }
 }
 
 impl DelayUs<u8> for Delay {
     #[inline(always)]
     fn delay_us(&mut self, us: u8) {
-        self.delay_us(u32::from(us))
+        Delay::delay_us(self, u32::from(us))
     }
 }

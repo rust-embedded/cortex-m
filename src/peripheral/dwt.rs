@@ -59,6 +59,11 @@ bitfield! {
     get_cyccntena, set_cyccntena: 0;
     get_pcsamplena, set_pcsamplena: 12;
     get_exctrcena, set_exctrcena: 16;
+    get_noprfcnt, _: 24;
+    get_nocyccnt, _: 25;
+    get_noexttrig, _: 26;
+    get_notrcpkt, _: 27;
+    u8, get_numcomp, _: 31, 28;
 }
 
 /// Comparator
@@ -86,7 +91,50 @@ bitfield! {
 }
 
 impl DWT {
+    /// Number of comparators implemented
+    ///
+    /// A value of zero indicates no comparator support.
+    #[inline]
+    pub fn num_comp(&self) -> u8 {
+        self.ctrl.read().get_numcomp()
+    }
+
+    /// Returns `true` if the the implementation supports sampling and exception tracing
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn has_exception_trace(&self) -> bool {
+        self.ctrl.read().get_notrcpkt() == false
+    }
+
+    /// Returns `true` if the implementation includes external match signals
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn has_external_match(&self) -> bool {
+        self.ctrl.read().get_noexttrig() == false
+    }
+
+    /// Returns `true` if the implementation supports a cycle counter
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn has_cycle_counter(&self) -> bool {
+        self.ctrl.read().get_nocyccnt() == false
+    }
+
+    /// Returns `true` if the implementation the profiling counters
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn has_profiling_counter(&self) -> bool {
+        self.ctrl.read().get_noprfcnt() == false
+    }
+
     /// Enables the cycle counter
+    ///
+    /// The global trace enable ([`DCB::enable_trace`]) should be set before
+    /// enabling the cycle counter, the processor may ignore writes to the
+    /// cycle counter enable if the global trace is disabled
+    /// (implementation defined behaviour).
+    ///
+    /// [`DCB::enable_trace`]: crate::peripheral::DCB::enable_trace
     #[cfg(not(armv6m))]
     #[inline]
     pub fn enable_cycle_counter(&mut self) {
@@ -96,6 +144,13 @@ impl DWT {
                 r
             });
         }
+    }
+
+    /// Returns `true` if the cycle counter is enabled
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn cycle_counter_enabled(&self) -> bool {
+        self.ctrl.read().get_cyccntena()
     }
 
     /// Whether to enable exception tracing
@@ -125,9 +180,27 @@ impl DWT {
     /// Returns the current clock cycle count
     #[cfg(not(armv6m))]
     #[inline]
+    #[deprecated(
+        since = "0.7.4",
+        note = "Use `cycle_count` which follows the C-GETTER convention"
+    )]
     pub fn get_cycle_count() -> u32 {
+        Self::cycle_count()
+    }
+
+    /// Returns the current clock cycle count
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn cycle_count() -> u32 {
         // NOTE(unsafe) atomic read with no side effects
         unsafe { (*Self::ptr()).cyccnt.read() }
+    }
+
+    /// Set the cycle count
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn set_cycle_count(&mut self, count: u32) {
+        unsafe { self.cyccnt.write(count) }
     }
 
     /// Removes the software lock on the DWT
@@ -138,6 +211,95 @@ impl DWT {
     pub fn unlock() {
         // NOTE(unsafe) atomic write to a stateless, write-only register
         unsafe { (*Self::ptr()).lar.write(0xC5AC_CE55) }
+    }
+
+    /// Get the CPI count
+    ///
+    /// Counts additional cycles required to execute multi-cycle instructions,
+    /// except those recorded by [`lsu_count`], and counts any instruction fetch
+    /// stalls.
+    ///
+    /// [`lsu_count`]: DWT::lsu_count
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn cpi_count() -> u8 {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { (*Self::ptr()).cpicnt.read() as u8 }
+    }
+
+    /// Set the CPI count
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn set_cpi_count(&mut self, count: u8) {
+        unsafe { self.cpicnt.write(count as u32) }
+    }
+
+    /// Get the total cycles spent in exception processing
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn exception_count() -> u8 {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { (*Self::ptr()).exccnt.read() as u8 }
+    }
+
+    /// Set the exception count
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn set_exception_count(&mut self, count: u8) {
+        unsafe { self.exccnt.write(count as u32) }
+    }
+
+    /// Get the total number of cycles that the processor is sleeping
+    ///
+    /// ARM recommends that this counter counts all cycles when the processor is sleeping,
+    /// regardless of whether a WFI or WFE instruction, or the sleep-on-exit functionality,
+    /// caused the entry to sleep mode.
+    /// However, all sleep features are implementation defined and therefore when
+    /// this counter counts is implementation defined.
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn sleep_count() -> u8 {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { (*Self::ptr()).sleepcnt.read() as u8 }
+    }
+
+    /// Set the sleep count
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn set_sleep_count(&mut self, count: u8) {
+        unsafe { self.sleepcnt.write(count as u32) }
+    }
+
+    /// Get the additional cycles required to execute all load or store instructions
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn lsu_count() -> u8 {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { (*Self::ptr()).lsucnt.read() as u8 }
+    }
+
+    /// Set the lsu count
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn set_lsu_count(&mut self, count: u8) {
+        unsafe { self.lsucnt.write(count as u32) }
+    }
+
+    /// Get the folded instruction count
+    ///
+    /// Increments on each instruction that takes 0 cycles.
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn fold_count() -> u8 {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { (*Self::ptr()).foldcnt.read() as u8 }
+    }
+
+    /// Set the folded instruction count
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn set_fold_count(&mut self, count: u8) {
+        unsafe { self.foldcnt.write(count as u32) }
     }
 }
 

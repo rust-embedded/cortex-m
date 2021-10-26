@@ -11,7 +11,7 @@ license = "MIT OR Apache-2.0"
 name = "cortex-m"
 readme = "README.md"
 repository = "https://github.com/rust-embedded/cortex-m"
-version = "0.7.2"
+version = "0.7.3"
 edition = "2018"
 links = "cortex-m"  # prevent multiple versions of this crate to be linked together
 
@@ -22,7 +22,8 @@ bitfield = "0.13.2"
 embedded-hal = "0.2.4"
 
 [features]
-cm7-r0p1 = []
+cm7 = []
+cm7-r0p1 = ["cm7"]
 inline-asm = []
 linker-plugin-lto = []
 

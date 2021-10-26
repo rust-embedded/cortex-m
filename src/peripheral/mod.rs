@@ -10,7 +10,7 @@
 //! ``` no_run
 //! # use cortex_m::peripheral::Peripherals;
 //! let mut peripherals = Peripherals::take().unwrap();
-//! peripherals.DWT.enable_cycle_counter();
+//! peripherals.DCB.enable_trace();
 //! ```
 //!
 //! This method can only be successfully called *once* -- this is why the method returns an
@@ -23,17 +23,18 @@
 //! ```
 //! A part of the peripheral API doesn't require access to a peripheral instance. This part of the
 //! API is provided as static methods on the peripheral types. One example is the
-//! [`DWT::get_cycle_count`](struct.DWT.html#method.get_cycle_count) method.
+//! [`DWT::cycle_count`](struct.DWT.html#method.cycle_count) method.
 //!
 //! ``` no_run
 //! # use cortex_m::peripheral::{DWT, Peripherals};
 //! {
 //!     let mut peripherals = Peripherals::take().unwrap();
+//!     peripherals.DCB.enable_trace();
 //!     peripherals.DWT.enable_cycle_counter();
 //! } // all the peripheral singletons are destroyed here
 //!
 //! // but this method can be called without a DWT instance
-//! let cyccnt = DWT::get_cycle_count();
+//! let cyccnt = DWT::cycle_count();
 //! ```
 //!
 //! The singleton property can be *unsafely* bypassed using the `ptr` static method which is
@@ -44,6 +45,7 @@
 //! # use cortex_m::peripheral::{DWT, Peripherals};
 //! {
 //!     let mut peripherals = Peripherals::take().unwrap();
+//!     peripherals.DCB.enable_trace();
 //!     peripherals.DWT.enable_cycle_counter();
 //! } // all the peripheral singletons are destroyed here
 //!
@@ -60,6 +62,8 @@ use core::ops;
 
 use crate::interrupt;
 
+#[cfg(cm7)]
+pub mod ac;
 #[cfg(not(armv6m))]
 pub mod cbp;
 pub mod cpuid;
@@ -91,6 +95,10 @@ mod test;
 #[allow(non_snake_case)]
 #[allow(clippy::manual_non_exhaustive)]
 pub struct Peripherals {
+    /// Cortex-M7 TCM and cache access control.
+    #[cfg(cm7)]
+    pub AC: AC,
+
     /// Cache and branch predictor maintenance operations.
     /// Not available on Armv6-M.
     pub CBP: CBP,
@@ -172,6 +180,10 @@ impl Peripherals {
         TAKEN = true;
 
         Peripherals {
+            #[cfg(cm7)]
+            AC: AC {
+                _marker: PhantomData,
+            },
             CBP: CBP {
                 _marker: PhantomData,
             },
@@ -216,6 +228,27 @@ impl Peripherals {
             },
             _priv: (),
         }
+    }
+}
+
+/// Access control
+#[cfg(cm7)]
+pub struct AC {
+    _marker: PhantomData<*const ()>,
+}
+
+#[cfg(cm7)]
+unsafe impl Send for AC {}
+
+#[cfg(cm7)]
+impl AC {
+    /// Pointer to the register block
+    pub const PTR: *const self::ac::RegisterBlock = 0xE000_EF90 as *const _;
+
+    /// Returns a pointer to the register block (to be deprecated in 0.7)
+    #[inline(always)]
+    pub const fn ptr() -> *const self::ac::RegisterBlock {
+        Self::PTR
     }
 }
 

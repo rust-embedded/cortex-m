@@ -1,6 +1,6 @@
 use std::process::Command;
 use std::{env, str};
-use xtask::{check_blobs, install_targets};
+use xtask::{check_blobs, check_host_side, install_targets};
 
 /// List of all compilation targets we support.
 ///
@@ -105,4 +105,7 @@ fn main() {
     let is_nightly = str::from_utf8(&output.stdout).unwrap().contains("nightly");
 
     check_crates_build(is_nightly);
+
+    // Check host-side applications of the crate.
+    check_host_side();
 }

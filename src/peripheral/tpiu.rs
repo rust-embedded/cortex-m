@@ -108,7 +108,7 @@ impl TPIU {
     /// Reads the supported trace output modes and the minimum size of
     /// the TPIU FIFO queue for trace data.
     #[inline]
-    pub fn get_swo_supports() -> SWOSupports {
+    pub fn swo_supports() -> SWOSupports {
         let _type = unsafe { (*Self::ptr())._type.read() };
         SWOSupports {
             nrz_encoding: _type.nrzvalid(),

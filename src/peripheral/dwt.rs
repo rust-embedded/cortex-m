@@ -353,7 +353,7 @@ pub enum ComparatorFunction {
 
 /// Possible error values returned on [Comparator::configure].
 #[derive(Debug)]
-pub enum DWTError {
+pub enum DwtError {
     /// Invalid combination of [AccessType] and [EmitOption].
     InvalidFunction,
 }
@@ -383,7 +383,7 @@ impl Comparator {
                     (AccessType::ReadWrite, EmitOption::PCData) => (0b0011, false),
 
                     (AccessType::ReadWrite, EmitOption::PC) => (0b0001, false),
-                    (_, EmitOption::PC) => return Err(DWTError::InvalidFunction),
+                    (_, EmitOption::PC) => return Err(DwtError::InvalidFunction),
                 };
 
                 self.function.modify(|mut r| {

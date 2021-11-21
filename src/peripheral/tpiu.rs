@@ -42,7 +42,7 @@ bitfield! {
 }
 
 bitfield! {
-    /// Type Register.
+    /// TPIU Type Register.
     #[repr(C)]
     #[derive(Clone, Copy)]
     pub struct Type(u32);

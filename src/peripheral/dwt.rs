@@ -346,6 +346,7 @@ pub struct ComparatorAddressSettings {
 
 /// The available functions of a DWT comparator.
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum ComparatorFunction {
     /// Compare accessed memory addresses.
     Address(ComparatorAddressSettings),
@@ -353,6 +354,7 @@ pub enum ComparatorFunction {
 
 /// Possible error values returned on [Comparator::configure].
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum DwtError {
     /// Invalid combination of [AccessType] and [EmitOption].
     InvalidFunction,

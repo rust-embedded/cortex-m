@@ -360,8 +360,8 @@ pub enum DWTError {
 
 impl Comparator {
     /// Configure the function of the comparator
-    #[inline]
-    pub fn configure(&self, settings: ComparatorFunction) -> Result<(), DWTError> {
+    #[allow(clippy::missing_inline_in_public_items)]
+    pub fn configure(&self, settings: ComparatorFunction) -> Result<(), DwtError> {
         match settings {
             ComparatorFunction::Address(settings) => unsafe {
                 if settings.emit == EmitOption::PC && settings.access_type != AccessType::ReadWrite

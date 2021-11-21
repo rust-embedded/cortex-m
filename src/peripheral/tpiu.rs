@@ -38,7 +38,7 @@ bitfield! {
     #[repr(C)]
     #[derive(Clone, Copy)]
     pub struct Ffcr(u32);
-    get_enfcont, set_enfcont: 1;
+    enfcont, set_enfcont: 1;
 }
 
 bitfield! {

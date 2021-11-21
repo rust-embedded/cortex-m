@@ -56,14 +56,14 @@ bitfield! {
     #[repr(C)]
     #[derive(Copy, Clone)]
     pub struct Ctrl(u32);
-    get_cyccntena, set_cyccntena: 0;
-    get_pcsamplena, set_pcsamplena: 12;
-    get_exctrcena, set_exctrcena: 16;
-    get_noprfcnt, _: 24;
-    get_nocyccnt, _: 25;
-    get_noexttrig, _: 26;
-    get_notrcpkt, _: 27;
-    u8, get_numcomp, _: 31, 28;
+    cyccntena, set_cyccntena: 0;
+    pcsamplena, set_pcsamplena: 12;
+    exctrcena, set_exctrcena: 16;
+    noprfcnt, _: 24;
+    nocyccnt, _: 25;
+    noexttrig, _: 26;
+    notrcpkt, _: 27;
+    u8, numcomp, _: 31, 28;
 }
 
 /// Comparator
@@ -83,11 +83,11 @@ bitfield! {
     #[derive(Copy, Clone)]
     /// Comparator FUNCTIONn register.
     pub struct Function(u32);
-    u8, get_function, set_function: 3, 0;
-    get_emitrange, set_emitrange: 5;
-    get_cycmatch, set_cycmatch: 7;
-    get_datavmatch, set_datavmatch: 8;
-    get_matched, _: 24;
+    u8, function, set_function: 3, 0;
+    emitrange, set_emitrange: 5;
+    cycmatch, set_cycmatch: 7;
+    datavmatch, set_datavmatch: 8;
+    matched, _: 24;
 }
 
 impl DWT {
@@ -96,35 +96,35 @@ impl DWT {
     /// A value of zero indicates no comparator support.
     #[inline]
     pub fn num_comp(&self) -> u8 {
-        self.ctrl.read().get_numcomp()
+        self.ctrl.read().numcomp()
     }
 
     /// Returns `true` if the the implementation supports sampling and exception tracing
     #[cfg(not(armv6m))]
     #[inline]
     pub fn has_exception_trace(&self) -> bool {
-        self.ctrl.read().get_notrcpkt() == false
+        self.ctrl.read().notrcpkt() == false
     }
 
     /// Returns `true` if the implementation includes external match signals
     #[cfg(not(armv6m))]
     #[inline]
     pub fn has_external_match(&self) -> bool {
-        self.ctrl.read().get_noexttrig() == false
+        self.ctrl.read().noexttrig() == false
     }
 
     /// Returns `true` if the implementation supports a cycle counter
     #[cfg(not(armv6m))]
     #[inline]
     pub fn has_cycle_counter(&self) -> bool {
-        self.ctrl.read().get_nocyccnt() == false
+        self.ctrl.read().nocyccnt() == false
     }
 
     /// Returns `true` if the implementation the profiling counters
     #[cfg(not(armv6m))]
     #[inline]
     pub fn has_profiling_counter(&self) -> bool {
-        self.ctrl.read().get_noprfcnt() == false
+        self.ctrl.read().noprfcnt() == false
     }
 
     /// Enables the cycle counter
@@ -150,7 +150,7 @@ impl DWT {
     #[cfg(not(armv6m))]
     #[inline]
     pub fn cycle_counter_enabled(&self) -> bool {
-        self.ctrl.read().get_cyccntena()
+        self.ctrl.read().cyccntena()
     }
 
     /// Whether to enable exception tracing

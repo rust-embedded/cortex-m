@@ -36,14 +36,14 @@ bitfield! {
     #[repr(C)]
     #[derive(Copy, Clone)]
     pub struct Tcr(u32);
-    get_itmena, set_itmena: 0;
-    get_tsena, set_tsena: 1;
-    get_syncena, set_synena: 2;
-    get_txena, set_txena: 3;
-    get_swoena, set_swoena: 4;
-    u8, get_tsprescale, set_tsprescale: 9, 8;
-    u8, get_gtsfreq, set_gtsfreq: 11, 10;
-    u8, get_tracebusid, set_tracebusid: 22, 16;
+    itmena, set_itmena: 0;
+    tsena, set_tsena: 1;
+    syncena, set_synena: 2;
+    txena, set_txena: 3;
+    swoena, set_swoena: 4;
+    u8, tsprescale, set_tsprescale: 9, 8;
+    u8, gtsfreq, set_gtsfreq: 11, 10;
+    u8, tracebusid, set_tracebusid: 22, 16;
     busy, _: 23;
 }
 

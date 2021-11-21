@@ -322,7 +322,8 @@ pub enum EmitOption {
     /// Emit only trace address packet.
     Address,
     /// Emit only trace PC value packet
-    /// NOTE: only compatible with [AccessType::ReadWrite].
+    ///
+    /// *NOTE* only compatible with [AccessType::ReadWrite].
     PC,
     /// Emit trace address and data value packets.
     AddressData,

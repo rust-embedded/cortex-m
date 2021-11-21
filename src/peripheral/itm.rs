@@ -133,7 +133,7 @@ pub enum TimestampClkSrc {
     AsyncTPIU,
 }
 
-/// blah
+/// Available settings for the ITM peripheral.
 #[derive(Debug)]
 pub struct ITMSettings {
     /// Whether to enable ITM.

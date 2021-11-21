@@ -103,28 +103,28 @@ impl DWT {
     #[cfg(not(armv6m))]
     #[inline]
     pub fn has_exception_trace(&self) -> bool {
-        self.ctrl.read().notrcpkt() == false
+        !self.ctrl.read().notrcpkt()
     }
 
     /// Returns `true` if the implementation includes external match signals
     #[cfg(not(armv6m))]
     #[inline]
     pub fn has_external_match(&self) -> bool {
-        self.ctrl.read().noexttrig() == false
+        !self.ctrl.read().noexttrig()
     }
 
     /// Returns `true` if the implementation supports a cycle counter
     #[cfg(not(armv6m))]
     #[inline]
     pub fn has_cycle_counter(&self) -> bool {
-        self.ctrl.read().nocyccnt() == false
+        !self.ctrl.read().nocyccnt()
     }
 
     /// Returns `true` if the implementation the profiling counters
     #[cfg(not(armv6m))]
     #[inline]
     pub fn has_profiling_counter(&self) -> bool {
-        self.ctrl.read().noprfcnt() == false
+        !self.ctrl.read().noprfcnt()
     }
 
     /// Enables the cycle counter

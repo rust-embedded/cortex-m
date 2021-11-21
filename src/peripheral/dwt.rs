@@ -364,42 +364,38 @@ impl Comparator {
     pub fn configure(&self, settings: ComparatorFunction) -> Result<(), DwtError> {
         match settings {
             ComparatorFunction::Address(settings) => unsafe {
-                if settings.emit == EmitOption::PC && settings.access_type != AccessType::ReadWrite
-                {
-                    return Err(DWTError::InvalidFunction);
-                }
+                // FUNCTION, EMITRANGE
+                // See Table C1-14
+                let (function, emit_range) = match (&settings.access_type, &settings.emit) {
+                    (AccessType::ReadOnly, EmitOption::Data) => (0b1100, false),
+                    (AccessType::ReadOnly, EmitOption::Address) => (0b1100, true),
+                    (AccessType::ReadOnly, EmitOption::AddressData) => (0b1110, true),
+                    (AccessType::ReadOnly, EmitOption::PCData) => (0b1110, false),
+
+                    (AccessType::WriteOnly, EmitOption::Data) => (0b1101, false),
+                    (AccessType::WriteOnly, EmitOption::Address) => (0b1101, true),
+                    (AccessType::WriteOnly, EmitOption::AddressData) => (0b1111, true),
+                    (AccessType::WriteOnly, EmitOption::PCData) => (0b1111, false),
+
+                    (AccessType::ReadWrite, EmitOption::Data) => (0b0010, false),
+                    (AccessType::ReadWrite, EmitOption::Address) => (0b0001, true),
+                    (AccessType::ReadWrite, EmitOption::AddressData) => (0b0010, true),
+                    (AccessType::ReadWrite, EmitOption::PCData) => (0b0011, false),
+
+                    (AccessType::ReadWrite, EmitOption::PC) => (0b0001, false),
+                    (_, EmitOption::PC) => return Err(DWTError::InvalidFunction),
+                };
 
                 self.function.modify(|mut r| {
+                    r.set_function(function);
+                    r.set_emitrange(emit_range);
+
                     // don't compare data value
                     r.set_datavmatch(false);
 
                     // don't compare cycle counter value
                     // NOTE: only needed for comparator 0, but is SBZP.
                     r.set_cycmatch(false);
-
-                    // FUNCTION, EMITRANGE
-                    // See Table C1-14
-                    let (function, emit_range) = match (&settings.access_type, &settings.emit) {
-                        (AccessType::ReadOnly, EmitOption::Data) => (0b1100, false),
-                        (AccessType::ReadOnly, EmitOption::Address) => (0b1100, true),
-                        (AccessType::ReadOnly, EmitOption::AddressData) => (0b1110, true),
-                        (AccessType::ReadOnly, EmitOption::PCData) => (0b1110, false),
-
-                        (AccessType::WriteOnly, EmitOption::Data) => (0b1101, false),
-                        (AccessType::WriteOnly, EmitOption::Address) => (0b1101, true),
-                        (AccessType::WriteOnly, EmitOption::AddressData) => (0b1111, true),
-                        (AccessType::WriteOnly, EmitOption::PCData) => (0b1111, false),
-
-                        (AccessType::ReadWrite, EmitOption::Data) => (0b0010, false),
-                        (AccessType::ReadWrite, EmitOption::Address) => (0b0001, true),
-                        (AccessType::ReadWrite, EmitOption::AddressData) => (0b0010, true),
-                        (AccessType::ReadWrite, EmitOption::PCData) => (0b0011, false),
-
-                        (AccessType::ReadWrite, EmitOption::PC) => (0b0001, false),
-                        (_, EmitOption::PC) => unreachable!(), // cannot return Err here; handled above
-                    };
-                    r.set_function(function);
-                    r.set_emitrange(emit_range);
 
                     r
                 });

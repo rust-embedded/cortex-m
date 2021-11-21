@@ -90,7 +90,7 @@ impl Stim {
 }
 
 /// The possible local timestamp options.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum LocalTimestampOptions {
     /// Disable local timestamps.
     Disabled,
@@ -108,7 +108,7 @@ pub enum LocalTimestampOptions {
 }
 
 /// The possible global timestamp options.
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum GlobalTimestampOptions {
     /// Disable global timestamps.
     Disabled,
@@ -121,7 +121,7 @@ pub enum GlobalTimestampOptions {
 }
 
 /// The possible clock sources for timestamp counters.
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum TimestampClkSrc {
     /// Clock timestamp counters using the system processor clock.
     SystemClock,
@@ -134,7 +134,7 @@ pub enum TimestampClkSrc {
 }
 
 /// Available settings for the ITM peripheral.
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub struct ITMSettings {
     /// Whether to enable ITM.
     pub enable: bool,

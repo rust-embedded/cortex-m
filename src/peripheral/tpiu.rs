@@ -62,6 +62,7 @@ bitfield! {
 
 /// The available protocols for the trace output.
 #[repr(u8)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum TraceProtocol {
     /// Parallel trace port mode
     Parallel = 0b00,
@@ -87,7 +88,7 @@ impl core::convert::TryFrom<u8> for TraceProtocol {
 }
 
 /// The SWO options supported by the TPIU.
-#[allow(dead_code)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub struct SWOSupports {
     /// Whether UART/NRZ encoding is supported for SWO.
     nrz_encoding: bool,

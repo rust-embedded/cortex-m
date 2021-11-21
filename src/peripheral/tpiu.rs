@@ -19,7 +19,7 @@ pub struct RegisterBlock {
     pub acpr: RW<u32>,
     reserved1: [u32; 55],
     /// Selected Pin Control
-    pub sppr: RW<u32>,
+    pub sppr: RW<Sppr>,
     reserved2: [u32; 132],
     /// Formatter and Flush Control
     pub ffcr: RW<Ffcr>,
@@ -52,7 +52,16 @@ bitfield! {
     nrzvalid, _: 11;
 }
 
+bitfield! {
+    /// Selected pin protocol register.
+    #[repr(C)]
+    #[derive(Clone, Copy)]
+    pub struct Sppr(u32);
+    u8, txmode, set_txmode: 1, 0;
+}
+
 /// The available protocols for the trace output.
+#[repr(u8)]
 pub enum TraceProtocol {
     /// Parallel trace port mode
     Parallel = 0b00,
@@ -60,6 +69,21 @@ pub enum TraceProtocol {
     AsyncSWOManchester = 0b01,
     /// Asynchronous SWO, using NRZ encoding
     AsyncSWONRZ = 0b10,
+}
+impl core::convert::TryFrom<u8> for TraceProtocol {
+    type Error = ();
+
+    /// Tries to convert from a `TXMODE` field value. Fails if the set mode is
+    /// unknown (and thus unpredictable).
+    #[inline]
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            x if x == Self::Parallel as u8 => Ok(Self::Parallel),
+            x if x == Self::AsyncSWOManchester as u8 => Ok(Self::AsyncSWOManchester),
+            x if x == Self::AsyncSWONRZ as u8 => Ok(Self::AsyncSWONRZ),
+            _ => Err(()), // unknown and unpredictable mode
+        }
+    }
 }
 
 /// The SWO options supported by the TPIU.
@@ -86,10 +110,25 @@ impl TPIU {
         }
     }
 
+    /// The used protocol for the trace output. Return `None` if an
+    /// unknown (and thus unpredicable mode) is configured by means
+    /// other than
+    /// [`trace_output_protocol`](Self::set_trace_output_protocol).
+    #[inline]
+    pub fn trace_output_protocol(&self) -> Option<TraceProtocol> {
+        use core::convert::TryInto;
+        self.sppr.read().txmode().try_into().ok()
+    }
+
     /// Sets the used protocol for the trace output.
     #[inline]
     pub fn set_trace_output_protocol(&mut self, proto: TraceProtocol) {
-        unsafe { self.sppr.write(proto as u32) }
+        unsafe {
+            self.sppr.modify(|mut r| {
+                r.set_txmode(proto as u8);
+                r
+            });
+        }
     }
 
     /// Whether to enable the formatter. If disabled, only ITM and DWT

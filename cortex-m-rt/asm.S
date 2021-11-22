@@ -94,6 +94,10 @@ Reset:
 #endif
 
 4:
+.cfi_def_cfa sp, 0
+  push {lr}
+.cfi_offset lr, 0
+
   # Jump to user main function. We use bl for the extended range, but the
   # user main function may not return.
   bl main

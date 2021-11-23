@@ -19,12 +19,10 @@ fn main() {
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
     if target.starts_with("thumbv") {
-        fs::copy(
-            format!("bin/{}.a", target),
-            out_dir.join("libcortex-m-rt.a"),
-        )
-        .unwrap();
+        let lib_path = format!("bin/{}.a", target);
+        fs::copy(&lib_path, out_dir.join("libcortex-m-rt.a")).unwrap();
         println!("cargo:rustc-link-lib=static=cortex-m-rt");
+        println!("cargo:rerun-if-changed={}", lib_path);
     }
 
     // Put the linker script somewhere the linker can find it

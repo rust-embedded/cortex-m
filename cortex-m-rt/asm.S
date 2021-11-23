@@ -94,6 +94,14 @@ Reset:
 #endif
 
 4:
+  # Preserve `lr` and emit debuginfo that lets external tools restore it.
+  # This fixes unwinding past the `Reset` handler.
+  # See https://sourceware.org/binutils/docs/as/CFI-directives.html for an
+  # explanation of the directives.
+.cfi_def_cfa sp, 0
+  push {lr}
+.cfi_offset lr, 0
+
   # Jump to user main function. We use bl for the extended range, but the
   # user main function may not return.
   bl main

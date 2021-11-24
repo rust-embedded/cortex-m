@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.7.1]
+
+## Fixes
+
+- Fix stack unwinding past `Reset` function ([#337])
+
+[#337]: https://github.com/rust-embedded/cortex-m-rt/pull/337
+
 ## [v0.7.0]
 
 ### New Features

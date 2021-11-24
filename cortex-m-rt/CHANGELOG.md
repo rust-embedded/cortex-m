@@ -580,7 +580,8 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.7.1...HEAD
+[v0.7.1]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.7.0...v0.7.1
 [v0.7.0]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.11...v0.7.0
 [v0.6.15]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.14...v0.6.15
 [v0.6.14]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.13...v0.6.14

@@ -3,7 +3,7 @@ delete_merged_branches = true
 required_approvals = 1
 status = [
   "ci-linux (stable)",
-  "ci-linux (1.38.0)",
+  "ci-linux (1.40.0)",
   "rustfmt",
   "clippy",
 ]

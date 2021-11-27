@@ -5,12 +5,13 @@ use volatile_register::WO;
 use volatile_register::{RO, RW};
 
 use crate::peripheral::DWT;
+use bitfield::bitfield;
 
 /// Register block
 #[repr(C)]
 pub struct RegisterBlock {
     /// Control
-    pub ctrl: RW<u32>,
+    pub ctrl: RW<Ctrl>,
     /// Cycle Count
     #[cfg(not(armv6m))]
     pub cyccnt: RW<u32>,
@@ -50,6 +51,21 @@ pub struct RegisterBlock {
     pub lsr: RO<u32>,
 }
 
+bitfield! {
+    /// Control register.
+    #[repr(C)]
+    #[derive(Copy, Clone)]
+    pub struct Ctrl(u32);
+    cyccntena, set_cyccntena: 0;
+    pcsamplena, set_pcsamplena: 12;
+    exctrcena, set_exctrcena: 16;
+    noprfcnt, _: 24;
+    nocyccnt, _: 25;
+    noexttrig, _: 26;
+    notrcpkt, _: 27;
+    u8, numcomp, _: 31, 28;
+}
+
 /// Comparator
 #[repr(C)]
 pub struct Comparator {
@@ -58,58 +74,57 @@ pub struct Comparator {
     /// Comparator Mask
     pub mask: RW<u32>,
     /// Comparator Function
-    pub function: RW<u32>,
+    pub function: RW<Function>,
     reserved: u32,
 }
 
-// DWT CTRL register fields
-const NUMCOMP_OFFSET: u32 = 28;
-const NOTRCPKT: u32 = 1 << 27;
-const NOEXTTRIG: u32 = 1 << 26;
-const NOCYCCNT: u32 = 1 << 25;
-const NOPRFCNT: u32 = 1 << 24;
-const CYCCNTENA: u32 = 1 << 0;
+bitfield! {
+    #[repr(C)]
+    #[derive(Copy, Clone)]
+    /// Comparator FUNCTIONn register.
+    pub struct Function(u32);
+    u8, function, set_function: 3, 0;
+    emitrange, set_emitrange: 5;
+    cycmatch, set_cycmatch: 7;
+    datavmatch, set_datavmatch: 8;
+    matched, _: 24;
+}
 
 impl DWT {
     /// Number of comparators implemented
     ///
     /// A value of zero indicates no comparator support.
     #[inline]
-    pub fn num_comp() -> u8 {
-        // NOTE(unsafe) atomic read with no side effects
-        unsafe { ((*Self::ptr()).ctrl.read() >> NUMCOMP_OFFSET) as u8 }
+    pub fn num_comp(&self) -> u8 {
+        self.ctrl.read().numcomp()
     }
 
     /// Returns `true` if the the implementation supports sampling and exception tracing
     #[cfg(not(armv6m))]
     #[inline]
-    pub fn has_exception_trace() -> bool {
-        // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).ctrl.read() & NOTRCPKT == 0 }
+    pub fn has_exception_trace(&self) -> bool {
+        !self.ctrl.read().notrcpkt()
     }
 
     /// Returns `true` if the implementation includes external match signals
     #[cfg(not(armv6m))]
     #[inline]
-    pub fn has_external_match() -> bool {
-        // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).ctrl.read() & NOEXTTRIG == 0 }
+    pub fn has_external_match(&self) -> bool {
+        !self.ctrl.read().noexttrig()
     }
 
     /// Returns `true` if the implementation supports a cycle counter
     #[cfg(not(armv6m))]
     #[inline]
-    pub fn has_cycle_counter() -> bool {
-        // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).ctrl.read() & NOCYCCNT == 0 }
+    pub fn has_cycle_counter(&self) -> bool {
+        !self.ctrl.read().nocyccnt()
     }
 
     /// Returns `true` if the implementation the profiling counters
     #[cfg(not(armv6m))]
     #[inline]
-    pub fn has_profiling_counter() -> bool {
-        // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).ctrl.read() & NOPRFCNT == 0 }
+    pub fn has_profiling_counter(&self) -> bool {
+        !self.ctrl.read().noprfcnt()
     }
 
     /// Enables the cycle counter
@@ -123,22 +138,55 @@ impl DWT {
     #[cfg(not(armv6m))]
     #[inline]
     pub fn enable_cycle_counter(&mut self) {
-        unsafe { self.ctrl.modify(|r| r | CYCCNTENA) }
-    }
-
-    /// Disables the cycle counter
-    #[cfg(not(armv6m))]
-    #[inline]
-    pub fn disable_cycle_counter(&mut self) {
-        unsafe { self.ctrl.modify(|r| r & !CYCCNTENA) }
+        unsafe {
+            self.ctrl.modify(|mut r| {
+                r.set_cyccntena(true);
+                r
+            });
+        }
     }
 
     /// Returns `true` if the cycle counter is enabled
     #[cfg(not(armv6m))]
     #[inline]
-    pub fn cycle_counter_enabled() -> bool {
-        // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).ctrl.read() & CYCCNTENA != 0 }
+    pub fn cycle_counter_enabled(&self) -> bool {
+        self.ctrl.read().cyccntena()
+    }
+
+    /// Enables exception tracing
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn enable_exception_tracing(&mut self) {
+        unsafe {
+            self.ctrl.modify(|mut r| {
+                r.set_exctrcena(true);
+                r
+            });
+        }
+    }
+
+    /// Disables exception tracing
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn disable_exception_tracing(&mut self) {
+        unsafe {
+            self.ctrl.modify(|mut r| {
+                r.set_exctrcena(false);
+                r
+            });
+        }
+    }
+
+    /// Whether to periodically generate PC samples
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn enable_pc_samples(&mut self, bit: bool) {
+        unsafe {
+            self.ctrl.modify(|mut r| {
+                r.set_pcsamplena(bit);
+                r
+            });
+        }
     }
 
     /// Returns the current clock cycle count
@@ -264,5 +312,113 @@ impl DWT {
     #[inline]
     pub fn set_fold_count(&mut self, count: u8) {
         unsafe { self.foldcnt.write(count as u32) }
+    }
+}
+
+/// Whether the comparator should match on read, write or read/write operations.
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+pub enum AccessType {
+    /// Generate packet only when matched adress is read from.
+    ReadOnly,
+    /// Generate packet only when matched adress is written to.
+    WriteOnly,
+    /// Generate packet when matched adress is both read from and written to.
+    ReadWrite,
+}
+
+/// The sequence of packet(s) that should be emitted on comparator match.
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+pub enum EmitOption {
+    /// Emit only trace data value packet.
+    Data,
+    /// Emit only trace address packet.
+    Address,
+    /// Emit only trace PC value packet
+    ///
+    /// *NOTE* only compatible with [AccessType::ReadWrite].
+    PC,
+    /// Emit trace address and data value packets.
+    AddressData,
+    /// Emit trace PC value and data value packets.
+    PCData,
+}
+
+/// Settings for address matching
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+pub struct ComparatorAddressSettings {
+    /// The address to match against.
+    pub address: u32,
+    /// The address mask to match against.
+    pub mask: u32,
+    /// What sequence of packet(s) to emit on comparator match.
+    pub emit: EmitOption,
+    /// Whether to match on read, write or read/write operations.
+    pub access_type: AccessType,
+}
+
+/// The available functions of a DWT comparator.
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+#[non_exhaustive]
+pub enum ComparatorFunction {
+    /// Compare accessed memory addresses.
+    Address(ComparatorAddressSettings),
+}
+
+/// Possible error values returned on [Comparator::configure].
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+#[non_exhaustive]
+pub enum DwtError {
+    /// Invalid combination of [AccessType] and [EmitOption].
+    InvalidFunction,
+}
+
+impl Comparator {
+    /// Configure the function of the comparator
+    #[allow(clippy::missing_inline_in_public_items)]
+    pub fn configure(&self, settings: ComparatorFunction) -> Result<(), DwtError> {
+        match settings {
+            ComparatorFunction::Address(settings) => unsafe {
+                // FUNCTION, EMITRANGE
+                // See Table C1-14
+                let (function, emit_range) = match (&settings.access_type, &settings.emit) {
+                    (AccessType::ReadOnly, EmitOption::Data) => (0b1100, false),
+                    (AccessType::ReadOnly, EmitOption::Address) => (0b1100, true),
+                    (AccessType::ReadOnly, EmitOption::AddressData) => (0b1110, true),
+                    (AccessType::ReadOnly, EmitOption::PCData) => (0b1110, false),
+
+                    (AccessType::WriteOnly, EmitOption::Data) => (0b1101, false),
+                    (AccessType::WriteOnly, EmitOption::Address) => (0b1101, true),
+                    (AccessType::WriteOnly, EmitOption::AddressData) => (0b1111, true),
+                    (AccessType::WriteOnly, EmitOption::PCData) => (0b1111, false),
+
+                    (AccessType::ReadWrite, EmitOption::Data) => (0b0010, false),
+                    (AccessType::ReadWrite, EmitOption::Address) => (0b0001, true),
+                    (AccessType::ReadWrite, EmitOption::AddressData) => (0b0010, true),
+                    (AccessType::ReadWrite, EmitOption::PCData) => (0b0011, false),
+
+                    (AccessType::ReadWrite, EmitOption::PC) => (0b0001, false),
+                    (_, EmitOption::PC) => return Err(DwtError::InvalidFunction),
+                };
+
+                self.function.modify(|mut r| {
+                    r.set_function(function);
+                    r.set_emitrange(emit_range);
+
+                    // don't compare data value
+                    r.set_datavmatch(false);
+
+                    // don't compare cycle counter value
+                    // NOTE: only needed for comparator 0, but is SBZP.
+                    r.set_cycmatch(false);
+
+                    r
+                });
+
+                self.comp.write(settings.address);
+                self.mask.write(settings.mask);
+            },
+        }
+
+        Ok(())
     }
 }

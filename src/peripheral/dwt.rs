@@ -153,13 +153,25 @@ impl DWT {
         self.ctrl.read().cyccntena()
     }
 
-    /// Whether to enable exception tracing
+    /// Enables exception tracing
     #[cfg(not(armv6m))]
     #[inline]
-    pub fn enable_exception_tracing(&mut self, bit: bool) {
+    pub fn enable_exception_tracing(&mut self) {
         unsafe {
             self.ctrl.modify(|mut r| {
-                r.set_exctrcena(bit);
+                r.set_exctrcena(true);
+                r
+            });
+        }
+    }
+
+    /// Disables exception tracing
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn disable_exception_tracing(&mut self) {
+        unsafe {
+            self.ctrl.modify(|mut r| {
+                r.set_exctrcena(false);
                 r
             });
         }

@@ -111,7 +111,7 @@ pub enum LocalTimestampOptions {
     EnabledDiv64,
 }
 
-#[cfg(feature = "std-map")]
+#[cfg(feature = "std")]
 impl core::convert::TryFrom<u8> for LocalTimestampOptions {
     type Error = ();
 

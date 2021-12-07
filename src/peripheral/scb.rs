@@ -197,7 +197,7 @@ impl SCB {
 /// Processor core exceptions (internal interrupts)
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "std-map", derive(PartialOrd, Hash))]
+#[cfg_attr(feature = "std", derive(PartialOrd, Hash))]
 pub enum Exception {
     /// Non maskable interrupt
     NonMaskableInt,
@@ -264,7 +264,7 @@ impl Exception {
 /// Active exception number
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "std-map", derive(PartialOrd, Hash))]
+#[cfg_attr(feature = "std", derive(PartialOrd, Hash))]
 pub enum VectActive {
     /// Thread mode
     ThreadMode,

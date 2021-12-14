@@ -318,15 +318,15 @@ impl DWT {
 /// Whether the comparator should match on read, write or read/write operations.
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum AccessType {
-    /// Generate packet only when matched adress is read from.
+    /// Generate packet only when matched address is read from.
     ReadOnly,
-    /// Generate packet only when matched adress is written to.
+    /// Generate packet only when matched address is written to.
     WriteOnly,
-    /// Generate packet when matched adress is both read from and written to.
+    /// Generate packet when matched address is both read from and written to.
     ReadWrite,
 }
 
-/// The sequence of packet(s) that should be emitted on comparator match.
+/// The sequence of packet(s) or events that should be emitted/generated on comparator match.
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum EmitOption {
     /// Emit only trace data value packet.
@@ -341,6 +341,15 @@ pub enum EmitOption {
     AddressData,
     /// Emit trace PC value and data value packets.
     PCData,
+    /// Generate a watchpoint debug event.
+    ///
+    /// either halts execution or fires a `DebugMonitor` exception.
+    /// See more in section "Watchpoint debug event generation" page C1-729
+    WatchpointDebugEvent,
+    /// Generate a `CMPMATCH[N]` event.
+    ///
+    /// See more in section "CMPMATCH[N] event generation" page C1-730
+    CompareMatchEvent,
 }
 
 /// Settings for address matching
@@ -359,6 +368,9 @@ pub struct ComparatorAddressSettings {
 /// Settings for cycle count matching
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub struct CycleCountSettings {
+    /// The function selection used.
+    /// See Table C1-15 DWT cycle count comparison functions
+    pub emit: EmitOption,
     /// The cycle count value to compare against.
     pub compare: u32,
     /// The cycle count mask value to use.
@@ -396,16 +408,22 @@ impl Comparator {
                     (AccessType::ReadOnly, EmitOption::Address) => (0b1100, true),
                     (AccessType::ReadOnly, EmitOption::AddressData) => (0b1110, true),
                     (AccessType::ReadOnly, EmitOption::PCData) => (0b1110, false),
+                    (AccessType::ReadOnly, EmitOption::WatchpointDebugEvent) => (0b0101, false),
+                    (AccessType::ReadOnly, EmitOption::CompareMatchEvent) => (0b1001, false),
 
                     (AccessType::WriteOnly, EmitOption::Data) => (0b1101, false),
                     (AccessType::WriteOnly, EmitOption::Address) => (0b1101, true),
                     (AccessType::WriteOnly, EmitOption::AddressData) => (0b1111, true),
                     (AccessType::WriteOnly, EmitOption::PCData) => (0b1111, false),
+                    (AccessType::WriteOnly, EmitOption::WatchpointDebugEvent) => (0b0110, false),
+                    (AccessType::WriteOnly, EmitOption::CompareMatchEvent) => (0b1010, false),
 
                     (AccessType::ReadWrite, EmitOption::Data) => (0b0010, false),
                     (AccessType::ReadWrite, EmitOption::Address) => (0b0001, true),
                     (AccessType::ReadWrite, EmitOption::AddressData) => (0b0010, true),
                     (AccessType::ReadWrite, EmitOption::PCData) => (0b0011, false),
+                    (AccessType::ReadWrite, EmitOption::WatchpointDebugEvent) => (0b0111, false),
+                    (AccessType::ReadWrite, EmitOption::CompareMatchEvent) => (0b1011, false),
 
                     (AccessType::ReadWrite, EmitOption::PC) => (0b0001, false),
                     (_, EmitOption::PC) => return Err(DwtError::InvalidFunction),
@@ -429,12 +447,16 @@ impl Comparator {
                 }
             }
             ComparatorFunction::CycleCount(settings) => {
+                let function = match &settings.emit {
+                    EmitOption::PCData => 0b0001,
+                    EmitOption::WatchpointDebugEvent => 0b0100,
+                    EmitOption::CompareMatchEvent => 0b1000,
+                    _ => return Err(DwtError::InvalidFunction),
+                };
+
                 unsafe {
                     self.function.modify(|mut r| {
-                        // emit a Debug Watchpoint event, either halting execution or
-                        // firing a `DebugMonitor` exception
-                        // See Table C1-15 DWT cycle count comparison functions
-                        r.set_function(0b0100);
+                        r.set_function(function);
                         // emit_range is N/A for cycle count compare
                         r.set_emitrange(false);
                         // don't compare data

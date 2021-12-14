@@ -48,6 +48,7 @@ impl DCB {
     }
 
     /// Enables the [`DebugMonitor`](crate::peripheral::scb::Exception::DebugMonitor) exception
+    #[inline]
     pub fn enable_debug_monitor(&mut self) {
         unsafe {
             self.demcr.modify(|w| w | DCB_DEMCR_MON_EN);
@@ -55,6 +56,7 @@ impl DCB {
     }
 
     /// Disables the [`DebugMonitor`](crate::peripheral::scb::Exception::DebugMonitor) exception
+    #[inline]
     pub fn disable_debug_monitor(&mut self) {
         unsafe {
             self.demcr.modify(|w| w & !DCB_DEMCR_MON_EN);

@@ -428,7 +428,7 @@ impl Comparator {
                     // emit a Debug Watchpoint event, either halting execution or
                     // firing a `DebugMonitor` exception
                     0b0111,
-                    // don't emit (we're going to fire an exception not trace)
+                    // emit_range is N/A for cycle count compare
                     false,
                     // don't compare data
                     false,

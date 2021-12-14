@@ -341,14 +341,13 @@ pub enum EmitOption {
     AddressData,
     /// Emit trace PC value and data value packets.
     PCData,
-    /// Generate a watchpoint debug event.
+    /// Generate a watchpoint debug event. Either halts execution or fires a `DebugMonitor` exception.
     ///
-    /// either halts execution or fires a `DebugMonitor` exception.
-    /// See more in section "Watchpoint debug event generation" page C1-729
+    /// See more in section "Watchpoint debug event generation" page C1-729.
     WatchpointDebugEvent,
     /// Generate a `CMPMATCH[N]` event.
     ///
-    /// See more in section "CMPMATCH[N] event generation" page C1-730
+    /// See more in section "CMPMATCH[N] event generation" page C1-730.
     CompareMatchEvent,
 }
 
@@ -369,7 +368,7 @@ pub struct ComparatorAddressSettings {
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub struct CycleCountSettings {
     /// The function selection used.
-    /// See Table C1-15 DWT cycle count comparison functions
+    /// See Table C1-15 for DWT cycle count comparison functions.
     pub emit: EmitOption,
     /// The cycle count value to compare against.
     pub compare: u32,

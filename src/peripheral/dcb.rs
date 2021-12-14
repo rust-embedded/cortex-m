@@ -6,6 +6,7 @@ use crate::peripheral::DCB;
 use core::ptr;
 
 const DCB_DEMCR_TRCENA: u32 = 1 << 24;
+const DCB_DEMCR_MON_EN: u32 = 1 << 16;
 
 /// Register block
 #[repr(C)]
@@ -43,6 +44,20 @@ impl DCB {
         // unset bit 24 / TRCENA
         unsafe {
             self.demcr.modify(|w| w & !DCB_DEMCR_TRCENA);
+        }
+    }
+
+    /// Enables the [`DebugMonitor`](crate::peripheral::scb::Exception::DebugMonitor) exception
+    pub fn enable_debug_monitor(&mut self) {
+        unsafe {
+            self.demcr.modify(|w| w | DCB_DEMCR_MON_EN);
+        }
+    }
+
+    /// Disables the [`DebugMonitor`](crate::peripheral::scb::Exception::DebugMonitor) exception
+    pub fn disable_debug_monitor(&mut self) {
+        unsafe {
+            self.demcr.modify(|w| w & !DCB_DEMCR_MON_EN);
         }
     }
 

@@ -387,7 +387,7 @@ impl Comparator {
     /// Configure the function of the comparator
     #[allow(clippy::missing_inline_in_public_items)]
     pub fn configure(&self, settings: ComparatorFunction) -> Result<(), DwtError> {
-        let (func, emit, data_match, cyc_match, comp, mask) = match settings {
+        match settings {
             ComparatorFunction::Address(settings) => {
                 // FUNCTION, EMITRANGE
                 // See Table C1-14
@@ -411,50 +411,45 @@ impl Comparator {
                     (_, EmitOption::PC) => return Err(DwtError::InvalidFunction),
                 };
 
-                (
-                    function,
-                    emit_range,
-                    // don't compare data value
-                    false,
-                    // don't compare cycle counter value
-                    // NOTE: only needed for comparator 0, but is SBZP.
-                    false,
-                    settings.address,
-                    settings.mask,
-                )
+                unsafe {
+                    self.function.modify(|mut r| {
+                        r.set_function(function);
+                        r.set_emitrange(emit_range);
+                        // don't compare data value
+                        r.set_datavmatch(false);
+                        // don't compare cycle counter value
+                        // NOTE: only needed for comparator 0, but is SBZP.
+                        r.set_cycmatch(false);
+
+                        r
+                    });
+
+                    self.comp.write(settings.address);
+                    self.mask.write(settings.mask);
+                }
             }
             ComparatorFunction::CycleCount(settings) => {
-                (
-                    // emit a Debug Watchpoint event, either halting execution or
-                    // firing a `DebugMonitor` exception
-                    0b0111,
-                    // emit_range is N/A for cycle count compare
-                    false,
-                    // don't compare data
-                    false,
-                    // compare cyccnt
-                    true,
-                    settings.compare,
-                    settings.mask,
-                )
+                unsafe {
+                    self.function.modify(|mut r| {
+                        // emit a Debug Watchpoint event, either halting execution or
+                        // firing a `DebugMonitor` exception
+                        // See Table C1-15 DWT cycle count comparison functions
+                        r.set_function(0b0100);
+                        // emit_range is N/A for cycle count compare
+                        r.set_emitrange(false);
+                        // don't compare data
+                        r.set_datavmatch(false);
+                        // compare cyccnt
+                        r.set_cycmatch(true);
+                        r
+                    });
+
+                    self.comp.write(settings.compare);
+                    self.mask.write(settings.mask);
+                }
             }
-        };
-
-        unsafe {
-            self.function.modify(|mut r| {
-                r.set_function(func);
-                r.set_emitrange(emit);
-                r.set_datavmatch(data_match);
-
-                // NOTE: only valid for comparator 0, but is SBZP.
-                r.set_cycmatch(cyc_match);
-
-                r
-            });
-
-            self.comp.write(comp);
-            self.mask.write(mask);
         }
+
         Ok(())
     }
 }

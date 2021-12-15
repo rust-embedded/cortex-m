@@ -82,11 +82,17 @@ bitfield! {
     #[repr(C)]
     #[derive(Copy, Clone)]
     /// Comparator FUNCTIONn register.
+    ///
+    /// See C1.8.17 "Comparator Function registers, DWT_FUNCTIONn"
     pub struct Function(u32);
     u8, function, set_function: 3, 0;
     emitrange, set_emitrange: 5;
     cycmatch, set_cycmatch: 7;
     datavmatch, set_datavmatch: 8;
+    lnk1ena, set_lnk1ena: 9;
+    u8, datavsize, set_datavsize: 2, 10;
+    u8, datavaddr0, set_datavaddr0: 4, 12;
+    u8, datavaddr1, set_datavaddr1: 4, 16;
     matched, _: 24;
 }
 
@@ -372,8 +378,6 @@ pub struct CycleCountSettings {
     pub emit: EmitOption,
     /// The cycle count value to compare against.
     pub compare: u32,
-    /// The cycle count mask value to use.
-    pub mask: u32,
 }
 
 /// The available functions of a DWT comparator.
@@ -383,6 +387,8 @@ pub enum ComparatorFunction {
     /// Compare accessed memory addresses.
     Address(ComparatorAddressSettings),
     /// Compare cycle count  & target value.
+    ///
+    /// **NOTE**: only supported by comparator 0. See C1.8.1.
     CycleCount(CycleCountSettings),
 }
 
@@ -392,12 +398,14 @@ pub enum ComparatorFunction {
 pub enum DwtError {
     /// Invalid combination of [AccessType] and [EmitOption].
     InvalidFunction,
+    /// The DWT block does not implement cycle count capabilities.
+    NoCycleCount,
 }
 
 impl Comparator {
     /// Configure the function of the comparator
     #[allow(clippy::missing_inline_in_public_items)]
-    pub fn configure(&self, settings: ComparatorFunction) -> Result<(), DwtError> {
+    pub fn configure(&self, dwt: &DWT, settings: ComparatorFunction) -> Result<(), DwtError> {
         match settings {
             ComparatorFunction::Address(settings) => {
                 // FUNCTION, EMITRANGE
@@ -446,6 +454,10 @@ impl Comparator {
                 }
             }
             ComparatorFunction::CycleCount(settings) => {
+                if !dwt.has_cycle_counter() {
+                    return Err(DwtError::NoCycleCount);
+                }
+
                 let function = match &settings.emit {
                     EmitOption::PCData => 0b0001,
                     EmitOption::WatchpointDebugEvent => 0b0100,
@@ -462,11 +474,16 @@ impl Comparator {
                         r.set_datavmatch(false);
                         // compare cyccnt
                         r.set_cycmatch(true);
+                        // SBZ as needed, see Page 784/C1-724
+                        r.set_datavsize(0);
+                        r.set_datavaddr0(0);
+                        r.set_datavaddr1(0);
+
                         r
                     });
 
                     self.comp.write(settings.compare);
-                    self.mask.write(settings.mask);
+                    self.mask.write(0); // SBZ, see Page 784/C1-724
                 }
             }
         }

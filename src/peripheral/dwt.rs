@@ -120,10 +120,13 @@ impl DWT {
     }
 
     /// Returns `true` if the implementation supports a cycle counter
-    #[cfg(not(armv6m))]
     #[inline]
     pub fn has_cycle_counter(&self) -> bool {
-        !self.ctrl.read().nocyccnt()
+        #[cfg(not(armv6m))]
+        return !self.ctrl.read().nocyccnt();
+
+        #[cfg(armv6m)]
+        return false;
     }
 
     /// Returns `true` if the implementation the profiling counters

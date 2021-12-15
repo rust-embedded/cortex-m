@@ -90,9 +90,9 @@ bitfield! {
     cycmatch, set_cycmatch: 7;
     datavmatch, set_datavmatch: 8;
     lnk1ena, set_lnk1ena: 9;
-    u8, datavsize, set_datavsize: 2, 10;
-    u8, datavaddr0, set_datavaddr0: 4, 12;
-    u8, datavaddr1, set_datavaddr1: 4, 16;
+    u8, datavsize, set_datavsize: 11, 10;
+    u8, datavaddr0, set_datavaddr0: 15, 12;
+    u8, datavaddr1, set_datavaddr1: 19, 16;
     matched, _: 24;
 }
 
@@ -448,6 +448,10 @@ impl Comparator {
                         // don't compare cycle counter value
                         // NOTE: only needed for comparator 0, but is SBZP.
                         r.set_cycmatch(false);
+                        // SBZ as needed, see Page 784/C1-724
+                        r.set_datavsize(0);
+                        r.set_datavaddr0(0);
+                        r.set_datavaddr1(0);
 
                         r
                     });

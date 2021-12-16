@@ -392,7 +392,7 @@ pub enum ComparatorFunction {
     /// Compare cycle count & target value.
     ///
     /// **NOTE**: only supported by comparator 0 and if the HW supports the cycle counter.
-    /// Check `dwt.has_cycle_counter` for support. See C1.8.1 for more details.
+    /// Check [`DWT::has_cycle_counter`] for support. See C1.8.1 for more details.
     CycleCount(CycleCountSettings),
 }
 

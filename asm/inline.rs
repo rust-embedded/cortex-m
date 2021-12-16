@@ -215,6 +215,7 @@ pub unsafe fn __bootstrap(msp: u32, rv: u32) -> ! {
 pub use self::v7m::*;
 #[cfg(any(armv7m, armv8m_main))]
 mod v7m {
+    use core::arch::asm;
     use core::sync::atomic::{compiler_fence, Ordering};
 
     #[inline(always)]
@@ -284,6 +285,8 @@ mod v7m {
 pub use self::v7em::*;
 #[cfg(armv7em)]
 mod v7em {
+    use core::arch::asm;
+
     #[inline(always)]
     pub unsafe fn __basepri_max_cm7_r0p1(val: u8) {
         asm!(
@@ -320,6 +323,8 @@ pub use self::v8m::*;
 /// Baseline and Mainline.
 #[cfg(armv8m)]
 mod v8m {
+    use core::arch::asm;
+
     #[inline(always)]
     pub unsafe fn __tt(mut target: u32) -> u32 {
         asm!("tt {target}, {target}", target = inout(reg) target);
@@ -367,6 +372,8 @@ pub use self::v8m_main::*;
 /// Mainline only.
 #[cfg(armv8m_main)]
 mod v8m_main {
+    use core::arch::asm;
+
     #[inline(always)]
     pub unsafe fn __msplim_r() -> u32 {
         let r;
@@ -397,6 +404,8 @@ pub use self::fpu::*;
 /// All targets with FPU.
 #[cfg(has_fpu)]
 mod fpu {
+    use core::arch::asm;
+
     #[inline(always)]
     pub unsafe fn __fpscr_r() -> u32 {
         let r;

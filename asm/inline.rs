@@ -7,6 +7,7 @@
 //! applicable.
 
 use core::sync::atomic::{compiler_fence, Ordering};
+use core::arch::asm;
 
 #[inline(always)]
 pub unsafe fn __bkpt() {

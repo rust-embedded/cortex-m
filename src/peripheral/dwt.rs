@@ -389,9 +389,10 @@ pub struct CycleCountSettings {
 pub enum ComparatorFunction {
     /// Compare accessed memory addresses.
     Address(ComparatorAddressSettings),
-    /// Compare cycle count  & target value.
+    /// Compare cycle count & target value.
     ///
-    /// **NOTE**: only supported by comparator 0. See C1.8.1.
+    /// **NOTE**: only supported by comparator 0 and if the HW supports the cycle counter.
+    /// Check `dwt.has_cycle_counter` for support. See C1.8.1 for more details.
     CycleCount(CycleCountSettings),
 }
 
@@ -408,7 +409,7 @@ pub enum DwtError {
 impl Comparator {
     /// Configure the function of the comparator
     #[allow(clippy::missing_inline_in_public_items)]
-    pub fn configure(&self, dwt: &DWT, settings: ComparatorFunction) -> Result<(), DwtError> {
+    pub fn configure(&self, settings: ComparatorFunction) -> Result<(), DwtError> {
         match settings {
             ComparatorFunction::Address(settings) => {
                 // FUNCTION, EMITRANGE
@@ -461,10 +462,6 @@ impl Comparator {
                 }
             }
             ComparatorFunction::CycleCount(settings) => {
-                if !dwt.has_cycle_counter() {
-                    return Err(DwtError::NoCycleCount);
-                }
-
                 let function = match &settings.emit {
                     EmitOption::PCData => 0b0001,
                     EmitOption::WatchpointDebugEvent => 0b0100,

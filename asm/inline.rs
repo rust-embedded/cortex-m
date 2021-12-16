@@ -6,8 +6,8 @@
 //! All of these functions should be blanket-`unsafe`. `cortex-m` provides safe wrappers where
 //! applicable.
 
-use core::sync::atomic::{compiler_fence, Ordering};
 use core::arch::asm;
+use core::sync::atomic::{compiler_fence, Ordering};
 
 #[inline(always)]
 pub unsafe fn __bkpt() {

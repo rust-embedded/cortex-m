@@ -402,8 +402,6 @@ pub enum ComparatorFunction {
 pub enum DwtError {
     /// Invalid combination of [AccessType] and [EmitOption].
     InvalidFunction,
-    /// The DWT block does not implement cycle count capabilities.
-    NoCycleCount,
 }
 
 impl Comparator {

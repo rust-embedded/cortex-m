@@ -11,7 +11,7 @@ use core::sync::atomic::{compiler_fence, Ordering};
 
 #[inline(always)]
 pub unsafe fn __bkpt() {
-    asm!("bkpt");
+    asm!("bkpt", options(nostack));
 }
 
 #[inline(always)]

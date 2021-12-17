@@ -7,7 +7,9 @@ fn main() {
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
     let name = env::var("CARGO_PKG_NAME").unwrap();
 
-    let native_compilation = host_triple == target;
+    if host_triple == target {
+        println!("cargo:rustc-cfg=native");
+    }
 
     if target.starts_with("thumb") {
         let suffix = if env::var_os("CARGO_FEATURE_LINKER_PLUGIN_LTO").is_some() {
@@ -46,7 +48,7 @@ fn main() {
         println!("cargo:rustc-cfg=armv8m_main");
     }
 
-    if native_compilation {
-        println!("cargo:rustc-cfg=native");
+    if target.ends_with("-eabihf") {
+        println!("cargo:rustc-cfg=has_fpu");
     }
 }

@@ -170,9 +170,10 @@ impl SCB {
     /// Returns the active exception number
     #[inline]
     pub fn vect_active() -> VectActive {
-        let icsr = unsafe { ptr::read(&(*SCB::ptr()).icsr as *const _ as *const u32) };
+        let icsr =
+            unsafe { ptr::read_volatile(&(*SCB::ptr()).icsr as *const _ as *const u32) } & 0x1FF;
 
-        match icsr as u8 {
+        match icsr as u16 {
             0 => VectActive::ThreadMode,
             2 => VectActive::Exception(Exception::NonMaskableInt),
             3 => VectActive::Exception(Exception::HardFault),
@@ -274,15 +275,15 @@ pub enum VectActive {
 
     /// Device specific exception (external interrupts)
     Interrupt {
-        /// Interrupt number. This number is always within half open range `[0, 240)`
-        irqn: u8,
+        /// Interrupt number. This number is always within half open range `[0, 512)` (9 bit)
+        irqn: u16,
     },
 }
 
 impl VectActive {
-    /// Converts a `byte` into `VectActive`
+    /// Converts a vector number into `VectActive`
     #[inline]
-    pub fn from(vect_active: u8) -> Option<Self> {
+    pub fn from(vect_active: u16) -> Option<Self> {
         Some(match vect_active {
             0 => VectActive::ThreadMode,
             2 => VectActive::Exception(Exception::NonMaskableInt),
@@ -300,7 +301,7 @@ impl VectActive {
             12 => VectActive::Exception(Exception::DebugMonitor),
             14 => VectActive::Exception(Exception::PendSV),
             15 => VectActive::Exception(Exception::SysTick),
-            irqn if irqn >= 16 => VectActive::Interrupt { irqn },
+            irqn if irqn >= 16 && irqn < 512 => VectActive::Interrupt { irqn: irqn - 16 },
             _ => return None,
         })
     }

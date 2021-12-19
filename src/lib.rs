@@ -76,6 +76,8 @@
 //  - A generated #[derive(Debug)] function (in which case the attribute needs
 //    to be applied to the struct).
 #![deny(clippy::missing_inline_in_public_items)]
+// Don't warn about feature(asm) being stable on Rust >= 1.59.0
+#![allow(stable_features)]
 
 extern crate bare_metal;
 extern crate volatile_register;

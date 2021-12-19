@@ -6,17 +6,18 @@
 //! All of these functions should be blanket-`unsafe`. `cortex-m` provides safe wrappers where
 //! applicable.
 
+use core::arch::asm;
 use core::sync::atomic::{compiler_fence, Ordering};
 
 #[inline(always)]
 pub unsafe fn __bkpt() {
-    asm!("bkpt");
+    asm!("bkpt", options(nomem, nostack, preserves_flags));
 }
 
 #[inline(always)]
 pub unsafe fn __control_r() -> u32 {
     let r;
-    asm!("mrs {}, CONTROL", out(reg) r);
+    asm!("mrs {}, CONTROL", out(reg) r, options(nomem, nostack, preserves_flags));
     r
 }
 
@@ -27,7 +28,8 @@ pub unsafe fn __control_w(w: u32) {
     asm!(
         "msr CONTROL, {}",
         "isb",
-        in(reg) w
+        in(reg) w,
+        options(nomem, nostack, preserves_flags),
     );
 
     // Ensure memory accesses are not reordered around the CONTROL update.
@@ -36,7 +38,7 @@ pub unsafe fn __control_w(w: u32) {
 
 #[inline(always)]
 pub unsafe fn __cpsid() {
-    asm!("cpsid i");
+    asm!("cpsid i", options(nomem, nostack, preserves_flags));
 
     // Ensure no subsequent memory accesses are reordered to before interrupts are disabled.
     compiler_fence(Ordering::SeqCst);
@@ -47,7 +49,7 @@ pub unsafe fn __cpsie() {
     // Ensure no preceeding memory accesses are reordered to after interrupts are enabled.
     compiler_fence(Ordering::SeqCst);
 
-    asm!("cpsie i");
+    asm!("cpsie i", options(nomem, nostack, preserves_flags));
 }
 
 #[inline(always)]
@@ -62,48 +64,53 @@ pub unsafe fn __delay(cyc: u32) {
         "1:",
         "subs {}, #1",
         "bne 1b",
-        inout(reg) real_cyc => _
+        inout(reg) real_cyc => _,
+        options(nomem, nostack),
     );
 }
 
 #[inline(always)]
 pub unsafe fn __dmb() {
     compiler_fence(Ordering::SeqCst);
-    asm!("dmb");
+    asm!("dmb", options(nomem, nostack, preserves_flags));
     compiler_fence(Ordering::SeqCst);
 }
 
 #[inline(always)]
 pub unsafe fn __dsb() {
     compiler_fence(Ordering::SeqCst);
-    asm!("dsb");
+    asm!("dsb", options(nomem, nostack, preserves_flags));
     compiler_fence(Ordering::SeqCst);
 }
 
 #[inline(always)]
 pub unsafe fn __isb() {
     compiler_fence(Ordering::SeqCst);
-    asm!("isb");
+    asm!("isb", options(nomem, nostack, preserves_flags));
     compiler_fence(Ordering::SeqCst);
 }
 
 #[inline(always)]
 pub unsafe fn __msp_r() -> u32 {
     let r;
-    asm!("mrs {}, MSP", out(reg) r);
+    asm!("mrs {}, MSP", out(reg) r, options(nomem, nostack, preserves_flags));
     r
 }
 
 #[inline(always)]
 pub unsafe fn __msp_w(val: u32) {
-    asm!("msr MSP, {}", in(reg) val);
+    // Technically is writing to the stack pointer "not pushing any data to the stack"?
+    // In any event, if we don't set `nostack` here, this method is useless as the new
+    // stack value is immediately mutated by returning. Really this is just not a good
+    // method and its higher-level use is marked as deprecated in cortex-m.
+    asm!("msr MSP, {}", in(reg) val, options(nomem, nostack, preserves_flags));
 }
 
 // NOTE: No FFI shim, this requires inline asm.
 #[inline(always)]
 pub unsafe fn __apsr_r() -> u32 {
     let r;
-    asm!("mrs {}, APSR", out(reg) r);
+    asm!("mrs {}, APSR", out(reg) r, options(nomem, nostack, preserves_flags));
     r
 }
 
@@ -112,80 +119,82 @@ pub unsafe fn __nop() {
     // NOTE: This is a `pure` asm block, but applying that option allows the compiler to eliminate
     // the nop entirely (or to collapse multiple subsequent ones). Since the user probably wants N
     // nops when they call `nop` N times, let's not add that option.
-    asm!("nop");
+    asm!("nop", options(nomem, nostack, preserves_flags));
 }
 
 // NOTE: No FFI shim, this requires inline asm.
 #[inline(always)]
 pub unsafe fn __pc_r() -> u32 {
     let r;
-    asm!("mov {}, pc", out(reg) r);
+    asm!("mov {}, pc", out(reg) r, options(nomem, nostack, preserves_flags));
     r
 }
 
 // NOTE: No FFI shim, this requires inline asm.
 #[inline(always)]
 pub unsafe fn __pc_w(val: u32) {
-    asm!("mov pc, {}", in(reg) val);
+    asm!("mov pc, {}", in(reg) val, options(nomem, nostack, preserves_flags));
 }
 
 // NOTE: No FFI shim, this requires inline asm.
 #[inline(always)]
 pub unsafe fn __lr_r() -> u32 {
     let r;
-    asm!("mov {}, lr", out(reg) r);
+    asm!("mov {}, lr", out(reg) r, options(nomem, nostack, preserves_flags));
     r
 }
 
 // NOTE: No FFI shim, this requires inline asm.
 #[inline(always)]
 pub unsafe fn __lr_w(val: u32) {
-    asm!("mov lr, {}", in(reg) val);
+    asm!("mov lr, {}", in(reg) val, options(nomem, nostack, preserves_flags));
 }
 
 #[inline(always)]
 pub unsafe fn __primask_r() -> u32 {
     let r;
-    asm!("mrs {}, PRIMASK", out(reg) r);
+    asm!("mrs {}, PRIMASK", out(reg) r, options(nomem, nostack, preserves_flags));
     r
 }
 
 #[inline(always)]
 pub unsafe fn __psp_r() -> u32 {
     let r;
-    asm!("mrs {}, PSP", out(reg) r);
+    asm!("mrs {}, PSP", out(reg) r, options(nomem, nostack, preserves_flags));
     r
 }
 
 #[inline(always)]
 pub unsafe fn __psp_w(val: u32) {
-    asm!("msr PSP, {}", in(reg) val);
+    // See comment on __msp_w. Unlike MSP, there are legitimate use-cases for modifying PSP
+    // if MSP is currently being used as the stack pointer.
+    asm!("msr PSP, {}", in(reg) val, options(nomem, nostack, preserves_flags));
 }
 
 #[inline(always)]
 pub unsafe fn __sev() {
-    asm!("sev");
+    asm!("sev", options(nomem, nostack, preserves_flags));
 }
 
 #[inline(always)]
 pub unsafe fn __udf() -> ! {
-    asm!("udf #0", options(noreturn));
+    asm!("udf #0", options(noreturn, nomem, nostack, preserves_flags));
 }
 
 #[inline(always)]
 pub unsafe fn __wfe() {
-    asm!("wfe");
+    asm!("wfe", options(nomem, nostack, preserves_flags));
 }
 
 #[inline(always)]
 pub unsafe fn __wfi() {
-    asm!("wfi");
+    asm!("wfi", options(nomem, nostack, preserves_flags));
 }
 
 /// Semihosting syscall.
 #[inline(always)]
 pub unsafe fn __sh_syscall(mut nr: u32, arg: u32) -> u32 {
-    asm!("bkpt #0xab", inout("r0") nr, in("r1") arg);
+    asm!("bkpt #0xab", inout("r0") nr, in("r1") arg, options(nomem, nostack, preserves_flags));
     nr
 }
 
@@ -205,7 +214,7 @@ pub unsafe fn __bootstrap(msp: u32, rv: u32) -> ! {
         spsel = in(reg) 2,
         msp = in(reg) msp,
         rv = in(reg) rv,
-        options(noreturn),
+        options(noreturn, nomem, nostack),
     );
 }
 
@@ -214,29 +223,30 @@ pub unsafe fn __bootstrap(msp: u32, rv: u32) -> ! {
 pub use self::v7m::*;
 #[cfg(any(armv7m, armv8m_main))]
 mod v7m {
+    use core::arch::asm;
     use core::sync::atomic::{compiler_fence, Ordering};
 
     #[inline(always)]
     pub unsafe fn __basepri_max(val: u8) {
-        asm!("msr BASEPRI_MAX, {}", in(reg) val);
+        asm!("msr BASEPRI_MAX, {}", in(reg) val, options(nomem, nostack, preserves_flags));
     }
 
     #[inline(always)]
     pub unsafe fn __basepri_r() -> u8 {
         let r;
-        asm!("mrs {}, BASEPRI", out(reg) r);
+        asm!("mrs {}, BASEPRI", out(reg) r, options(nomem, nostack, preserves_flags));
         r
     }
 
     #[inline(always)]
     pub unsafe fn __basepri_w(val: u8) {
-        asm!("msr BASEPRI, {}", in(reg) val);
+        asm!("msr BASEPRI, {}", in(reg) val, options(nomem, nostack, preserves_flags));
     }
 
     #[inline(always)]
     pub unsafe fn __faultmask_r() -> u32 {
         let r;
-        asm!("mrs {}, FAULTMASK", out(reg) r);
+        asm!("mrs {}, FAULTMASK", out(reg) r, options(nomem, nostack, preserves_flags));
         r
     }
 
@@ -255,6 +265,7 @@ mod v7m {
             out(reg) _,
             out(reg) _,
             out(reg) _,
+            options(nostack),
         );
         compiler_fence(Ordering::SeqCst);
     }
@@ -274,6 +285,7 @@ mod v7m {
             out(reg) _,
             out(reg) _,
             out(reg) _,
+            options(nostack),
         );
         compiler_fence(Ordering::SeqCst);
     }
@@ -283,6 +295,8 @@ mod v7m {
 pub use self::v7em::*;
 #[cfg(armv7em)]
 mod v7em {
+    use core::arch::asm;
+
     #[inline(always)]
     pub unsafe fn __basepri_max_cm7_r0p1(val: u8) {
         asm!(
@@ -295,6 +309,7 @@ mod v7em {
             "cpsie i",
             in(reg) val,
             out(reg) _,
+            options(nomem, nostack, preserves_flags),
         );
     }
 
@@ -310,6 +325,7 @@ mod v7em {
             "cpsie i",
             in(reg) val,
             out(reg) _,
+            options(nomem, nostack, preserves_flags),
         );
     }
 }
@@ -319,45 +335,63 @@ pub use self::v8m::*;
 /// Baseline and Mainline.
 #[cfg(armv8m)]
 mod v8m {
+    use core::arch::asm;
+
     #[inline(always)]
     pub unsafe fn __tt(mut target: u32) -> u32 {
-        asm!("tt {target}, {target}", target = inout(reg) target);
+        asm!(
+            "tt {target}, {target}",
+            target = inout(reg) target,
+            options(nomem, nostack, preserves_flags),
+        );
         target
     }
 
     #[inline(always)]
     pub unsafe fn __ttt(mut target: u32) -> u32 {
-        asm!("ttt {target}, {target}", target = inout(reg) target);
+        asm!(
+            "ttt {target}, {target}",
+            target = inout(reg) target,
+            options(nomem, nostack, preserves_flags),
+        );
         target
     }
 
     #[inline(always)]
     pub unsafe fn __tta(mut target: u32) -> u32 {
-        asm!("tta {target}, {target}", target = inout(reg) target);
+        asm!(
+            "tta {target}, {target}",
+            target = inout(reg) target,
+            options(nomem, nostack, preserves_flags),
+        );
         target
     }
 
     #[inline(always)]
     pub unsafe fn __ttat(mut target: u32) -> u32 {
-        asm!("ttat {target}, {target}", target = inout(reg) target);
+        asm!(
+            "ttat {target}, {target}",
+            target = inout(reg) target,
+            options(nomem, nostack, preserves_flags),
+        );
         target
     }
 
     #[inline(always)]
     pub unsafe fn __msp_ns_r() -> u32 {
         let r;
-        asm!("mrs {}, MSP_NS", out(reg) r);
+        asm!("mrs {}, MSP_NS", out(reg) r, options(nomem, nostack, preserves_flags));
         r
     }
 
     #[inline(always)]
     pub unsafe fn __msp_ns_w(val: u32) {
-        asm!("msr MSP_NS, {}", in(reg) val);
+        asm!("msr MSP_NS, {}", in(reg) val, options(nomem, nostack, preserves_flags));
     }
 
     #[inline(always)]
     pub unsafe fn __bxns(val: u32) {
-        asm!("BXNS {}", in(reg) val);
+        asm!("BXNS {}", in(reg) val, options(nomem, nostack, preserves_flags));
     }
 }
 
@@ -366,28 +400,30 @@ pub use self::v8m_main::*;
 /// Mainline only.
 #[cfg(armv8m_main)]
 mod v8m_main {
+    use core::arch::asm;
+
     #[inline(always)]
     pub unsafe fn __msplim_r() -> u32 {
         let r;
-        asm!("mrs {}, MSPLIM", out(reg) r);
+        asm!("mrs {}, MSPLIM", out(reg) r, options(nomem, nostack, preserves_flags));
         r
     }
 
     #[inline(always)]
     pub unsafe fn __msplim_w(val: u32) {
-        asm!("msr MSPLIM, {}", in(reg) val);
+        asm!("msr MSPLIM, {}", in(reg) val, options(nomem, nostack, preserves_flags));
     }
 
     #[inline(always)]
     pub unsafe fn __psplim_r() -> u32 {
         let r;
-        asm!("mrs {}, PSPLIM", out(reg) r);
+        asm!("mrs {}, PSPLIM", out(reg) r, options(nomem, nostack, preserves_flags));
         r
     }
 
     #[inline(always)]
     pub unsafe fn __psplim_w(val: u32) {
-        asm!("msr PSPLIM, {}", in(reg) val);
+        asm!("msr PSPLIM, {}", in(reg) val, options(nomem, nostack, preserves_flags));
     }
 }
 
@@ -396,15 +432,17 @@ pub use self::fpu::*;
 /// All targets with FPU.
 #[cfg(has_fpu)]
 mod fpu {
+    use core::arch::asm;
+
     #[inline(always)]
     pub unsafe fn __fpscr_r() -> u32 {
         let r;
-        asm!("vmrs {}, fpscr", out(reg) r);
+        asm!("vmrs {}, fpscr", out(reg) r, options(nomem, nostack, preserves_flags));
         r
     }
 
     #[inline(always)]
     pub unsafe fn __fpscr_w(val: u32) {
-        asm!("vmsr fpscr, {}", in(reg) val);
+        asm!("vmsr fpscr, {}", in(reg) val, options(nomem, nostack));
     }
 }

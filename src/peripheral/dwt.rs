@@ -82,11 +82,17 @@ bitfield! {
     #[repr(C)]
     #[derive(Copy, Clone)]
     /// Comparator FUNCTIONn register.
+    ///
+    /// See C1.8.17 "Comparator Function registers, DWT_FUNCTIONn"
     pub struct Function(u32);
     u8, function, set_function: 3, 0;
     emitrange, set_emitrange: 5;
     cycmatch, set_cycmatch: 7;
     datavmatch, set_datavmatch: 8;
+    lnk1ena, set_lnk1ena: 9;
+    u8, datavsize, set_datavsize: 11, 10;
+    u8, datavaddr0, set_datavaddr0: 15, 12;
+    u8, datavaddr1, set_datavaddr1: 19, 16;
     matched, _: 24;
 }
 
@@ -114,10 +120,13 @@ impl DWT {
     }
 
     /// Returns `true` if the implementation supports a cycle counter
-    #[cfg(not(armv6m))]
     #[inline]
     pub fn has_cycle_counter(&self) -> bool {
-        !self.ctrl.read().nocyccnt()
+        #[cfg(not(armv6m))]
+        return !self.ctrl.read().nocyccnt();
+
+        #[cfg(armv6m)]
+        return false;
     }
 
     /// Returns `true` if the implementation the profiling counters
@@ -318,15 +327,15 @@ impl DWT {
 /// Whether the comparator should match on read, write or read/write operations.
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum AccessType {
-    /// Generate packet only when matched adress is read from.
+    /// Generate packet only when matched address is read from.
     ReadOnly,
-    /// Generate packet only when matched adress is written to.
+    /// Generate packet only when matched address is written to.
     WriteOnly,
-    /// Generate packet when matched adress is both read from and written to.
+    /// Generate packet when matched address is both read from and written to.
     ReadWrite,
 }
 
-/// The sequence of packet(s) that should be emitted on comparator match.
+/// The sequence of packet(s) or events that should be emitted/generated on comparator match.
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum EmitOption {
     /// Emit only trace data value packet.
@@ -341,6 +350,14 @@ pub enum EmitOption {
     AddressData,
     /// Emit trace PC value and data value packets.
     PCData,
+    /// Generate a watchpoint debug event. Either halts execution or fires a `DebugMonitor` exception.
+    ///
+    /// See more in section "Watchpoint debug event generation" page C1-729.
+    WatchpointDebugEvent,
+    /// Generate a `CMPMATCH[N]` event.
+    ///
+    /// See more in section "CMPMATCH[N] event generation" page C1-730.
+    CompareMatchEvent,
 }
 
 /// Settings for address matching
@@ -356,12 +373,27 @@ pub struct ComparatorAddressSettings {
     pub access_type: AccessType,
 }
 
+/// Settings for cycle count matching
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+pub struct CycleCountSettings {
+    /// The function selection used.
+    /// See Table C1-15 for DWT cycle count comparison functions.
+    pub emit: EmitOption,
+    /// The cycle count value to compare against.
+    pub compare: u32,
+}
+
 /// The available functions of a DWT comparator.
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 #[non_exhaustive]
 pub enum ComparatorFunction {
     /// Compare accessed memory addresses.
     Address(ComparatorAddressSettings),
+    /// Compare cycle count & target value.
+    ///
+    /// **NOTE**: only supported by comparator 0 and if the HW supports the cycle counter.
+    /// Check [`DWT::has_cycle_counter`] for support. See C1.8.1 for more details.
+    CycleCount(CycleCountSettings),
 }
 
 /// Possible error values returned on [Comparator::configure].
@@ -377,7 +409,7 @@ impl Comparator {
     #[allow(clippy::missing_inline_in_public_items)]
     pub fn configure(&self, settings: ComparatorFunction) -> Result<(), DwtError> {
         match settings {
-            ComparatorFunction::Address(settings) => unsafe {
+            ComparatorFunction::Address(settings) => {
                 // FUNCTION, EMITRANGE
                 // See Table C1-14
                 let (function, emit_range) = match (&settings.access_type, &settings.emit) {
@@ -385,38 +417,77 @@ impl Comparator {
                     (AccessType::ReadOnly, EmitOption::Address) => (0b1100, true),
                     (AccessType::ReadOnly, EmitOption::AddressData) => (0b1110, true),
                     (AccessType::ReadOnly, EmitOption::PCData) => (0b1110, false),
+                    (AccessType::ReadOnly, EmitOption::WatchpointDebugEvent) => (0b0101, false),
+                    (AccessType::ReadOnly, EmitOption::CompareMatchEvent) => (0b1001, false),
 
                     (AccessType::WriteOnly, EmitOption::Data) => (0b1101, false),
                     (AccessType::WriteOnly, EmitOption::Address) => (0b1101, true),
                     (AccessType::WriteOnly, EmitOption::AddressData) => (0b1111, true),
                     (AccessType::WriteOnly, EmitOption::PCData) => (0b1111, false),
+                    (AccessType::WriteOnly, EmitOption::WatchpointDebugEvent) => (0b0110, false),
+                    (AccessType::WriteOnly, EmitOption::CompareMatchEvent) => (0b1010, false),
 
                     (AccessType::ReadWrite, EmitOption::Data) => (0b0010, false),
                     (AccessType::ReadWrite, EmitOption::Address) => (0b0001, true),
                     (AccessType::ReadWrite, EmitOption::AddressData) => (0b0010, true),
                     (AccessType::ReadWrite, EmitOption::PCData) => (0b0011, false),
+                    (AccessType::ReadWrite, EmitOption::WatchpointDebugEvent) => (0b0111, false),
+                    (AccessType::ReadWrite, EmitOption::CompareMatchEvent) => (0b1011, false),
 
                     (AccessType::ReadWrite, EmitOption::PC) => (0b0001, false),
                     (_, EmitOption::PC) => return Err(DwtError::InvalidFunction),
                 };
 
-                self.function.modify(|mut r| {
-                    r.set_function(function);
-                    r.set_emitrange(emit_range);
+                unsafe {
+                    self.function.modify(|mut r| {
+                        r.set_function(function);
+                        r.set_emitrange(emit_range);
+                        // don't compare data value
+                        r.set_datavmatch(false);
+                        // don't compare cycle counter value
+                        // NOTE: only needed for comparator 0, but is SBZP.
+                        r.set_cycmatch(false);
+                        // SBZ as needed, see Page 784/C1-724
+                        r.set_datavsize(0);
+                        r.set_datavaddr0(0);
+                        r.set_datavaddr1(0);
 
-                    // don't compare data value
-                    r.set_datavmatch(false);
+                        r
+                    });
 
-                    // don't compare cycle counter value
-                    // NOTE: only needed for comparator 0, but is SBZP.
-                    r.set_cycmatch(false);
+                    self.comp.write(settings.address);
+                    self.mask.write(settings.mask);
+                }
+            }
+            ComparatorFunction::CycleCount(settings) => {
+                let function = match &settings.emit {
+                    EmitOption::PCData => 0b0001,
+                    EmitOption::WatchpointDebugEvent => 0b0100,
+                    EmitOption::CompareMatchEvent => 0b1000,
+                    _ => return Err(DwtError::InvalidFunction),
+                };
 
-                    r
-                });
+                unsafe {
+                    self.function.modify(|mut r| {
+                        r.set_function(function);
+                        // emit_range is N/A for cycle count compare
+                        r.set_emitrange(false);
+                        // don't compare data
+                        r.set_datavmatch(false);
+                        // compare cyccnt
+                        r.set_cycmatch(true);
+                        // SBZ as needed, see Page 784/C1-724
+                        r.set_datavsize(0);
+                        r.set_datavaddr0(0);
+                        r.set_datavaddr1(0);
 
-                self.comp.write(settings.address);
-                self.mask.write(settings.mask);
-            },
+                        r
+                    });
+
+                    self.comp.write(settings.compare);
+                    self.mask.write(0); // SBZ, see Page 784/C1-724
+                }
+            }
         }
 
         Ok(())

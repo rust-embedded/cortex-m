@@ -30,6 +30,9 @@ macro_rules! iprintln {
 /// `None` variant the caller must ensure that the macro is called from a function that's executed
 /// at most once in the whole lifetime of the program.
 ///
+/// # Note
+/// This macro is unsound on multi core systems.
+///
 /// # Example
 ///
 /// ``` no_run

@@ -208,3 +208,24 @@ pub fn check_blobs() {
 
     println!("Blobs identical.");
 }
+
+// Check that serde and PartialOrd works with VectActive
+pub fn check_host_side() {
+    use cortex_m::peripheral::scb::VectActive;
+
+    // check serde
+    {
+        let v = VectActive::from(22).unwrap();
+        let json = serde_json::to_string(&v).expect("Failed to serialize VectActive");
+        let deser_v: VectActive =
+            serde_json::from_str(&json).expect("Failed to deserialize VectActive");
+        assert_eq!(deser_v, v);
+    }
+
+    // check PartialOrd
+    {
+        let a = VectActive::from(19).unwrap();
+        let b = VectActive::from(20).unwrap();
+        assert_eq!(a < b, true);
+    }
+}

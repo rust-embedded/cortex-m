@@ -52,7 +52,7 @@
 //!
 //! # Minimum Supported Rust Version (MSRV)
 //!
-//! This crate is guaranteed to compile on stable Rust 1.38 and up. It *might*
+//! This crate is guaranteed to compile on stable Rust 1.40 and up. It *might*
 //! compile with older versions but that may change in any new patch release.
 
 #![cfg_attr(feature = "inline-asm", feature(asm))]
@@ -76,6 +76,8 @@
 //  - A generated #[derive(Debug)] function (in which case the attribute needs
 //    to be applied to the struct).
 #![deny(clippy::missing_inline_in_public_items)]
+// Don't warn about feature(asm) being stable on Rust >= 1.59.0
+#![allow(stable_features)]
 
 extern crate bare_metal;
 extern crate volatile_register;

@@ -10,7 +10,7 @@
 //! ``` no_run
 //! # use cortex_m::peripheral::Peripherals;
 //! let mut peripherals = Peripherals::take().unwrap();
-//! peripherals.DWT.enable_cycle_counter();
+//! peripherals.DCB.enable_trace();
 //! ```
 //!
 //! This method can only be successfully called *once* -- this is why the method returns an
@@ -29,6 +29,7 @@
 //! # use cortex_m::peripheral::{DWT, Peripherals};
 //! {
 //!     let mut peripherals = Peripherals::take().unwrap();
+//!     peripherals.DCB.enable_trace();
 //!     peripherals.DWT.enable_cycle_counter();
 //! } // all the peripheral singletons are destroyed here
 //!
@@ -44,6 +45,7 @@
 //! # use cortex_m::peripheral::{DWT, Peripherals};
 //! {
 //!     let mut peripherals = Peripherals::take().unwrap();
+//!     peripherals.DCB.enable_trace();
 //!     peripherals.DWT.enable_cycle_counter();
 //! } // all the peripheral singletons are destroyed here
 //!
@@ -60,6 +62,8 @@ use core::ops;
 
 use crate::interrupt;
 
+#[cfg(cm7)]
+pub mod ac;
 #[cfg(not(armv6m))]
 pub mod cbp;
 pub mod cpuid;
@@ -67,8 +71,8 @@ pub mod dcb;
 pub mod dwt;
 #[cfg(not(armv6m))]
 pub mod fpb;
-// NOTE(target_arch) is for documentation purposes
-#[cfg(any(has_fpu, target_arch = "x86_64"))]
+// NOTE(native) is for documentation purposes
+#[cfg(any(has_fpu, native))]
 pub mod fpu;
 pub mod icb;
 #[cfg(all(not(armv6m), not(armv8m_base)))]
@@ -91,6 +95,10 @@ mod test;
 #[allow(non_snake_case)]
 #[allow(clippy::manual_non_exhaustive)]
 pub struct Peripherals {
+    /// Cortex-M7 TCM and cache access control.
+    #[cfg(cm7)]
+    pub AC: AC,
+
     /// Cache and branch predictor maintenance operations.
     /// Not available on Armv6-M.
     pub CBP: CBP,
@@ -172,6 +180,10 @@ impl Peripherals {
         TAKEN = true;
 
         Peripherals {
+            #[cfg(cm7)]
+            AC: AC {
+                _marker: PhantomData,
+            },
             CBP: CBP {
                 _marker: PhantomData,
             },
@@ -219,7 +231,29 @@ impl Peripherals {
     }
 }
 
+/// Access control
+#[cfg(cm7)]
+pub struct AC {
+    _marker: PhantomData<*const ()>,
+}
+
+#[cfg(cm7)]
+unsafe impl Send for AC {}
+
+#[cfg(cm7)]
+impl AC {
+    /// Pointer to the register block
+    pub const PTR: *const self::ac::RegisterBlock = 0xE000_EF90 as *const _;
+
+    /// Returns a pointer to the register block (to be deprecated in 0.7)
+    #[inline(always)]
+    pub const fn ptr() -> *const self::ac::RegisterBlock {
+        Self::PTR
+    }
+}
+
 /// Cache and branch predictor maintenance operations
+#[allow(clippy::upper_case_acronyms)]
 pub struct CBP {
     _marker: PhantomData<*const ()>,
 }
@@ -256,6 +290,7 @@ impl ops::Deref for CBP {
 }
 
 /// CPUID
+#[allow(clippy::upper_case_acronyms)]
 pub struct CPUID {
     _marker: PhantomData<*const ()>,
 }
@@ -283,6 +318,7 @@ impl ops::Deref for CPUID {
 }
 
 /// Debug Control Block
+#[allow(clippy::upper_case_acronyms)]
 pub struct DCB {
     _marker: PhantomData<*const ()>,
 }
@@ -310,6 +346,7 @@ impl ops::Deref for DCB {
 }
 
 /// Data Watchpoint and Trace unit
+#[allow(clippy::upper_case_acronyms)]
 pub struct DWT {
     _marker: PhantomData<*const ()>,
 }
@@ -337,6 +374,7 @@ impl ops::Deref for DWT {
 }
 
 /// Flash Patch and Breakpoint unit
+#[allow(clippy::upper_case_acronyms)]
 pub struct FPB {
     _marker: PhantomData<*const ()>,
 }
@@ -366,13 +404,14 @@ impl ops::Deref for FPB {
 }
 
 /// Floating Point Unit
+#[allow(clippy::upper_case_acronyms)]
 pub struct FPU {
     _marker: PhantomData<*const ()>,
 }
 
 unsafe impl Send for FPU {}
 
-#[cfg(any(has_fpu, target_arch = "x86_64"))]
+#[cfg(any(has_fpu, native))]
 impl FPU {
     /// Pointer to the register block
     pub const PTR: *const fpu::RegisterBlock = 0xE000_EF30 as *const _;
@@ -384,7 +423,7 @@ impl FPU {
     }
 }
 
-#[cfg(any(has_fpu, target_arch = "x86_64"))]
+#[cfg(any(has_fpu, native))]
 impl ops::Deref for FPU {
     type Target = self::fpu::RegisterBlock;
 
@@ -400,6 +439,7 @@ impl ops::Deref for FPU {
 /// `actlr`. It's called the "implementation control block" in the ARMv8-M
 /// standard, but earlier standards contained the registers, just without a
 /// name.
+#[allow(clippy::upper_case_acronyms)]
 pub struct ICB {
     _marker: PhantomData<*const ()>,
 }
@@ -434,6 +474,7 @@ impl ops::DerefMut for ICB {
 }
 
 /// Instrumentation Trace Macrocell
+#[allow(clippy::upper_case_acronyms)]
 pub struct ITM {
     _marker: PhantomData<*const ()>,
 }
@@ -471,6 +512,7 @@ impl ops::DerefMut for ITM {
 }
 
 /// Memory Protection Unit
+#[allow(clippy::upper_case_acronyms)]
 pub struct MPU {
     _marker: PhantomData<*const ()>,
 }
@@ -498,6 +540,7 @@ impl ops::Deref for MPU {
 }
 
 /// Nested Vector Interrupt Controller
+#[allow(clippy::upper_case_acronyms)]
 pub struct NVIC {
     _marker: PhantomData<*const ()>,
 }
@@ -525,6 +568,7 @@ impl ops::Deref for NVIC {
 }
 
 /// Security Attribution Unit
+#[allow(clippy::upper_case_acronyms)]
 pub struct SAU {
     _marker: PhantomData<*const ()>,
 }
@@ -554,6 +598,7 @@ impl ops::Deref for SAU {
 }
 
 /// System Control Block
+#[allow(clippy::upper_case_acronyms)]
 pub struct SCB {
     _marker: PhantomData<*const ()>,
 }
@@ -581,6 +626,7 @@ impl ops::Deref for SCB {
 }
 
 /// SysTick: System Timer
+#[allow(clippy::upper_case_acronyms)]
 pub struct SYST {
     _marker: PhantomData<*const ()>,
 }
@@ -608,6 +654,7 @@ impl ops::Deref for SYST {
 }
 
 /// Trace Port Interface Unit
+#[allow(clippy::upper_case_acronyms)]
 pub struct TPIU {
     _marker: PhantomData<*const ()>,
 }

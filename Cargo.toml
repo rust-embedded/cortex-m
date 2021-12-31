@@ -21,10 +21,17 @@ volatile-register = "0.2.0"
 bitfield = "0.13.2"
 embedded-hal = "0.2.4"
 
+[dependencies.serde]
+version = "1"
+features = [ "derive" ]
+optional = true
+
 [features]
-cm7-r0p1 = []
+cm7 = []
+cm7-r0p1 = ["cm7"]
 inline-asm = []
 linker-plugin-lto = []
+std-map = []
 
 [workspace]
 members = ["xtask", "cortex-m-semihosting", "panic-semihosting", "panic-itm"]

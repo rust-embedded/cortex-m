@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     - LSU counter
     - Folded-instruction counter
 - Added `DWT.set_cycle_count` (#347).
+- Added support for the Cortex-M7 TCM and cache access control registers.
+  There is a feature `cm7` to enable access to these.
+- Added `delay::Delay::with_source`, a constructor that lets you specify
+  the SysTick clock source (#374).
 
 ### Deprecated
 

@@ -3,8 +3,13 @@ use std::{env, fs};
 
 fn main() {
     let target = env::var("TARGET").unwrap();
+    let host_triple = env::var("HOST").unwrap();
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
     let name = env::var("CARGO_PKG_NAME").unwrap();
+
+    if host_triple == target {
+        println!("cargo:rustc-cfg=native");
+    }
 
     if target.starts_with("thumb") {
         let suffix = if env::var_os("CARGO_FEATURE_LINKER_PLUGIN_LTO").is_some() {

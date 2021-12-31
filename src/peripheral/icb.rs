@@ -1,6 +1,6 @@
 //! Implementation Control Block
 
-#[cfg(any(armv7m, armv8m, target_arch = "x86_64"))]
+#[cfg(any(armv7m, armv8m, native))]
 use volatile_register::RO;
 use volatile_register::RW;
 
@@ -12,12 +12,12 @@ pub struct RegisterBlock {
     /// The bottom four bits of this register give the number of implemented
     /// interrupt lines, divided by 32. So a value of `0b0010` indicates 64
     /// interrupts.
-    #[cfg(any(armv7m, armv8m, target_arch = "x86_64"))]
+    #[cfg(any(armv7m, armv8m, native))]
     pub ictr: RO<u32>,
 
     /// The ICTR is not defined in the ARMv6-M Architecture Reference manual, so
     /// we replace it with this.
-    #[cfg(not(any(armv7m, armv8m, target_arch = "x86_64")))]
+    #[cfg(not(any(armv7m, armv8m, native)))]
     _reserved: u32,
 
     /// Auxiliary Control Register

@@ -301,7 +301,7 @@ impl VectActive {
             12 => VectActive::Exception(Exception::DebugMonitor),
             14 => VectActive::Exception(Exception::PendSV),
             15 => VectActive::Exception(Exception::SysTick),
-            irqn if irqn >= 16 && irqn < 512 => VectActive::Interrupt { irqn: irqn - 16 },
+            irqn if (16..512).contains(&irqn) => VectActive::Interrupt { irqn: irqn - 16 },
             _ => return None,
         })
     }

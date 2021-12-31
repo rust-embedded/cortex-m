@@ -31,7 +31,7 @@ cm7 = []
 cm7-r0p1 = ["cm7"]
 inline-asm = []
 linker-plugin-lto = []
-std-map = []
+std = []
 
 [workspace]
 members = ["xtask", "cortex-m-semihosting", "panic-semihosting", "panic-itm"]

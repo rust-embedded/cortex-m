@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.7.4] - 2021-12-31
+
 ### Added
+
 - Added support for additional DWT counters (#349)
     - CPI counter
     - Exception overhead counter
@@ -15,9 +18,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
     - Folded-instruction counter
 - Added `DWT.set_cycle_count` (#347).
 - Added support for the Cortex-M7 TCM and cache access control registers.
-  There is a feature `cm7` to enable access to these.
+  There is a feature `cm7` to enable access to these (#352).
+- Add derives for serde, Hash, and PartialOrd to VectActive behind feature
+  gates for host-platform use (#363).
+- Support host platforms besides x86_64 (#369).
 - Added `delay::Delay::with_source`, a constructor that lets you specify
   the SysTick clock source (#374).
+
+### Fixed
+
+- Fix incorrect AIRCR PRIGROUP mask (#338, #339).
+- Fix nightly users of inline-asm breaking now that the asm macro is removed
+  from the prelude (#372).
 
 ### Deprecated
 
@@ -719,7 +731,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.7.3...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.7.4...HEAD
+[v0.7.4]: https://github.com/rust-embedded/cortex-m/compare/v0.7.3...v0.7.4
 [v0.7.3]: https://github.com/rust-embedded/cortex-m/compare/v0.7.2...v0.7.3
 [v0.7.2]: https://github.com/rust-embedded/cortex-m/compare/v0.7.1...v0.7.2
 [v0.7.1]: https://github.com/rust-embedded/cortex-m/compare/v0.7.0...v0.7.1

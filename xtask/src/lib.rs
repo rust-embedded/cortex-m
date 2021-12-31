@@ -211,7 +211,7 @@ pub fn check_blobs() {
 
 // Check that serde and PartialOrd works with VectActive
 pub fn check_host_side() {
-    use cortex_m::peripheral::scb::VectActive;
+    use cortex_m::peripheral::{itm::LocalTimestampOptions, scb::VectActive};
 
     // check serde
     {
@@ -220,6 +220,12 @@ pub fn check_host_side() {
         let deser_v: VectActive =
             serde_json::from_str(&json).expect("Failed to deserialize VectActive");
         assert_eq!(deser_v, v);
+
+        let lts = LocalTimestampOptions::EnabledDiv4;
+        let json = serde_json::to_string(&lts).expect("Failed to serialize LocalTimestampOptions");
+        let deser_lts: LocalTimestampOptions =
+            serde_json::from_str(&json).expect("Failed to deserilaize LocalTimestampOptions");
+        assert_eq!(deser_lts, lts);
     }
 
     // check PartialOrd
@@ -227,5 +233,16 @@ pub fn check_host_side() {
         let a = VectActive::from(19).unwrap();
         let b = VectActive::from(20).unwrap();
         assert_eq!(a < b, true);
+    }
+
+    // check TryFrom
+    {
+        use core::convert::TryInto;
+        use std::convert::TryFrom;
+
+        let lts: LocalTimestampOptions = (16 as u8).try_into().unwrap();
+        assert_eq!(lts, LocalTimestampOptions::EnabledDiv16);
+
+        assert!(LocalTimestampOptions::try_from(42).is_err());
     }
 }

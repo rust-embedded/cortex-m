@@ -10,6 +10,9 @@ use volatile_register::{RO, RW, WO};
 use crate::peripheral::ITM;
 use bitfield::bitfield;
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /// Register block
 #[repr(C)]
 pub struct RegisterBlock {
@@ -91,6 +94,7 @@ impl Stim {
 
 /// The possible local timestamp options.
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum LocalTimestampOptions {
     /// Disable local timestamps.
     Disabled,
@@ -105,6 +109,24 @@ pub enum LocalTimestampOptions {
     /// Enable local timestamps and set the prescaler to divide the
     /// reference clock by 64.
     EnabledDiv64,
+}
+
+#[cfg(feature = "std")]
+impl core::convert::TryFrom<u8> for LocalTimestampOptions {
+    type Error = ();
+
+    /// Converts an integer value to an enabled [LocalTimestampOptions]
+    /// variant. Accepted values are: 1, 4, 16, 64. Any other value
+    /// yields `Err(())`.
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            1 => Ok(Self::Enabled),
+            4 => Ok(Self::EnabledDiv4),
+            16 => Ok(Self::EnabledDiv16),
+            64 => Ok(Self::EnabledDiv64),
+            _ => Err(()),
+        }
+    }
 }
 
 /// The possible global timestamp options.

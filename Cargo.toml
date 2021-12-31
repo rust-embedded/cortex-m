@@ -16,7 +16,7 @@ edition = "2018"
 links = "cortex-m"  # prevent multiple versions of this crate to be linked together
 
 [dependencies]
-bare-metal = { version = "0.2.4", features = ["const-fn"] }
+bare-metal = "1"
 volatile-register = "0.2.0"
 bitfield = "0.13.2"
 embedded-hal = "0.2.4"

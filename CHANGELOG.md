@@ -18,10 +18,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   There is a feature `cm7` to enable access to these.
 - Added `delay::Delay::with_source`, a constructor that lets you specify
   the SysTick clock source (#374).
-- Added the capability for `DWT` to do cycle count comparison (#367).
 - Updated `SCB.ICSR.VECTACTIVE`/`SCB::vect_active()` to be 9 bits instead of 8.
   Also fixes `VectActive::from` to take a `u16` and subtract `16` for
   `VectActive::Interrupt`s to match `SBC::vect_active()` (#373).
+- DWT: add `configure` API for address, cycle count comparison (#342, #367).
+- ITM: add `configure` API (#342).
+- TPIU: add API for *Formatter and Flush Control* (FFCR) and *Selected Pin Control* (SPPR) registers (#342).
+- Add `std` and `serde` crate features for improved host-side ITM decode functionality when working with the downstream `itm`, `cargo-rtic-scope` crates (#363, #366).
 
 ### Deprecated
 

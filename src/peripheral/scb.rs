@@ -182,7 +182,7 @@ impl SCB {
             5 => VectActive::Exception(Exception::BusFault),
             #[cfg(not(armv6m))]
             6 => VectActive::Exception(Exception::UsageFault),
-            #[cfg(any(armv8m, target_arch = "x86_64"))]
+            #[cfg(any(armv8m, native))]
             7 => VectActive::Exception(Exception::SecureFault),
             11 => VectActive::Exception(Exception::SVCall),
             #[cfg(not(armv6m))]
@@ -197,7 +197,7 @@ impl SCB {
 /// Processor core exceptions (internal interrupts)
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "std-map", derive(PartialOrd, Hash))]
+#[cfg_attr(feature = "std", derive(PartialOrd, Hash))]
 pub enum Exception {
     /// Non maskable interrupt
     NonMaskableInt,
@@ -218,7 +218,7 @@ pub enum Exception {
     UsageFault,
 
     /// Secure fault interrupt (only on ARMv8-M)
-    #[cfg(any(armv8m, target_arch = "x86_64"))]
+    #[cfg(any(armv8m, native))]
     SecureFault,
 
     /// SV call interrupt
@@ -250,7 +250,7 @@ impl Exception {
             Exception::BusFault => -11,
             #[cfg(not(armv6m))]
             Exception::UsageFault => -10,
-            #[cfg(any(armv8m, target_arch = "x86_64"))]
+            #[cfg(any(armv8m, native))]
             Exception::SecureFault => -9,
             Exception::SVCall => -5,
             #[cfg(not(armv6m))]
@@ -264,7 +264,7 @@ impl Exception {
 /// Active exception number
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "std-map", derive(PartialOrd, Hash))]
+#[cfg_attr(feature = "std", derive(PartialOrd, Hash))]
 pub enum VectActive {
     /// Thread mode
     ThreadMode,
@@ -293,7 +293,7 @@ impl VectActive {
             5 => VectActive::Exception(Exception::BusFault),
             #[cfg(not(armv6m))]
             6 => VectActive::Exception(Exception::UsageFault),
-            #[cfg(any(armv8m, target_arch = "x86_64"))]
+            #[cfg(any(armv8m, native))]
             7 => VectActive::Exception(Exception::SecureFault),
             11 => VectActive::Exception(Exception::SVCall),
             #[cfg(not(armv6m))]
@@ -934,7 +934,7 @@ pub enum SystemHandler {
     UsageFault = 6,
 
     /// Secure fault interrupt (only on ARMv8-M)
-    #[cfg(any(armv8m, target_arch = "x86_64"))]
+    #[cfg(any(armv8m, native))]
     SecureFault = 7,
 
     /// SV call interrupt

@@ -6,7 +6,7 @@ use embedded_hal::blocking::delay::{DelayMs, DelayUs};
 /// System timer (SysTick) as a delay provider.
 pub struct Delay {
     syst: SYST,
-    ahb_frequency: u32,
+    frequency: u32,
 }
 
 impl Delay {
@@ -14,13 +14,19 @@ impl Delay {
     ///
     /// `ahb_frequency` is a frequency of the AHB bus in Hz.
     #[inline]
-    pub fn new(mut syst: SYST, ahb_frequency: u32) -> Self {
-        syst.set_clock_source(SystClkSource::Core);
+    pub fn new(syst: SYST, ahb_frequency: u32) -> Self {
+        Self::with_source(syst, ahb_frequency, SystClkSource::Core)
+    }
 
-        Delay {
-            syst,
-            ahb_frequency,
-        }
+    /// Configures the system timer (SysTick) as a delay provider
+    /// with a clock source.
+    ///
+    /// `frequency` is the frequency of your `clock_source` in Hz.
+    #[inline]
+    pub fn with_source(mut syst: SYST, frequency: u32, clock_source: SystClkSource) -> Self {
+        syst.set_clock_source(clock_source);
+
+        Delay { syst, frequency }
     }
 
     /// Releases the system timer (SysTick) resource.
@@ -32,7 +38,7 @@ impl Delay {
     /// Delay using the Cortex-M systick for a certain duration, in µs.
     #[allow(clippy::missing_inline_in_public_items)]
     pub fn delay_us(&mut self, us: u32) {
-        let ticks = (u64::from(us)) * (u64::from(self.ahb_frequency)) / 1_000_000;
+        let ticks = (u64::from(us)) * (u64::from(self.frequency)) / 1_000_000;
 
         let full_cycles = ticks >> 24;
         if full_cycles > 0 {

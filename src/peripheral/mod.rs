@@ -71,8 +71,8 @@ pub mod dcb;
 pub mod dwt;
 #[cfg(not(armv6m))]
 pub mod fpb;
-// NOTE(target_arch) is for documentation purposes
-#[cfg(any(has_fpu, target_arch = "x86_64"))]
+// NOTE(native) is for documentation purposes
+#[cfg(any(has_fpu, native))]
 pub mod fpu;
 pub mod icb;
 #[cfg(all(not(armv6m), not(armv8m_base)))]
@@ -405,7 +405,7 @@ pub struct FPU {
 
 unsafe impl Send for FPU {}
 
-#[cfg(any(has_fpu, target_arch = "x86_64"))]
+#[cfg(any(has_fpu, native))]
 impl FPU {
     /// Pointer to the register block
     pub const PTR: *const fpu::RegisterBlock = 0xE000_EF30 as *const _;
@@ -417,7 +417,7 @@ impl FPU {
     }
 }
 
-#[cfg(any(has_fpu, target_arch = "x86_64"))]
+#[cfg(any(has_fpu, native))]
 impl ops::Deref for FPU {
     type Target = self::fpu::RegisterBlock;
 

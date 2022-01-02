@@ -34,6 +34,8 @@
 #![no_std]
 #![crate_type = "staticlib"]
 #![deny(warnings)]
+// Don't warn about feature(asm) being stable on Rust >= 1.59.0
+#![allow(stable_features)]
 
 mod inline;
 

@@ -8,16 +8,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 ### Added
-- Added support for additional DWT counters (#349)
-    - CPI counter
-    - Exception overhead counter
-    - LSU counter
-    - Folded-instruction counter
-- Added `DWT.set_cycle_count` (#347).
-- Added support for the Cortex-M7 TCM and cache access control registers.
-  There is a feature `cm7` to enable access to these.
-- Added `delay::Delay::with_source`, a constructor that lets you specify
-  the SysTick clock source (#374).
 - Updated `SCB.ICSR.VECTACTIVE`/`SCB::vect_active()` to be 9 bits instead of 8.
   Also fixes `VectActive::from` to take a `u16` and subtract `16` for
   `VectActive::Interrupt`s to match `SBC::vect_active()` (#373).
@@ -26,12 +16,37 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - TPIU: add API for *Formatter and Flush Control* (FFCR) and *Selected Pin Control* (SPPR) registers (#342).
 - Add `std` and `serde` crate features for improved host-side ITM decode functionality when working with the downstream `itm`, `cargo-rtic-scope` crates (#363, #366).
 
+## [v0.7.4] - 2021-12-31
+
+### Added
+
+- Added support for additional DWT counters (#349)
+    - CPI counter
+    - Exception overhead counter
+    - LSU counter
+    - Folded-instruction counter
+- Added `DWT.set_cycle_count` (#347).
+- Added support for the Cortex-M7 TCM and cache access control registers.
+  There is a feature `cm7` to enable access to these (#352).
+- Add derives for serde, Hash, and PartialOrd to VectActive behind feature
+  gates for host-platform use (#363).
+- Support host platforms besides x86_64 (#369).
+- Added `delay::Delay::with_source`, a constructor that lets you specify
+  the SysTick clock source (#374).
+
+### Fixed
+
+- Fix incorrect AIRCR PRIGROUP mask (#338, #339).
+- Fix nightly users of inline-asm breaking now that the asm macro is removed
+  from the prelude (#372).
+
 ### Deprecated
 
 - `DWT::get_cycle_count` has been deprecated in favor of `DWT::cycle_count`.
   This change was made for consistency with the [C-GETTER] convention. (#349)
 
 [C-GETTER]: https://rust-lang.github.io/api-guidelines/naming.html#c-getter
+
 
 ## [v0.7.3] - 2021-07-03
 
@@ -726,7 +741,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.7.3...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.7.4...HEAD
+[v0.7.4]: https://github.com/rust-embedded/cortex-m/compare/v0.7.3...v0.7.4
 [v0.7.3]: https://github.com/rust-embedded/cortex-m/compare/v0.7.2...v0.7.3
 [v0.7.2]: https://github.com/rust-embedded/cortex-m/compare/v0.7.1...v0.7.2
 [v0.7.1]: https://github.com/rust-embedded/cortex-m/compare/v0.7.0...v0.7.1

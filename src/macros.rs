@@ -63,10 +63,14 @@ macro_rules! iprintln {
 macro_rules! singleton {
     ($name:ident: $ty:ty = $expr:expr) => {
         $crate::interrupt::free(|_| {
-            static mut $name: Option<$ty> = None;
+            // this is a tuple of a MaybeUninit and a bool because using an Option here is
+            // problematic:  Due to niche-optimization, an Option could end up producing a non-zero
+            // initializer value which would move the entire static from `.bss` into `.data`...
+            static mut $name: (::core::mem::MaybeUninit<$ty>, bool) =
+                (::core::mem::MaybeUninit::uninit(), false);
 
             #[allow(unsafe_code)]
-            let used = unsafe { $name.is_some() };
+            let used = unsafe { $name.1 };
             if used {
                 None
             } else {
@@ -74,12 +78,9 @@ macro_rules! singleton {
 
                 #[allow(unsafe_code)]
                 unsafe {
-                    $name = Some(expr)
-                }
-
-                #[allow(unsafe_code)]
-                unsafe {
-                    $name.as_mut()
+                    $name.1 = true;
+                    $name.0 = ::core::mem::MaybeUninit::new(expr);
+                    Some(&mut *$name.0.as_mut_ptr())
                 }
             }
         })

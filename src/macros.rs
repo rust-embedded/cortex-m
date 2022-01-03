@@ -30,8 +30,11 @@ macro_rules! iprintln {
 /// `None` variant the caller must ensure that the macro is called from a function that's executed
 /// at most once in the whole lifetime of the program.
 ///
-/// # Note
+/// # Notes
 /// This macro is unsound on multi core systems.
+///
+/// For debuggability, you can set an explicit name for a singleton.  This name only shows up the
+/// the debugger and is not referencable from other code.  See example below.
 ///
 /// # Example
 ///
@@ -50,15 +53,20 @@ macro_rules! iprintln {
 /// fn alias() -> &'static mut bool {
 ///     singleton!(: bool = false).unwrap()
 /// }
+///
+/// fn singleton_with_name() {
+///     // A name only for debugging purposes
+///     singleton!(FOO_BUFFER: [u8; 1024] = [0u8; 1024]);
+/// }
 /// ```
 #[macro_export]
 macro_rules! singleton {
-    (: $ty:ty = $expr:expr) => {
+    ($name:ident: $ty:ty = $expr:expr) => {
         $crate::interrupt::free(|_| {
-            static mut VAR: Option<$ty> = None;
+            static mut $name: Option<$ty> = None;
 
             #[allow(unsafe_code)]
-            let used = unsafe { VAR.is_some() };
+            let used = unsafe { $name.is_some() };
             if used {
                 None
             } else {
@@ -66,15 +74,18 @@ macro_rules! singleton {
 
                 #[allow(unsafe_code)]
                 unsafe {
-                    VAR = Some(expr)
+                    $name = Some(expr)
                 }
 
                 #[allow(unsafe_code)]
                 unsafe {
-                    VAR.as_mut()
+                    $name.as_mut()
                 }
             }
         })
+    };
+    (: $ty:ty = $expr:expr) => {
+        $crate::singleton!(VAR: $ty = $expr)
     };
 }
 

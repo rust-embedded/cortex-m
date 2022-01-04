@@ -204,6 +204,13 @@ impl ITM {
         unsafe { self.lar.write(0xC5AC_CE55) }
     }
 
+    /// Indicates whether the ITM is currently processing events.
+    /// Returns `true` if ITM events are present and are being drained.
+    #[inline]
+    pub fn busy(&self) -> bool {
+        self.tcr.read().busy()
+    }
+
     /// Configures the ITM with the passed [ITMSettings]. Returns `true`
     /// if the configuration was successfully applied.
     #[allow(clippy::missing_inline_in_public_items)]

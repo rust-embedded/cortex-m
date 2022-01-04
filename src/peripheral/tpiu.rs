@@ -87,7 +87,8 @@ impl core::convert::TryFrom<u8> for TraceProtocol {
     }
 }
 
-/// The SWO options supported by the TPIU.
+/// The SWO options supported by the TPIU, and the mimimum size of the
+/// FIFO output queue for trace data.
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub struct SWOSupports {
     /// Whether UART/NRZ encoding is supported for SWO.

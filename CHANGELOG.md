@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - The `inline-asm` feature no longer requires a nightly Rust compiler, but
   does require Rust 1.59 or above.
 
+### Fixed
+- Fixed `singleton!()` statics sometimes ending up in `.data` instead of `.bss` (#364, #380).
+  (Backported from upcoming 0.8 release).
+
 ## [v0.7.4] - 2021-12-31
 
 ### Added

@@ -30,8 +30,11 @@ macro_rules! iprintln {
 /// `None` variant the caller must ensure that the macro is called from a function that's executed
 /// at most once in the whole lifetime of the program.
 ///
-/// # Note
+/// # Notes
 /// This macro is unsound on multi core systems.
+///
+/// For debuggability, you can set an explicit name for a singleton.  This name only shows up the
+/// the debugger and is not referencable from other code.  See example below.
 ///
 /// # Example
 ///
@@ -50,15 +53,24 @@ macro_rules! iprintln {
 /// fn alias() -> &'static mut bool {
 ///     singleton!(: bool = false).unwrap()
 /// }
+///
+/// fn singleton_with_name() {
+///     // A name only for debugging purposes
+///     singleton!(FOO_BUFFER: [u8; 1024] = [0u8; 1024]);
+/// }
 /// ```
 #[macro_export]
 macro_rules! singleton {
-    (: $ty:ty = $expr:expr) => {
+    ($name:ident: $ty:ty = $expr:expr) => {
         $crate::interrupt::free(|_| {
-            static mut VAR: Option<$ty> = None;
+            // this is a tuple of a MaybeUninit and a bool because using an Option here is
+            // problematic:  Due to niche-optimization, an Option could end up producing a non-zero
+            // initializer value which would move the entire static from `.bss` into `.data`...
+            static mut $name: (::core::mem::MaybeUninit<$ty>, bool) =
+                (::core::mem::MaybeUninit::uninit(), false);
 
             #[allow(unsafe_code)]
-            let used = unsafe { VAR.is_some() };
+            let used = unsafe { $name.1 };
             if used {
                 None
             } else {
@@ -66,15 +78,15 @@ macro_rules! singleton {
 
                 #[allow(unsafe_code)]
                 unsafe {
-                    VAR = Some(expr)
-                }
-
-                #[allow(unsafe_code)]
-                unsafe {
-                    VAR.as_mut()
+                    $name.1 = true;
+                    $name.0 = ::core::mem::MaybeUninit::new(expr);
+                    Some(&mut *$name.0.as_mut_ptr())
                 }
             }
         })
+    };
+    (: $ty:ty = $expr:expr) => {
+        $crate::singleton!(VAR: $ty = $expr)
     };
 }
 

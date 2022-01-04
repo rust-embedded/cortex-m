@@ -174,6 +174,28 @@ pub struct ITMSettings {
     pub timestamp_clk_src: TimestampClkSrc,
 }
 
+/// Possible errors on [ITM::configure].
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+pub enum ITMConfigurationError {
+    /// Global timestamp generation is not supported on this target.
+    /// Request [GlobalTimestampOptions::Disabled] instead.
+    ///
+    /// `ITM_TCR` register remains unchanged on this error.
+    GTS,
+    /// The requested timestamp clock source is not supported on this target.
+    ///
+    /// *NOTE*: `ITM_TCR.GTSFREQ` field has potentially been changed on
+    /// this error.
+    TimestampClkSrc,
+    /// The target does not implement the local timestamp prescaler.
+    /// Request [LocalTimestampOptions::Disabled] or
+    /// [LocalTimestampOptions::Disabled] instead.
+    ///
+    /// *NOTE*: `ITM_TCR.{GTSFREQ,SWOENA}` fields have potentially
+    /// changed on this error.
+    TSPrescale,
+}
+
 impl ITM {
     /// Removes the software lock on the ITM. Must be called before any other [ITM] functions.
     #[inline]
@@ -182,34 +204,82 @@ impl ITM {
         unsafe { self.lar.write(0xC5AC_CE55) }
     }
 
-    /// Configures the ITM with the passed [ITMSettings].
-    #[inline]
-    pub fn configure(&mut self, settings: ITMSettings) {
+    /// Configures the ITM with the passed [ITMSettings]. Returns `true`
+    /// if the configuration was successfully applied.
+    #[allow(clippy::missing_inline_in_public_items)]
+    pub fn configure(&mut self, settings: ITMSettings) -> Result<(), ITMConfigurationError> {
+        use ITMConfigurationError as Error;
+
         unsafe {
             self.tcr.modify(|mut r| {
-                r.set_itmena(settings.enable);
-                r.set_tsena(settings.local_timestamps != LocalTimestampOptions::Disabled);
-                r.set_txena(settings.forward_dwt);
-                r.set_tsprescale(match settings.local_timestamps {
-                    LocalTimestampOptions::Disabled | LocalTimestampOptions::Enabled => 0b00,
-                    LocalTimestampOptions::EnabledDiv4 => 0b10,
-                    LocalTimestampOptions::EnabledDiv16 => 0b10,
-                    LocalTimestampOptions::EnabledDiv64 => 0b11,
-                });
                 r.set_gtsfreq(match settings.global_timestamps {
                     GlobalTimestampOptions::Disabled => 0b00,
                     GlobalTimestampOptions::Every128Cycles => 0b01,
                     GlobalTimestampOptions::Every8192Cycles => 0b10,
                     GlobalTimestampOptions::EveryPacket => 0b11,
                 });
+
+                r
+            });
+        }
+        // GTSFREQ is potentially RAZ/WI
+        if settings.global_timestamps != GlobalTimestampOptions::Disabled
+            && self.tcr.read().gtsfreq() == 0
+        {
+            return Err(Error::GTS);
+        }
+
+        unsafe {
+            self.tcr.modify(|mut r| {
                 r.set_swoena(match settings.timestamp_clk_src {
                     TimestampClkSrc::SystemClock => false,
                     TimestampClkSrc::AsyncTPIU => true,
                 });
+
+                r
+            });
+        }
+        // SWOENA is potentially either RAZ or RAO
+        if !{
+            match settings.timestamp_clk_src {
+                TimestampClkSrc::SystemClock => !self.tcr.read().swoena(),
+                TimestampClkSrc::AsyncTPIU => self.tcr.read().swoena(),
+            }
+        } {
+            return Err(Error::TimestampClkSrc);
+        }
+
+        unsafe {
+            self.tcr.modify(|mut r| {
+                r.set_tsprescale(match settings.local_timestamps {
+                    LocalTimestampOptions::Disabled | LocalTimestampOptions::Enabled => 0b00,
+                    LocalTimestampOptions::EnabledDiv4 => 0b10,
+                    LocalTimestampOptions::EnabledDiv16 => 0b10,
+                    LocalTimestampOptions::EnabledDiv64 => 0b11,
+                });
+
+                r
+            })
+        }
+        // TSPrescale is potentially RAZ/WI
+        if settings.local_timestamps != LocalTimestampOptions::Disabled
+            && settings.local_timestamps != LocalTimestampOptions::Enabled
+            && self.tcr.read().tsprescale() == 0
+        {
+            return Err(Error::TSPrescale);
+        }
+
+        unsafe {
+            self.tcr.modify(|mut r| {
+                r.set_itmena(settings.enable);
+                r.set_tsena(settings.local_timestamps != LocalTimestampOptions::Disabled);
+                r.set_txena(settings.forward_dwt); // forward hardware event packets from the DWT to the ITM
                 r.set_tracebusid(settings.bus_id.unwrap_or(0));
 
                 r
             });
         }
+
+        Ok(())
     }
 }

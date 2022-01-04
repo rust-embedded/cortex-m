@@ -175,7 +175,7 @@ pub struct ITMSettings {
 }
 
 impl ITM {
-    /// Removes the software lock on the ITM.
+    /// Removes the software lock on the ITM. Must be called before any other [ITM] functions.
     #[inline]
     pub fn unlock(&mut self) {
         // NOTE(unsafe) atomic write to a stateless, write-only register

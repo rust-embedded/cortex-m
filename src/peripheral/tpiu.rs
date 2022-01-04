@@ -91,13 +91,13 @@ impl core::convert::TryFrom<u8> for TraceProtocol {
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub struct SWOSupports {
     /// Whether UART/NRZ encoding is supported for SWO.
-    nrz_encoding: bool,
+    pub nrz_encoding: bool,
     /// Whether Manchester encoding is supported for SWO.
-    manchester_encoding: bool,
+    pub manchester_encoding: bool,
     /// Whether parallel trace port operation is supported.
-    parallel_operation: bool,
+    pub parallel_operation: bool,
     /// The minimum implemented FIFO queue size of the TPIU for trace data.
-    min_queue_size: u8,
+    pub min_queue_size: u8,
 }
 
 impl TPIU {

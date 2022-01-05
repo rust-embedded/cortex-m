@@ -178,40 +178,40 @@ pub struct ITMSettings {
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum ITMConfigurationError {
     /// Global timestamp generation is not supported on this target.
-    /// Request [GlobalTimestampOptions::Disabled] instead.
+    /// Request [`GlobalTimestampOptions::Disabled`] instead.
     ///
-    /// `ITM_TCR` register remains unchanged on this error.
+    /// [`ITM_TCR`](struct@Tcr) register remains unchanged on this error.
     GTS,
     /// The requested timestamp clock source is not supported on this target.
     ///
-    /// *NOTE*: `ITM_TCR.GTSFREQ` field has potentially been changed on
-    /// this error.
+    /// *NOTE*: `GTSFREQ` in [`ITM_TCR`](struct@Tcr) field has
+    /// potentially been changed on this error.
     TimestampClkSrc,
     /// The target does not implement the local timestamp prescaler.
-    /// Request [LocalTimestampOptions::Disabled] or
-    /// [LocalTimestampOptions::Disabled] instead.
+    /// Request [`LocalTimestampOptions::Disabled`] or
+    /// [`LocalTimestampOptions::Disabled`] instead.
     ///
-    /// *NOTE*: `ITM_TCR.{GTSFREQ,SWOENA}` fields have potentially
-    /// changed on this error.
+    /// *NOTE*: `GTSFREQ` and `SWOENA` in [`ITM_TCR`](struct@Tcr) fields
+    /// have potentially changed on this error.
     TSPrescale,
 }
 
 impl ITM {
-    /// Removes the software lock on the ITM. Must be called before any other [ITM] functions.
+    /// Removes the software lock on the [`ITM`]. Must be called before any other [`ITM`] functions.
     #[inline]
     pub fn unlock(&mut self) {
         // NOTE(unsafe) atomic write to a stateless, write-only register
         unsafe { self.lar.write(0xC5AC_CE55) }
     }
 
-    /// Indicates whether the ITM is currently processing events.
-    /// Returns `true` if ITM events are present and are being drained.
+    /// Indicates whether the [`ITM`] is currently processing events.
+    /// Returns `true` if [`ITM`] events are present and are being drained.
     #[inline]
     pub fn busy(&self) -> bool {
         self.tcr.read().busy()
     }
 
-    /// Configures the ITM with the passed [ITMSettings]. Returns `true`
+    /// Configures the [`ITM`] with the passed [`ITMSettings`]. Returns `true`
     /// if the configuration was successfully applied.
     #[allow(clippy::missing_inline_in_public_items)]
     pub fn configure(&mut self, settings: ITMSettings) -> Result<(), ITMConfigurationError> {

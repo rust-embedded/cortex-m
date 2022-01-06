@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
       count comparisons, and only on `armv7m` (#377).
     - renamed the field from `c` to `comp0` and `comps[15]` for `armv7m` and
       `comps[2]` for `armv6m` (#377).
+    - Made the `has_*` implementation checks associated functions (#377).
 - ITM: add `configure` API (#342).
 - TPIU: add API for *Formatter and Flush Control* (FFCR) and *Selected Pin Control* (SPPR) registers (#342).
 - TPIU: add `swo_supports` for checking what SWO configurations the target supports. (#381)

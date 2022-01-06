@@ -214,7 +214,7 @@ impl DWT {
     #[inline]
     pub fn cycle_count() -> u32 {
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).cyccnt.read() }
+        unsafe { (*Self::PTR).cyccnt.read() }
     }
 
     /// Set the cycle count
@@ -231,7 +231,7 @@ impl DWT {
     #[inline]
     pub fn unlock() {
         // NOTE(unsafe) atomic write to a stateless, write-only register
-        unsafe { (*Self::ptr()).lar.write(0xC5AC_CE55) }
+        unsafe { (*Self::PTR).lar.write(0xC5AC_CE55) }
     }
 
     /// Get the CPI count
@@ -245,7 +245,7 @@ impl DWT {
     #[inline]
     pub fn cpi_count() -> u8 {
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).cpicnt.read() as u8 }
+        unsafe { (*Self::PTR).cpicnt.read() as u8 }
     }
 
     /// Set the CPI count
@@ -260,7 +260,7 @@ impl DWT {
     #[inline]
     pub fn exception_count() -> u8 {
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).exccnt.read() as u8 }
+        unsafe { (*Self::PTR).exccnt.read() as u8 }
     }
 
     /// Set the exception count
@@ -281,7 +281,7 @@ impl DWT {
     #[inline]
     pub fn sleep_count() -> u8 {
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).sleepcnt.read() as u8 }
+        unsafe { (*Self::PTR).sleepcnt.read() as u8 }
     }
 
     /// Set the sleep count
@@ -296,7 +296,7 @@ impl DWT {
     #[inline]
     pub fn lsu_count() -> u8 {
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).lsucnt.read() as u8 }
+        unsafe { (*Self::PTR).lsucnt.read() as u8 }
     }
 
     /// Set the lsu count
@@ -313,7 +313,7 @@ impl DWT {
     #[inline]
     pub fn fold_count() -> u8 {
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).foldcnt.read() as u8 }
+        unsafe { (*Self::PTR).foldcnt.read() as u8 }
     }
 
     /// Set the folded instruction count

@@ -74,7 +74,7 @@ impl DCB {
     pub fn is_debugger_attached() -> bool {
         unsafe {
             // do an 8-bit read of the 32-bit DHCSR register, and get the LSB
-            let value = ptr::read_volatile(Self::ptr() as *const u8);
+            let value = ptr::read_volatile(Self::PTR as *const u8);
             value & 0x1 == 1
         }
     }

@@ -98,14 +98,14 @@ impl SYST {
     #[inline]
     pub fn get_current() -> u32 {
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).cvr.read() }
+        unsafe { (*Self::PTR).cvr.read() }
     }
 
     /// Gets reload value
     #[inline]
     pub fn get_reload() -> u32 {
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).rvr.read() }
+        unsafe { (*Self::PTR).rvr.read() }
     }
 
     /// Returns the reload value with which the counter would wrap once per 10
@@ -116,14 +116,14 @@ impl SYST {
     #[inline]
     pub fn get_ticks_per_10ms() -> u32 {
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).calib.read() & SYST_COUNTER_MASK }
+        unsafe { (*Self::PTR).calib.read() & SYST_COUNTER_MASK }
     }
 
     /// Checks if an external reference clock is available
     #[inline]
     pub fn has_reference_clock() -> bool {
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).calib.read() & SYST_CALIB_NOREF == 0 }
+        unsafe { (*Self::PTR).calib.read() & SYST_CALIB_NOREF == 0 }
     }
 
     /// Checks if the counter wrapped (underflowed) since the last check
@@ -161,7 +161,7 @@ impl SYST {
     #[inline]
     pub fn is_precise() -> bool {
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).calib.read() & SYST_CALIB_SKEW == 0 }
+        unsafe { (*Self::PTR).calib.read() & SYST_CALIB_SKEW == 0 }
     }
 
     /// Sets clock source

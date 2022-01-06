@@ -128,7 +128,7 @@ pub fn write_all(port: &mut Stim, buffer: &[u8]) {
 ///
 /// ```no_run
 /// # use cortex_m::{itm::{self, Aligned}, peripheral::ITM};
-/// # let port = unsafe { &mut (*ITM::ptr()).stim[0] };
+/// # let port = unsafe { &mut (*ITM::PTR).stim[0] };
 /// let mut buffer = Aligned([0; 14]);
 ///
 /// buffer.0.copy_from_slice(b"Hello, world!\n");

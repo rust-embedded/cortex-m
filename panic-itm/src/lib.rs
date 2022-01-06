@@ -46,7 +46,7 @@ use cortex_m::peripheral::ITM;
 fn panic(info: &PanicInfo) -> ! {
     interrupt::disable();
 
-    let itm = unsafe { &mut *ITM::ptr() };
+    let itm = unsafe { &mut *ITM::PTR };
     let stim = &mut itm.stim[0];
 
     iprintln!(stim, "{}", info);

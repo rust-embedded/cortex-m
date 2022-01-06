@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Deprecated
+- the `ptr()` function on all peripherals register blocks in favor of
+  the associated constant `PTR` (#386).
+
 ## [v0.7.4] - 2021-12-31
 
 ### Added

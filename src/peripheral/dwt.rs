@@ -127,29 +127,33 @@ impl DWT {
     ///
     /// A value of zero indicates no comparator support.
     #[inline]
-    pub fn num_comp(&self) -> u8 {
-        self.ctrl.read().numcomp()
+    pub fn num_comp() -> u8 {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { (*DWT::PTR).ctrl.read().numcomp() }
     }
 
     /// Returns `true` if the the implementation supports sampling and exception tracing
     #[cfg(not(armv6m))]
     #[inline]
-    pub fn has_exception_trace(&self) -> bool {
-        !self.ctrl.read().notrcpkt()
+    pub fn has_exception_trace() -> bool {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { !(*DWT::PTR).ctrl.read().notrcpkt() }
     }
 
     /// Returns `true` if the implementation includes external match signals
     #[cfg(not(armv6m))]
     #[inline]
-    pub fn has_external_match(&self) -> bool {
-        !self.ctrl.read().noexttrig()
+    pub fn has_external_match() -> bool {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { !(*DWT::PTR).ctrl.read().noexttrig() }
     }
 
     /// Returns `true` if the implementation supports a cycle counter
     #[inline]
-    pub fn has_cycle_counter(&self) -> bool {
+    pub fn has_cycle_counter() -> bool {
         #[cfg(not(armv6m))]
-        return !self.ctrl.read().nocyccnt();
+        // NOTE(unsafe) atomic read with no side effects
+        return !unsafe { (*DWT::PTR).ctrl.read().nocyccnt() };
 
         #[cfg(armv6m)]
         return false;
@@ -158,8 +162,9 @@ impl DWT {
     /// Returns `true` if the implementation the profiling counters
     #[cfg(not(armv6m))]
     #[inline]
-    pub fn has_profiling_counter(&self) -> bool {
-        !self.ctrl.read().noprfcnt()
+    pub fn has_profiling_counter() -> bool {
+        // NOTE(unsafe) atomic read with no side effects
+        !unsafe { (*DWT::PTR).ctrl.read().noprfcnt() }
     }
 
     /// Enables the cycle counter

@@ -452,7 +452,7 @@ pub enum DwtError {
 
 impl<SupportedFunctions: ComparatorSupportedFunctions> Comparator<SupportedFunctions> {
     /// Private function for configuring address compare on any [`Comparator`] since they all support this.
-    /// Utilized publicly through [`Comparator::configure`]
+    /// Utilized publicly through [`Comparator::configure`].
     fn configure_address_compare(
         &self,
         settings: ComparatorAddressSettings,
@@ -522,12 +522,19 @@ impl Comparator<NoCycleCompare> {
 }
 
 impl Comparator<HasCycleCompare> {
-    /// Configure the function of the [`Comparator`]. Has support for cycle count comparison.
+    /// Configure the function of the [`Comparator`]. Has support for cycle count comparison
+    /// and checks [`DWT::has_cycle_counter`] for hardware support if
+    /// [`CycleCount`](ComparatorFunction::CycleCount) is requested.
     #[allow(clippy::missing_inline_in_public_items)]
     pub fn configure(&self, settings: ComparatorFunction) -> Result<(), DwtError> {
         match settings {
             ComparatorFunction::Address(settings) => self.configure_address_compare(settings),
             ComparatorFunction::CycleCount(settings) => {
+                // Check if the HW advertises that it has the cycle counter or not
+                if !DWT::has_cycle_counter() {
+                    return Err(DwtError::UnsupportedFunction);
+                }
+
                 let function = match &settings.emit {
                     EmitOption::PCData => 0b0001,
                     EmitOption::WatchpointDebugEvent => 0b0100,

@@ -37,13 +37,13 @@ pub struct RegisterBlock {
     pub pcsr: RO<u32>,
     /// Comparators
     #[cfg(armv6m)]
-    pub comp: [Comparator<NoCycleCompare>; 2],
+    pub comps: [Comparator<NoCycleCompare>; 2],
     #[cfg(not(armv6m))]
     /// Cycle count compare enabled Comparator
     pub comp0: Comparator<HasCycleCompare>,
     #[cfg(not(armv6m))]
     /// Comparators
-    pub comp: [Comparator<NoCycleCompare>; 15],
+    pub comps: [Comparator<NoCycleCompare>; 15],
     #[cfg(not(armv6m))]
     reserved: [u32; 932],
     /// Lock Access

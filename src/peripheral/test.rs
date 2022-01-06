@@ -47,14 +47,14 @@ fn dwt() {
         assert_eq!(address(&dwt.comp0.mask), 0xE000_1024);
         assert_eq!(address(&dwt.comp0.function), 0xE000_1028);
 
-        assert_eq!(address(&dwt.comp[0].comp), 0xE000_1030);
-        assert_eq!(address(&dwt.comp[0].mask), 0xE000_1034);
-        assert_eq!(address(&dwt.comp[0].function), 0xE000_1038);
+        assert_eq!(address(&dwt.comps[0].comp), 0xE000_1030);
+        assert_eq!(address(&dwt.comps[0].mask), 0xE000_1034);
+        assert_eq!(address(&dwt.comps[0].function), 0xE000_1038);
     }
     if cfg!(armv6m) {
-        assert_eq!(address(&dwt.comp[0].comp), 0xE000_1020);
-        assert_eq!(address(&dwt.comp[0].mask), 0xE000_1024);
-        assert_eq!(address(&dwt.comp[0].function), 0xE000_1028);
+        assert_eq!(address(&dwt.comps[0].comp), 0xE000_1020);
+        assert_eq!(address(&dwt.comps[0].mask), 0xE000_1024);
+        assert_eq!(address(&dwt.comps[0].function), 0xE000_1028);
     }
 
     #[cfg(not(armv6m))]

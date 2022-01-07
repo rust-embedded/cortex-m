@@ -153,7 +153,7 @@ impl DWT {
     pub fn has_cycle_counter() -> bool {
         #[cfg(not(armv6m))]
         // NOTE(unsafe) atomic read with no side effects
-        return !unsafe { (*DWT::PTR).ctrl.read().nocyccnt() };
+        return unsafe { !(*DWT::PTR).ctrl.read().nocyccnt() };
 
         #[cfg(armv6m)]
         return false;
@@ -164,7 +164,7 @@ impl DWT {
     #[inline]
     pub fn has_profiling_counter() -> bool {
         // NOTE(unsafe) atomic read with no side effects
-        !unsafe { (*DWT::PTR).ctrl.read().noprfcnt() }
+        unsafe { !(*DWT::PTR).ctrl.read().noprfcnt() }
     }
 
     /// Enables the cycle counter

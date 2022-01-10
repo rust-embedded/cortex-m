@@ -16,7 +16,7 @@ pub struct RegisterBlock {
     pub cspsr: RW<u32>,
     reserved0: [u32; 2],
     /// Asynchronous Clock Prescaler
-    pub acpr: RW<u32>,
+    pub acpr: RW<Acpr>,
     reserved1: [u32; 55],
     /// Selected Pin Control
     pub sppr: RW<Sppr>,
@@ -39,6 +39,14 @@ bitfield! {
     #[derive(Clone, Copy)]
     pub struct Ffcr(u32);
     enfcont, set_enfcont: 1;
+}
+
+bitfield! {
+    /// TPIU ACPR Register.
+    #[repr(C)]
+    #[derive(Clone, Copy)]
+    pub struct Acpr(u32);
+    u16, swoscaler, set_swoscaler: 15, 0;
 }
 
 bitfield! {
@@ -101,15 +109,54 @@ pub struct SWOSupports {
     pub min_queue_size: u8,
 }
 
+/// Possible errors on [`TPIU::set_swo_baud_rate`].
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+pub enum ACPRError {
+    /// The reference clock frequency divided by the requested baud rate
+    /// did not yield an integer.
+    NonInteger,
+    /// Required prescaler value is too large. Largest supported
+    /// prescaler value is [`u16::MAX`].
+    TooLarge,
+}
+
 impl TPIU {
     /// Sets the prescaler value for a wanted baud rate of the Serial
     /// Wire Output (SWO) in relation to a given asynchronous refernce
-    /// clock rate.
+    /// clock rate. Returns `true` if a prescaler was correctly
+    /// calculated and applied, `false` otherwise.
+    ///
+    /// See C1.10.4 "Asynchronous Clock Prescaler Register, TPIU_ACPR".
     #[inline]
-    pub fn set_swo_baud_rate(&mut self, ref_clk_rate: u32, baud_rate: u32) {
-        unsafe {
-            self.acpr.write((ref_clk_rate / baud_rate) - 1);
+    pub fn set_swo_baud_rate(
+        &mut self,
+        ref_clk_rate: u32,
+        baud_rate: u32,
+    ) -> Result<(), ACPRError> {
+        use ACPRError as Error;
+
+        if ref_clk_rate % baud_rate != 0 {
+            return Err(Error::NonInteger);
         }
+
+        use core::convert::TryInto;
+        let prescaler: u16 = match { ((ref_clk_rate / baud_rate) - 1).try_into() } {
+            Ok(ps) => ps,
+            Err(_) => return Err(Error::TooLarge),
+        };
+
+        unsafe {
+            self.acpr.modify(|mut r| {
+                r.set_swoscaler(prescaler);
+                r
+            });
+        }
+
+        if self.acpr.read().swoscaler() != prescaler {
+            return Err(Error::TooLarge);
+        }
+
+        Ok(())
     }
 
     /// The used protocol for the trace output. Return `None` if an

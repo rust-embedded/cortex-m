@@ -122,7 +122,7 @@ impl CPUID {
     pub fn cache_dminline() -> u32 {
         const CTR_DMINLINE_POS: u32 = 16;
         const CTR_DMINLINE_MASK: u32 = 0xF << CTR_DMINLINE_POS;
-        let ctr = unsafe { (*Self::ptr()).ctr.read() };
+        let ctr = unsafe { (*Self::PTR).ctr.read() };
         (ctr & CTR_DMINLINE_MASK) >> CTR_DMINLINE_POS
     }
 
@@ -134,7 +134,7 @@ impl CPUID {
     pub fn cache_iminline() -> u32 {
         const CTR_IMINLINE_POS: u32 = 0;
         const CTR_IMINLINE_MASK: u32 = 0xF << CTR_IMINLINE_POS;
-        let ctr = unsafe { (*Self::ptr()).ctr.read() };
+        let ctr = unsafe { (*Self::PTR).ctr.read() };
         (ctr & CTR_IMINLINE_MASK) >> CTR_IMINLINE_POS
     }
 }

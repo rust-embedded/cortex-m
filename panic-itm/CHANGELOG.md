@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+- changed `ITM::ptr()` to `ITM::PTR` as the `ptr()` functions are
+  deprecated (#386).
+
 ## [v0.4.2] - 2020-11-14
 
 - Support cortex-m v0.7.0

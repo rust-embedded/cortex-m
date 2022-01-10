@@ -137,7 +137,7 @@ impl SCB {
     #[inline]
     pub fn fpu_access_mode() -> FpuAccessMode {
         // NOTE(unsafe) atomic read operation with no side effects
-        let cpacr = unsafe { (*Self::ptr()).cpacr.read() };
+        let cpacr = unsafe { (*Self::PTR).cpacr.read() };
 
         if cpacr & SCB_CPACR_FPU_MASK == SCB_CPACR_FPU_ENABLE | SCB_CPACR_FPU_USER {
             FpuAccessMode::Enabled
@@ -170,7 +170,7 @@ impl SCB {
     /// Returns the active exception number
     #[inline]
     pub fn vect_active() -> VectActive {
-        let icsr = unsafe { ptr::read(&(*SCB::ptr()).icsr as *const _ as *const u32) };
+        let icsr = unsafe { ptr::read(&(*SCB::PTR).icsr as *const _ as *const u32) };
 
         match icsr as u8 {
             0 => VectActive::ThreadMode,
@@ -378,7 +378,7 @@ impl SCB {
         crate::asm::isb();
 
         // NOTE(unsafe): atomic read with no side effects
-        unsafe { (*Self::ptr()).ccr.read() & SCB_CCR_IC_MASK == SCB_CCR_IC_MASK }
+        unsafe { (*Self::PTR).ccr.read() & SCB_CCR_IC_MASK == SCB_CCR_IC_MASK }
     }
 
     /// Invalidates the entire I-cache.
@@ -448,7 +448,7 @@ impl SCB {
         crate::asm::isb();
 
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).ccr.read() & SCB_CCR_DC_MASK == SCB_CCR_DC_MASK }
+        unsafe { (*Self::PTR).ccr.read() & SCB_CCR_DC_MASK == SCB_CCR_DC_MASK }
     }
 
     /// Invalidates the entire D-cache.
@@ -847,7 +847,7 @@ impl SCB {
     pub fn sys_reset() -> ! {
         crate::asm::dsb();
         unsafe {
-            (*Self::ptr()).aircr.modify(
+            (*Self::PTR).aircr.modify(
                 |r| {
                     SCB_AIRCR_VECTKEY | // otherwise the write is ignored
             r & SCB_AIRCR_PRIGROUP_MASK | // keep priority group unchanged
@@ -874,21 +874,21 @@ impl SCB {
     #[inline]
     pub fn set_pendsv() {
         unsafe {
-            (*Self::ptr()).icsr.write(SCB_ICSR_PENDSVSET);
+            (*Self::PTR).icsr.write(SCB_ICSR_PENDSVSET);
         }
     }
 
     /// Check if PENDSVSET bit in the ICSR register is set meaning PendSV interrupt is pending
     #[inline]
     pub fn is_pendsv_pending() -> bool {
-        unsafe { (*Self::ptr()).icsr.read() & SCB_ICSR_PENDSVSET == SCB_ICSR_PENDSVSET }
+        unsafe { (*Self::PTR).icsr.read() & SCB_ICSR_PENDSVSET == SCB_ICSR_PENDSVSET }
     }
 
     /// Set the PENDSVCLR bit in the ICSR register which will clear a pending PendSV interrupt
     #[inline]
     pub fn clear_pendsv() {
         unsafe {
-            (*Self::ptr()).icsr.write(SCB_ICSR_PENDSVCLR);
+            (*Self::PTR).icsr.write(SCB_ICSR_PENDSVCLR);
         }
     }
 
@@ -896,21 +896,21 @@ impl SCB {
     #[inline]
     pub fn set_pendst() {
         unsafe {
-            (*Self::ptr()).icsr.write(SCB_ICSR_PENDSTSET);
+            (*Self::PTR).icsr.write(SCB_ICSR_PENDSTSET);
         }
     }
 
     /// Check if PENDSTSET bit in the ICSR register is set meaning SysTick interrupt is pending
     #[inline]
     pub fn is_pendst_pending() -> bool {
-        unsafe { (*Self::ptr()).icsr.read() & SCB_ICSR_PENDSTSET == SCB_ICSR_PENDSTSET }
+        unsafe { (*Self::PTR).icsr.read() & SCB_ICSR_PENDSTSET == SCB_ICSR_PENDSTSET }
     }
 
     /// Set the PENDSTCLR bit in the ICSR register which will clear a pending SysTick interrupt
     #[inline]
     pub fn clear_pendst() {
         unsafe {
-            (*Self::ptr()).icsr.write(SCB_ICSR_PENDSTCLR);
+            (*Self::PTR).icsr.write(SCB_ICSR_PENDSTCLR);
         }
     }
 }
@@ -966,7 +966,7 @@ impl SCB {
 
             // NOTE(unsafe): Index is bounded to [4,15] by SystemHandler design.
             // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
-            let priority_ref = unsafe { (*Self::ptr()).shpr.get_unchecked(usize::from(index - 4)) };
+            let priority_ref = unsafe { (*Self::PTR).shpr.get_unchecked(usize::from(index - 4)) };
 
             priority_ref.read()
         }
@@ -978,7 +978,7 @@ impl SCB {
             // NOTE(unsafe): Index is bounded to [11,15] by SystemHandler design.
             // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
             let priority_ref = unsafe {
-                (*Self::ptr())
+                (*Self::PTR)
                     .shpr
                     .get_unchecked(usize::from((index - 8) / 4))
             };
@@ -1009,7 +1009,7 @@ impl SCB {
         {
             // NOTE(unsafe): Index is bounded to [4,15] by SystemHandler design.
             // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
-            let priority_ref = (*Self::ptr()).shpr.get_unchecked(usize::from(index - 4));
+            let priority_ref = (*Self::PTR).shpr.get_unchecked(usize::from(index - 4));
 
             priority_ref.write(prio)
         }
@@ -1018,7 +1018,7 @@ impl SCB {
         {
             // NOTE(unsafe): Index is bounded to [11,15] by SystemHandler design.
             // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
-            let priority_ref = (*Self::ptr())
+            let priority_ref = (*Self::PTR)
                 .shpr
                 .get_unchecked(usize::from((index - 8) / 4));
 

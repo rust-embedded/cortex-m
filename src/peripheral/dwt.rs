@@ -77,7 +77,7 @@ impl DWT {
     #[inline]
     pub fn num_comp() -> u8 {
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { ((*Self::ptr()).ctrl.read() >> NUMCOMP_OFFSET) as u8 }
+        unsafe { ((*Self::PTR).ctrl.read() >> NUMCOMP_OFFSET) as u8 }
     }
 
     /// Returns `true` if the the implementation supports sampling and exception tracing
@@ -85,7 +85,7 @@ impl DWT {
     #[inline]
     pub fn has_exception_trace() -> bool {
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).ctrl.read() & NOTRCPKT == 0 }
+        unsafe { (*Self::PTR).ctrl.read() & NOTRCPKT == 0 }
     }
 
     /// Returns `true` if the implementation includes external match signals
@@ -93,7 +93,7 @@ impl DWT {
     #[inline]
     pub fn has_external_match() -> bool {
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).ctrl.read() & NOEXTTRIG == 0 }
+        unsafe { (*Self::PTR).ctrl.read() & NOEXTTRIG == 0 }
     }
 
     /// Returns `true` if the implementation supports a cycle counter
@@ -101,7 +101,7 @@ impl DWT {
     #[inline]
     pub fn has_cycle_counter() -> bool {
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).ctrl.read() & NOCYCCNT == 0 }
+        unsafe { (*Self::PTR).ctrl.read() & NOCYCCNT == 0 }
     }
 
     /// Returns `true` if the implementation the profiling counters
@@ -109,7 +109,7 @@ impl DWT {
     #[inline]
     pub fn has_profiling_counter() -> bool {
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).ctrl.read() & NOPRFCNT == 0 }
+        unsafe { (*Self::PTR).ctrl.read() & NOPRFCNT == 0 }
     }
 
     /// Enables the cycle counter
@@ -138,7 +138,7 @@ impl DWT {
     #[inline]
     pub fn cycle_counter_enabled() -> bool {
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).ctrl.read() & CYCCNTENA != 0 }
+        unsafe { (*Self::PTR).ctrl.read() & CYCCNTENA != 0 }
     }
 
     /// Returns the current clock cycle count
@@ -157,7 +157,7 @@ impl DWT {
     #[inline]
     pub fn cycle_count() -> u32 {
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).cyccnt.read() }
+        unsafe { (*Self::PTR).cyccnt.read() }
     }
 
     /// Set the cycle count
@@ -174,7 +174,7 @@ impl DWT {
     #[inline]
     pub fn unlock() {
         // NOTE(unsafe) atomic write to a stateless, write-only register
-        unsafe { (*Self::ptr()).lar.write(0xC5AC_CE55) }
+        unsafe { (*Self::PTR).lar.write(0xC5AC_CE55) }
     }
 
     /// Get the CPI count
@@ -188,7 +188,7 @@ impl DWT {
     #[inline]
     pub fn cpi_count() -> u8 {
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).cpicnt.read() as u8 }
+        unsafe { (*Self::PTR).cpicnt.read() as u8 }
     }
 
     /// Set the CPI count
@@ -203,7 +203,7 @@ impl DWT {
     #[inline]
     pub fn exception_count() -> u8 {
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).exccnt.read() as u8 }
+        unsafe { (*Self::PTR).exccnt.read() as u8 }
     }
 
     /// Set the exception count
@@ -224,7 +224,7 @@ impl DWT {
     #[inline]
     pub fn sleep_count() -> u8 {
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).sleepcnt.read() as u8 }
+        unsafe { (*Self::PTR).sleepcnt.read() as u8 }
     }
 
     /// Set the sleep count
@@ -239,7 +239,7 @@ impl DWT {
     #[inline]
     pub fn lsu_count() -> u8 {
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).lsucnt.read() as u8 }
+        unsafe { (*Self::PTR).lsucnt.read() as u8 }
     }
 
     /// Set the lsu count
@@ -256,7 +256,7 @@ impl DWT {
     #[inline]
     pub fn fold_count() -> u8 {
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::ptr()).foldcnt.read() as u8 }
+        unsafe { (*Self::PTR).foldcnt.read() as u8 }
     }
 
     /// Set the folded instruction count

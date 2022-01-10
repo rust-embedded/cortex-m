@@ -150,7 +150,7 @@ impl TPIU {
     /// the TPIU FIFO queue for trace data.
     #[inline]
     pub fn swo_supports() -> SWOSupports {
-        let _type = unsafe { (*Self::ptr())._type.read() };
+        let _type = unsafe { (*Self::PTR)._type.read() };
         SWOSupports {
             nrz_encoding: _type.nrzvalid(),
             manchester_encoding: _type.mancvalid(),

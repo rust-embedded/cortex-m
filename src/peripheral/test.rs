@@ -1,6 +1,6 @@
 #[test]
 fn cpuid() {
-    let cpuid = unsafe { &*crate::peripheral::CPUID::ptr() };
+    let cpuid = unsafe { &*crate::peripheral::CPUID::PTR };
 
     assert_eq!(address(&cpuid.base), 0xE000_ED00);
     assert_eq!(address(&cpuid.pfr), 0xE000_ED40);
@@ -16,7 +16,7 @@ fn cpuid() {
 
 #[test]
 fn dcb() {
-    let dcb = unsafe { &*crate::peripheral::DCB::ptr() };
+    let dcb = unsafe { &*crate::peripheral::DCB::PTR };
 
     assert_eq!(address(&dcb.dhcsr), 0xE000_EDF0);
     assert_eq!(address(&dcb.dcrsr), 0xE000_EDF4);
@@ -26,7 +26,7 @@ fn dcb() {
 
 #[test]
 fn dwt() {
-    let dwt = unsafe { &*crate::peripheral::DWT::ptr() };
+    let dwt = unsafe { &*crate::peripheral::DWT::PTR };
 
     assert_eq!(address(&dwt.ctrl), 0xE000_1000);
     #[cfg(not(armv6m))]
@@ -56,7 +56,7 @@ fn dwt() {
 
 #[test]
 fn fpb() {
-    let fpb = unsafe { &*crate::peripheral::FPB::ptr() };
+    let fpb = unsafe { &*crate::peripheral::FPB::PTR };
 
     assert_eq!(address(&fpb.ctrl), 0xE000_2000);
     assert_eq!(address(&fpb.remap), 0xE000_2004);
@@ -68,7 +68,7 @@ fn fpb() {
 
 #[test]
 fn fpu() {
-    let fpu = unsafe { &*crate::peripheral::FPU::ptr() };
+    let fpu = unsafe { &*crate::peripheral::FPU::PTR };
 
     assert_eq!(address(&fpu.fpccr), 0xE000_EF34);
     assert_eq!(address(&fpu.fpcar), 0xE000_EF38);
@@ -80,7 +80,7 @@ fn fpu() {
 
 #[test]
 fn itm() {
-    let itm = unsafe { &*crate::peripheral::ITM::ptr() };
+    let itm = unsafe { &*crate::peripheral::ITM::PTR };
 
     assert_eq!(address(&itm.stim), 0xE000_0000);
     assert_eq!(address(&itm.ter), 0xE000_0E00);
@@ -92,7 +92,7 @@ fn itm() {
 
 #[test]
 fn mpu() {
-    let mpu = unsafe { &*crate::peripheral::MPU::ptr() };
+    let mpu = unsafe { &*crate::peripheral::MPU::PTR };
 
     assert_eq!(address(&mpu._type), 0xE000ED90);
     assert_eq!(address(&mpu.ctrl), 0xE000ED94);
@@ -109,7 +109,7 @@ fn mpu() {
 
 #[test]
 fn nvic() {
-    let nvic = unsafe { &*crate::peripheral::NVIC::ptr() };
+    let nvic = unsafe { &*crate::peripheral::NVIC::PTR };
 
     assert_eq!(address(&nvic.iser), 0xE000E100);
     assert_eq!(address(&nvic.icer), 0xE000E180);
@@ -123,7 +123,7 @@ fn nvic() {
 
 #[test]
 fn scb() {
-    let scb = unsafe { &*crate::peripheral::SCB::ptr() };
+    let scb = unsafe { &*crate::peripheral::SCB::PTR };
 
     assert_eq!(address(&scb.icsr), 0xE000_ED04);
     assert_eq!(address(&scb.vtor), 0xE000_ED08);
@@ -143,7 +143,7 @@ fn scb() {
 
 #[test]
 fn syst() {
-    let syst = unsafe { &*crate::peripheral::SYST::ptr() };
+    let syst = unsafe { &*crate::peripheral::SYST::PTR };
 
     assert_eq!(address(&syst.csr), 0xE000_E010);
     assert_eq!(address(&syst.rvr), 0xE000_E014);
@@ -153,7 +153,7 @@ fn syst() {
 
 #[test]
 fn tpiu() {
-    let tpiu = unsafe { &*crate::peripheral::TPIU::ptr() };
+    let tpiu = unsafe { &*crate::peripheral::TPIU::PTR };
 
     assert_eq!(address(&tpiu.sspsr), 0xE004_0000);
     assert_eq!(address(&tpiu.cspsr), 0xE004_0004);

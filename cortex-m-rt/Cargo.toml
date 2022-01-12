@@ -22,7 +22,7 @@ cortex-m-rt-macros = { path = "macros", version = "=0.7.0" }
 [dev-dependencies]
 cortex-m = { version = "0.7.4", path = ".." }
 panic-halt = "0.2.0"
-cortex-m-semihosting = "0.3"
+cortex-m-semihosting = { path = "../cortex-m-semihosting" }
 
 [target.'cfg(not(target_os = "none"))'.dev-dependencies]
 compiletest_rs = "0.7"

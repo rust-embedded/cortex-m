@@ -6,7 +6,6 @@
 #![no_std]
 #![no_main]
 
-extern crate cortex_m;
 extern crate cortex_m_rt;
 extern crate panic_halt;
 

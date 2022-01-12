@@ -18,8 +18,6 @@ links = "cortex-m-rt" # Prevent multiple versions of cortex-m-rt being linked
 
 [dependencies]
 cortex-m-rt-macros = { path = "macros", version = "=0.7.0" }
-# Note: Do not depend on `cortex-m` here. This crate is used for testing `cortex-m`, so we need to
-# avoid pulling in multiple versions of `cortex-m`.
 
 [dev-dependencies]
 cortex-m = { version = "0.7.4", path = ".." }
@@ -27,7 +25,7 @@ panic-halt = "0.2.0"
 cortex-m-semihosting = "0.3"
 
 [target.'cfg(not(target_os = "none"))'.dev-dependencies]
-compiletest_rs = "0.4.0"
+compiletest_rs = "0.7"
 
 [[example]]
 name = "device"

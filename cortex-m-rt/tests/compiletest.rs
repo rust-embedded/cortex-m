@@ -7,11 +7,11 @@ fn run_mode(mode: &'static str) {
 
     config.mode = mode.parse().expect("Invalid mode");
     config.src_base = PathBuf::from(format!("tests/{}", mode));
-    // config.link_deps(); // Populate config.target_rustcflags with dependencies on the path
     config.target_rustcflags = Some(
-        "-L target/debug -L target/debug/deps -C panic=abort --cfg feature=\"device\"".to_owned(),
+        "-L ../target/debug -L ../target/debug/deps -C panic=abort --cfg feature=\"device\""
+            .to_owned(),
     );
-    // config.clean_rmeta(); // If your tests import the parent crate, this helps with E0464
+    config.clean_rmeta(); // If your tests import the parent crate, this helps with E0464
 
     compiletest::run_tests(&config);
 }

@@ -1,7 +1,7 @@
-/* Device specific memory layout */
-
-/* This file is used to build the cortex-m-rt examples,
-   but not other applications using cortex-m-rt. */
+/* Sample memory.x file used for cortex-m-rt examples and tests only.
+ * You must provide your own memory.x with values correct for your device,
+ * don't just copy these.
+ */
 
 MEMORY
 {

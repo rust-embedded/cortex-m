@@ -18,7 +18,9 @@ jobs:
           # Nightly is only for reference and allowed to fail
           - rust: nightly
             experimental: true
-
+    defaults:
+      run:
+        working-directory: cortex-m-rt
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
@@ -55,7 +57,9 @@ jobs:
           - macOS-latest
           - windows-latest
     runs-on: ${{ matrix.os }}
-
+    defaults:
+      run:
+        working-directory: cortex-m-rt
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1

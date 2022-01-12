@@ -3,10 +3,10 @@ on:
     branches: [ staging, trying, master ]
   pull_request:
 
-name: Continuous integration
+name: cortex-m-rt CI
 
 jobs:
-  ci-linux:
+  rt-ci-linux:
     runs-on: ubuntu-20.04
     continue-on-error: ${{ matrix.experimental || false }}
     strategy:
@@ -48,7 +48,7 @@ jobs:
         run: TARGET=thumbv8m.main-none-eabihf TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
 
   # On macOS and Windows, we at least make sure that all examples build and link.
-  build-other:
+  rt-ci-other-os:
     strategy:
       matrix:
         os:

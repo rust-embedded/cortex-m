@@ -3,7 +3,7 @@ on:
     branches: [ staging, trying, master ]
   pull_request:
 
-name: CI
+name: cortex-m CI
 
 jobs:
   ci-linux:

@@ -260,6 +260,25 @@ impl ITM {
     pub fn configure(&mut self, settings: ITMSettings) -> Result<(), ITMConfigurationError> {
         use ITMConfigurationError as Error;
 
+        // The ITM must be unlocked before we apply any changes.
+        if self.has_software_lock() && self.locked() {
+            self.unlock();
+            while self.locked() {}
+        }
+
+        // The ITM must then be disabled before altering certain fields
+        // in order to avoid trace stream corruption.
+        //
+        // NOTE: this is only required before modifying the TraceBusID
+        // field, but better be on the safe side for now.
+        unsafe {
+            self.tcr.modify(|mut r| {
+                r.set_itmena(false);
+                r
+            });
+            while self.busy() {}
+        }
+
         unsafe {
             self.tcr.modify(|mut r| {
                 r.set_gtsfreq(match settings.global_timestamps {
@@ -328,6 +347,10 @@ impl ITM {
 
                 r
             });
+        }
+
+        if self.has_software_lock() {
+            self.lock();
         }
 
         Ok(())

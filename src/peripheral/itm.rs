@@ -1,5 +1,8 @@
 //! Instrumentation Trace Macrocell
 //!
+//! The documentation in this module contains references to ARM specifications, namely:
+//! - coresight: [*ARM CoreSight Architecture Specification*, Version 3.0](https://developer.arm.com/documentation/ihi0029/latest).
+//!
 //! *NOTE* Not available on Armv6-M and Armv8-M Baseline.
 
 use core::cell::UnsafeCell;
@@ -198,10 +201,21 @@ pub enum ITMConfigurationError {
 
 impl ITM {
     /// Removes the software lock on the [`ITM`]. Must be called before any other [`ITM`] functions.
+    ///
+    /// See (coresight, B2.3.10).
     #[inline]
     pub fn unlock(&mut self) {
         // NOTE(unsafe) atomic write to a stateless, write-only register
         unsafe { self.lar.write(0xC5AC_CE55) }
+    }
+
+    /// Adds the software lock on the [`ITM`]. Should be called after any other [`ITM`] functions.
+    ///
+    /// See (coresight, B2.3.10).
+    #[inline]
+    pub fn lock(&mut self) {
+        // NOTE(unsafe) atomic write to a stateless, write-only register
+        unsafe { self.lar.write(0) }
     }
 
     /// Indicates whether the [`ITM`] is currently processing events.

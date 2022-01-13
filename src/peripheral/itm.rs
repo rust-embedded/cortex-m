@@ -34,7 +34,7 @@ pub struct RegisterBlock {
     /// Lock Access
     pub lar: WO<u32>,
     /// Lock Status
-    pub lsr: RO<u32>,
+    pub lsr: RO<Lsr>,
 }
 
 bitfield! {
@@ -51,6 +51,15 @@ bitfield! {
     u8, gtsfreq, set_gtsfreq: 11, 10;
     u8, tracebusid, set_tracebusid: 22, 16;
     busy, _: 23;
+}
+
+bitfield! {
+    /// Software Lock Status Register
+    #[repr(C)]
+    #[derive(Copy, Clone)]
+    pub struct Lsr(u32);
+    sli, _: 0;
+    slk, _: 1;
 }
 
 /// Stimulus Port
@@ -200,7 +209,9 @@ pub enum ITMConfigurationError {
 }
 
 impl ITM {
-    /// Removes the software lock on the [`ITM`]. Must be called before any other [`ITM`] functions.
+    /// Removes the software lock on the [`ITM`]. Must be called before
+    /// any mutating [`ITM`] functions if a software lock mechanism is
+    /// implemented. See [`has_software_lock`].
     ///
     /// See (coresight, B2.3.10).
     #[inline]
@@ -209,13 +220,31 @@ impl ITM {
         unsafe { self.lar.write(0xC5AC_CE55) }
     }
 
-    /// Adds the software lock on the [`ITM`]. Should be called after any other [`ITM`] functions.
+    /// Adds the software lock on the [`ITM`]. Should be called after any other mutating [`ITM`] functions.
     ///
     /// See (coresight, B2.3.10).
     #[inline]
     pub fn lock(&mut self) {
         // NOTE(unsafe) atomic write to a stateless, write-only register
         unsafe { self.lar.write(0) }
+    }
+
+    /// Checks whether the target implements the software lock
+    /// mechanism. If `true`, [`unlock`] must be called before any other
+    /// mutating [`ITM`] functions.
+    ///
+    /// See (coresight, B2.3.10).
+    #[inline]
+    pub fn has_software_lock(&self) -> bool {
+        self.lsr.read().sli()
+    }
+
+    /// Checks whether the peripheral is locked.
+    ///
+    /// See (coresight, B2.3.10).
+    #[inline]
+    pub fn locked(&self) -> bool {
+        self.lsr.read().slk()
     }
 
     /// Indicates whether the [`ITM`] is currently processing events.

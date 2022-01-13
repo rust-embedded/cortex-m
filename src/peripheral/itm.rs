@@ -340,10 +340,13 @@ impl ITM {
 
         unsafe {
             self.tcr.modify(|mut r| {
-                r.set_itmena(settings.enable);
                 r.set_tsena(settings.local_timestamps != LocalTimestampOptions::Disabled);
                 r.set_txena(settings.forward_dwt); // forward hardware event packets from the DWT to the ITM
                 r.set_tracebusid(settings.bus_id.unwrap_or(0));
+
+                // must be modified after TraceBusID, see last section in
+                // <https://developer.arm.com/documentation/ddi0403/d/Debug-Architecture/ARMv7-M-Debug/The-Instrumentation-Trace-Macrocell/Trace-Control-Register--ITM-TCR?lang=en>
+                r.set_itmena(settings.enable);
 
                 r
             });

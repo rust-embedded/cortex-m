@@ -211,7 +211,8 @@ pub enum ITMConfigurationError {
 impl ITM {
     /// Disengage the software lock on the [`ITM`]. Must be called
     /// before any mutating [`ITM`] functions if a software lock
-    /// mechanism is implemented. See [`has_software_lock`].
+    /// mechanism is implemented. See
+    /// [`has_software_lock`](ITM::has_software_lock).
     ///
     /// See (coresight, B2.3.10).
     #[inline]
@@ -231,8 +232,8 @@ impl ITM {
     }
 
     /// Checks whether the target implements the software lock
-    /// mechanism. If `true`, [`unlock`] must be called before any other
-    /// mutating [`ITM`] functions.
+    /// mechanism. If `true`, [`unlock`](ITM::unlock) must be called
+    /// before any other mutating [`ITM`] functions.
     ///
     /// See (coresight, B2.3.10).
     #[inline]

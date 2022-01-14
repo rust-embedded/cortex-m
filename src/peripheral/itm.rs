@@ -169,7 +169,7 @@ pub enum TimestampClkSrc {
 
 /// Available settings for the ITM peripheral.
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
-pub struct ITMSettings {
+pub struct ITMConfiguration {
     /// Whether to enable ITM.
     pub enable: bool,
     /// Whether DWT packets should be forwarded to ITM.
@@ -256,9 +256,9 @@ impl ITM {
         self.tcr.read().busy()
     }
 
-    /// Tries to configure the [`ITM`] with the passed [`ITMSettings`].
+    /// Tries to configure the [`ITM`] with the passed [`ITMConfiguration`].
     #[allow(clippy::missing_inline_in_public_items)]
-    pub fn configure(&mut self, settings: ITMSettings) -> Result<(), ITMConfigurationError> {
+    pub fn configure(&mut self, settings: ITMConfiguration) -> Result<(), ITMConfigurationError> {
         use ITMConfigurationError as Error;
 
         // The ITM must be unlocked before we apply any changes.

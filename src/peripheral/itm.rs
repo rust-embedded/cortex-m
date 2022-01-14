@@ -209,9 +209,9 @@ pub enum ITMConfigurationError {
 }
 
 impl ITM {
-    /// Removes the software lock on the [`ITM`]. Must be called before
-    /// any mutating [`ITM`] functions if a software lock mechanism is
-    /// implemented. See [`has_software_lock`].
+    /// Disengage the software lock on the [`ITM`]. Must be called
+    /// before any mutating [`ITM`] functions if a software lock
+    /// mechanism is implemented. See [`has_software_lock`].
     ///
     /// See (coresight, B2.3.10).
     #[inline]
@@ -220,7 +220,8 @@ impl ITM {
         unsafe { self.lar.write(0xC5AC_CE55) }
     }
 
-    /// Adds the software lock on the [`ITM`]. Should be called after any other mutating [`ITM`] functions.
+    /// Engages the software lock on the [`ITM`]. Should be called after
+    /// any other mutating [`ITM`] functions.
     ///
     /// See (coresight, B2.3.10).
     #[inline]
@@ -254,8 +255,7 @@ impl ITM {
         self.tcr.read().busy()
     }
 
-    /// Configures the [`ITM`] with the passed [`ITMSettings`]. Returns `true`
-    /// if the configuration was successfully applied.
+    /// Tries to configure the [`ITM`] with the passed [`ITMSettings`].
     #[allow(clippy::missing_inline_in_public_items)]
     pub fn configure(&mut self, settings: ITMSettings) -> Result<(), ITMConfigurationError> {
         use ITMConfigurationError as Error;

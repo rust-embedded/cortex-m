@@ -188,6 +188,7 @@ pub struct ITMConfiguration {
 
 /// Possible errors on [ITM::configure].
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
+#[non_exhaustive]
 pub enum ITMConfigurationError {
     /// Global timestamp generation is not supported on this target.
     /// Request [`GlobalTimestampOptions::Disabled`] instead.

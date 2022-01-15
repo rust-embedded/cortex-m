@@ -251,7 +251,7 @@ impl ITM {
     ///
     /// See (coresight, B2.3.10).
     #[inline]
-    pub fn has_software_lock(&self) -> bool {
+    fn has_software_lock(&self) -> bool {
         self.lsr.read().sli()
     }
 
@@ -259,7 +259,7 @@ impl ITM {
     ///
     /// See (coresight, B2.3.10).
     #[inline]
-    pub fn locked(&self) -> bool {
+    fn locked(&self) -> bool {
         self.has_software_lock() && self.lsr.read().slk()
     }
 

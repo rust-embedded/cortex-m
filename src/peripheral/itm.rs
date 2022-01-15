@@ -217,8 +217,16 @@ impl ITM {
     /// See (coresight, B2.3.10).
     #[inline]
     pub fn unlock(&mut self) {
+        if !self.locked() {
+            return;
+        }
+
         // NOTE(unsafe) atomic write to a stateless, write-only register
-        unsafe { self.lar.write(0xC5AC_CE55) }
+        unsafe {
+            self.lar.write(0xC5AC_CE55);
+        }
+
+        while self.locked() {}
     }
 
     /// Engages the software lock on the [`ITM`]. Should be called after
@@ -227,8 +235,14 @@ impl ITM {
     /// See (coresight, B2.3.10).
     #[inline]
     pub fn lock(&mut self) {
+        if self.locked() {
+            return;
+        }
+
         // NOTE(unsafe) atomic write to a stateless, write-only register
         unsafe { self.lar.write(0) }
+
+        while !self.locked() {}
     }
 
     /// Checks whether the target implements the software lock
@@ -246,7 +260,7 @@ impl ITM {
     /// See (coresight, B2.3.10).
     #[inline]
     pub fn locked(&self) -> bool {
-        self.lsr.read().slk()
+        self.has_software_lock() && self.lsr.read().slk()
     }
 
     /// Indicates whether the [`ITM`] is currently processing events.
@@ -264,10 +278,7 @@ impl ITM {
         use ITMConfigurationError as Error;
 
         // The ITM must be unlocked before we apply any changes.
-        if self.has_software_lock() && self.locked() {
-            self.unlock();
-            while self.locked() {}
-        }
+        self.unlock();
 
         // The ITM must then be disabled before altering certain fields
         // in order to avoid trace stream corruption.
@@ -355,9 +366,7 @@ impl ITM {
             });
         }
 
-        if self.has_software_lock() {
-            self.lock();
-        }
+        self.lock();
 
         Ok(())
     }

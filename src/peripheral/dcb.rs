@@ -3,8 +3,6 @@
 use volatile_register::{RW, WO};
 
 use crate::peripheral::DCB;
-#[allow(unused_imports)]
-use crate::peripheral::{DWT, ITM};
 use core::ptr;
 
 const DCB_DEMCR_TRCENA: u32 = 1 << 24;
@@ -24,7 +22,8 @@ pub struct RegisterBlock {
 }
 
 impl DCB {
-    /// Global enable for all [`DWT`] and [`ITM`] features.
+    /// Global enable for all [`DWT`](crate::peripheral::DWT) and
+    /// [`ITM`](crate::peripheral::ITM) features.
     ///
     /// Note: vendor-specific registers may have to be set to completely
     /// enable tracing. For example, on the STM32F401RE, `TRACE_MODE`

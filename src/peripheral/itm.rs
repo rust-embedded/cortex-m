@@ -256,7 +256,9 @@ impl ITM {
         self.tcr.read().busy()
     }
 
-    /// Tries to configure the [`ITM`] with the passed [`ITMConfiguration`].
+    /// Tries to configure the [`ITM`] with the passed
+    /// [`ITMConfiguration`]. Handles register unlocks. On `Err`, the
+    /// [`ITM`] will not be relocked.
     #[allow(clippy::missing_inline_in_public_items)]
     pub fn configure(&mut self, settings: ITMConfiguration) -> Result<(), ITMConfigurationError> {
         use ITMConfigurationError as Error;

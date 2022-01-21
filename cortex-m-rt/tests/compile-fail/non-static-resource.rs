@@ -20,14 +20,16 @@ enum interrupt {
 fn SVCall() {
     static mut STAT: u8 = 0;
 
-    let _stat: &'static mut u8 = STAT; //~ ERROR explicit lifetime required in the type of `STAT`
+    let _stat: &'static mut u8 = STAT;
+    //~^ ERROR lifetime of reference outlives lifetime of borrowed content
 }
 
 #[interrupt]
 fn UART0() {
     static mut STAT: u8 = 0;
 
-    let _stat: &'static mut u8 = STAT; //~ ERROR explicit lifetime required in the type of `STAT`
+    let _stat: &'static mut u8 = STAT;
+    //~^ ERROR lifetime of reference outlives lifetime of borrowed content
 }
 
 #[entry]

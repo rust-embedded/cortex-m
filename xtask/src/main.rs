@@ -2,8 +2,8 @@ use std::{env, process};
 use xtask::{assemble_blobs, check_blobs, check_host_side};
 
 fn main() {
-    let subcommand = env::args().skip(1).next();
-    match subcommand.as_ref().map(|s| &**s) {
+    let subcommand = env::args().nth(1);
+    match subcommand.as_deref() {
         Some("assemble") => assemble_blobs(),
         Some("check-blobs") => check_blobs(),
         Some("check-host-side") => check_host_side(),

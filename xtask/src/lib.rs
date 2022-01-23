@@ -232,7 +232,7 @@ pub fn check_host_side() {
     {
         let a = VectActive::from(19).unwrap();
         let b = VectActive::from(20).unwrap();
-        assert_eq!(a < b, true);
+        assert!(a < b);
     }
 
     // check TryFrom
@@ -240,7 +240,7 @@ pub fn check_host_side() {
         use core::convert::TryInto;
         use std::convert::TryFrom;
 
-        let lts: LocalTimestampOptions = (16 as u8).try_into().unwrap();
+        let lts: LocalTimestampOptions = (16_u8).try_into().unwrap();
         assert_eq!(lts, LocalTimestampOptions::EnabledDiv16);
 
         assert!(LocalTimestampOptions::try_from(42).is_err());

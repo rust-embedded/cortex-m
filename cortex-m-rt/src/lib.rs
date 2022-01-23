@@ -418,7 +418,7 @@
 //!
 //! # Minimum Supported Rust Version (MSRV)
 //!
-//! The MSRV of this release is Rust 1.40.0.
+//! The MSRV of this release is Rust 1.42.0.
 
 // # Developer notes
 //

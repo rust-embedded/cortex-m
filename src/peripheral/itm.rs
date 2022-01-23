@@ -118,6 +118,7 @@ impl core::convert::TryFrom<u8> for LocalTimestampOptions {
     /// Converts an integer value to an enabled [LocalTimestampOptions]
     /// variant. Accepted values are: 1, 4, 16, 64. Any other value
     /// yields `Err(())`.
+    #[inline]
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
             1 => Ok(Self::Enabled),

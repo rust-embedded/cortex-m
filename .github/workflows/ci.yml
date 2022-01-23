@@ -3,7 +3,7 @@ on:
     branches: [ staging, trying, master ]
   pull_request:
 
-name: CI
+name: cortex-m CI
 
 jobs:
   ci-linux:
@@ -29,6 +29,6 @@ jobs:
           toolchain: ${{ matrix.rust }}
           override: true
       - name: Run tests
-        run: cargo test --all
+        run: cargo test --all --exclude cortex-m-rt
 
 # FIXME: test on macOS and Windows

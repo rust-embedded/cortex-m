@@ -34,7 +34,13 @@ linker-plugin-lto = []
 std = []
 
 [workspace]
-members = ["xtask", "cortex-m-semihosting", "panic-semihosting", "panic-itm"]
+members = [
+    "xtask",
+    "cortex-m-rt",
+    "cortex-m-semihosting",
+    "panic-semihosting",
+    "panic-itm"
+]
 
 [package.metadata.docs.rs]
 targets = [

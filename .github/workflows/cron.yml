@@ -28,3 +28,48 @@ jobs:
             https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  rt-ci-linux:
+    runs-on: ubuntu-20.04
+    continue-on-error: ${{ matrix.experimental || false }}
+    defaults:
+      run:
+        working-directory: cortex-m-rt
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Install all Rust targets for stable
+        run: rustup target install --toolchain=stable thumbv6m-none-eabi thumbv7m-none-eabi thumbv7em-none-eabi thumbv7em-none-eabihf thumbv8m.base-none-eabi thumbv8m.main-none-eabi thumbv8m.main-none-eabihf
+      - name: Install qemu and gcc
+        run: sudo apt-get update && sudo apt-get install qemu-system-arm gcc-arm-none-eabi
+      - name: Run CI script for x86_64-unknown-linux-gnu under stable
+        run: TARGET=x86_64-unknown-linux-gnu TRAVIS_RUST_VERSION=stable bash ci/script.sh
+      - name: Run CI script for thumbv6m-none-eabi under stable
+        run: TARGET=thumbv6m-none-eabi TRAVIS_RUST_VERSION=stable bash ci/script.sh
+      - name: Run CI script for thumbv7m-none-eabi under stable
+        run: TARGET=thumbv7m-none-eabi TRAVIS_RUST_VERSION=stable bash ci/script.sh
+      - name: Run CI script for thumbv7em-none-eabi under stable
+        run: TARGET=thumbv7em-none-eabi TRAVIS_RUST_VERSION=stable bash ci/script.sh
+      - name: Run CI script for thumbv7em-none-eabihf under stable
+        run: TARGET=thumbv7em-none-eabihf TRAVIS_RUST_VERSION=stable bash ci/script.sh
+      - name: Run CI script for thumbv8m.base-none-eabi under stable
+        run: TARGET=thumbv8m.base-none-eabi TRAVIS_RUST_VERSION=stable bash ci/script.sh
+      - name: Run CI script for thumbv8m.main-none-eabi under stable
+        run: TARGET=thumbv8m.main-none-eabi TRAVIS_RUST_VERSION=stable bash ci/script.sh
+      - name: Run CI script for thumbv8m.main-none-eabihf under stable
+        run: TARGET=thumbv8m.main-none-eabihf TRAVIS_RUST_VERSION=stable bash ci/script.sh
+      - uses: imjohnbo/issue-bot@v2
+        if: failure()
+        with:
+          title: CI Failure
+          labels: ci
+          body: |
+            Scheduled CI run failed. Details:
+
+            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

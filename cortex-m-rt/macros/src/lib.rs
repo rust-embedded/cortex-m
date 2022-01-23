@@ -159,7 +159,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             Exception::DefaultHandler | Exception::HardFault | Exception::NonMaskableInt => {
                 // These are unsafe to define.
                 let name = if exn == Exception::DefaultHandler {
-                    format!("`DefaultHandler`")
+                    "`DefaultHandler`".to_string()
                 } else {
                     format!("`{:?}` handler", exn)
                 };
@@ -557,7 +557,7 @@ fn extract_static_muts(
     let mut seen = HashSet::new();
     let mut statics = vec![];
     let mut stmts = vec![];
-    while let Some(stmt) = istmts.next() {
+    for stmt in istmts.by_ref() {
         match stmt {
             Stmt::Item(Item::Static(var)) => {
                 if var.mutability.is_some() {
@@ -622,7 +622,7 @@ fn check_attr_whitelist(attrs: &[Attribute], caller: WhiteListCaller) -> Result<
 
     'o: for attr in attrs {
         for val in whitelist {
-            if eq(&attr, &val) {
+            if eq(attr, val) {
                 continue 'o;
             }
         }

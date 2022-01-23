@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         # All generated code should be running on stable now
-        rust: [nightly, stable, 1.40.0]
+        rust: [nightly, stable, 1.42.0]
 
         include:
           # Nightly is only for reference and allowed to fail

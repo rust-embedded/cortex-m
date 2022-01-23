@@ -28,10 +28,7 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
         && f.sig.variadic.is_none()
         && match f.sig.output {
             ReturnType::Default => false,
-            ReturnType::Type(_, ref ty) => match **ty {
-                Type::Never(_) => true,
-                _ => false,
-            },
+            ReturnType::Type(_, ref ty) => matches!(**ty, Type::Never(_)),
         };
 
     if !valid_signature {
@@ -252,10 +249,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                 && f.sig.variadic.is_none()
                 && match f.sig.output {
                     ReturnType::Default => false,
-                    ReturnType::Type(_, ref ty) => match **ty {
-                        Type::Never(_) => true,
-                        _ => false,
-                    },
+                    ReturnType::Type(_, ref ty) => matches!(**ty, Type::Never(_)),
                 };
 
             if !valid_signature {

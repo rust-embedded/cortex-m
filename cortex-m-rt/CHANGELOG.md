@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## Fixes
+
+- Fix `cortex_m_rt::exception` macro no longer being usable fully-qualified ([#414])
+
+[#414]: https://github.com/rust-embedded/cortex-m/issues/414
+
+## Notes
+
+- From this release onwards, cortex-m-rt lives in the cortex-m repository;
+  issue numbers refer there.
+
 ## [v0.7.1]
 
 ## Fixes

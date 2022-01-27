@@ -174,7 +174,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
         Exception::Other => {
             quote! {
                 const _: () = {
-                    let _ = cortex_m_rt::Exception::#ident;
+                    let _ = ::cortex_m_rt::Exception::#ident;
                 };
             }
         }
@@ -328,7 +328,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             f.block.stmts = iter::once(
                 syn::parse2(quote! {{
                     // check that this exception actually exists
-                    exception::#ident;
+                    ::cortex_m_rt::exception::#ident;
                 }})
                 .unwrap(),
             )

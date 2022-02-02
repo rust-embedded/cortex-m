@@ -16,7 +16,7 @@ jobs:
           toolchain: stable
           override: true
       - name: Run tests
-        run: cargo test --all
+        run: cargo test --all --exclude cortex-m-rt
       - uses: imjohnbo/issue-bot@v2
         if: failure()
         with:

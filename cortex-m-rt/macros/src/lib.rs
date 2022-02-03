@@ -612,6 +612,7 @@ fn check_attr_whitelist(attrs: &[Attribute], caller: WhiteListCaller) -> Result<
         "deny",
         "forbid",
         "cold",
+        "naked",
     ];
 
     'o: for attr in attrs {

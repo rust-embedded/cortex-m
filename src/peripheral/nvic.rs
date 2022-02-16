@@ -33,9 +33,16 @@ pub struct RegisterBlock {
     /// Interrupt Active Bit (not present on Cortex-M0 variants)
     #[cfg(not(armv6m))]
     pub iabr: [RO<u32>; 16],
-    #[cfg(armv6m)]
+    #[cfg(any(armv6m, armv8m))]
     _reserved4: [u32; 16],
 
+    #[cfg(armv8m)]
+    /// Interrupt Target Non-secure (only present on Arm v8-M)
+    pub itns: [RW<u32>; 16],
+    #[cfg(armv8m)]
+    _reserved5: [u32; 32],
+
+    #[cfg(not(armv8m))]
     _reserved5: [u32; 48],
 
     /// Interrupt Priority

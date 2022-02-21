@@ -47,14 +47,6 @@
 //!
 //! We discourage using this feature when the program will run on hardware as the exit call can
 //! leave the hardware debugger in an inconsistent state.
-//!
-//! ## `inline-asm`
-//!
-//! When this feature is enabled semihosting is implemented using inline assembly (`asm!`) and
-//! compiling this crate requires nightly.
-//!
-//! When this feature is disabled semihosting is implemented using FFI calls into an external
-//! assembly file and compiling this crate works on stable and beta.
 
 #![cfg(all(target_arch = "arm", target_os = "none"))]
 #![deny(missing_docs)]

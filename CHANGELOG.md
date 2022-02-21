@@ -21,8 +21,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - Fixed `singleton!()` statics sometimes ending up in `.data` instead of `.bss` (#364, #380).
 
+### Changed
+- Inline assembly is now always used, requiring Rust 1.59.
+
 ### Removed
 - removed all peripherals `ptr()` functions in favor of the associated constant `PTR` (#385).
+- removed `inline-asm` feature which is now always enabled
 
 ## [v0.7.4] - 2021-12-31
 

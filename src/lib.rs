@@ -9,53 +9,17 @@
 //!
 //! # Optional features
 //!
-//! ## `inline-asm`
-//!
-//! When this feature is enabled the implementation of all the functions inside the `asm` and
-//! `register` modules use inline assembly (`asm!`) instead of external assembly (FFI into separate
-//! assembly files pre-compiled using `arm-none-eabi-gcc`). The advantages of enabling `inline-asm`
-//! are:
-//!
-//! - Reduced overhead. FFI eliminates the possibility of inlining so all operations include a
-//! function call overhead when `inline-asm` is not enabled.
-//!
-//! - Some of the `register` API only becomes available only when `inline-asm` is enabled. Check the
-//! API docs for details.
-//!
-//! The disadvantage is that `inline-asm` requires a nightly toolchain.
-//!
 //! ## `cm7-r0p1`
 //!
 //! This feature enables workarounds for errata found on Cortex-M7 chips with revision r0p1. Some
 //! functions in this crate only work correctly on those chips if this Cargo feature is enabled
 //! (the functions are documented accordingly).
 //!
-//! ## `linker-plugin-lto`
-//!
-//! This feature links against prebuilt assembly blobs that are compatible with [Linker-Plugin LTO].
-//! This allows inlining assembly routines into the caller, even without the `inline-asm` feature,
-//! and works on stable Rust (but note the drawbacks below!).
-//!
-//! If you want to use this feature, you need to be aware of a few things:
-//!
-//! - You need to make sure that `-Clinker-plugin-lto` is passed to rustc. Please refer to the
-//!   [Linker-Plugin LTO] documentation for details.
-//!
-//! - You have to use a Rust version whose LLVM version is compatible with the toolchain in
-//!   `asm-toolchain`.
-//!
-//! - Due to a [Rust bug][rust-lang/rust#75940] in compiler versions **before 1.49**, this option
-//!   does not work with optimization levels `s` and `z`.
-//!
-//! [Linker-Plugin LTO]: https://doc.rust-lang.org/stable/rustc/linker-plugin-lto.html
-//! [rust-lang/rust#75940]: https://github.com/rust-lang/rust/issues/75940
-//!
 //! # Minimum Supported Rust Version (MSRV)
 //!
-//! This crate is guaranteed to compile on stable Rust 1.42 and up. It *might*
+//! This crate is guaranteed to compile on stable Rust 1.59 and up. It *might*
 //! compile with older versions but that may change in any new patch release.
 
-#![cfg_attr(feature = "inline-asm", feature(asm))]
 #![deny(missing_docs)]
 #![no_std]
 #![allow(clippy::identity_op)]
@@ -82,8 +46,6 @@
 extern crate bare_metal;
 extern crate volatile_register;
 
-#[macro_use]
-mod call_asm;
 #[macro_use]
 mod macros;
 

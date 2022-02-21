@@ -60,6 +60,7 @@
 use core::marker::PhantomData;
 use core::ops;
 
+#[cfg(cortex_m)]
 use crate::interrupt;
 
 #[cfg(cm7)]
@@ -163,6 +164,7 @@ static mut TAKEN: bool = false;
 
 impl Peripherals {
     /// Returns all the core peripherals *once*
+    #[cfg(cortex_m)]
     #[inline]
     pub fn take() -> Option<Self> {
         interrupt::free(|_| {

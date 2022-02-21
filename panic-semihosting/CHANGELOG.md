@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+- Always use inline-asm, requiring Rust 1.59.
+
 ## [v0.5.6] - 2020-11-14
 
 - Fix update to docs.rs to build for an embedded target

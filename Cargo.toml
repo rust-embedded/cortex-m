@@ -29,7 +29,6 @@ optional = true
 [features]
 cm7 = []
 cm7-r0p1 = ["cm7"]
-inline-asm = []
 linker-plugin-lto = []
 std = []
 

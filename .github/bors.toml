@@ -5,7 +5,7 @@ status = [
   "ci-linux (stable)",
   "ci-linux (1.59.0)",
   "rt-ci-linux (stable)",
-  "rt-ci-linux (1.42.0)",
+  "rt-ci-linux (1.59.0)",
   "rt-ci-other-os (macOS-latest)",
   "rt-ci-other-os (windows-latest)",
   "rustfmt",

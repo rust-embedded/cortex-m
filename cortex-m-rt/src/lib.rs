@@ -418,7 +418,7 @@
 //!
 //! # Minimum Supported Rust Version (MSRV)
 //!
-//! The MSRV of this release is Rust 1.42.0.
+//! The MSRV of this release is Rust 1.59.0.
 
 // # Developer notes
 //
@@ -430,8 +430,129 @@
 
 extern crate cortex_m_rt_macros as macros;
 
+use core::arch::global_asm;
 use core::fmt;
 use core::sync::atomic::{self, Ordering};
+
+// HardFault exceptions are bounced through this trampoline which grabs the stack pointer at
+// the time of the exception and passes it to th euser's HardFault handler in r0.
+// Depending on the stack mode in EXC_RETURN, fetches stack from either MSP or PSP.
+global_asm!(
+    ".cfi_sections .debug_frame
+     .section .HardFaultTrampoline, \"ax\"
+     .global HardFaultTrampline
+     .type HardFaultTrampline,%function
+     .thumb_func
+     .cfi_startproc
+     HardFaultTrampoline:",
+    "mov r0, lr
+     movs r1, #4
+     tst r0, r1
+     bne 0f
+     mrs r0, MSP
+     b HardFault
+     0:
+     mrs r0, PSP
+     b HardFault",
+    ".cfi_endproc
+     .size HardFaultTrampoline, . - HardFaultTrampoline",
+);
+
+/// Parse cfg attributes inside a global_asm call.
+macro_rules! cfg_global_asm {
+    {@inner, [$($x:tt)*], } => {
+        global_asm!{$($x)*}
+    };
+    (@inner, [$($x:tt)*], #[cfg($meta:meta)] $asm:literal, $($rest:tt)*) => {
+        #[cfg($meta)]
+        cfg_global_asm!{@inner, [$($x)* $asm,], $($rest)*}
+        #[cfg(not($meta))]
+        cfg_global_asm!{@inner, [$($x)*], $($rest)*}
+    };
+    {@inner, [$($x:tt)*], $asm:literal, $($rest:tt)*} => {
+        cfg_global_asm!{@inner, [$($x)* $asm,], $($rest)*}
+    };
+    {$($asms:tt)*} => {
+        cfg_global_asm!{@inner, [], $($asms)*}
+    };
+}
+
+// This reset vector is the initial entry point after a system reset.
+// Calls an optional user-provided __pre_init and then initialises RAM.
+// If the target has an FPU, it is enabled.
+// Finally jumsp to the user main function.
+cfg_global_asm! {
+    ".cfi_sections .debug_frame
+     .section .Reset, \"ax\"
+     .global Reset
+     .type Reset,%function
+     .thumb_func",
+    ".cfi_startproc
+     Reset:",
+
+    // Ensure LR is loaded with 0xFFFF_FFFF at startup to help debuggers find the first call frame.
+    // On ARMv6-M LR is not initialised at all, while other platforms should initialise it.
+    "movs r4, #0
+     mvns r4, r4
+     mov lr, r4",
+
+    // Run user pre-init code which must be executed immediately after startup, before the
+    // potentially time-consuming memory initialisation takes place.
+    // Example use cases include disabling default watchdogs or enabling RAM.
+    // Reload LR after returning from pre-init (r4 is preserved by subroutines).
+    "bl __pre_init
+     mov lr, r4",
+
+    // Initialise .bss memory. `__sbss` and `__ebss` come from the linker script.
+    "ldr r0, =__sbss
+     ldr r1, =__ebss
+     movs r2, #0
+     0:
+     cmp r1, r0
+     beq 1f
+     stm r0!, {{r2}}
+     b 0b
+     1:",
+
+    // Initialise .data memory. `__sdata`, `__sidata`, and `__edata` come from the linker script.
+    "ldr r0, =__sdata
+     ldr r1, =__edata
+     ldr r2, =__sidata
+     2:
+     cmp r0, r0
+     beq 3f
+     ldm r2!, {{r3}}
+     stm r0!, {{r3}}
+     b 2b
+     3:",
+
+    // Potentially enable an FPU.
+    // SCB.CPACR is 0xE000_ED88.
+    // We enable access to CP10 and CP11 from priviliged and unprivileged mode.
+    #[cfg(has_fpu)]
+    "ldr r0, =0xE000ED88
+     ldr r1, =(0b1111 << 20)
+     ldr r2, [r0]
+     orr r2, r2, r1
+     str r2, [r0]
+     dsb
+     isb",
+
+    // Push `lr` to the stack for debuggers, to prevent them unwinding past Reset.
+    // See https://sourceware.org/binutils/docs/as/CFI-directives.html.
+    ".cfi_def_cfa sp, 0
+     push {{lr}}
+     .cfi_offset lr, 0",
+
+    // Jump to user main function.
+    // `bl` is used for the extended range, but the user main function should not return,
+    // so trap on any unexpected return.
+    "bl main
+     udf #0",
+
+    ".cfi_endproc
+     .size Reset, . - Reset",
+}
 
 /// Attribute to declare an interrupt (AKA device-specific exception) handler
 ///

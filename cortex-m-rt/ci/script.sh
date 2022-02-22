@@ -71,10 +71,6 @@ main() {
 
             ;;
     esac
-
-    if [ "$TARGET" = x86_64-unknown-linux-gnu ]; then
-        ./check-blobs.sh
-    fi
 }
 
 main

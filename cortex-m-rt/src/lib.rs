@@ -158,6 +158,19 @@
 //! conjunction with crates generated using `svd2rust`. Those *device crates* will populate the
 //! missing part of the vector table when their `"rt"` feature is enabled.
 //!
+//! ## `set-sp`
+//!
+//! If this feature is enabled, the stack pointer (SP) is initialised in the reset handler to the
+//! `_stack_start` value from the linker script. This is not usually required, but some debuggers
+//! do not initialise SP when performing a soft reset, which can lead to stack corruption.
+//!
+//! ## `set-vtor`
+//!
+//! If this feature is enabled, the vector table offset register (VTOR) is initialised in the reset
+//! handler to the start of the vector table defined in the linker script. This is not usually
+//! required, but some bootloaders do not set VTOR before jumping to application code, leading to
+//! your main function executing but interrupt handlers not being used.
+//!
 //! # Inspection
 //!
 //! This section covers how to inspect a binary that builds on top of `cortex-m-rt`.
@@ -495,6 +508,23 @@ cfg_global_asm! {
     "movs r4, #0
      mvns r4, r4
      mov lr, r4",
+
+    // If enabled, initialise the SP. This is normally initialised by the CPU itself or by a
+    // bootloader, but some debuggers fail to set it when resetting the target, leading to
+    // stack corruptions.
+    #[cfg(feature = "set-sp")]
+    "ldr r0, =_stack_start
+     msr msp, r0",
+
+    // If enabled, initialise VTOR to the start of the vector table. This is normally initialised
+    // by a bootloader when the non-reset value is required, but some bootloaders do not set it,
+    // leading to frustrating issues where everything seems to work but interrupts are never
+    // handled. The VTOR register is optional on ARMv6-M, but when not present is RAZ,WI and
+    // therefore safe to write to.
+    #[cfg(feature = "set-vtor")]
+    "ldr r0, =0xe000ed08
+     ldr r1, =__vector_table
+     str r1, [r0]",
 
     // Run user pre-init code which must be executed immediately after startup, before the
     // potentially time-consuming memory initialisation takes place.

@@ -42,6 +42,8 @@ required-features = ["device"]
 
 [features]
 device = []
+set-sp = []
+set-vtor = []
 
 [package.metadata.docs.rs]
 features = ["device"]

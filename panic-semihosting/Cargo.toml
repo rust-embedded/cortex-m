@@ -11,6 +11,8 @@ license = "MIT OR Apache-2.0"
 name = "panic-semihosting"
 repository = "https://github.com/rust-embedded/cortex-m"
 version = "0.5.6"
+rust-version = "1.59"
+edition = "2021"
 
 [dependencies]
 cortex-m = { path = "..", version = ">= 0.5.6, < 0.8" }

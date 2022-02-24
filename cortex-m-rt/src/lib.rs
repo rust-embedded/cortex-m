@@ -322,14 +322,10 @@
 //!
 //! We want to provide a default handler for all the interrupts while still letting the user
 //! individually override each interrupt handler. In C projects, this is usually accomplished using
-//! weak aliases declared in external assembly files. In Rust, we could achieve something similar
-//! using `global_asm!`, but that's an unstable feature.
-//!
-//! A solution that doesn't require `global_asm!` or external assembly files is to use the `PROVIDE`
-//! command in a linker script to create the weak aliases. This is the approach that `cortex-m-rt`
-//! uses; when the `"device"` feature is enabled `cortex-m-rt`'s linker script (`link.x`) depends on
-//! a linker script named `device.x`. The crate that provides `__INTERRUPTS` must also provide this
-//! file.
+//! weak aliases declared in external assembly files. We use a similar solution via the `PROVIDE`
+//! command in the linker script: when the `"device"` feature is enabled, `cortex-m-rt`'s linker
+//! script (`link.x`) includes a linker script named `device.x`, which must be provided by
+//! whichever crate provides `__INTERRUPTS`.
 //!
 //! For our running example the `device.x` linker script looks like this:
 //!
@@ -343,8 +339,8 @@
 //! that the core exceptions use unless overridden.
 //!
 //! Because this linker script is provided by a dependency of the final application the dependency
-//! must contain build script that puts `device.x` somewhere the linker can find. An example of such
-//! build script is shown below:
+//! must contain a build script that puts `device.x` somewhere the linker can find. An example of
+//! such build script is shown below:
 //!
 //! ```ignore
 //! use std::env;
@@ -586,11 +582,6 @@ cfg_global_asm! {
 
 /// Attribute to declare an interrupt (AKA device-specific exception) handler
 ///
-/// **IMPORTANT**: If you are using Rust 1.30 this attribute must be used on reachable items (i.e.
-/// there must be no private modules between the item and the root of the crate); if the item is in
-/// the root of the crate you'll be fine. This reachability restriction doesn't apply to Rust 1.31
-/// and newer releases.
-///
 /// **NOTE**: This attribute is exposed by `cortex-m-rt` only when the `device` feature is enabled.
 /// However, that export is not meant to be used directly -- using it will result in a compilation
 /// error. You should instead use the device crate (usually generated using `svd2rust`) re-export of
@@ -657,11 +648,6 @@ pub use macros::interrupt;
 
 /// Attribute to declare the entry point of the program
 ///
-/// **IMPORTANT**: This attribute must appear exactly *once* in the dependency graph. Also, if you
-/// are using Rust 1.30 the attribute must be used on a reachable item (i.e. there must be no
-/// private modules between the item and the root of the crate); if the item is in the root of the
-/// crate you'll be fine. This reachability restriction doesn't apply to Rust 1.31 and newer releases.
-///
 /// The specified function will be called by the reset handler *after* RAM has been initialized. In
 /// the case of the `thumbv7em-none-eabihf` target the FPU will also be enabled before the function
 /// is called.
@@ -715,11 +701,6 @@ pub use macros::interrupt;
 pub use macros::entry;
 
 /// Attribute to declare an exception handler
-///
-/// **IMPORTANT**: If you are using Rust 1.30 this attribute must be used on reachable items (i.e.
-/// there must be no private modules between the item and the root of the crate); if the item is in
-/// the root of the crate you'll be fine. This reachability restriction doesn't apply to Rust 1.31
-/// and newer releases.
 ///
 /// # Syntax
 ///
@@ -832,11 +813,7 @@ pub use macros::exception;
 
 /// Attribute to mark which function will be called at the beginning of the reset handler.
 ///
-/// **IMPORTANT**: This attribute can appear at most *once* in the dependency graph. Also, if you
-/// are using Rust 1.30 the attribute must be used on a reachable item (i.e. there must be no
-/// private modules between the item and the root of the crate); if the item is in the root of the
-/// crate you'll be fine. This reachability restriction doesn't apply to Rust 1.31 and newer
-/// releases.
+/// **IMPORTANT**: This attribute can appear at most *once* in the dependency graph.
 ///
 /// The function must have the signature of `unsafe fn()`.
 ///
@@ -1071,21 +1048,13 @@ pub static __RESET_VECTOR: unsafe extern "C" fn() -> ! = Reset;
 #[cfg_attr(cortex_m, link_section = ".HardFault.default")]
 #[no_mangle]
 pub unsafe extern "C" fn HardFault_(ef: &ExceptionFrame) -> ! {
-    loop {
-        // add some side effect to prevent this from turning into a UDF instruction
-        // see rust-lang/rust#28728 for details
-        atomic::compiler_fence(Ordering::SeqCst);
-    }
+    loop {}
 }
 
 #[doc(hidden)]
 #[no_mangle]
 pub unsafe extern "C" fn DefaultHandler_() -> ! {
-    loop {
-        // add some side effect to prevent this from turning into a UDF instruction
-        // see rust-lang/rust#28728 for details
-        atomic::compiler_fence(Ordering::SeqCst);
-    }
+    loop {}
 }
 
 #[doc(hidden)]

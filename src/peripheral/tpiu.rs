@@ -118,7 +118,6 @@ impl TPIU {
     /// [`trace_output_protocol`](Self::set_trace_output_protocol).
     #[inline]
     pub fn trace_output_protocol(&self) -> Option<TraceProtocol> {
-        use core::convert::TryInto;
         self.sppr.read().txmode().try_into().ok()
     }
 

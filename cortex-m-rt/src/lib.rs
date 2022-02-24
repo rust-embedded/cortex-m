@@ -439,13 +439,14 @@
 
 extern crate cortex_m_rt_macros as macros;
 
-use core::arch::global_asm;
 use core::fmt;
-use core::sync::atomic::{self, Ordering};
+#[cfg(cortex_m)]
+use core::arch::global_asm;
 
 // HardFault exceptions are bounced through this trampoline which grabs the stack pointer at
 // the time of the exception and passes it to th euser's HardFault handler in r0.
 // Depending on the stack mode in EXC_RETURN, fetches stack from either MSP or PSP.
+#[cfg(cortex_m)]
 global_asm!(
     ".cfi_sections .debug_frame
      .section .HardFaultTrampoline, \"ax\"
@@ -468,6 +469,7 @@ global_asm!(
 );
 
 /// Parse cfg attributes inside a global_asm call.
+#[cfg(cortex_m)]
 macro_rules! cfg_global_asm {
     {@inner, [$($x:tt)*], } => {
         global_asm!{$($x)*}
@@ -490,6 +492,7 @@ macro_rules! cfg_global_asm {
 // Calls an optional user-provided __pre_init and then initialises RAM.
 // If the target has an FPU, it is enabled.
 // Finally jumsp to the user main function.
+#[cfg(cortex_m)]
 cfg_global_asm! {
     ".cfi_sections .debug_frame
      .section .Reset, \"ax\"
@@ -1048,12 +1051,14 @@ pub static __RESET_VECTOR: unsafe extern "C" fn() -> ! = Reset;
 #[cfg_attr(cortex_m, link_section = ".HardFault.default")]
 #[no_mangle]
 pub unsafe extern "C" fn HardFault_(ef: &ExceptionFrame) -> ! {
+    #[allow(clippy::empty_loop)]
     loop {}
 }
 
 #[doc(hidden)]
 #[no_mangle]
 pub unsafe extern "C" fn DefaultHandler_() -> ! {
+    #[allow(clippy::empty_loop)]
     loop {}
 }
 

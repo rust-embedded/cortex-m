@@ -6,6 +6,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 - Always use inline-asm, requiring Rust 1.59.
+- Removed inline-asm feature.
 
 ## [v0.4.1] - 2020-10-20
 

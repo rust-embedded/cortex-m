@@ -20,7 +20,6 @@ cortex-m-semihosting = { path = "../cortex-m-semihosting", version = ">= 0.3, < 
 
 [features]
 exit = []
-inline-asm = []
 jlink-quirks = ["cortex-m-semihosting/jlink-quirks"]
 
 [package.metadata.docs.rs]

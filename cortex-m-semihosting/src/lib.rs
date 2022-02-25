@@ -194,20 +194,9 @@ pub unsafe fn syscall<T>(nr: usize, arg: &T) -> usize {
 pub unsafe fn syscall1(_nr: usize, _arg: usize) -> usize {
     match () {
         #[cfg(all(thumb, not(feature = "no-semihosting")))]
-        () => {
-            let mut nr = _nr;
-            core::arch::asm!(
-                "bkpt #0xab",
-                inout("r0") nr,
-                in("r1") _arg,
-                options(nomem, nostack, preserves_flags)
-            );
-            nr
-        }
-
+        () => cortex_m::asm::semihosting_syscall(_nr as u32, _arg as u32) as usize,
         #[cfg(all(thumb, feature = "no-semihosting"))]
         () => 0,
-
         #[cfg(not(thumb))]
         () => unimplemented!(),
     }

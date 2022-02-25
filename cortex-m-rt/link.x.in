@@ -66,6 +66,8 @@ SECTIONS
   /* ### Vector table */
   .vector_table ORIGIN(FLASH) :
   {
+    __vector_table = .;
+
     /* Initial Stack Pointer (SP) value */
     LONG(_stack_start);
 

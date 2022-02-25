@@ -1,28 +1,24 @@
-// #![feature(stdsimd)]
 #![no_main]
 #![no_std]
 
-extern crate cortex_m;
-extern crate cortex_m_rt as rt;
-extern crate cortex_m_semihosting as semihosting;
+use core::fmt::Write;
 
-extern crate panic_halt;
-
-use cortex_m::asm;
-use rt::entry;
-
-#[entry]
+#[cortex_m_rt::entry]
 fn main() -> ! {
-    use core::fmt::Write;
     let x = 42;
 
     loop {
-        asm::nop();
-
-        // write something through semihosting interface
-        let mut hstdout = semihosting::hio::hstdout().unwrap();
+        let mut hstdout = cortex_m_semihosting::hio::hstdout().unwrap();
         write!(hstdout, "x = {}\n", x).unwrap();
-        // exit from qemu
-        semihosting::debug::exit(semihosting::debug::EXIT_SUCCESS);
+        cortex_m_semihosting::debug::exit(cortex_m_semihosting::debug::EXIT_SUCCESS);
+    }
+}
+
+// Define a panic handler that uses semihosting to exit immediately,
+// so that any panics cause qemu to quit instead of hang.
+#[panic_handler]
+fn panic(_: &core::panic::PanicInfo) -> ! {
+    loop {
+        cortex_m_semihosting::debug::exit(cortex_m_semihosting::debug::EXIT_FAILURE);
     }
 }

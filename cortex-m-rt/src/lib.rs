@@ -439,9 +439,9 @@
 
 extern crate cortex_m_rt_macros as macros;
 
-use core::fmt;
 #[cfg(cortex_m)]
 use core::arch::global_asm;
+use core::fmt;
 
 // HardFault exceptions are bounced through this trampoline which grabs the stack pointer at
 // the time of the exception and passes it to th euser's HardFault handler in r0.

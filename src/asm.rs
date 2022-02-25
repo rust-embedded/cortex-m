@@ -44,7 +44,7 @@ pub fn delay(cycles: u32) {
 }
 
 /// A no-operation. Useful to prevent delay loops from being optimized away.
-#[inline]
+#[inline(always)]
 pub fn nop() {
     // NOTE: This is a `pure` asm block, but applying that option allows the compiler to eliminate
     // the nop entirely (or to collapse multiple subsequent ones). Since the user probably wants N
@@ -59,28 +59,28 @@ pub fn nop() {
 ///
 /// Can be used as a stable alternative to `core::intrinsics::abort`.
 #[cfg(cortex_m)]
-#[inline]
+#[inline(always)]
 pub fn udf() -> ! {
     unsafe { asm!("udf #0", options(noreturn, nomem, nostack, preserves_flags)) };
 }
 
 /// Wait For Event
 #[cfg(cortex_m)]
-#[inline]
+#[inline(always)]
 pub fn wfe() {
     unsafe { asm!("wfe", options(nomem, nostack, preserves_flags)) };
 }
 
 /// Wait For Interrupt
 #[cfg(cortex_m)]
-#[inline]
+#[inline(always)]
 pub fn wfi() {
     unsafe { asm!("wfi", options(nomem, nostack, preserves_flags)) };
 }
 
 /// Send Event
 #[cfg(cortex_m)]
-#[inline]
+#[inline(always)]
 pub fn sev() {
     unsafe { asm!("sev", options(nomem, nostack, preserves_flags)) };
 }
@@ -89,7 +89,7 @@ pub fn sev() {
 ///
 /// Flushes the pipeline in the processor, so that all instructions following the `ISB` are fetched
 /// from cache or memory, after the instruction has been completed.
-#[inline]
+#[inline(always)]
 pub fn isb() {
     compiler_fence(Ordering::SeqCst);
     #[cfg(cortex_m)]
@@ -106,7 +106,7 @@ pub fn isb() {
 ///
 ///  * any explicit memory access made before this instruction is complete
 ///  * all cache and branch predictor maintenance operations before this instruction complete
-#[inline]
+#[inline(always)]
 pub fn dsb() {
     compiler_fence(Ordering::SeqCst);
     #[cfg(cortex_m)]
@@ -121,7 +121,7 @@ pub fn dsb() {
 /// Ensures that all explicit memory accesses that appear in program order before the `DMB`
 /// instruction are observed before any explicit memory accesses that appear in program order
 /// after the `DMB` instruction.
-#[inline]
+#[inline(always)]
 pub fn dmb() {
     compiler_fence(Ordering::SeqCst);
     #[cfg(cortex_m)]
@@ -136,7 +136,7 @@ pub fn dmb() {
 /// Queries the Security state and access permissions of a memory location.
 /// Returns a Test Target Response Payload (cf section D1.2.215 of
 /// Armv8-M Architecture Reference Manual).
-#[inline]
+#[inline(always)]
 #[cfg(armv8m)]
 // The __tt function does not dereference the pointer received.
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
@@ -158,7 +158,7 @@ pub fn tt(addr: *mut u32) -> u32 {
 /// access to that location.
 /// Returns a Test Target Response Payload (cf section D1.2.215 of
 /// Armv8-M Architecture Reference Manual).
-#[inline]
+#[inline(always)]
 #[cfg(armv8m)]
 // The __ttt function does not dereference the pointer received.
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
@@ -181,7 +181,7 @@ pub fn ttt(addr: *mut u32) -> u32 {
 /// undefined if used from Non-Secure state.
 /// Returns a Test Target Response Payload (cf section D1.2.215 of
 /// Armv8-M Architecture Reference Manual).
-#[inline]
+#[inline(always)]
 #[cfg(armv8m)]
 // The __tta function does not dereference the pointer received.
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
@@ -204,7 +204,7 @@ pub fn tta(addr: *mut u32) -> u32 {
 /// state and is undefined if used from Non-Secure state.
 /// Returns a Test Target Response Payload (cf section D1.2.215 of
 /// Armv8-M Architecture Reference Manual).
-#[inline]
+#[inline(always)]
 #[cfg(armv8m)]
 // The __ttat function does not dereference the pointer received.
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
@@ -224,7 +224,7 @@ pub fn ttat(addr: *mut u32) -> u32 {
 ///
 /// See section C2.4.26 of Armv8-M Architecture Reference Manual for details.
 /// Undefined if executed in Non-Secure state.
-#[inline]
+#[inline(always)]
 #[cfg(armv8m)]
 pub unsafe fn bx_ns(addr: u32) {
     asm!("bxns {}", in(reg) addr, options(nomem, nostack, preserves_flags));
@@ -234,9 +234,9 @@ pub unsafe fn bx_ns(addr: u32) {
 ///
 /// This method is used by cortex-m-semihosting to provide semihosting syscalls.
 #[cfg(cortex_m)]
-#[inline]
+#[inline(always)]
 pub unsafe fn semihosting_syscall(mut nr: u32, arg: u32) -> u32 {
-    asm!("bkpt #0xab", inout("r0") nr, in("r1") arg, options(nomem, nostack, preserves_flags));
+    asm!("bkpt #0xab", inout("r0") nr, in("r1") arg, options(nostack, preserves_flags));
     nr
 }
 

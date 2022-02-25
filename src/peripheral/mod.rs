@@ -57,9 +57,9 @@
 //!
 //! - ARMv7-M Architecture Reference Manual (Issue E.b) - Chapter B3
 
+use crate::interrupt;
 use core::marker::PhantomData;
 use core::ops;
-use crate::interrupt;
 
 #[cfg(cm7)]
 pub mod ac;

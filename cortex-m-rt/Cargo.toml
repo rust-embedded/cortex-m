@@ -15,7 +15,8 @@ repository = "https://github.com/rust-embedded/cortex-m"
 version = "0.7.1"
 autoexamples = true
 links = "cortex-m-rt" # Prevent multiple versions of cortex-m-rt being linked
-edition = "2018"
+edition = "2021"
+rust-version = "1.59"
 
 [dependencies]
 cortex-m-rt-macros = { path = "macros", version = "=0.7.0" }
@@ -42,6 +43,8 @@ required-features = ["device"]
 
 [features]
 device = []
+set-sp = []
+set-vtor = []
 
 [package.metadata.docs.rs]
 features = ["device"]

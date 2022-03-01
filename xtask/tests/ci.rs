@@ -1,6 +1,6 @@
 use std::process::Command;
 use std::{env, str};
-use xtask::{check_blobs, check_host_side, install_targets};
+use xtask::{check_host_side, install_targets};
 
 /// List of all compilation targets we support.
 ///
@@ -44,13 +44,13 @@ fn build(package: &str, target: &str, features: &[&str]) {
 
 #[rustfmt::skip]
 static PACKAGE_FEATURES: &[(&str, &[&str], &[&str])] = &[
-    ("cortex-m", ALL_TARGETS, &["inline-asm", "cm7-r0p1"]), // no `linker-plugin-lto` since it's experimental
-    ("cortex-m-semihosting", ALL_TARGETS, &["inline-asm", "no-semihosting", "jlink-quirks"]),
-    ("panic-semihosting", ALL_TARGETS, &["inline-asm", "exit", "jlink-quirks"]),
+    ("cortex-m", ALL_TARGETS, &["cm7-r0p1"]),
+    ("cortex-m-semihosting", ALL_TARGETS, &["no-semihosting", "jlink-quirks"]),
+    ("panic-semihosting", ALL_TARGETS, &["exit", "jlink-quirks"]),
     ("panic-itm", NON_BASE_TARGETS, &[]),
 ];
 
-fn check_crates_build(is_nightly: bool) {
+fn check_crates_build(_is_nightly: bool) {
     // Build all crates for each supported target.
     for (package, targets, all_features) in PACKAGE_FEATURES {
         for target in *targets {
@@ -58,11 +58,8 @@ fn check_crates_build(is_nightly: bool) {
             // Relies on all crates in this repo to use the same convention.
             let should_use_feature = |feat: &str| {
                 match feat {
-                    // This is nightly-only, so don't use it on stable.
-                    "inline-asm" => is_nightly,
                     // This only affects thumbv7em targets.
                     "cm7-r0p1" => target.starts_with("thumbv7em"),
-
                     _ => true,
                 }
             };
@@ -97,9 +94,6 @@ fn main() {
     env::set_current_dir("..").unwrap();
 
     install_targets(&mut ALL_TARGETS.iter().cloned(), None);
-
-    // Check that the ASM blobs are up-to-date.
-    check_blobs();
 
     let output = Command::new("rustc").arg("-V").output().unwrap();
     let is_nightly = str::from_utf8(&output.stdout).unwrap().contains("nightly");

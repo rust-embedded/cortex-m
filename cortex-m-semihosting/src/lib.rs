@@ -151,14 +151,6 @@
 //!
 //! # Optional features
 //!
-//! ## `inline-asm`
-//!
-//! When this feature is enabled semihosting is implemented using inline assembly and
-//! compiling this crate requires nightly.
-//!
-//! When this feature is disabled semihosting is implemented using FFI calls into an external
-//! assembly file and compiling this crate works on stable and beta.
-//!
 //! ## `jlink-quirks`
 //!
 //! When this feature is enabled, return values above `0xfffffff0` from semihosting operation
@@ -191,11 +183,6 @@ pub mod export;
 pub mod hio;
 pub mod nr;
 
-#[cfg(all(thumb, not(feature = "inline-asm")))]
-extern "C" {
-    fn __sh_syscall(nr: usize, arg: usize) -> usize;
-}
-
 /// Performs a semihosting operation, takes a pointer to an argument block
 #[inline(always)]
 pub unsafe fn syscall<T>(nr: usize, arg: &T) -> usize {
@@ -206,24 +193,16 @@ pub unsafe fn syscall<T>(nr: usize, arg: &T) -> usize {
 #[inline(always)]
 pub unsafe fn syscall1(_nr: usize, _arg: usize) -> usize {
     match () {
-        #[cfg(all(thumb, not(feature = "inline-asm"), not(feature = "no-semihosting")))]
-        () => __sh_syscall(_nr, _arg),
-
-        #[cfg(all(thumb, feature = "inline-asm", not(feature = "no-semihosting")))]
+        #[cfg(all(thumb, not(feature = "no-semihosting")))]
         () => {
-            let mut nr = _nr;
-            core::arch::asm!(
-                "bkpt #0xab",
-                inout("r0") nr,
-                in("r1") _arg,
-                options(nomem, nostack, preserves_flags)
-            );
-            nr
+            use core::arch::asm;
+            let mut nr = _nr as u32;
+            let arg = _arg as u32;
+            asm!("bkpt #0xab", inout("r0") nr, in("r1") arg, options(nostack, preserves_flags));
+            nr as usize
         }
-
         #[cfg(all(thumb, feature = "no-semihosting"))]
         () => 0,
-
         #[cfg(not(thumb))]
         () => unimplemented!(),
     }

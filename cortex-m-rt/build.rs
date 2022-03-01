@@ -1,4 +1,4 @@
-use std::fs::{self, File};
+use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::{env, ffi::OsStr};
@@ -14,15 +14,6 @@ fn main() {
         target = path
             .file_stem()
             .map_or(target.clone(), |stem| stem.to_str().unwrap().to_string());
-    }
-
-    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
-
-    if target.starts_with("thumbv") {
-        let lib_path = format!("bin/{}.a", target);
-        fs::copy(&lib_path, out_dir.join("libcortex-m-rt.a")).unwrap();
-        println!("cargo:rustc-link-lib=static=cortex-m-rt");
-        println!("cargo:rerun-if-changed={}", lib_path);
     }
 
     // Put the linker script somewhere the linker can find it
@@ -68,6 +59,10 @@ INCLUDE device.x"#
         // This value seems as soon as any
         240
     };
+
+    if target.ends_with("-eabihf") {
+        println!("cargo:rustc-cfg=has_fpu");
+    }
 
     // checking the size of the interrupts portion of the vector table is sub-architecture dependent
     writeln!(

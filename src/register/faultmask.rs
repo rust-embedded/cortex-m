@@ -1,5 +1,8 @@
 //! Fault Mask Register
 
+#[cfg(cortex_m)]
+use core::arch::asm;
+
 /// All exceptions are ...
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Faultmask {
@@ -24,9 +27,11 @@ impl Faultmask {
 }
 
 /// Reads the CPU register
+#[cfg(cortex_m)]
 #[inline]
 pub fn read() -> Faultmask {
-    let r: u32 = call_asm!(__faultmask_r() -> u32);
+    let r: u32;
+    unsafe { asm!("mrs {}, FAULTMASK", out(reg) r, options(nomem, nostack, preserves_flags)) };
     if r & (1 << 0) == (1 << 0) {
         Faultmask::Inactive
     } else {

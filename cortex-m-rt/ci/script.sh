@@ -57,6 +57,11 @@ main() {
             done
             cargo rustc --target "$TARGET" --example device --features device -- $linker
             cargo rustc --target "$TARGET" --example device --features device --release -- $linker
+
+            cargo rustc --target "$TARGET" --example minimal --features set-sp -- $linker
+            cargo rustc --target "$TARGET" --example minimal --features set-sp --release -- $linker
+            cargo rustc --target "$TARGET" --example minimal --features set-vtor -- $linker
+            cargo rustc --target "$TARGET" --example minimal --features set-vtor --release -- $linker
         done
     fi
 
@@ -71,10 +76,6 @@ main() {
 
             ;;
     esac
-
-    if [ "$TARGET" = x86_64-unknown-linux-gnu ]; then
-        ./check-blobs.sh
-    fi
 }
 
 main

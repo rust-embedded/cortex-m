@@ -158,6 +158,19 @@
 //! conjunction with crates generated using `svd2rust`. Those *device crates* will populate the
 //! missing part of the vector table when their `"rt"` feature is enabled.
 //!
+//! ## `set-sp`
+//!
+//! If this feature is enabled, the stack pointer (SP) is initialised in the reset handler to the
+//! `_stack_start` value from the linker script. This is not usually required, but some debuggers
+//! do not initialise SP when performing a soft reset, which can lead to stack corruption.
+//!
+//! ## `set-vtor`
+//!
+//! If this feature is enabled, the vector table offset register (VTOR) is initialised in the reset
+//! handler to the start of the vector table defined in the linker script. This is not usually
+//! required, but some bootloaders do not set VTOR before jumping to application code, leading to
+//! your main function executing but interrupt handlers not being used.
+//!
 //! # Inspection
 //!
 //! This section covers how to inspect a binary that builds on top of `cortex-m-rt`.
@@ -309,14 +322,10 @@
 //!
 //! We want to provide a default handler for all the interrupts while still letting the user
 //! individually override each interrupt handler. In C projects, this is usually accomplished using
-//! weak aliases declared in external assembly files. In Rust, we could achieve something similar
-//! using `global_asm!`, but that's an unstable feature.
-//!
-//! A solution that doesn't require `global_asm!` or external assembly files is to use the `PROVIDE`
-//! command in a linker script to create the weak aliases. This is the approach that `cortex-m-rt`
-//! uses; when the `"device"` feature is enabled `cortex-m-rt`'s linker script (`link.x`) depends on
-//! a linker script named `device.x`. The crate that provides `__INTERRUPTS` must also provide this
-//! file.
+//! weak aliases declared in external assembly files. We use a similar solution via the `PROVIDE`
+//! command in the linker script: when the `"device"` feature is enabled, `cortex-m-rt`'s linker
+//! script (`link.x`) includes a linker script named `device.x`, which must be provided by
+//! whichever crate provides `__INTERRUPTS`.
 //!
 //! For our running example the `device.x` linker script looks like this:
 //!
@@ -330,8 +339,8 @@
 //! that the core exceptions use unless overridden.
 //!
 //! Because this linker script is provided by a dependency of the final application the dependency
-//! must contain build script that puts `device.x` somewhere the linker can find. An example of such
-//! build script is shown below:
+//! must contain a build script that puts `device.x` somewhere the linker can find. An example of
+//! such build script is shown below:
 //!
 //! ```ignore
 //! use std::env;
@@ -418,7 +427,7 @@
 //!
 //! # Minimum Supported Rust Version (MSRV)
 //!
-//! The MSRV of this release is Rust 1.42.0.
+//! The MSRV of this release is Rust 1.59.0.
 
 // # Developer notes
 //
@@ -430,15 +439,151 @@
 
 extern crate cortex_m_rt_macros as macros;
 
+#[cfg(cortex_m)]
+use core::arch::global_asm;
 use core::fmt;
-use core::sync::atomic::{self, Ordering};
+
+// HardFault exceptions are bounced through this trampoline which grabs the stack pointer at
+// the time of the exception and passes it to th euser's HardFault handler in r0.
+// Depending on the stack mode in EXC_RETURN, fetches stack from either MSP or PSP.
+#[cfg(cortex_m)]
+global_asm!(
+    ".cfi_sections .debug_frame
+     .section .HardFaultTrampoline, \"ax\"
+     .global HardFaultTrampline
+     .type HardFaultTrampline,%function
+     .thumb_func
+     .cfi_startproc
+     HardFaultTrampoline:",
+    "mov r0, lr
+     movs r1, #4
+     tst r0, r1
+     bne 0f
+     mrs r0, MSP
+     b HardFault
+     0:
+     mrs r0, PSP
+     b HardFault",
+    ".cfi_endproc
+     .size HardFaultTrampoline, . - HardFaultTrampoline",
+);
+
+/// Parse cfg attributes inside a global_asm call.
+#[cfg(cortex_m)]
+macro_rules! cfg_global_asm {
+    {@inner, [$($x:tt)*], } => {
+        global_asm!{$($x)*}
+    };
+    (@inner, [$($x:tt)*], #[cfg($meta:meta)] $asm:literal, $($rest:tt)*) => {
+        #[cfg($meta)]
+        cfg_global_asm!{@inner, [$($x)* $asm,], $($rest)*}
+        #[cfg(not($meta))]
+        cfg_global_asm!{@inner, [$($x)*], $($rest)*}
+    };
+    {@inner, [$($x:tt)*], $asm:literal, $($rest:tt)*} => {
+        cfg_global_asm!{@inner, [$($x)* $asm,], $($rest)*}
+    };
+    {$($asms:tt)*} => {
+        cfg_global_asm!{@inner, [], $($asms)*}
+    };
+}
+
+// This reset vector is the initial entry point after a system reset.
+// Calls an optional user-provided __pre_init and then initialises RAM.
+// If the target has an FPU, it is enabled.
+// Finally jumsp to the user main function.
+#[cfg(cortex_m)]
+cfg_global_asm! {
+    ".cfi_sections .debug_frame
+     .section .Reset, \"ax\"
+     .global Reset
+     .type Reset,%function
+     .thumb_func",
+    ".cfi_startproc
+     Reset:",
+
+    // Ensure LR is loaded with 0xFFFF_FFFF at startup to help debuggers find the first call frame.
+    // On ARMv6-M LR is not initialised at all, while other platforms should initialise it.
+    "movs r4, #0
+     mvns r4, r4
+     mov lr, r4",
+
+    // If enabled, initialise the SP. This is normally initialised by the CPU itself or by a
+    // bootloader, but some debuggers fail to set it when resetting the target, leading to
+    // stack corruptions.
+    #[cfg(feature = "set-sp")]
+    "ldr r0, =_stack_start
+     msr msp, r0",
+
+    // If enabled, initialise VTOR to the start of the vector table. This is normally initialised
+    // by a bootloader when the non-reset value is required, but some bootloaders do not set it,
+    // leading to frustrating issues where everything seems to work but interrupts are never
+    // handled. The VTOR register is optional on ARMv6-M, but when not present is RAZ,WI and
+    // therefore safe to write to.
+    #[cfg(feature = "set-vtor")]
+    "ldr r0, =0xe000ed08
+     ldr r1, =__vector_table
+     str r1, [r0]",
+
+    // Run user pre-init code which must be executed immediately after startup, before the
+    // potentially time-consuming memory initialisation takes place.
+    // Example use cases include disabling default watchdogs or enabling RAM.
+    // Reload LR after returning from pre-init (r4 is preserved by subroutines).
+    "bl __pre_init
+     mov lr, r4",
+
+    // Initialise .bss memory. `__sbss` and `__ebss` come from the linker script.
+    "ldr r0, =__sbss
+     ldr r1, =__ebss
+     movs r2, #0
+     0:
+     cmp r1, r0
+     beq 1f
+     stm r0!, {{r2}}
+     b 0b
+     1:",
+
+    // Initialise .data memory. `__sdata`, `__sidata`, and `__edata` come from the linker script.
+    "ldr r0, =__sdata
+     ldr r1, =__edata
+     ldr r2, =__sidata
+     2:
+     cmp r0, r0
+     beq 3f
+     ldm r2!, {{r3}}
+     stm r0!, {{r3}}
+     b 2b
+     3:",
+
+    // Potentially enable an FPU.
+    // SCB.CPACR is 0xE000_ED88.
+    // We enable access to CP10 and CP11 from priviliged and unprivileged mode.
+    #[cfg(has_fpu)]
+    "ldr r0, =0xE000ED88
+     ldr r1, =(0b1111 << 20)
+     ldr r2, [r0]
+     orr r2, r2, r1
+     str r2, [r0]
+     dsb
+     isb",
+
+    // Push `lr` to the stack for debuggers, to prevent them unwinding past Reset.
+    // See https://sourceware.org/binutils/docs/as/CFI-directives.html.
+    ".cfi_def_cfa sp, 0
+     push {{lr}}
+     .cfi_offset lr, 0",
+
+    // Jump to user main function.
+    // `bl` is used for the extended range, but the user main function should not return,
+    // so trap on any unexpected return.
+    "bl main
+     udf #0",
+
+    ".cfi_endproc
+     .size Reset, . - Reset",
+}
 
 /// Attribute to declare an interrupt (AKA device-specific exception) handler
-///
-/// **IMPORTANT**: If you are using Rust 1.30 this attribute must be used on reachable items (i.e.
-/// there must be no private modules between the item and the root of the crate); if the item is in
-/// the root of the crate you'll be fine. This reachability restriction doesn't apply to Rust 1.31
-/// and newer releases.
 ///
 /// **NOTE**: This attribute is exposed by `cortex-m-rt` only when the `device` feature is enabled.
 /// However, that export is not meant to be used directly -- using it will result in a compilation
@@ -506,11 +651,6 @@ pub use macros::interrupt;
 
 /// Attribute to declare the entry point of the program
 ///
-/// **IMPORTANT**: This attribute must appear exactly *once* in the dependency graph. Also, if you
-/// are using Rust 1.30 the attribute must be used on a reachable item (i.e. there must be no
-/// private modules between the item and the root of the crate); if the item is in the root of the
-/// crate you'll be fine. This reachability restriction doesn't apply to Rust 1.31 and newer releases.
-///
 /// The specified function will be called by the reset handler *after* RAM has been initialized. In
 /// the case of the `thumbv7em-none-eabihf` target the FPU will also be enabled before the function
 /// is called.
@@ -564,11 +704,6 @@ pub use macros::interrupt;
 pub use macros::entry;
 
 /// Attribute to declare an exception handler
-///
-/// **IMPORTANT**: If you are using Rust 1.30 this attribute must be used on reachable items (i.e.
-/// there must be no private modules between the item and the root of the crate); if the item is in
-/// the root of the crate you'll be fine. This reachability restriction doesn't apply to Rust 1.31
-/// and newer releases.
 ///
 /// # Syntax
 ///
@@ -681,11 +816,7 @@ pub use macros::exception;
 
 /// Attribute to mark which function will be called at the beginning of the reset handler.
 ///
-/// **IMPORTANT**: This attribute can appear at most *once* in the dependency graph. Also, if you
-/// are using Rust 1.30 the attribute must be used on a reachable item (i.e. there must be no
-/// private modules between the item and the root of the crate); if the item is in the root of the
-/// crate you'll be fine. This reachability restriction doesn't apply to Rust 1.31 and newer
-/// releases.
+/// **IMPORTANT**: This attribute can appear at most *once* in the dependency graph.
 ///
 /// The function must have the signature of `unsafe fn()`.
 ///
@@ -920,21 +1051,15 @@ pub static __RESET_VECTOR: unsafe extern "C" fn() -> ! = Reset;
 #[cfg_attr(cortex_m, link_section = ".HardFault.default")]
 #[no_mangle]
 pub unsafe extern "C" fn HardFault_(ef: &ExceptionFrame) -> ! {
-    loop {
-        // add some side effect to prevent this from turning into a UDF instruction
-        // see rust-lang/rust#28728 for details
-        atomic::compiler_fence(Ordering::SeqCst);
-    }
+    #[allow(clippy::empty_loop)]
+    loop {}
 }
 
 #[doc(hidden)]
 #[no_mangle]
 pub unsafe extern "C" fn DefaultHandler_() -> ! {
-    loop {
-        // add some side effect to prevent this from turning into a UDF instruction
-        // see rust-lang/rust#28728 for details
-        atomic::compiler_fence(Ordering::SeqCst);
-    }
+    #[allow(clippy::empty_loop)]
+    loop {}
 }
 
 #[doc(hidden)]

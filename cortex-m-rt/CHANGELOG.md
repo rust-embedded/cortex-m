@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+- Moved precompiled assembly blobs to `global_asm!`, requiring Rust 1.59.
+
 ## Fixes
 
 - Fix `cortex_m_rt::exception` macro no longer being usable fully-qualified ([#414])

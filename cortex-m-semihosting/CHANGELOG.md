@@ -5,6 +5,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.5.0] - 2022-03-01
+
 - Always use inline-asm, requiring Rust 1.59.
 - Removed inline-asm feature.
 
@@ -144,7 +146,8 @@ change.
 
 - Initial release
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/c-m-sh-v0.4.1...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/c-m-sh-v0.5.0...HEAD
+[v0.5.0]: https://github.com/rust-embedded/cortex-m/compare/c-m-sh-v0.4.1...c-m-sh-v0.5.0
 [v0.4.1]: https://github.com/rust-embedded/cortex-m/compare/c-m-sh-v0.4.0...c-m-sh-v0.4.1
 [v0.4.0]: https://github.com/rust-embedded/cortex-m/compare/c-m-sh-v0.3.5...c-m-sh-v0.4.0
 [v0.3.7]: https://github.com/rust-embedded/cortex-m-semihosting/compare/v0.3.6...v0.3.7

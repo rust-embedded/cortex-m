@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.6.0] - 2022-03-01
+
 - Always use inline-asm, requiring Rust 1.59.
 - Remove inline-asm feature.
 
@@ -72,7 +74,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 Initial release
 
-[Unreleased]: https://github.com/rust-embedded/panic-semihosting/compare/p-sh-v0.5.6...HEAD
+[Unreleased]: https://github.com/rust-embedded/panic-semihosting/compare/p-sh-v0.6.0...HEAD
+[v0.6.0]: https://github.com/rust-embedded/cortex-m/compare/p-sh-v0.5.6...p-sh-v0.6.0
 [v0.5.6]: https://github.com/rust-embedded/cortex-m/compare/p-sh-v0.5.5...p-sh-v0.5.6
 [v0.5.5]: https://github.com/rust-embedded/cortex-m/compare/p-sh-v0.5.4...p-sh-v0.5.5
 [v0.5.4]: https://github.com/rust-embedded/cortex-m/compare/p-sh-v0.5.3...p-sh-v0.5.4

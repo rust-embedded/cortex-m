@@ -57,7 +57,6 @@ pub mod interrupt;
 #[cfg(all(not(armv6m), not(armv8m_base)))]
 pub mod itm;
 pub mod peripheral;
-pub mod prelude;
 pub mod register;
 
 pub use crate::peripheral::Peripherals;

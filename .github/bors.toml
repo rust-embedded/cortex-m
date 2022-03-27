@@ -8,6 +8,8 @@ status = [
   "rt-ci-linux (1.59.0)",
   "rt-ci-other-os (macOS-latest)",
   "rt-ci-other-os (windows-latest)",
+  "hil-qemu",
+  "hil-compile-rtt",
   "rustfmt",
   "clippy",
 ]

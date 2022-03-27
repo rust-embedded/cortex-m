@@ -35,11 +35,14 @@ std = []
 
 [workspace]
 members = [
-    "xtask",
     "cortex-m-rt",
     "cortex-m-semihosting",
+    "panic-itm",
     "panic-semihosting",
-    "panic-itm"
+    "testsuite",
+    "testsuite/minitest",
+    "testsuite/minitest/macros",
+    "xtask",
 ]
 
 [package.metadata.docs.rs]

@@ -155,6 +155,18 @@ impl DWT {
         }
     }
 
+    /// Disables the cycle counter
+    #[cfg(not(armv6m))]
+    #[inline]
+    pub fn disable_cycle_counter(&mut self) {
+        unsafe {
+            self.ctrl.modify(|mut r| {
+                r.set_cyccntena(false);
+                r
+            });
+        }
+    }
+
     /// Returns `true` if the cycle counter is enabled
     #[cfg(not(armv6m))]
     #[inline]

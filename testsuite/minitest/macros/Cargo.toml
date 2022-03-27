@@ -1,0 +1,18 @@
+[package]
+authors = ["The Cortex-M Team <cortex-m@teams.rust-embedded.org>"]
+name = "minitest-macros"
+publish = false
+edition = "2018"
+version = "0.1.0"
+
+[lib]
+proc-macro = true
+
+[features]
+semihosting = []
+rtt = []
+
+[dependencies]
+proc-macro2 = "1.0.29"
+quote = "1.0.10"
+syn = { version = "1.0.80", features = ["extra-traits", "full"] }

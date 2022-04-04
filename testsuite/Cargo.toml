@@ -1,0 +1,23 @@
+[package]
+authors = ["The Cortex-M Team <cortex-m@teams.rust-embedded.org>"]
+name = "testsuite"
+publish = false
+edition = "2018"
+version = "0.1.0"
+
+[features]
+rtt = ["rtt-target", "minitest/rtt"]
+semihosting = ["cortex-m-semihosting", "minitest/semihosting"]
+
+[dependencies]
+cortex-m-rt.path = "../cortex-m-rt"
+cortex-m.path = ".."
+minitest.path = "minitest"
+
+[dependencies.rtt-target]
+version = "0.3.1"
+optional = true
+
+[dependencies.cortex-m-semihosting]
+path = "../cortex-m-semihosting"
+optional = true

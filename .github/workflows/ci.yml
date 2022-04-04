@@ -29,6 +29,6 @@ jobs:
           toolchain: ${{ matrix.rust }}
           override: true
       - name: Run tests
-        run: cargo test --all --exclude cortex-m-rt
+        run: cargo test --all --exclude cortex-m-rt --exclude testsuite
 
 # FIXME: test on macOS and Windows

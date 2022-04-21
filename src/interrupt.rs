@@ -60,14 +60,14 @@ pub unsafe fn enable() {
 #[inline]
 pub fn free<F, R>(f: F) -> R
 where
-    F: FnOnce(&CriticalSection) -> R,
+    F: FnOnce(CriticalSection<'_>) -> R,
 {
     let primask = crate::register::primask::read();
 
     // disable interrupts
     disable();
 
-    let r = f(unsafe { &CriticalSection::new() });
+    let r = f(unsafe { CriticalSection::new() });
 
     // If the interrupts were active before our `disable` call, then re-enable
     // them. Otherwise, keep them disabled
@@ -85,7 +85,7 @@ where
 #[inline]
 pub fn free<F, R>(_: F) -> R
 where
-    F: FnOnce(&CriticalSection) -> R,
+    F: FnOnce(CriticalSection<'_>) -> R,
 {
     panic!("cortex_m::interrupt::free() is only functional on cortex-m platforms");
 }

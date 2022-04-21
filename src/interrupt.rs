@@ -48,20 +48,54 @@ pub unsafe fn enable() {
     call_asm!(__cpsie());
 }
 
+/// Hacky compatibility layer to allow calling `interrupt::free` using
+/// closures with arity 0 as well as 1. This trait is not considered
+/// part of the public API.
+///
+/// The generic `Args` type is not actually used, see:
+/// https://geo-ant.github.io/blog/2021/rust-traits-and-variadic-functions/
+///
+/// TODO: Remove before releasing 0.8.
+pub trait InterruptFreeFn<Args, R> {
+    /// Call the closure.
+    unsafe fn call(self) -> R;
+}
+
+impl<F, R> InterruptFreeFn<(), R> for F
+where
+    F: FnOnce() -> R,
+{
+    #[inline]
+    unsafe fn call(self) -> R {
+        self()
+    }
+}
+
+impl<'cs, F, R> InterruptFreeFn<&'cs CriticalSection, R> for F
+where
+    F: FnOnce(&'cs CriticalSection) -> R,
+{
+    #[inline]
+    unsafe fn call(self) -> R {
+        let cs: &'cs CriticalSection = core::mem::transmute(&CriticalSection::new());
+        self(cs)
+    }
+}
+
 /// Execute closure `f` in an interrupt-free context.
 ///
 /// This as also known as a "critical section".
 #[inline]
-pub fn free<F, R>(f: F) -> R
+pub fn free<Args, F, R>(f: F) -> R
 where
-    F: FnOnce(&CriticalSection) -> R,
+    F: InterruptFreeFn<Args, R>,
 {
     let primask = crate::register::primask::read();
 
     // disable interrupts
     disable();
 
-    let r = f(unsafe { &CriticalSection::new() });
+    let r = unsafe { f.call() };
 
     // If the interrupts were active before our `disable` call, then re-enable
     // them. Otherwise, keep them disabled

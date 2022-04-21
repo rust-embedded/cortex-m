@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- `interrupt::free` can be called with closures of type `FnOnce() -> T`.
+
 ### Deprecated
 - the `ptr()` function on all peripherals register blocks in favor of
   the associated constant `PTR` (#386).
+- Calling `interrupt::free` with closures of type `FnOnce(&CriticalSection) -> T` is deprecated. Users should switch to using `critical_section::with`.
 
 ## [v0.7.4] - 2021-12-31
 

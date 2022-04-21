@@ -79,9 +79,6 @@
 // Don't warn about feature(asm) being stable on Rust >= 1.59.0
 #![allow(stable_features)]
 
-extern crate bare_metal;
-extern crate volatile_register;
-
 #[macro_use]
 mod call_asm;
 #[macro_use]

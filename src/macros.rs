@@ -54,7 +54,7 @@ macro_rules! iprintln {
 #[macro_export]
 macro_rules! singleton {
     (: $ty:ty = $expr:expr) => {
-        $crate::interrupt::free(|_| {
+        $crate::interrupt::free(|| {
             static mut VAR: Option<$ty> = None;
 
             #[allow(unsafe_code)]

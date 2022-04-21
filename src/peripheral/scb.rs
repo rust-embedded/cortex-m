@@ -119,6 +119,24 @@ mod fpu_consts {
 #[cfg(has_fpu)]
 use self::fpu_consts::*;
 
+/// Priority Grouping
+///
+/// Determines the split of group priority from subpriority.
+#[derive(Debug, Clone, Copy)]
+#[repr(u8)]
+pub enum PriorityGrouping {
+    /// 4 bits for group priorities, 0 bits for subpriorities
+    Group4Sub0 = 0b011, // 0b0xx
+    /// 3 bits for group priorities, 1 bit for subpriorities
+    Group3Sub1 = 0b100,
+    /// 2 bits for group priorities, 2 bits for subpriorities
+    Group2Sub2 = 0b101,
+    /// 1 bit for group priorities, 3 bits for subpriorities
+    Group1Sub3 = 0b110,
+    /// 0 bits for group priorities, 4 bits for subpriorities
+    Group0Sub4 = 0b111,
+}
+
 #[cfg(has_fpu)]
 impl SCB {
     /// Shorthand for `set_fpu_access_mode(FpuAccessMode::Disabled)`
@@ -839,7 +857,8 @@ impl SCB {
 }
 
 const SCB_AIRCR_VECTKEY: u32 = 0x05FA << 16;
-const SCB_AIRCR_PRIGROUP_MASK: u32 = 0x7 << 8;
+const SCB_AIRCR_PRIGROUP_POS: u32 = 8;
+const SCB_AIRCR_PRIGROUP_MASK: u32 = 0x7 << SCB_AIRCR_PRIGROUP_POS;
 const SCB_AIRCR_SYSRESETREQ: u32 = 1 << 2;
 
 impl SCB {
@@ -848,18 +867,39 @@ impl SCB {
     pub fn sys_reset() -> ! {
         crate::asm::dsb();
         unsafe {
-            (*Self::PTR).aircr.modify(
-                |r| {
-                    SCB_AIRCR_VECTKEY | // otherwise the write is ignored
-            r & SCB_AIRCR_PRIGROUP_MASK | // keep priority group unchanged
-            SCB_AIRCR_SYSRESETREQ
-                }, // set the bit
-            )
+            (*Self::PTR).aircr.modify(|r| {
+                SCB_AIRCR_VECTKEY | // Unlock for writing.
+                r & SCB_AIRCR_PRIGROUP_MASK | // Keep priority grouping unchanged.
+                SCB_AIRCR_SYSRESETREQ // Set reset bit.
+            })
         };
         crate::asm::dsb();
         loop {
             // wait for the reset
             crate::asm::nop(); // avoid rust-lang/rust#28728
+        }
+    }
+
+    /// Set the priority grouping.
+    #[inline]
+    pub fn set_priority_grouping(&mut self, grouping: PriorityGrouping) {
+        unsafe {
+            self.aircr.write({
+                SCB_AIRCR_VECTKEY | // Unlock for writing.
+                (grouping as u32) << SCB_AIRCR_PRIGROUP_POS
+            });
+        }
+    }
+
+    /// Get the priority grouping.
+    #[inline]
+    pub fn get_priority_grouping(&self) -> PriorityGrouping {
+        match self.aircr.read() & SCB_AIRCR_PRIGROUP_MASK >> SCB_AIRCR_PRIGROUP_POS {
+            0b111 => PriorityGrouping::Group0Sub4,
+            0b110 => PriorityGrouping::Group1Sub3,
+            0b101 => PriorityGrouping::Group2Sub2,
+            0b100 => PriorityGrouping::Group3Sub1,
+            /* 0b0xx */ _ => PriorityGrouping::Group4Sub0,
         }
     }
 }

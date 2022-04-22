@@ -1,5 +1,6 @@
 //! System Control Block
 
+use core::convert::TryFrom;
 use core::ptr;
 
 use volatile_register::RW;
@@ -167,31 +168,15 @@ impl SCB {
 }
 
 impl SCB {
-    /// Returns the active exception number
+    /// Returns the `Vector` containing the active exception number.
     #[inline]
-    pub fn vect_active() -> VectActive {
-        let icsr =
-            unsafe { ptr::read_volatile(&(*SCB::PTR).icsr as *const _ as *const u32) } & 0x1FF;
+    pub fn vect_active() -> Vector {
+        let icsr = unsafe { ptr::read_volatile(&(*SCB::PTR).icsr as *const _ as *const u32) };
+        let isrn = (icsr & 0x1FF) as u16;
 
-        match icsr as u16 {
-            0 => VectActive::ThreadMode,
-            2 => VectActive::Exception(Exception::NonMaskableInt),
-            3 => VectActive::Exception(Exception::HardFault),
-            #[cfg(not(armv6m))]
-            4 => VectActive::Exception(Exception::MemoryManagement),
-            #[cfg(not(armv6m))]
-            5 => VectActive::Exception(Exception::BusFault),
-            #[cfg(not(armv6m))]
-            6 => VectActive::Exception(Exception::UsageFault),
-            #[cfg(any(armv8m, native))]
-            7 => VectActive::Exception(Exception::SecureFault),
-            11 => VectActive::Exception(Exception::SVCall),
-            #[cfg(not(armv6m))]
-            12 => VectActive::Exception(Exception::DebugMonitor),
-            14 => VectActive::Exception(Exception::PendSV),
-            15 => VectActive::Exception(Exception::SysTick),
-            irqn => VectActive::Interrupt { irqn: irqn - 16 },
-        }
+        // NOTE(unsafe): `isrn` is in range [0, 511] and contains
+        // a valid `Exception` if in range [2, 15].
+        unsafe { Vector::new_unchecked(isrn) }
     }
 }
 
@@ -199,74 +184,110 @@ impl SCB {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "std", derive(PartialOrd, Hash))]
+#[repr(i8)]
 pub enum Exception {
     /// Non maskable interrupt
-    NonMaskableInt,
+    NonMaskableInt = -14,
 
     /// Hard fault interrupt
-    HardFault,
+    HardFault = -13,
 
     /// Memory management interrupt (not present on Cortex-M0 variants)
     #[cfg(not(armv6m))]
-    MemoryManagement,
+    MemoryManagement = -12,
 
     /// Bus fault interrupt (not present on Cortex-M0 variants)
     #[cfg(not(armv6m))]
-    BusFault,
+    BusFault = -11,
 
     /// Usage fault interrupt (not present on Cortex-M0 variants)
     #[cfg(not(armv6m))]
-    UsageFault,
+    UsageFault = -10,
 
     /// Secure fault interrupt (only on ARMv8-M)
     #[cfg(any(armv8m, native))]
-    SecureFault,
+    SecureFault = -9,
 
     /// SV call interrupt
-    SVCall,
+    SVCall = -5,
 
     /// Debug monitor interrupt (not present on Cortex-M0 variants)
     #[cfg(not(armv6m))]
-    DebugMonitor,
+    DebugMonitor = -4,
 
     /// Pend SV interrupt
-    PendSV,
+    PendSV = -2,
 
     /// System Tick interrupt
-    SysTick,
+    SysTick = -1,
 }
 
 impl Exception {
-    /// Returns the IRQ number of this `Exception`
+    /// Create an `Exception` from an IRQ number.
     ///
-    /// The return value is always within the closed range `[-1, -14]`
+    /// `irqn` must be in the range `[-14, -1]` and contain a valid `Exception`.
     #[inline]
-    pub fn irqn(self) -> i8 {
-        match self {
-            Exception::NonMaskableInt => -14,
-            Exception::HardFault => -13,
+    const unsafe fn new_unchecked(irqn: i8) -> Self {
+        match irqn {
+            -14 => Self::NonMaskableInt,
+            -13 => Self::HardFault,
             #[cfg(not(armv6m))]
-            Exception::MemoryManagement => -12,
+            -12 => Self::MemoryManagement,
             #[cfg(not(armv6m))]
-            Exception::BusFault => -11,
+            -11 => Self::BusFault,
             #[cfg(not(armv6m))]
-            Exception::UsageFault => -10,
+            -10 => Self::UsageFault,
             #[cfg(any(armv8m, native))]
-            Exception::SecureFault => -9,
-            Exception::SVCall => -5,
+            -9 => Self::SecureFault,
+            -5 => Self::SVCall,
             #[cfg(not(armv6m))]
-            Exception::DebugMonitor => -4,
-            Exception::PendSV => -2,
-            Exception::SysTick => -1,
+            -4 => Self::DebugMonitor,
+            -2 => Self::PendSV,
+            -1 => Self::SysTick,
+            _ => core::hint::unreachable_unchecked(),
         }
+    }
+
+    /// Returns the IRQ number of this `Exception`.
+    ///
+    /// The return value is always within the closed range `[-14, -1]`.
+    #[inline]
+    pub const fn irqn(self) -> i8 {
+        self as i8
     }
 }
 
-/// Active exception number
+impl TryFrom<i8> for Exception {
+    type Error = i8;
+
+    #[inline]
+    fn try_from(irqn: i8) -> Result<Self, Self::Error> {
+        Ok(match irqn {
+            -14 => Self::NonMaskableInt,
+            -13 => Self::HardFault,
+            #[cfg(not(armv6m))]
+            -12 => Self::MemoryManagement,
+            #[cfg(not(armv6m))]
+            -11 => Self::BusFault,
+            #[cfg(not(armv6m))]
+            -10 => Self::UsageFault,
+            #[cfg(any(armv8m, native))]
+            -9 => Self::SecureFault,
+            -5 => Self::SVCall,
+            #[cfg(not(armv6m))]
+            -4 => Self::DebugMonitor,
+            -2 => Self::PendSV,
+            -1 => Self::SysTick,
+            _ => return Err(irqn),
+        })
+    }
+}
+
+/// Exception/Interrupt Vector
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "std", derive(PartialOrd, Hash))]
-pub enum VectActive {
+pub enum Vector {
     /// Thread mode
     ThreadMode,
 
@@ -275,34 +296,38 @@ pub enum VectActive {
 
     /// Device specific exception (external interrupts)
     Interrupt {
-        /// Interrupt number. This number is always within half open range `[0, 512)` (9 bit)
+        /// Interrupt number. This number is always in range `[0, 495]` (9-bit integer - 16)
         irqn: u16,
     },
 }
 
-impl VectActive {
-    /// Converts a vector number into `VectActive`
+impl Vector {
+    /// Create an `Vector` from an ISR number.
+    ///
+    /// `isrn` must be in the range `[0, 511]` and contain a valid
+    /// `Exception` variant if in range `[2, 15]`.
     #[inline]
-    pub fn from(vect_active: u16) -> Option<Self> {
-        Some(match vect_active {
-            0 => VectActive::ThreadMode,
-            2 => VectActive::Exception(Exception::NonMaskableInt),
-            3 => VectActive::Exception(Exception::HardFault),
-            #[cfg(not(armv6m))]
-            4 => VectActive::Exception(Exception::MemoryManagement),
-            #[cfg(not(armv6m))]
-            5 => VectActive::Exception(Exception::BusFault),
-            #[cfg(not(armv6m))]
-            6 => VectActive::Exception(Exception::UsageFault),
-            #[cfg(any(armv8m, native))]
-            7 => VectActive::Exception(Exception::SecureFault),
-            11 => VectActive::Exception(Exception::SVCall),
-            #[cfg(not(armv6m))]
-            12 => VectActive::Exception(Exception::DebugMonitor),
-            14 => VectActive::Exception(Exception::PendSV),
-            15 => VectActive::Exception(Exception::SysTick),
-            irqn if (16..512).contains(&irqn) => VectActive::Interrupt { irqn: irqn - 16 },
-            _ => return None,
+    const unsafe fn new_unchecked(isrn: u16) -> Self {
+        match isrn {
+            0 => Self::ThreadMode,
+            2..=15 => Self::Exception(Exception::new_unchecked(isrn as i8 - 16)),
+            16..=511 => Self::Interrupt { irqn: isrn - 16 },
+            _ => core::hint::unreachable_unchecked(),
+        }
+    }
+}
+
+impl TryFrom<u16> for Vector {
+    type Error = u16;
+
+    /// Try creating an `Vector` from an ISR number.
+    #[inline]
+    fn try_from(isrn: u16) -> Result<Self, Self::Error> {
+        Ok(match isrn {
+            0 => Self::ThreadMode,
+            2..=15 => Self::Exception(Exception::try_from(isrn as i8 - 16).or(Err(isrn))?),
+            16..=511 => Self::Interrupt { irqn: isrn - 16 },
+            _ => return Err(isrn),
         })
     }
 }

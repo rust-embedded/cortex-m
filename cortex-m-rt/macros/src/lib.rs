@@ -187,6 +187,13 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                 && f.vis == Visibility::Inherited
                 && f.sig.abi.is_none()
                 && f.sig.inputs.len() == 1
+                && match &f.sig.inputs[0] {
+                    FnArg::Typed(arg) => match arg.ty.as_ref() {
+                        Type::Path(t) => true,
+                        _ => false,
+                    },
+                    _ => false,
+                }
                 && f.sig.generics.params.is_empty()
                 && f.sig.generics.where_clause.is_none()
                 && f.sig.variadic.is_none()
@@ -202,7 +209,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             if !valid_signature {
                 return parse::Error::new(
                     fspan,
-                    "`DefaultHandler` must have signature `unsafe fn(i16) [-> !]`",
+                    "`DefaultHandler` must have signature `unsafe fn(Vector) [-> !]`",
                 )
                 .to_compile_error()
                 .into();
@@ -222,11 +229,8 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                 pub unsafe extern "C" fn #tramp_ident() {
                     extern crate core;
 
-                    const SCB_ICSR: *const u32 = 0xE000_ED04 as *const u32;
-
-                    let irqn = unsafe { (core::ptr::read_volatile(SCB_ICSR) & 0x1FF) as i16 - 16 };
-
-                    #ident(irqn)
+                    let vect_active = ::cortex_m::peripheral::SCB::vect_active();
+                    #ident(vect_active)
                 }
 
                 #f

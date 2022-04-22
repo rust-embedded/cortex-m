@@ -121,20 +121,89 @@ use self::fpu_consts::*;
 
 /// Priority Grouping
 ///
-/// Determines the split of group priority from subpriority.
+/// Determines the split of preemption priority from sub-priority.
 #[derive(Debug, Clone, Copy)]
 #[repr(u8)]
 pub enum PriorityGrouping {
-    /// 4 bits for group priorities, 0 bits for subpriorities
-    Group4Sub0 = 0b011, // 0b0xx
-    /// 3 bits for group priorities, 1 bit for subpriorities
-    Group3Sub1 = 0b100,
-    /// 2 bits for group priorities, 2 bits for subpriorities
-    Group2Sub2 = 0b101,
-    /// 1 bit for group priorities, 3 bits for subpriorities
-    Group1Sub3 = 0b110,
-    /// 0 bits for group priorities, 4 bits for subpriorities
-    Group0Sub4 = 0b111,
+    /// Priority grouping 0
+    Prigroup0 = 0,
+    /// Priority grouping 1
+    Prigroup1 = 1,
+    /// Priority grouping 2
+    Prigroup2 = 2,
+    /// Priority grouping 3
+    Prigroup3 = 3,
+    /// Priority grouping 4
+    Prigroup4 = 4,
+    /// Priority grouping 5
+    Prigroup5 = 5,
+    /// Priority grouping 6
+    Prigroup6 = 6,
+    /// Priority grouping 7
+    Prigroup7 = 7,
+}
+
+impl PriorityGrouping {
+    #[inline]
+    const fn preemption_priority_bits(&self, nvic_prio_bits: u8) -> u8 {
+        let bits = 7 - *self as u8;
+
+        if bits > nvic_prio_bits {
+            nvic_prio_bits
+        } else {
+            bits
+        }
+    }
+
+    #[inline]
+    const fn sub_priority_bits(&self, nvic_prio_bits: u8) -> u8 {
+        let bits = *self as u8 + nvic_prio_bits;
+
+        if bits <= 7 {
+            0
+        } else {
+            bits - 7
+        }
+    }
+
+    /// Encode `preemption_priority` and `sub_priority` to fit in `nvic_prio_bits`.
+    #[inline]
+    pub const fn encode_priority(
+        &self,
+        nvic_prio_bits: u8,
+        preemption_priority: u8,
+        sub_priority: u8,
+    ) -> u8 {
+        let preemption_priority_bits = self.preemption_priority_bits(nvic_prio_bits);
+        let sub_priority_bits = self.sub_priority_bits(nvic_prio_bits);
+
+        let premption_priority_mask = (1 << preemption_priority_bits) - 1;
+        let sub_priority_mask = (1 << sub_priority_bits) - 1;
+
+        debug_assert!(preemption_priority <= premption_priority_mask);
+        debug_assert!(sub_priority <= sub_priority_mask);
+
+        let priority = ((preemption_priority & premption_priority_mask) << sub_priority_bits)
+            | (sub_priority & sub_priority_mask);
+
+        // Priority is stored in the highest bits.
+        priority << (8 - nvic_prio_bits)
+    }
+
+    /// Decode priority stored in `nvic_prio_bits` into a tuple consisting of
+    /// the preemption priority and sub-priority.
+    #[inline]
+    pub const fn decode_priority(&self, nvic_prio_bits: u8, mut priority: u8) -> (u8, u8) {
+        // Priority is stored in the highest bits.
+        priority >>= 8 - nvic_prio_bits;
+
+        let sub_priority_bits = self.sub_priority_bits(nvic_prio_bits);
+
+        let preemption_priority = priority >> sub_priority_bits;
+        let sub_priority = priority & ((1 << sub_priority_bits) - 1);
+
+        (preemption_priority, sub_priority)
+    }
 }
 
 #[cfg(has_fpu)]
@@ -895,11 +964,14 @@ impl SCB {
     #[inline]
     pub fn get_priority_grouping(&self) -> PriorityGrouping {
         match self.aircr.read() & SCB_AIRCR_PRIGROUP_MASK >> SCB_AIRCR_PRIGROUP_POS {
-            0b111 => PriorityGrouping::Group0Sub4,
-            0b110 => PriorityGrouping::Group1Sub3,
-            0b101 => PriorityGrouping::Group2Sub2,
-            0b100 => PriorityGrouping::Group3Sub1,
-            /* 0b0xx */ _ => PriorityGrouping::Group4Sub0,
+            0 => PriorityGrouping::Prigroup0,
+            1 => PriorityGrouping::Prigroup1,
+            2 => PriorityGrouping::Prigroup2,
+            3 => PriorityGrouping::Prigroup3,
+            4 => PriorityGrouping::Prigroup4,
+            5 => PriorityGrouping::Prigroup5,
+            6 => PriorityGrouping::Prigroup6,
+            _ => PriorityGrouping::Prigroup7,
         }
     }
 }

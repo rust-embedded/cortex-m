@@ -548,7 +548,7 @@ cfg_global_asm! {
      ldr r1, =__edata
      ldr r2, =__sidata
      2:
-     cmp r0, r0
+     cmp r1, r0
      beq 3f
      ldm r2!, {{r3}}
      stm r0!, {{r3}}
@@ -569,7 +569,8 @@ cfg_global_asm! {
 
     // Push `lr` to the stack for debuggers, to prevent them unwinding past Reset.
     // See https://sourceware.org/binutils/docs/as/CFI-directives.html.
-    ".cfi_def_cfa sp, 0
+    "4:
+     .cfi_def_cfa sp, 0
      push {{lr}}
      .cfi_offset lr, 0",
 

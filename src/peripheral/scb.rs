@@ -287,7 +287,7 @@ impl TryFrom<i8> for Exception {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "std", derive(PartialOrd, Hash))]
-pub enum Vector {
+pub enum Vector<INT = u16> {
     /// Thread mode
     ThreadMode,
 
@@ -295,10 +295,10 @@ pub enum Vector {
     Exception(Exception),
 
     /// Device specific exception (external interrupts)
-    Interrupt {
+    Interrupt(
         /// Interrupt number. This number is always in range `[0, 495]` (9-bit integer - 16)
-        irqn: u16,
-    },
+        INT,
+    ),
 }
 
 impl Vector {
@@ -311,8 +311,18 @@ impl Vector {
         match isrn {
             0 => Self::ThreadMode,
             2..=15 => Self::Exception(Exception::new_unchecked(isrn as i8 - 16)),
-            16..=511 => Self::Interrupt { irqn: isrn - 16 },
+            16..=511 => Self::Interrupt(isrn - 16),
             _ => core::hint::unreachable_unchecked(),
+        }
+    }
+
+    /// Map the interrupt number to a different type.
+    #[inline]
+    pub fn map_interrupt<INT>(&self, f: impl FnOnce(u16) -> INT) -> Vector<INT> {
+        match self {
+            Self::ThreadMode => Vector::ThreadMode,
+            Self::Exception(ex) => Vector::Exception(*ex),
+            Self::Interrupt(irqn) => Vector::Interrupt(f(*irqn)),
         }
     }
 }
@@ -326,7 +336,7 @@ impl TryFrom<u16> for Vector {
         Ok(match isrn {
             0 => Self::ThreadMode,
             2..=15 => Self::Exception(Exception::try_from(isrn as i8 - 16).or(Err(isrn))?),
-            16..=511 => Self::Interrupt { irqn: isrn - 16 },
+            16..=511 => Self::Interrupt(isrn - 16),
             _ => return Err(isrn),
         })
     }

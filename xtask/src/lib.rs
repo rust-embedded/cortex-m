@@ -24,8 +24,7 @@ pub fn check_host_side() {
     {
         let v = Vector::try_from(22).unwrap();
         let json = serde_json::to_string(&v).expect("Failed to serialize Vector");
-        let deser_v: Vector =
-            serde_json::from_str(&json).expect("Failed to deserialize Vector");
+        let deser_v: Vector = serde_json::from_str(&json).expect("Failed to deserialize Vector");
         assert_eq!(deser_v, v);
 
         let lts = LocalTimestampOptions::EnabledDiv4;

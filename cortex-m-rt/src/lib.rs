@@ -569,8 +569,7 @@ cfg_global_asm! {
 
     // Push `lr` to the stack for debuggers, to prevent them unwinding past Reset.
     // See https://sourceware.org/binutils/docs/as/CFI-directives.html.
-    "4:
-     .cfi_def_cfa sp, 0
+    ".cfi_def_cfa sp, 0
      push {{lr}}
      .cfi_offset lr, 0",
 

@@ -548,7 +548,7 @@ cfg_global_asm! {
      ldr r1, =__edata
      ldr r2, =__sidata
      2:
-     cmp r0, r0
+     cmp r1, r0
      beq 3f
      ldm r2!, {{r3}}
      stm r0!, {{r3}}

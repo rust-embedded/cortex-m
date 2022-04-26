@@ -144,8 +144,12 @@ SECTIONS
     __veneer_base = .;
     *(.gnu.sgstubs*)
     . = ALIGN(32);
-    __veneer_limit = .;
   } > FLASH
+  /* Place `__veneer_limit` outside the `.gnu.sgstubs` section because veneers are
+   * always inserted last in the section, which would otherwise be _after_ the `__veneer_limit` symbol.
+   */
+  . = ALIGN(32);
+  __veneer_limit = .;
 
   /* ### .bss */
   .bss (NOLOAD) : ALIGN(4)

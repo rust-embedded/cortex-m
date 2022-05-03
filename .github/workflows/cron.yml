@@ -9,7 +9,7 @@ jobs:
   ci-linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -17,7 +17,7 @@ jobs:
           override: true
       - name: Run tests
         run: cargo test --all --exclude cortex-m-rt --exclude testsuite
-      - uses: imjohnbo/issue-bot@v2
+      - uses: imjohnbo/issue-bot@v3
         if: failure()
         with:
           title: CI Failure
@@ -36,7 +36,7 @@ jobs:
       run:
         working-directory: cortex-m-rt
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -62,7 +62,7 @@ jobs:
         run: TARGET=thumbv8m.main-none-eabi TRAVIS_RUST_VERSION=stable bash ci/script.sh
       - name: Run CI script for thumbv8m.main-none-eabihf under stable
         run: TARGET=thumbv8m.main-none-eabihf TRAVIS_RUST_VERSION=stable bash ci/script.sh
-      - uses: imjohnbo/issue-bot@v2
+      - uses: imjohnbo/issue-bot@v3
         if: failure()
         with:
           title: CI Failure

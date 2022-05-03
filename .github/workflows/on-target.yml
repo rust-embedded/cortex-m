@@ -12,7 +12,7 @@ jobs:
   hil-qemu:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -37,7 +37,7 @@ jobs:
   hil-compile-rtt:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -53,7 +53,7 @@ jobs:
           RUSTFLAGS: -C link-arg=-Tlink.x -D warnings
         run: cargo build -p testsuite --target thumbv6m-none-eabi --features testsuite/rtt
       - name: Upload testsuite binaries
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: testsuite-bin
           if-no-files-found: error
@@ -65,12 +65,12 @@ jobs:
     needs:
       - hil-compile-rtt
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Display probe-run version
         run: probe-run --version
       - name: List probes
         run: probe-run --list-probes
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: testsuite-bin
           path: testsuite-bin

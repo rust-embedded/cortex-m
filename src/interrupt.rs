@@ -1,6 +1,5 @@
 //! Interrupts
 
-pub use bare_metal::{CriticalSection, Mutex};
 #[cfg(cortex_m)]
 use core::arch::asm;
 #[cfg(cortex_m)]
@@ -54,20 +53,18 @@ pub unsafe fn enable() {
 }
 
 /// Execute closure `f` in an interrupt-free context.
-///
-/// This as also known as a "critical section".
 #[cfg(cortex_m)]
 #[inline]
 pub fn free<F, R>(f: F) -> R
 where
-    F: FnOnce(CriticalSection<'_>) -> R,
+    F: FnOnce() -> R,
 {
     let primask = crate::register::primask::read();
 
     // disable interrupts
     disable();
 
-    let r = f(unsafe { CriticalSection::new() });
+    let r = f();
 
     // If the interrupts were active before our `disable` call, then re-enable
     // them. Otherwise, keep them disabled
@@ -83,9 +80,9 @@ where
 #[doc(hidden)]
 #[cfg(not(cortex_m))]
 #[inline]
-pub fn free<F, R>(_: F) -> R
+pub fn free<F, R>(_f: F) -> R
 where
-    F: FnOnce(CriticalSection<'_>) -> R,
+    F: FnOnce() -> R,
 {
     panic!("cortex_m::interrupt::free() is only functional on cortex-m platforms");
 }

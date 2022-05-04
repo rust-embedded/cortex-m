@@ -17,10 +17,10 @@ rust-version = "1.59"
 links = "cortex-m"  # prevent multiple versions of this crate to be linked together
 
 [dependencies]
-bare-metal = "1"
-volatile-register = "0.2.0"
 bitfield = "0.13.2"
+critical-section = { version = "0.2", optional = true }
 embedded-hal = "0.2.4"
+volatile-register = "0.2.0"
 
 [dependencies.serde]
 version = "1"
@@ -32,6 +32,7 @@ cm7 = []
 cm7-r0p1 = ["cm7"]
 linker-plugin-lto = []
 std = []
+single-core-critical-section = ["critical-section", "critical-section/custom-impl"]
 
 [workspace]
 members = [
@@ -55,3 +56,6 @@ targets = [
     "thumbv8m.base-none-eabi",
     "thumbv8m.main-none-eabi"
 ]
+
+[patch.crates-io]
+critical-section = { git = "https://github.com/reitermarkus/critical-section", branch = "cortex-m" }

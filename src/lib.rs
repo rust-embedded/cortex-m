@@ -49,7 +49,7 @@ mod macros;
 pub mod asm;
 #[cfg(armv8m)]
 pub mod cmse;
-#[cfg(feature = "single-core-critical-section")]
+#[cfg(all(cortex_m, feature = "single-core-critical-section"))]
 mod critical_section;
 pub mod delay;
 pub mod interrupt;

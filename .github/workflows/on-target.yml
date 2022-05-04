@@ -22,7 +22,7 @@ jobs:
       - name: Build testsuite
         env:
           RUSTFLAGS: -C link-arg=-Tlink.x -D warnings
-        run: cargo build -p testsuite --target thumbv7m-none-eabi --features testsuite/semihosting
+        run: cargo build -p testsuite --target thumbv7m-none-eabi --features semihosting,cortex-m/single-core-critical-section
       - name: Install QEMU
         run: sudo apt-get update && sudo apt-get install qemu qemu-system-arm
       - name: Run testsuite
@@ -51,7 +51,7 @@ jobs:
       - name: Build testsuite
         env:
           RUSTFLAGS: -C link-arg=-Tlink.x -D warnings
-        run: cargo build -p testsuite --target thumbv6m-none-eabi --features testsuite/rtt
+        run: cargo build -p testsuite --target thumbv6m-none-eabi --features rtt,cortex-m/single-core-critical-section
       - name: Upload testsuite binaries
         uses: actions/upload-artifact@v3
         with:

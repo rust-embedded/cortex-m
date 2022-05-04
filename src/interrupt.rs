@@ -56,6 +56,7 @@ pub unsafe fn enable() {
 /// https://geo-ant.github.io/blog/2021/rust-traits-and-variadic-functions/
 ///
 /// TODO: Remove before releasing 0.8.
+#[doc(hidden)]
 pub trait InterruptFreeFn<Args, R> {
     /// Call the closure.
     unsafe fn call(self) -> R;

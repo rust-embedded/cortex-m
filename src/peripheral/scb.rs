@@ -168,13 +168,33 @@ impl SCB {
 }
 
 impl SCB {
+    #[inline]
+    fn icsr() -> u32 {
+        unsafe { ptr::read_volatile(&(*Self::PTR).icsr as *const _ as *const u32) }
+    }
+
+    /// Return the `Vector` containing the pending exception number, if any.
+    #[inline]
+    pub fn vect_pending() -> Option<Vector> {
+        let icsr = Self::icsr();
+        let isrn = ((icsr >> 12) & 0x7F) as u16;
+
+        match isrn {
+            // No pending exceptions.
+            0 => return None,
+            // SAFETY: `isrn` is in range [1, 127] and contains
+            // a valid `Exception` if in range [2, 15].
+            isrn => unsafe { Some(Vector::new_unchecked(isrn)) },
+        }
+    }
+
     /// Returns the `Vector` containing the active exception number.
     #[inline]
     pub fn vect_active() -> Vector {
-        let icsr = unsafe { ptr::read_volatile(&(*SCB::PTR).icsr as *const _ as *const u32) };
+        let icsr = Self::icsr();
         let isrn = (icsr & 0x1FF) as u16;
 
-        // NOTE(unsafe): `isrn` is in range [0, 511] and contains
+        // SAFETY: `isrn` is in range [0, 511] and contains
         // a valid `Exception` if in range [2, 15].
         unsafe { Vector::new_unchecked(isrn) }
     }
@@ -283,7 +303,7 @@ impl TryFrom<i8> for Exception {
     }
 }
 
-/// Exception/Interrupt Vector
+/// Active exception number
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "std", derive(PartialOrd, Hash))]

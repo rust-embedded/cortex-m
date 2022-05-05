@@ -49,8 +49,11 @@ mod macros;
 pub mod asm;
 #[cfg(armv8m)]
 pub mod cmse;
-#[cfg(all(cortex_m, feature = "single-core-critical-section"))]
-mod critical_section;
+// This is only public so the `singleton` macro does not require depending on
+// the `critical-section` crate separately.
+#[doc(hidden)]
+#[cfg(feature = "critical-section")]
+pub mod critical_section;
 pub mod delay;
 pub mod interrupt;
 #[cfg(all(not(armv6m), not(armv8m_base)))]

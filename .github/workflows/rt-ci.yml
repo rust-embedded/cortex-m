@@ -69,18 +69,18 @@ jobs:
       - name: Install all Rust targets
         run: rustup target install thumbv6m-none-eabi thumbv7m-none-eabi thumbv7em-none-eabi thumbv7em-none-eabihf thumbv8m.base-none-eabi thumbv8m.main-none-eabi thumbv8m.main-none-eabihf
       - name: Build examples for thumbv6m-none-eabi
-        run: cargo build --target=thumbv6m-none-eabi --examples
+        run: cargo build --target=thumbv6m-none-eabi --features cortex-m/single-core-critical-section --examples
       - name: Build examples for thumbv7m-none-eabi
-        run: cargo build --target=thumbv7m-none-eabi --examples
+        run: cargo build --target=thumbv7m-none-eabi --features cortex-m/single-core-critical-section --examples
       - name: Build examples for thumbv7em-none-eabi
-        run: cargo build --target=thumbv7em-none-eabi --examples
+        run: cargo build --target=thumbv7em-none-eabi --features cortex-m/single-core-critical-section --examples
       - name: Build examples for thumbv7em-none-eabihf
-        run: cargo build --target=thumbv7em-none-eabihf --examples
+        run: cargo build --target=thumbv7em-none-eabihf --features cortex-m/single-core-critical-section --examples
       - name: Build examples for thumbv8m.base-none-eabi
-        run: cargo build --target=thumbv8m.base-none-eabi --examples
+        run: cargo build --target=thumbv8m.base-none-eabi --features cortex-m/single-core-critical-section --examples
       - name: Build examples for thumbv8m.main-none-eabi
-        run: cargo build --target=thumbv8m.main-none-eabi --examples
+        run: cargo build --target=thumbv8m.main-none-eabi --features cortex-m/single-core-critical-section --examples
       - name: Build examples for thumbv8m.main-none-eabihf
-        run: cargo build --target=thumbv8m.main-none-eabihf --examples
+        run: cargo build --target=thumbv8m.main-none-eabihf --features cortex-m/single-core-critical-section --examples
       - name: Build crate for host OS
         run: cargo build

@@ -62,7 +62,7 @@ macro_rules! iprintln {
 #[macro_export]
 macro_rules! singleton {
     ($name:ident: $ty:ty = $expr:expr) => {
-        $crate::interrupt::free(|| {
+        $crate::critical_section::with(|_| {
             // this is a tuple of a MaybeUninit and a bool because using an Option here is
             // problematic:  Due to niche-optimization, an Option could end up producing a non-zero
             // initializer value which would move the entire static from `.bss` into `.data`...

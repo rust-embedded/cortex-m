@@ -57,7 +57,6 @@
 //!
 //! - ARMv7-M Architecture Reference Manual (Issue E.b) - Chapter B3
 
-use crate::interrupt;
 use core::marker::PhantomData;
 use core::ops;
 
@@ -164,7 +163,7 @@ impl Peripherals {
     /// Returns all the core peripherals *once*
     #[inline]
     pub fn take() -> Option<Self> {
-        interrupt::free(|| {
+        critical_section::with(|_| {
             if unsafe { TAKEN } {
                 None
             } else {

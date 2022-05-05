@@ -785,11 +785,12 @@ pub use macros::entry;
 /// - Setting the default handler
 ///
 /// ```
+/// use cortex_m::peripheral::scb::Vector;
 /// use cortex_m_rt::exception;
 ///
 /// #[exception]
-/// unsafe fn DefaultHandler(irqn: i16) {
-///     println!("IRQn = {}", irqn);
+/// unsafe fn DefaultHandler(v: Vector) {
+///     println!("Unexpected interrupt: {:?}", v);
 /// }
 ///
 /// # fn main() {}

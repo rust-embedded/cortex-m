@@ -189,7 +189,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                 && f.sig.inputs.len() == 1
                 && match &f.sig.inputs[0] {
                     FnArg::Typed(arg) => match arg.ty.as_ref() {
-                        Type::Path(t) => true,
+                        Type::Path(_) => true,
                         _ => false,
                     },
                     _ => false,

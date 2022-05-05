@@ -1,9 +1,11 @@
 #![no_main]
 #![no_std]
 
+extern crate cortex_m;
 extern crate cortex_m_rt;
 extern crate panic_halt;
 
+use cortex_m::peripheral::scb::Vector;
 use cortex_m_rt::{entry, exception};
 
 #[entry]
@@ -12,7 +14,7 @@ fn foo() -> ! {
 }
 
 #[exception]
-fn DefaultHandler(_irq: i16) {}
+fn DefaultHandler(_: Vector) {}
 //~^ ERROR defining a `DefaultHandler` is unsafe and requires an `unsafe fn`
 
 #[exception]

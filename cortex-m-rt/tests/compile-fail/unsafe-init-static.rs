@@ -4,9 +4,11 @@
 #![no_main]
 #![no_std]
 
+extern crate cortex_m;
 extern crate cortex_m_rt;
 extern crate panic_halt;
 
+use cortex_m::peripheral::scb::Vector;
 use cortex_m_rt::{entry, exception, interrupt};
 
 #[allow(non_camel_case_types)]
@@ -29,7 +31,7 @@ fn SVCall() {
 }
 
 #[exception]
-unsafe fn DefaultHandler(_irq: i16) {
+unsafe fn DefaultHandler(_: Vector) {
     static mut X: u32 = init();  //~ ERROR requires unsafe
 }
 

@@ -166,7 +166,7 @@ impl<const NVIC_PRIO_BITS: u8> PriorityGrouping<NVIC_PRIO_BITS> {
         }
     }
 
-    /// Encode `preemption_priority` and `sub_priority` to fit in `nvic_prio_bits`.
+    /// Encode `preemption_priority` and `sub_priority` to fit in `NVIC_PRIO_BITS`.
     #[inline]
     pub const fn encode_priority(&self, preemption_priority: u8, sub_priority: u8) -> u8 {
         let preemption_priority_bits = self.preemption_priority_bits();
@@ -185,7 +185,7 @@ impl<const NVIC_PRIO_BITS: u8> PriorityGrouping<NVIC_PRIO_BITS> {
         priority << (8 - NVIC_PRIO_BITS)
     }
 
-    /// Decode priority stored in `nvic_prio_bits` into a tuple consisting of
+    /// Decode the priority stored in `NVIC_PRIO_BITS` into a tuple consisting of
     /// the preemption priority and sub-priority.
     #[inline]
     pub const fn decode_priority(&self, mut priority: u8) -> (u8, u8) {

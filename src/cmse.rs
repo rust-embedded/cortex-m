@@ -174,9 +174,9 @@ impl TestTarget {
     ///   * the TT instruction was executed from an unprivileged mode and the A flag was not specified.
     #[inline]
     pub fn mpu_region(self) -> Option<u8> {
-        if self.tt_resp.srvalid() {
-            // Cast is safe as SREGION field is defined on 8 bits.
-            Some(self.tt_resp.sregion() as u8)
+        if self.tt_resp.mrvalid() {
+            // Cast is safe as MREGION field is defined on 8 bits.
+            Some(self.tt_resp.mregion() as u8)
         } else {
             None
         }

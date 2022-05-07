@@ -34,14 +34,14 @@
 //!
 //! This crate expects the user, or some other crate, to provide the memory layout of the target
 //! device via a linker script named `memory.x`. This section covers the contents of `memory.x`
-//! The `memory.x` file is used by during linking by the `link.x` script provided by this crate.
+//! The `memory.x` file is used during linking by the `link.x` script provided by this crate.
 //!
 //! ### `MEMORY`
 //!
 //! The linker script must specify the memory available in the device as, at least, two `MEMORY`
 //! regions: one named `FLASH` and one named `RAM`. The `.text` and `.rodata` sections of the
 //! program will be placed in the `FLASH` region, whereas the `.bss` and `.data` sections, as well
-//! as the heap,will be placed in the `RAM` region.
+//! as the heap, will be placed in the `RAM` region.
 //!
 //! ```text
 //! /* Linker script for the STM32F103C8T6 */
@@ -444,7 +444,7 @@ use core::arch::global_asm;
 use core::fmt;
 
 // HardFault exceptions are bounced through this trampoline which grabs the stack pointer at
-// the time of the exception and passes it to th euser's HardFault handler in r0.
+// the time of the exception and passes it to the user's HardFault handler in r0.
 // Depending on the stack mode in EXC_RETURN, fetches stack from either MSP or PSP.
 #[cfg(cortex_m)]
 global_asm!(

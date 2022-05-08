@@ -18,7 +18,7 @@ links = "cortex-m"  # prevent multiple versions of this crate to be linked toget
 
 [dependencies]
 bitfield = "0.13.2"
-critical-section = { version = "0.2", optional = true }
+critical-section = { version = "0.3", optional = true }
 embedded-hal = "0.2.4"
 volatile-register = "0.2.0"
 
@@ -32,7 +32,7 @@ cm7 = []
 cm7-r0p1 = ["cm7"]
 linker-plugin-lto = []
 std = []
-single-core-critical-section = ["critical-section", "critical-section/custom-impl"]
+single-core-critical-section = ["critical-section", "critical-section/token-bool"]
 
 [workspace]
 members = [
@@ -59,4 +59,4 @@ targets = [
 
 [patch.crates-io]
 # See https://github.com/embassy-rs/critical-section/pull/13.
-critical-section = { git = "https://github.com/reitermarkus/critical-section", branch = "cortex-m" }
+critical-section = { git = "https://github.com/embassy-rs/critical-section" }

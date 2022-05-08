@@ -1,28 +1,27 @@
 #[cfg(all(cortex_m, feature = "single-core-critical-section"))]
 mod single_core_critical_section {
+    use critical_section::{set_impl, Impl, RawToken};
+
     use crate::interrupt;
     use crate::register::primask::{self, Primask};
 
-    struct CriticalSection;
-    critical_section::custom_impl!(CriticalSection);
+    struct SingleCoreCriticalSection;
+    set_impl!(SingleCoreCriticalSection);
 
-    const TOKEN_IGNORE: u8 = 0;
-    const TOKEN_REENABLE: u8 = 1;
-
-    unsafe impl critical_section::Impl for CriticalSection {
-        unsafe fn acquire() -> u8 {
+    unsafe impl Impl for SingleCoreCriticalSection {
+        unsafe fn acquire() -> RawToken {
             match primask::read() {
                 Primask::Active => {
                     interrupt::disable();
-                    TOKEN_REENABLE
+                    true
                 }
-                Primask::Inactive => TOKEN_IGNORE,
+                Primask::Inactive => false,
             }
         }
 
-        unsafe fn release(token: u8) {
+        unsafe fn release(primask_was_active: RawToken) {
             // Only re-enable interrupts if they were enabled before the critical section.
-            if token == TOKEN_REENABLE {
+            if primask_was_active {
                 interrupt::enable()
             }
         }

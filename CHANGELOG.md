@@ -7,9 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.7.5] - 2022-05-15
+
 ### Deprecated
 - the `ptr()` function on all peripherals register blocks in favor of
   the associated constant `PTR` (#386).
+
+### Changed
+
+- The `inline-asm` feature no longer requires a nightly Rust compiler, but
+  does require Rust 1.59 or above.
 
 ## [v0.7.4] - 2021-12-31
 

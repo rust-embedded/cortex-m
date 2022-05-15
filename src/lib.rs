@@ -22,7 +22,8 @@
 //! - Some of the `register` API only becomes available only when `inline-asm` is enabled. Check the
 //! API docs for details.
 //!
-//! The disadvantage is that `inline-asm` requires a nightly toolchain.
+//! The disadvantage is that `inline-asm` requires a Rust version at least 1.59 to use the `asm!()`
+//! macro. In the future 0.8 and above versions of `cortex-m`, this feature will always be enabled.
 //!
 //! ## `cm7-r0p1`
 //!
@@ -55,7 +56,6 @@
 //! This crate is guaranteed to compile on stable Rust 1.38 and up. It *might*
 //! compile with older versions but that may change in any new patch release.
 
-#![cfg_attr(feature = "inline-asm", feature(asm))]
 #![deny(missing_docs)]
 #![no_std]
 #![allow(clippy::identity_op)]

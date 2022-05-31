@@ -7,9 +7,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.7.5] - 2022-05-15
+
 ### Deprecated
 - the `ptr()` function on all peripherals register blocks in favor of
   the associated constant `PTR` (#386).
+
+### Changed
+
+- The `inline-asm` feature no longer requires a nightly Rust compiler, but
+  does require Rust 1.59 or above.
+
+### Fixed
+- Fixed `singleton!()` statics sometimes ending up in `.data` instead of `.bss` (#364, #380).
+  (Backported from upcoming 0.8 release).
 
 ## [v0.7.4] - 2021-12-31
 
@@ -735,7 +746,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.7.4...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.7.5...HEAD
+[v0.7.5]: https://github.com/rust-embedded/cortex-m/compare/v0.7.4...v0.7.5
 [v0.7.4]: https://github.com/rust-embedded/cortex-m/compare/v0.7.3...v0.7.4
 [v0.7.3]: https://github.com/rust-embedded/cortex-m/compare/v0.7.2...v0.7.3
 [v0.7.2]: https://github.com/rust-embedded/cortex-m/compare/v0.7.1...v0.7.2

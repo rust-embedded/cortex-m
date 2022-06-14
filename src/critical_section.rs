@@ -8,20 +8,23 @@ mod single_core_critical_section {
     struct SingleCoreCriticalSection;
     set_impl!(SingleCoreCriticalSection);
 
+    const TOKEN_IGNORE: RawToken = 0;
+    const TOKEN_REENABLE: RawToken = 1;
+
     unsafe impl Impl for SingleCoreCriticalSection {
         unsafe fn acquire() -> RawToken {
             match primask::read() {
                 Primask::Active => {
                     interrupt::disable();
-                    true
+                    TOKEN_REENABLE
                 }
-                Primask::Inactive => false,
+                Primask::Inactive => TOKEN_IGNORE,
             }
         }
 
-        unsafe fn release(primask_was_active: RawToken) {
+        unsafe fn release(token: RawToken) {
             // Only re-enable interrupts if they were enabled before the critical section.
-            if primask_was_active {
+            if token == TOKEN_REENABLE {
                 interrupt::enable()
             }
         }

@@ -1,6 +1,11 @@
 //! A delay driver based on SysTick.
 
 use crate::peripheral::{syst::SystClkSource, SYST};
+#[cfg(feature = "eh1_0_alpha")]
+use core::convert::Infallible;
+
+#[cfg(feature = "eh1_0_alpha")]
+use eh1_0_alpha::delay::blocking::DelayUs as EH1DelayUs;
 use embedded_hal::blocking::delay::{DelayMs, DelayUs};
 
 /// System timer (SysTick) as a delay provider.
@@ -72,6 +77,22 @@ impl Delay {
             ms -= 4294967;
         }
         self.delay_us(ms * 1_000);
+    }
+}
+
+#[cfg(feature = "eh1_0_alpha")]
+impl EH1DelayUs for Delay {
+    type Error = Infallible;
+
+    #[inline]
+    fn delay_us(&mut self, us: u32) -> Result<(), Self::Error> {
+        Delay::delay_us(self, us);
+        Ok(())
+    }
+
+    fn delay_ms(&mut self, us: u32) -> Result<(), Self::Error> {
+        Delay::delay_ms(self, us);
+        Ok(())
     }
 }
 

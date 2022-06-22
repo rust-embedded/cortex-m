@@ -21,6 +21,8 @@ bare-metal = "1"
 volatile-register = "0.2.0"
 bitfield = "0.13.2"
 embedded-hal = "0.2.4"
+eh1_0_alpha = { version = "=1.0.0-alpha.8", package="embedded-hal", optional=true }
+
 
 [dependencies.serde]
 version = "1"

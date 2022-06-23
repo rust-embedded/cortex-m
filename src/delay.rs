@@ -1,3 +1,5 @@
+// # Copyright 2022 Arm Limited and/or its affiliates <open-source-office@arm.com>
+
 //! A delay driver based on SysTick.
 
 use crate::peripheral::{syst::SystClkSource, SYST};

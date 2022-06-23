@@ -1,3 +1,5 @@
+# Copyright 2022 Arm Limited and/or its affiliates <open-source-office@arm.com>
+
 [package]
 authors = [
     "The Cortex-M Team <cortex-m@teams.rust-embedded.org>",

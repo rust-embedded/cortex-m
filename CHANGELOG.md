@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+- Added `critical-section-single-core` feature which provides an implementation for the `critical_section` crate for single-core systems, based on disabling all interrupts. (#448)
+
 ## [v0.7.5] - 2022-05-15
 
 ### Deprecated

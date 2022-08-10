@@ -17,6 +17,7 @@ links = "cortex-m"  # prevent multiple versions of this crate to be linked toget
 
 [dependencies]
 bare-metal = { version = "0.2.4", features = ["const-fn"] }
+critical-section = { version = "1.0.0", optional = true }
 volatile-register = "0.2.0"
 bitfield = "0.13.2"
 embedded-hal = "0.2.4"
@@ -32,6 +33,7 @@ cm7-r0p1 = ["cm7"]
 inline-asm = []
 linker-plugin-lto = []
 std = []
+critical-section-single-core = ["critical-section/restore-state-bool"]
 
 [workspace]
 members = ["xtask", "cortex-m-semihosting", "panic-semihosting", "panic-itm"]

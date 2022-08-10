@@ -44,13 +44,13 @@ fn build(package: &str, target: &str, features: &[&str]) {
 
 #[rustfmt::skip]
 static PACKAGE_FEATURES: &[(&str, &[&str], &[&str])] = &[
-    ("cortex-m", ALL_TARGETS, &["inline-asm", "cm7-r0p1"]), // no `linker-plugin-lto` since it's experimental
+    ("cortex-m", ALL_TARGETS, &["inline-asm", "cm7-r0p1", "critical-section-single-core"]), // no `linker-plugin-lto` since it's experimental
     ("cortex-m-semihosting", ALL_TARGETS, &["inline-asm", "no-semihosting", "jlink-quirks"]),
     ("panic-semihosting", ALL_TARGETS, &["inline-asm", "exit", "jlink-quirks"]),
     ("panic-itm", NON_BASE_TARGETS, &[]),
 ];
 
-fn check_crates_build(is_nightly: bool) {
+fn check_crates_build(is_nightly: bool, is_msrv: bool) {
     // Build all crates for each supported target.
     for (package, targets, all_features) in PACKAGE_FEATURES {
         for target in *targets {
@@ -58,6 +58,8 @@ fn check_crates_build(is_nightly: bool) {
             // Relies on all crates in this repo to use the same convention.
             let should_use_feature = |feat: &str| {
                 match feat {
+                    // critical-section doesn't build in 1.38 due to using `#[doc(include_str!(..))]`
+                    "critical-section-single-core" => !is_msrv,
                     // This is nightly-only, so don't use it on stable.
                     "inline-asm" => is_nightly,
                     // This only affects thumbv7em targets.
@@ -103,8 +105,9 @@ fn main() {
 
     let output = Command::new("rustc").arg("-V").output().unwrap();
     let is_nightly = str::from_utf8(&output.stdout).unwrap().contains("nightly");
+    let is_msrv = str::from_utf8(&output.stdout).unwrap().contains("1.38");
 
-    check_crates_build(is_nightly);
+    check_crates_build(is_nightly, is_msrv);
 
     // Check host-side applications of the crate.
     check_host_side();

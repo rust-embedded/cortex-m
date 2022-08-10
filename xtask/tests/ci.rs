@@ -32,6 +32,13 @@ fn build(package: &str, target: &str, features: &[&str]) {
         cargo.args(&["--features", *feat]);
     }
 
+    // A `critical_section` implementation is always needed.
+    if package == "cortex-m" {
+        cargo.args(&["--features", "critical-section-single-core"]);
+    } else {
+        cargo.args(&["--features", "cortex-m/critical-section-single-core"]);
+    }
+
     // Cargo features don't work right when invoked from the workspace root, so change to the
     // package's directory when necessary.
     if package != "cortex-m" {

@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-- Added `critical-section-single-core` feature which provides an implementation for the `critical_section` crate for single-core systems, based on disabling all interrupts. (#448)
+## [v0.7.6] - 2022-08-12
+
+- Added `critical-section-single-core` feature which provides an implementation for the `critical-section` crate for single-core systems, based on disabling all interrupts. (#448)
 
 ## [v0.7.5] - 2022-05-15
 
@@ -748,7 +750,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.7.5...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.7.6...HEAD
+[v0.7.6]: https://github.com/rust-embedded/cortex-m/compare/v0.7.5...v0.7.6
 [v0.7.5]: https://github.com/rust-embedded/cortex-m/compare/v0.7.4...v0.7.5
 [v0.7.4]: https://github.com/rust-embedded/cortex-m/compare/v0.7.3...v0.7.4
 [v0.7.3]: https://github.com/rust-embedded/cortex-m/compare/v0.7.2...v0.7.3

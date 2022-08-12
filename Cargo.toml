@@ -17,7 +17,7 @@ rust-version = "1.59"
 links = "cortex-m"  # prevent multiple versions of this crate to be linked together
 
 [dependencies]
-bare-metal = "1"
+critical-section = "1.0.0"
 volatile-register = "0.2.0"
 bitfield = "0.13.2"
 embedded-hal = "0.2.4"
@@ -32,6 +32,7 @@ cm7 = []
 cm7-r0p1 = ["cm7"]
 linker-plugin-lto = []
 std = []
+critical-section-single-core = ["critical-section/restore-state-bool"]
 
 [workspace]
 members = [

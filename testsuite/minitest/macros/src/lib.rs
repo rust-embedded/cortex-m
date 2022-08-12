@@ -215,8 +215,8 @@ fn tests_impl(args: TokenStream, input: TokenStream) -> parse::Result<TokenStrea
         unsafe {
             ::rtt_target::set_print_channel_cs(
                 channels.up.0,
-                &((|arg, f| cortex_m::interrupt::free(|_| f(arg)))
-                    as rtt_target::CriticalSectionFunc),
+                &((|arg, f| ::critical_section::with(|_| f(arg)))
+                    as ::rtt_target::CriticalSectionFunc),
             );
         }
     });

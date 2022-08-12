@@ -43,15 +43,16 @@
 // Don't warn about feature(asm) being stable on Rust >= 1.59.0
 #![allow(stable_features)]
 
-extern crate bare_metal;
-extern crate volatile_register;
-
 #[macro_use]
 mod macros;
 
 pub mod asm;
 #[cfg(armv8m)]
 pub mod cmse;
+// This is only public so the `singleton` macro does not require depending on
+// the `critical-section` crate separately.
+#[doc(hidden)]
+pub mod critical_section;
 pub mod delay;
 pub mod interrupt;
 #[cfg(all(not(armv6m), not(armv8m_base)))]

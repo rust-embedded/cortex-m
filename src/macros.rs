@@ -31,7 +31,10 @@ macro_rules! iprintln {
 /// at most once in the whole lifetime of the program.
 ///
 /// # Notes
-/// This macro is unsound on multi core systems.
+///
+/// This macro requires a `critical-section` implementation to be set. For most single core systems,
+/// you can enable the `critical-section-single-core` feature for this crate. For other systems, you
+/// have to provide one from elsewhere, typically your chip's HAL crate.
 ///
 /// For debuggability, you can set an explicit name for a singleton.  This name only shows up the
 /// the debugger and is not referencable from other code.  See example below.

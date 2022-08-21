@@ -49,10 +49,6 @@ mod macros;
 pub mod asm;
 #[cfg(armv8m)]
 pub mod cmse;
-// This is only public so the `singleton` macro does not require depending on
-// the `critical-section` crate separately.
-#[doc(hidden)]
-pub mod critical_section;
 pub mod delay;
 pub mod interrupt;
 #[cfg(all(not(armv6m), not(armv8m_base)))]
@@ -61,3 +57,13 @@ pub mod peripheral;
 pub mod register;
 
 pub use crate::peripheral::Peripherals;
+
+#[cfg(all(cortex_m, feature = "critical-section-single-core"))]
+mod critical_section;
+
+/// Used to reexport items for use in macros. Do not use directly.
+/// Not covered by semver guarantees.
+#[doc(hidden)]
+pub mod _export {
+    pub use critical_section;
+}

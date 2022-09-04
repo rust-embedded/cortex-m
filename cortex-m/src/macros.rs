@@ -31,7 +31,10 @@ macro_rules! iprintln {
 /// at most once in the whole lifetime of the program.
 ///
 /// # Notes
-/// This macro is unsound on multi core systems.
+///
+/// This macro requires a `critical-section` implementation to be set. For most single core systems,
+/// you can enable the `critical-section-single-core` feature for this crate. For other systems, you
+/// have to provide one from elsewhere, typically your chip's HAL crate.
 ///
 /// For debuggability, you can set an explicit name for a singleton. This name only shows up the
 /// debugger and is not referenceable from other code. See example below.
@@ -62,7 +65,7 @@ macro_rules! iprintln {
 #[macro_export]
 macro_rules! singleton {
     ($(#[$meta:meta])* $name:ident: $ty:ty = $expr:expr) => {
-        $crate::interrupt::free(|_| {
+        $crate::_export::critical_section::with(|_| {
             // this is a tuple of a MaybeUninit and a bool because using an Option here is
             // problematic:  Due to niche-optimization, an Option could end up producing a non-zero
             // initializer value which would move the entire static from `.bss` into `.data`...

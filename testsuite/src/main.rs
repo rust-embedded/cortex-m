@@ -33,7 +33,7 @@ mod tests {
         {
             use cortex_m::peripheral::DWT;
 
-            assert!(p.DWT.has_cycle_counter());
+            assert!(DWT::has_cycle_counter());
 
             p.DCB.enable_trace();
             p.DWT.disable_cycle_counter();
@@ -48,7 +48,7 @@ mod tests {
 
         #[cfg(armv6m)]
         {
-            assert!(!p.DWT.has_cycle_counter());
+            assert!(!DWT::has_cycle_counter());
         }
     }
 }

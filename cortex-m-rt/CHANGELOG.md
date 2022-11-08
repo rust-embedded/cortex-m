@@ -7,13 +7,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.7.2]
+
+- MSRV is now Rust 1.59.
 - Moved precompiled assembly blobs to `global_asm!`, requiring Rust 1.59.
+- Add new `set_vtor` and `set-sp` features to conditionally set the VTOR and SP
+  registers at device reset ([#423]).
+- Allow (unstable) `naked` attribute on interrupt handlers and `pre_init`.
 
 ## Fixes
 
 - Fix `cortex_m_rt::exception` macro no longer being usable fully-qualified ([#414])
+- Fix veneer limit position in linker script ([#434]).
 
 [#414]: https://github.com/rust-embedded/cortex-m/issues/414
+[#423]: https://github.com/rust-embedded/cortex-m/issues/423
+[#434]: https://github.com/rust-embedded/cortex-m/issues/434
 
 ## Notes
 
@@ -593,7 +602,8 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.7.1...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.2...HEAD
+[v0.7.2]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.1...c-m-rt-v0.7.2
 [v0.7.1]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.7.0...v0.7.1
 [v0.7.0]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.11...v0.7.0
 [v0.6.15]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.14...v0.6.15

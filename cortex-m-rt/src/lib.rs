@@ -491,7 +491,7 @@ macro_rules! cfg_global_asm {
 // This reset vector is the initial entry point after a system reset.
 // Calls an optional user-provided __pre_init and then initialises RAM.
 // If the target has an FPU, it is enabled.
-// Finally jumsp to the user main function.
+// Finally jumps to the user main function.
 #[cfg(cortex_m)]
 cfg_global_asm! {
     ".cfi_sections .debug_frame

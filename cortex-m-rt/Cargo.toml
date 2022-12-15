@@ -45,6 +45,7 @@ required-features = ["device"]
 device = []
 set-sp = []
 set-vtor = []
+zero-init-ram = []
 
 [package.metadata.docs.rs]
 features = ["device"]

@@ -514,6 +514,19 @@ cfg_global_asm! {
     "ldr r0, =_stack_start
      msr msp, r0",
 
+    // If enabled, initialize RAM with zeros. This is normally not necessary but might be required
+    // on custom hardware.
+    #[cfg(feature = "zero-init-ram")]
+    "ldr r0, =_ram_end
+     ldr r1, =_ram_start
+     movs r2, #0
+     0:
+     cmp r1, r0
+     beq 1f
+     stm r0!, {{r2}}
+     b 0b
+     1:",
+
     // If enabled, initialise VTOR to the start of the vector table. This is normally initialised
     // by a bootloader when the non-reset value is required, but some bootloaders do not set it,
     // leading to frustrating issues where everything seems to work but interrupts are never
@@ -533,24 +546,24 @@ cfg_global_asm! {
     "ldr r0, =__sbss
      ldr r1, =__ebss
      movs r2, #0
-     0:
+     2:
      cmp r1, r0
-     beq 1f
+     beq 3f
      stm r0!, {{r2}}
-     b 0b
-     1:",
+     b 2b
+     3:",
 
     // Initialise .data memory. `__sdata`, `__sidata`, and `__edata` come from the linker script.
     "ldr r0, =__sdata
      ldr r1, =__edata
      ldr r2, =__sidata
-     2:
+     4:
      cmp r1, r0
-     beq 3f
+     beq 5f
      ldm r2!, {{r3}}
      stm r0!, {{r3}}
-     b 2b
-     3:",
+     b 4b
+     5:",
 
     // Potentially enable an FPU.
     // SCB.CPACR is 0xE000_ED88.

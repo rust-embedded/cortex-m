@@ -60,9 +60,9 @@ PROVIDE(__pre_init = DefaultPreInit);
 /* # Sections */
 SECTIONS
 {
-  PROVIDE(_ram_start = ORIGIN(RAM) + LENGTH(RAM));
-  PROVIDE(_ram_end = ORIGIN(RAM));
-  PROVIDE(_stack_start = _ram_start);
+  PROVIDE(_ram_start = ORIGIN(RAM));
+  PROVIDE(_ram_end = ORIGIN(RAM) + LENGTH(RAM));
+  PROVIDE(_stack_start = _ram_end);
 
   /* ## Sections in FLASH */
   /* ### Vector table */

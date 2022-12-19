@@ -517,8 +517,8 @@ cfg_global_asm! {
     // If enabled, initialize RAM with zeros. This is normally not necessary but might be required
     // on custom hardware.
     #[cfg(feature = "zero-init-ram")]
-    "ldr r0, =_ram_end
-     ldr r1, =_ram_start
+    "ldr r0, =_ram_start
+     ldr r1, =_ram_end
      movs r2, #0
      0:
      cmp r1, r0

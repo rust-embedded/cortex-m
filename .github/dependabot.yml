@@ -1,0 +1,15 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+  # this is the only `Cargo.toml` which isn't part of the workspace
+  - package-ecosystem: "cargo"
+    directory: "/cortex-m-rt/macros/"
+    schedule:
+      interval: "weekly"

@@ -25,6 +25,16 @@
 //! The disadvantage is that `inline-asm` requires a Rust version at least 1.59 to use the `asm!()`
 //! macro. In the future 0.8 and above versions of `cortex-m`, this feature will always be enabled.
 //!
+//! ## `critical-section-single-core`
+//!
+//! This feature enables a [`critical-section`](https://github.com/rust-embedded/critical-section)
+//! implementation suitable for single-core targets, based on disabling interrupts globally.
+//!
+//! It is **unsound** to enable it on multi-core targets or for code running in unprivileged mode,
+//! and may cause functional problems in systems where some interrupts must be not be disabled
+//! or critical sections are managed as part of an RTOS. In these cases, you should use
+//! a target-specific implementation instead, typically provided by a HAL or RTOS crate.
+//!
 //! ## `cm7-r0p1`
 //!
 //! This feature enables workarounds for errata found on Cortex-M7 chips with revision r0p1. Some

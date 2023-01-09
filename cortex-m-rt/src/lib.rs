@@ -169,6 +169,13 @@
 //! `_stack_start` value from the linker script. This is not usually required, but some debuggers
 //! do not initialise SP when performing a soft reset, which can lead to stack corruption.
 //!
+//! ## `zero-init-ram`
+//!
+//! If this feature is enabled, RAM is initialized with zeros during startup from the `_ram_start`
+//! value to the `_ram_end` value from the linker script. This is not usually required, but might be
+//! necessary to properly initialize checksum-based memory integrity measures on safety-critical
+//! hardware.
+//!
 //! ## `set-vtor`
 //!
 //! If this feature is enabled, the vector table offset register (VTOR) is initialised in the reset

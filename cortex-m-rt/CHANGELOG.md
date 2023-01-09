@@ -7,14 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-## [v0.7.3]
-
 - Fixed a potential miscompilation caused by the initial stack pointer
   not being 8-byte aligned. This issue affected 0.7.1 and 0.7.2; for
   more details please see [the advisory] ([#467]).
 - A linker error is generated if the initial stack pointer is not 8-byte aligned ([#464]).
 - The initial stack pointer is now forced to be 8-byte aligned in the linker script,
   to defend against it being overridden outside of the cortex-m-rt linker script ([#465]).
+- Add `zero-init-ram` feature to initialize RAM with zeros on startup. This can be necessary on
+  safety-critical hardware to properly initialize memory integrity measures.
 
 [the advisory]: https://github.com/rust-embedded/cortex-m/discussions/469
 [#464]: https://github.com/rust-embedded/cortex-m/issues/464

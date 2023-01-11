@@ -521,8 +521,8 @@ cfg_global_asm! {
     "ldr r0, =_stack_start
      msr msp, r0",
 
-    // If enabled, initialize RAM with zeros. This is normally not necessary but might be required
-    // on custom hardware.
+    // If enabled, initialize RAM with zeros. This is not usually required, but might be necessary
+    // to properly initialize checksum-based memory integrity measures on safety-critical hardware.
     #[cfg(feature = "zero-init-ram")]
     "ldr r0, =_ram_start
      ldr r1, =_ram_end

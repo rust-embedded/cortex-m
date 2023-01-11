@@ -550,6 +550,7 @@ cfg_global_asm! {
     "bl __pre_init",
 
     // Initialise .bss memory. `__sbss` and `__ebss` come from the linker script.
+    #[cfg(not(feature = "zero-init-ram"))]
     "ldr r0, =__sbss
      ldr r1, =__ebss
      movs r2, #0

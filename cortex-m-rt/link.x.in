@@ -217,6 +217,12 @@ BUG(cortex-m-rt): .bss is not 4-byte aligned");
 ASSERT(__sheap % 4 == 0, "
 BUG(cortex-m-rt): start of .heap is not 4-byte aligned");
 
+ASSERT(_stack_start % 8 == 0, "
+ERROR(cortex-m-rt): stack start address is not 8-byte aligned.
+If you have set _stack_start, check it's set to an address which is a multiple of 8 bytes.
+If you haven't, stack starts at the end of RAM by default. Check that both RAM
+origin and length are set to multiples of 8 in the `memory.x` file.");
+
 /* # Position checks */
 
 /* ## .vector_table */

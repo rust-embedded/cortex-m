@@ -573,10 +573,11 @@ cfg_global_asm! {
      isb",
 
     // Push `lr` to the stack for debuggers, to prevent them unwinding past Reset.
+    // Push a dummy `r4` (which is always 0xFFFF_FFFF) to ensure the stack stays 8-byte aligned.
     // See https://sourceware.org/binutils/docs/as/CFI-directives.html.
     ".cfi_def_cfa sp, 0
-     push {{lr}}
-     .cfi_offset lr, 0",
+     push {{r4, lr}}
+     .cfi_offset lr, 4",
 
     // Jump to user main function.
     // `bl` is used for the extended range, but the user main function should not return,

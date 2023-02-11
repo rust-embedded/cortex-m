@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+- A linker error is generated if the initial stack pointer is not 8-byte aligned
+- The initial stack pointer is now forced to be 8-byte aligned in the linker script,
+  to defend against it being overridden outside of the cortex-m-rt linker script
+
 ## [v0.7.2]
 
 - MSRV is now Rust 1.59.

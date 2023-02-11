@@ -68,8 +68,12 @@ SECTIONS
   {
     __vector_table = .;
 
-    /* Initial Stack Pointer (SP) value */
-    LONG(_stack_start);
+    /* Initial Stack Pointer (SP) value.
+     * We mask the bottom three bits to force 8-byte alignment.
+     * Despite having an assert for this later, it's possible that a separate
+     * linker script could override _stack_start after the assert is checked.
+     */
+    LONG(_stack_start & 0xFFFFFFF8);
 
     /* Reset vector */
     KEEP(*(.vector_table.reset_vector)); /* this is the `__RESET_VECTOR` symbol */

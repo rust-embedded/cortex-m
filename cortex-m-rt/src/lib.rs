@@ -56,8 +56,13 @@
 //!
 //! This optional symbol can be used to indicate where the call stack of the program should be
 //! placed. If this symbol is not used then the stack will be placed at the *end* of the `RAM`
-//! region -- the stack grows downwards towards smaller address. This symbol can be used to place
-//! the stack in a different memory region, for example:
+//! region -- the stack grows downwards towards smaller address.
+//!
+//! For Cortex-M, the `_stack_start` must always be aligned to 8 bytes, which is enforced by
+//! the linker script. If you override it, ensure that whatever value you set is a multiple
+//! of 8 bytes.
+//!
+//! This symbol can be used to place the stack in a different memory region, for example:
 //!
 //! ```text
 //! /* Linker script for the STM32F303VCT6 */

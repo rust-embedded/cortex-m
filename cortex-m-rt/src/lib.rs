@@ -574,7 +574,8 @@ cfg_global_asm! {
 
     // Push `lr` to the stack for debuggers, to prevent them unwinding past Reset.
     // Push a dummy `r4` (which is always 0xFFFF_FFFF) to ensure the stack stays 8-byte aligned.
-    // See https://sourceware.org/binutils/docs/as/CFI-directives.html.
+    // For CFI information, see https://sourceware.org/binutils/docs/as/CFI-directives.html.
+    // For 8 byte alignment, see https://github.com/ARM-software/abi-aa/blob/edd7460d87493fff124b8b5713acf71ffc06ee91/aapcs32/aapcs32.rst#6212stack-constraints-at-a-public-interface.
     ".cfi_def_cfa sp, 0
      push {{r4, lr}}
      .cfi_offset lr, 4",

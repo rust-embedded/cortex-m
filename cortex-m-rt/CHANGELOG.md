@@ -7,9 +7,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-- A linker error is generated if the initial stack pointer is not 8-byte aligned
+## [v0.7.3]
+
+- Fixed a potential miscompilation caused by the initial stack pointer
+  not being 8-byte aligned. This issue affected 0.7.1 and 0.7.2; for
+  more details please see [the advisory] ([#467]).
+- A linker error is generated if the initial stack pointer is not 8-byte aligned ([#464]).
 - The initial stack pointer is now forced to be 8-byte aligned in the linker script,
-  to defend against it being overridden outside of the cortex-m-rt linker script
+  to defend against it being overridden outside of the cortex-m-rt linker script ([#465]).
+
+[the advisory]: https://github.com/rust-embedded/cortex-m/discussions/469
+[#464]: https://github.com/rust-embedded/cortex-m/issues/464
+[#465]: https://github.com/rust-embedded/cortex-m/issues/465
+[#467]: https://github.com/rust-embedded/cortex-m/issues/467
 
 ## [v0.7.2]
 
@@ -606,7 +616,8 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.2...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.3...HEAD
+[v0.7.3]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.2...c-m-rt-v0.7.3
 [v0.7.2]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.1...c-m-rt-v0.7.2
 [v0.7.1]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.7.0...v0.7.1
 [v0.7.0]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.6.11...v0.7.0

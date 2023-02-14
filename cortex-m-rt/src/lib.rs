@@ -507,12 +507,6 @@ cfg_global_asm! {
     ".cfi_startproc
      Reset:",
 
-    // Ensure LR is loaded with 0xFFFF_FFFF at startup to help debuggers find the first call frame.
-    // On ARMv6-M LR is not initialised at all, while other platforms should initialise it.
-    "movs r4, #0
-     mvns r4, r4
-     mov lr, r4",
-
     // If enabled, initialise the SP. This is normally initialised by the CPU itself or by a
     // bootloader, but some debuggers fail to set it when resetting the target, leading to
     // stack corruptions.
@@ -533,9 +527,7 @@ cfg_global_asm! {
     // Run user pre-init code which must be executed immediately after startup, before the
     // potentially time-consuming memory initialisation takes place.
     // Example use cases include disabling default watchdogs or enabling RAM.
-    // Reload LR after returning from pre-init (r4 is preserved by subroutines).
-    "bl __pre_init
-     mov lr, r4",
+    "bl __pre_init",
 
     // Initialise .bss memory. `__sbss` and `__ebss` come from the linker script.
     "ldr r0, =__sbss
@@ -571,12 +563,6 @@ cfg_global_asm! {
      str r2, [r0]
      dsb
      isb",
-
-    // Push `lr` to the stack for debuggers, to prevent them unwinding past Reset.
-    // See https://sourceware.org/binutils/docs/as/CFI-directives.html.
-    ".cfi_def_cfa sp, 0
-     push {{lr}}
-     .cfi_offset lr, 0",
 
     // Jump to user main function.
     // `bl` is used for the extended range, but the user main function should not return,

@@ -530,6 +530,11 @@ cfg_global_asm! {
      ldr r1, =__vector_table
      str r1, [r0]",
 
+    // Initialize the frame pointer chain.
+    // https://github.com/ARM-software/abi-aa/blob/main/aapcs32/aapcs32.rst#6214the-frame-pointer
+    // > The end of the frame record chain is indicated by the address zero in the address for the previous frame
+    "mov r7, #0",
+
     // Run user pre-init code which must be executed immediately after startup, before the
     // potentially time-consuming memory initialisation takes place.
     // Example use cases include disabling default watchdogs or enabling RAM.

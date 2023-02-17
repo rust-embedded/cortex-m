@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+- Add `zero-init-ram` feature to initialize RAM with zeros on startup. This can be necessary on
+  safety-critical hardware to properly initialize memory integrity measures.
+
 ## [v0.7.3]
 
 - Fixed a potential miscompilation caused by the initial stack pointer

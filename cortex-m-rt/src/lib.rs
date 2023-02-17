@@ -169,6 +169,13 @@
 //! `_stack_start` value from the linker script. This is not usually required, but some debuggers
 //! do not initialise SP when performing a soft reset, which can lead to stack corruption.
 //!
+//! ## `zero-init-ram`
+//!
+//! If this feature is enabled, RAM is initialized with zeros during startup from the `_ram_start`
+//! value to the `_ram_end` value from the linker script. This is not usually required, but might be
+//! necessary to properly initialize checksum-based memory integrity measures on safety-critical
+//! hardware.
+//!
 //! ## `set-vtor`
 //!
 //! If this feature is enabled, the vector table offset register (VTOR) is initialised in the reset
@@ -529,9 +536,11 @@ cfg_global_asm! {
     // Example use cases include disabling default watchdogs or enabling RAM.
     "bl __pre_init",
 
-    // Initialise .bss memory. `__sbss` and `__ebss` come from the linker script.
-    "ldr r0, =__sbss
-     ldr r1, =__ebss
+    // If enabled, initialize RAM with zeros. This is not usually required, but might be necessary
+    // to properly initialize checksum-based memory integrity measures on safety-critical hardware.
+    #[cfg(feature = "zero-init-ram")]
+    "ldr r0, =_ram_start
+     ldr r1, =_ram_end
      movs r2, #0
      0:
      cmp r1, r0
@@ -540,17 +549,29 @@ cfg_global_asm! {
      b 0b
      1:",
 
+    // Initialise .bss memory. `__sbss` and `__ebss` come from the linker script.
+    #[cfg(not(feature = "zero-init-ram"))]
+    "ldr r0, =__sbss
+     ldr r1, =__ebss
+     movs r2, #0
+     2:
+     cmp r1, r0
+     beq 3f
+     stm r0!, {{r2}}
+     b 2b
+     3:",
+
     // Initialise .data memory. `__sdata`, `__sidata`, and `__edata` come from the linker script.
     "ldr r0, =__sdata
      ldr r1, =__edata
      ldr r2, =__sidata
-     2:
+     4:
      cmp r1, r0
-     beq 3f
+     beq 5f
      ldm r2!, {{r3}}
      stm r0!, {{r3}}
-     b 2b
-     3:",
+     b 4b
+     5:",
 
     // Potentially enable an FPU.
     // SCB.CPACR is 0xE000_ED88.

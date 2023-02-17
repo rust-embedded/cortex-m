@@ -521,19 +521,6 @@ cfg_global_asm! {
     "ldr r0, =_stack_start
      msr msp, r0",
 
-    // If enabled, initialize RAM with zeros. This is not usually required, but might be necessary
-    // to properly initialize checksum-based memory integrity measures on safety-critical hardware.
-    #[cfg(feature = "zero-init-ram")]
-    "ldr r0, =_ram_start
-     ldr r1, =_ram_end
-     movs r2, #0
-     0:
-     cmp r1, r0
-     beq 1f
-     stm r0!, {{r2}}
-     b 0b
-     1:",
-
     // If enabled, initialise VTOR to the start of the vector table. This is normally initialised
     // by a bootloader when the non-reset value is required, but some bootloaders do not set it,
     // leading to frustrating issues where everything seems to work but interrupts are never
@@ -548,6 +535,19 @@ cfg_global_asm! {
     // potentially time-consuming memory initialisation takes place.
     // Example use cases include disabling default watchdogs or enabling RAM.
     "bl __pre_init",
+
+    // If enabled, initialize RAM with zeros. This is not usually required, but might be necessary
+    // to properly initialize checksum-based memory integrity measures on safety-critical hardware.
+    #[cfg(feature = "zero-init-ram")]
+    "ldr r0, =_ram_start
+     ldr r1, =_ram_end
+     movs r2, #0
+     0:
+     cmp r1, r0
+     beq 1f
+     stm r0!, {{r2}}
+     b 0b
+     1:",
 
     // Initialise .bss memory. `__sbss` and `__ebss` come from the linker script.
     #[cfg(not(feature = "zero-init-ram"))]

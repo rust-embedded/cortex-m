@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Breaking changes
+
+- `NVIC::request()` no longer requires `&mut self`.
+
 ### Added
 - Updated `SCB.ICSR.VECTACTIVE`/`SCB::vect_active()` to be 9 bits instead of 8.
   Also fixes `VectActive::from` to take a `u16` and subtract `16` for

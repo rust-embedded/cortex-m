@@ -94,15 +94,14 @@ impl NVIC {
     /// [`NVIC::pend`]: #method.pend
     #[cfg(not(armv6m))]
     #[inline]
-    pub fn request<I>(&mut self, interrupt: I)
+    pub fn request<I>(interrupt: I)
     where
         I: InterruptNumber,
     {
         let nr = interrupt.number();
 
-        unsafe {
-            self.stir.write(u32::from(nr));
-        }
+        // NOTE(ptr) this is a write to a stateless register
+        unsafe { (*Self::PTR).stir.write(u32::from(nr)) }
     }
 
     /// Disables `interrupt`

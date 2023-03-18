@@ -553,8 +553,8 @@ fn extract_static_muts(
     let mut stmts = vec![];
     for stmt in istmts.by_ref() {
         match stmt {
-            Stmt::Item(Item::Static(var)) => {
-                if var.mutability.is_some() {
+            Stmt::Item(Item::Static(var)) => match var.mutability {
+                syn::StaticMutability::Mut(_) => {
                     if seen.contains(&var.ident) {
                         return Err(parse::Error::new(
                             var.ident.span(),
@@ -564,10 +564,9 @@ fn extract_static_muts(
 
                     seen.insert(var.ident.clone());
                     statics.push(var);
-                } else {
-                    stmts.push(Stmt::Item(Item::Static(var)));
                 }
-            }
+                _ => stmts.push(Stmt::Item(Item::Static(var))),
+            },
             _ => {
                 stmts.push(stmt);
                 break;
@@ -645,5 +644,5 @@ fn check_attr_whitelist(attrs: &[Attribute], caller: WhiteListCaller) -> Result<
 
 /// Returns `true` if `attr.path` matches `name`
 fn eq(attr: &Attribute, name: &str) -> bool {
-    attr.style == AttrStyle::Outer && attr.path.is_ident(name)
+    attr.style == AttrStyle::Outer && attr.path().is_ident(name)
 }

@@ -287,7 +287,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             let valid_signature = f.sig.constness.is_none()
                 && f.vis == Visibility::Inherited
                 && f.sig.abi.is_none()
-                && f.sig.inputs.len() == 0
+                && f.sig.inputs.is_empty()
                 && f.sig.generics.params.is_empty()
                 && f.sig.generics.where_clause.is_none()
                 && f.sig.variadic.is_none()
@@ -667,7 +667,7 @@ fn check_attr_whitelist(attrs: &[Attribute], caller: WhiteListCaller) -> Result<
             }
         };
 
-        return Err(parse::Error::new(attr.span(), &err_str)
+        return Err(parse::Error::new(attr.span(), err_str)
             .to_compile_error()
             .into());
     }

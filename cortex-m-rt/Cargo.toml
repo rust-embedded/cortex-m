@@ -42,10 +42,12 @@ name = "compiletest"
 required-features = ["device"]
 
 [features]
+default = ["hardfault-trampoline"]
 device = []
 set-sp = []
 set-vtor = []
 zero-init-ram = []
+hardfault-trampoline = ["cortex-m-rt-macros/hardfault-trampoline"]
 
 [package.metadata.docs.rs]
 features = ["device"]

@@ -458,7 +458,7 @@ use core::fmt;
 // HardFault exceptions are bounced through this trampoline which grabs the stack pointer at
 // the time of the exception and passes it to the user's HardFault handler in r0.
 // Depending on the stack mode in EXC_RETURN, fetches stack from either MSP or PSP.
-#[cfg(cortex_m)]
+#[cfg(all(cortex_m, feature = "hardfault-trampoline"))]
 global_asm!(
     ".cfi_sections .debug_frame
      .section .HardFaultTrampoline, \"ax\"
@@ -1061,8 +1061,18 @@ pub static __RESET_VECTOR: unsafe extern "C" fn() -> ! = Reset;
 #[allow(unused_variables)]
 #[doc(hidden)]
 #[cfg_attr(cortex_m, link_section = ".HardFault.default")]
+#[cfg(feature = "hardfault-trampoline")]
 #[no_mangle]
 pub unsafe extern "C" fn HardFault_(ef: &ExceptionFrame) -> ! {
+    #[allow(clippy::empty_loop)]
+    loop {}
+}
+
+#[doc(hidden)]
+#[cfg_attr(cortex_m, link_section = ".HardFault.default")]
+#[cfg(not(feature = "hardfault-trampoline"))]
+#[no_mangle]
+pub unsafe extern "C" fn HardFault_() -> ! {
     #[allow(clippy::empty_loop)]
     loop {}
 }
@@ -1115,7 +1125,10 @@ extern "C" {
 
     fn NonMaskableInt();
 
+    #[cfg(feature = "hardfault-trampoline")]
     fn HardFaultTrampoline();
+    #[cfg(not(feature = "hardfault-trampoline"))]
+    fn HardFault();
 
     #[cfg(not(armv6m))]
     fn MemoryManagement();
@@ -1154,9 +1167,12 @@ pub static __EXCEPTIONS: [Vector; 14] = [
         handler: NonMaskableInt,
     },
     // Exception 3: Hard Fault Interrupt.
+    #[cfg(feature = "hardfault-trampoline")]
     Vector {
         handler: HardFaultTrampoline,
     },
+    #[cfg(not(feature = "hardfault-trampoline"))]
+    Vector { handler: HardFault },
     // Exception 4: Memory Management Interrupt [not on Cortex-M0 variants].
     #[cfg(not(armv6m))]
     Vector {

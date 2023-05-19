@@ -232,7 +232,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                 #f
             )
         }
-        Exception::HardFault => {
+        Exception::HardFault if cfg!(feature = "hardfault-trampoline") => {
             let valid_signature = f.sig.constness.is_none()
                 && f.vis == Visibility::Inherited
                 && f.sig.abi.is_none()
@@ -280,6 +280,39 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                     #ident(frame)
                 }
 
+                #f
+            )
+        }
+        Exception::HardFault => {
+            let valid_signature = f.sig.constness.is_none()
+                && f.vis == Visibility::Inherited
+                && f.sig.abi.is_none()
+                && f.sig.inputs.len() == 0
+                && f.sig.generics.params.is_empty()
+                && f.sig.generics.where_clause.is_none()
+                && f.sig.variadic.is_none()
+                && match f.sig.output {
+                    ReturnType::Default => false,
+                    ReturnType::Type(_, ref ty) => matches!(**ty, Type::Never(_)),
+                };
+
+            if !valid_signature {
+                return parse::Error::new(
+                    fspan,
+                    "`HardFault` handler must have signature `unsafe fn() -> !`",
+                )
+                .to_compile_error()
+                .into();
+            }
+
+            f.sig.ident = Ident::new(&format!("__cortex_m_rt_{}", f.sig.ident), Span::call_site());
+
+            quote!(
+                #[export_name = "HardFault"]
+                // Only emit link_section when building for embedded targets,
+                // because some hosted platforms (used to check the build)
+                // cannot handle the long link section names.
+                #[cfg_attr(target_os = "none", link_section = ".HardFault.user")]
                 #f
             )
         }

@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add `zero-init-ram` feature to initialize RAM with zeros on startup. This can be necessary on
   safety-critical hardware to properly initialize memory integrity measures.
 - Add `hardfault-trampoline` feature that is enabled by default which enables
-  the previously required hardfault trampiline. Now when this feature is not active, there will be
+  the previously required hardfault trampoline. Now when this feature is not active, there will be
   no trampoline and the function you write is the exact function that is used as hardfault handler.
 
 ## [v0.7.3]

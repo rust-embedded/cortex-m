@@ -7,8 +7,8 @@ extern crate proc_macro;
 use proc_macro::TokenStream;
 use proc_macro2::Span;
 use quote::quote;
-use std::collections::HashSet;
 use std::iter;
+use std::{collections::HashSet, fmt::Display};
 use syn::{
     parse::{self, Parse},
     parse_macro_input,
@@ -121,6 +121,17 @@ enum Exception {
     Other,
 }
 
+impl Display for Exception {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Exception::DefaultHandler => write!(f, "`DefaultHandler`"),
+            Exception::HardFault(_) => write!(f, "`HardFault` handler"),
+            Exception::NonMaskableInt => write!(f, "`NonMaskableInt` handler"),
+            Exception::Other => write!(f, "Other exception handler"),
+        }
+    }
+}
+
 #[derive(Debug, PartialEq)]
 struct HardFaultArgs {
     trampoline: bool,
@@ -212,14 +223,16 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
         // NOTE that at this point we don't check if the exception is available on the target (e.g.
         // MemoryManagement is not available on Cortex-M0)
         "MemoryManagement" | "BusFault" | "UsageFault" | "SecureFault" | "SVCall"
-        | "DebugMonitor" | "PendSV" | "SysTick" => Exception::Other,
-        _ => {
+        | "DebugMonitor" | "PendSV" | "SysTick" => {
             if !args.is_empty() {
                 return parse::Error::new(Span::call_site(), "This attribute accepts no arguments")
                     .to_compile_error()
                     .into();
             }
 
+            Exception::Other
+        }
+        _ => {
             return parse::Error::new(ident.span(), "This is not a valid exception name")
                 .to_compile_error()
                 .into();
@@ -230,11 +243,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
         match exn {
             Exception::DefaultHandler | Exception::HardFault(_) | Exception::NonMaskableInt => {
                 // These are unsafe to define.
-                let name = if exn == Exception::DefaultHandler {
-                    "`DefaultHandler`".to_string()
-                } else {
-                    format!("`{:?}` handler", exn)
-                };
+                let name = format!("{}", exn);
                 return parse::Error::new(ident.span(), format_args!("defining a {} is unsafe and requires an `unsafe fn` (see the cortex-m-rt docs)", name))
                     .to_compile_error()
                     .into();
@@ -312,17 +321,16 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                 && f.vis == Visibility::Inherited
                 && f.sig.abi.is_none()
                 && if args.trampoline {
-                    match &f.sig.inputs[0] {
-                        FnArg::Typed(arg) => match arg.ty.as_ref() {
-                            Type::Reference(r) => {
-                                r.lifetime.is_none()
-                                    && r.mutability.is_none()
-                                    && f.sig.inputs.len() == 1
-                            }
+                    f.sig.inputs.len() == 1
+                        && match &f.sig.inputs[0] {
+                            FnArg::Typed(arg) => match arg.ty.as_ref() {
+                                Type::Reference(r) => {
+                                    r.lifetime.is_none() && r.mutability.is_none()
+                                }
+                                _ => false,
+                            },
                             _ => false,
-                        },
-                        _ => false,
-                    }
+                        }
                 } else {
                     f.sig.inputs.is_empty()
                 }

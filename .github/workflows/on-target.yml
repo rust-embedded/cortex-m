@@ -1,7 +1,9 @@
 on:
   push:
-    branches: [ staging, trying, master ]
+    branches-ignore:
+      - "gh-readonly-queue/**"
   pull_request:
+  merge_group:
   # allows manual triggering
   workflow_dispatch:
 

@@ -56,7 +56,7 @@ INCLUDE device.x"#
         240
     } else {
         // Non ARM target. We assume you're just testing the syntax.
-        // This value seems as soon as any
+        // This value seems as good as any.
         240
     };
 

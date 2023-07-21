@@ -356,8 +356,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             }
 
             f.sig.ident = Ident::new(&format!("__cortex_m_rt_{}", f.sig.ident), Span::call_site());
-            let tramp_ident =
-                Ident::new(&format!("{}_trampoline", f.sig.ident), Span::call_site());
+            let tramp_ident = Ident::new(&format!("{}_trampoline", f.sig.ident), Span::call_site());
 
             if args.trampoline {
                 let ident = &f.sig.ident;

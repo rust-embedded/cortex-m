@@ -11,8 +11,8 @@ fn foo() -> ! {
     loop {}
 }
 
-#[exception]
-unsafe fn HardFault(_ef: &ExceptionFrame) -> ! {
+#[exception(trampoline = false)]
+unsafe fn HardFault() -> ! {
     loop {}
 }
 

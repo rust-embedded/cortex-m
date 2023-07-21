@@ -356,10 +356,10 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             }
 
             f.sig.ident = Ident::new(&format!("__cortex_m_rt_{}", f.sig.ident), Span::call_site());
+            let tramp_ident =
+                Ident::new(&format!("{}_trampoline", f.sig.ident), Span::call_site());
 
             if args.trampoline {
-                let tramp_ident =
-                    Ident::new(&format!("{}_trampoline", f.sig.ident), Span::call_site());
                 let ident = &f.sig.ident;
 
                 let (ref cfgs, ref attrs) = extract_cfgs(f.attrs.clone());
@@ -368,8 +368,8 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                     #(#cfgs)*
                     #(#attrs)*
                     #[doc(hidden)]
-                    #[export_name = "HardFaultUser"]
-                    pub unsafe extern "C" fn #tramp_ident(frame: &::cortex_m_rt::ExceptionFrame) {
+                    #[export_name = "_HardFault"]
+                    unsafe extern "C" fn #tramp_ident(frame: &::cortex_m_rt::ExceptionFrame) {
                         #ident(frame)
                     }
 
@@ -391,16 +391,22 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                             tst r0, r1
                             bne 0f
                             mrs r0, MSP
-                            b HardFaultUser
+                            b _HardFault
                         0:
                             mrs r0, PSP
-                            b HardFaultUser",
+                            b _HardFault",
                         ".cfi_endproc
                         .size HardFault, . - HardFault",
                     );
                 )
             } else {
                 quote!(
+                    #[doc(hidden)]
+                    #[export_name = "_HardFault"]
+                    unsafe extern "C" fn #tramp_ident() {
+                        // This trampoline has no function except making the compiler diagnostics better.
+                    }
+
                     #[export_name = "HardFault"]
                     // Only emit link_section when building for embedded targets,
                     // because some hosted platforms (used to check the build)

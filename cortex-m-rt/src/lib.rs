@@ -225,12 +225,15 @@
 //! - `DefaultHandler`. This is the default handler. If not overridden using `#[exception] fn
 //! DefaultHandler(..` this will be an infinite loop.
 //!
-//! - `HardFaultTrampoline`. This is the real hard fault handler. This function is simply a
-//! trampoline that jumps into the user defined hard fault handler named `HardFault`. The
-//! trampoline is required to set up the pointer to the stacked exception frame.
-//!
-//! - `HardFault`. This is the user defined hard fault handler. If not overridden using
-//! `#[exception] fn HardFault(..` it will default to an infinite loop.
+//! - `HardFault` and `_HardFault`. These function handle the hard fault handling and what they
+//! do depends on whether the hard fault is overridden and whether the trampoline is enabled (which it is by default).
+//!   - No override: Both are the same function. The function is an infinite loop defined in the cortex-m-rt crate.
+//!   - Trampoline enabled: `HardFault` is the real hard fault handler defined in assembly. This function is simply a
+//! trampoline that jumps into the rust defined `_HardFault` function. This second function jumps to the user-defined
+//! handler with the exception frame as parameter. This second jump is usually optimised away with inlining.
+//!   - Trampoline disabled: `HardFault` is the user defined function. This means the user function is called directly
+//! from the vector table. `_HardFault` still exists, but is an empty function that is purely there for compiler
+//! diagnostics.
 //!
 //! - `__STACK_START`. This is the first entry in the `.vector_table` section. This symbol contains
 //! the initial value of the stack pointer; this is where the stack will be located -- the stack
@@ -454,31 +457,6 @@ extern crate cortex_m_rt_macros as macros;
 #[cfg(cortex_m)]
 use core::arch::global_asm;
 use core::fmt;
-
-// HardFault exceptions are bounced through this trampoline which grabs the stack pointer at
-// the time of the exception and passes it to the user's HardFault handler in r0.
-// Depending on the stack mode in EXC_RETURN, fetches stack from either MSP or PSP.
-#[cfg(cortex_m)]
-global_asm!(
-    ".cfi_sections .debug_frame
-     .section .HardFaultTrampoline, \"ax\"
-     .global HardFaultTrampline
-     .type HardFaultTrampline,%function
-     .thumb_func
-     .cfi_startproc
-     HardFaultTrampoline:",
-    "mov r0, lr
-     movs r1, #4
-     tst r0, r1
-     bne 0f
-     mrs r0, MSP
-     b HardFault
-     0:
-     mrs r0, PSP
-     b HardFault",
-    ".cfi_endproc
-     .size HardFaultTrampoline, . - HardFaultTrampoline",
-);
 
 /// Parse cfg attributes inside a global_asm call.
 #[cfg(cortex_m)]
@@ -749,15 +727,26 @@ pub use macros::entry;
 ///
 /// # Usage
 ///
-/// `#[exception] unsafe fn HardFault(..` sets the hard fault handler. The handler must have
-/// signature `unsafe fn(&ExceptionFrame) -> !`. This handler is not allowed to return as that can
-/// cause undefined behavior.
+/// ## HardFault handler
+///
+/// `#[exception(trampoline = true)] unsafe fn HardFault(..` sets the hard fault handler.
+/// If the trampoline parameter is set to true, the handler must have signature `unsafe fn(&ExceptionFrame) -> !`.
+/// If set to false, the handler must have signature `unsafe fn() -> !`.
+///
+/// This handler is not allowed to return as that can cause undefined behavior.
+///
+/// To maintain backwards compatibility the attribute can be used without trampoline parameter (`#[exception]`),
+/// which sets the trampoline to true.
+///
+/// ## Default handler
 ///
 /// `#[exception] unsafe fn DefaultHandler(..` sets the *default* handler. All exceptions which have
 /// not been assigned a handler will be serviced by this handler. This handler must have signature
 /// `unsafe fn(irqn: i16) [-> !]`. `irqn` is the IRQ number (See CMSIS); `irqn` will be a negative
 /// number when the handler is servicing a core exception; `irqn` will be a positive number when the
 /// handler is servicing a device specific exception (interrupt).
+///
+/// ## Other handlers
 ///
 /// `#[exception] fn Name(..` overrides the default handler for the exception with the given `Name`.
 /// These handlers must have signature `[unsafe] fn() [-> !]`. When overriding these other exception
@@ -1058,11 +1047,10 @@ pub fn heap_start() -> *mut u32 {
 #[no_mangle]
 pub static __RESET_VECTOR: unsafe extern "C" fn() -> ! = Reset;
 
-#[allow(unused_variables)]
 #[doc(hidden)]
 #[cfg_attr(cortex_m, link_section = ".HardFault.default")]
 #[no_mangle]
-pub unsafe extern "C" fn HardFault_(ef: &ExceptionFrame) -> ! {
+pub unsafe extern "C" fn HardFault_() -> ! {
     #[allow(clippy::empty_loop)]
     loop {}
 }
@@ -1115,7 +1103,7 @@ extern "C" {
 
     fn NonMaskableInt();
 
-    fn HardFaultTrampoline();
+    fn HardFault();
 
     #[cfg(not(armv6m))]
     fn MemoryManagement();
@@ -1154,9 +1142,7 @@ pub static __EXCEPTIONS: [Vector; 14] = [
         handler: NonMaskableInt,
     },
     // Exception 3: Hard Fault Interrupt.
-    Vector {
-        handler: HardFaultTrampoline,
-    },
+    Vector { handler: HardFault },
     // Exception 4: Memory Management Interrupt [not on Cortex-M0 variants].
     #[cfg(not(armv6m))]
     Vector {

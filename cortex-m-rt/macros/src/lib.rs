@@ -7,11 +7,14 @@ extern crate proc_macro;
 use proc_macro::TokenStream;
 use proc_macro2::Span;
 use quote::quote;
-use std::collections::HashSet;
 use std::iter;
+use std::{collections::HashSet, fmt::Display};
 use syn::{
-    parse, parse_macro_input, spanned::Spanned, AttrStyle, Attribute, FnArg, Ident, Item, ItemFn,
-    ItemStatic, ReturnType, Stmt, Type, Visibility,
+    parse::{self, Parse},
+    parse_macro_input,
+    spanned::Spanned,
+    AttrStyle, Attribute, FnArg, Ident, Item, ItemFn, ItemStatic, ReturnType, Stmt, Type,
+    Visibility,
 };
 
 #[proc_macro_attribute]
@@ -113,20 +116,83 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
 #[derive(Debug, PartialEq)]
 enum Exception {
     DefaultHandler,
-    HardFault,
+    HardFault(HardFaultArgs),
     NonMaskableInt,
     Other,
+}
+
+impl Display for Exception {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Exception::DefaultHandler => write!(f, "`DefaultHandler`"),
+            Exception::HardFault(_) => write!(f, "`HardFault` handler"),
+            Exception::NonMaskableInt => write!(f, "`NonMaskableInt` handler"),
+            Exception::Other => write!(f, "Other exception handler"),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq)]
+struct HardFaultArgs {
+    trampoline: bool,
+}
+
+impl Default for HardFaultArgs {
+    fn default() -> Self {
+        Self { trampoline: true }
+    }
+}
+
+impl Parse for HardFaultArgs {
+    fn parse(input: parse::ParseStream) -> syn::Result<Self> {
+        let mut items = Vec::new();
+        // Read a list of `ident = value,`
+        loop {
+            if input.is_empty() {
+                break;
+            }
+
+            let name = input.parse::<Ident>()?;
+            input.parse::<syn::Token!(=)>()?;
+            let value = input.parse::<syn::Lit>()?;
+
+            items.push((name, value));
+
+            if input.is_empty() {
+                break;
+            }
+
+            input.parse::<syn::Token!(,)>()?;
+        }
+
+        let mut args = Self::default();
+
+        for (name, value) in items {
+            match name.to_string().as_str() {
+                "trampoline" => match value {
+                    syn::Lit::Bool(val) => {
+                        args.trampoline = val.value();
+                    }
+                    _ => {
+                        return Err(syn::Error::new_spanned(
+                            value,
+                            "Not a valid value. `trampoline` takes a boolean literal",
+                        ))
+                    }
+                },
+                _ => {
+                    return Err(syn::Error::new_spanned(name, "Not a valid argument name"));
+                }
+            }
+        }
+
+        Ok(args)
+    }
 }
 
 #[proc_macro_attribute]
 pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
     let mut f = parse_macro_input!(input as ItemFn);
-
-    if !args.is_empty() {
-        return parse::Error::new(Span::call_site(), "This attribute accepts no arguments")
-            .to_compile_error()
-            .into();
-    }
 
     if let Err(error) = check_attr_whitelist(&f.attrs, WhiteListCaller::Exception) {
         return error;
@@ -137,13 +203,35 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
 
     let ident_s = ident.to_string();
     let exn = match &*ident_s {
-        "DefaultHandler" => Exception::DefaultHandler,
-        "HardFault" => Exception::HardFault,
-        "NonMaskableInt" => Exception::NonMaskableInt,
+        "DefaultHandler" => {
+            if !args.is_empty() {
+                return parse::Error::new(Span::call_site(), "This attribute accepts no arguments")
+                    .to_compile_error()
+                    .into();
+            }
+            Exception::DefaultHandler
+        }
+        "HardFault" => Exception::HardFault(parse_macro_input!(args)),
+        "NonMaskableInt" => {
+            if !args.is_empty() {
+                return parse::Error::new(Span::call_site(), "This attribute accepts no arguments")
+                    .to_compile_error()
+                    .into();
+            }
+            Exception::NonMaskableInt
+        }
         // NOTE that at this point we don't check if the exception is available on the target (e.g.
         // MemoryManagement is not available on Cortex-M0)
         "MemoryManagement" | "BusFault" | "UsageFault" | "SecureFault" | "SVCall"
-        | "DebugMonitor" | "PendSV" | "SysTick" => Exception::Other,
+        | "DebugMonitor" | "PendSV" | "SysTick" => {
+            if !args.is_empty() {
+                return parse::Error::new(Span::call_site(), "This attribute accepts no arguments")
+                    .to_compile_error()
+                    .into();
+            }
+
+            Exception::Other
+        }
         _ => {
             return parse::Error::new(ident.span(), "This is not a valid exception name")
                 .to_compile_error()
@@ -153,13 +241,9 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
 
     if f.sig.unsafety.is_none() {
         match exn {
-            Exception::DefaultHandler | Exception::HardFault | Exception::NonMaskableInt => {
+            Exception::DefaultHandler | Exception::HardFault(_) | Exception::NonMaskableInt => {
                 // These are unsafe to define.
-                let name = if exn == Exception::DefaultHandler {
-                    "`DefaultHandler`".to_string()
-                } else {
-                    format!("`{:?}` handler", exn)
-                };
+                let name = format!("{}", exn);
                 return parse::Error::new(ident.span(), format_args!("defining a {} is unsafe and requires an `unsafe fn` (see the cortex-m-rt docs)", name))
                     .to_compile_error()
                     .into();
@@ -232,17 +316,23 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                 #f
             )
         }
-        Exception::HardFault => {
+        Exception::HardFault(args) => {
             let valid_signature = f.sig.constness.is_none()
                 && f.vis == Visibility::Inherited
                 && f.sig.abi.is_none()
-                && f.sig.inputs.len() == 1
-                && match &f.sig.inputs[0] {
-                    FnArg::Typed(arg) => match arg.ty.as_ref() {
-                        Type::Reference(r) => r.lifetime.is_none() && r.mutability.is_none(),
-                        _ => false,
-                    },
-                    _ => false,
+                && if args.trampoline {
+                    f.sig.inputs.len() == 1
+                        && match &f.sig.inputs[0] {
+                            FnArg::Typed(arg) => match arg.ty.as_ref() {
+                                Type::Reference(r) => {
+                                    r.lifetime.is_none() && r.mutability.is_none()
+                                }
+                                _ => false,
+                            },
+                            _ => false,
+                        }
+                } else {
+                    f.sig.inputs.is_empty()
                 }
                 && f.sig.generics.params.is_empty()
                 && f.sig.generics.where_clause.is_none()
@@ -255,7 +345,11 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
             if !valid_signature {
                 return parse::Error::new(
                     fspan,
-                    "`HardFault` handler must have signature `unsafe fn(&ExceptionFrame) -> !`",
+                    if args.trampoline {
+                        "`HardFault` handler must have signature `unsafe fn(&ExceptionFrame) -> !`"
+                    } else {
+                        "`HardFault` handler must have signature `unsafe fn() -> !`"
+                    },
                 )
                 .to_compile_error()
                 .into();
@@ -263,25 +357,63 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
 
             f.sig.ident = Ident::new(&format!("__cortex_m_rt_{}", f.sig.ident), Span::call_site());
             let tramp_ident = Ident::new(&format!("{}_trampoline", f.sig.ident), Span::call_site());
-            let ident = &f.sig.ident;
 
-            let (ref cfgs, ref attrs) = extract_cfgs(f.attrs.clone());
+            if args.trampoline {
+                let ident = &f.sig.ident;
 
-            quote!(
-                #(#cfgs)*
-                #(#attrs)*
-                #[doc(hidden)]
-                #[export_name = "HardFault"]
-                // Only emit link_section when building for embedded targets,
-                // because some hosted platforms (used to check the build)
-                // cannot handle the long link section names.
-                #[cfg_attr(target_os = "none", link_section = ".HardFault.user")]
-                pub unsafe extern "C" fn #tramp_ident(frame: &::cortex_m_rt::ExceptionFrame) {
-                    #ident(frame)
-                }
+                let (ref cfgs, ref attrs) = extract_cfgs(f.attrs.clone());
 
-                #f
-            )
+                quote!(
+                    #(#cfgs)*
+                    #(#attrs)*
+                    #[doc(hidden)]
+                    #[export_name = "_HardFault"]
+                    unsafe extern "C" fn #tramp_ident(frame: &::cortex_m_rt::ExceptionFrame) {
+                        #ident(frame)
+                    }
+
+                    #f
+
+                    // HardFault exceptions are bounced through this trampoline which grabs the stack pointer at
+                    // the time of the exception and passes it to the user's HardFault handler in r0.
+                    // Depending on the stack mode in EXC_RETURN, fetches stack from either MSP or PSP.
+                    core::arch::global_asm!(
+                        ".cfi_sections .debug_frame
+                        .section .HardFault.user, \"ax\"
+                        .global HardFault
+                        .type HardFault,%function
+                        .thumb_func
+                        .cfi_startproc
+                        HardFault:",
+                           "mov r0, lr
+                            movs r1, #4
+                            tst r0, r1
+                            bne 0f
+                            mrs r0, MSP
+                            b _HardFault
+                        0:
+                            mrs r0, PSP
+                            b _HardFault",
+                        ".cfi_endproc
+                        .size HardFault, . - HardFault",
+                    );
+                )
+            } else {
+                quote!(
+                    #[doc(hidden)]
+                    #[export_name = "_HardFault"]
+                    unsafe extern "C" fn #tramp_ident() {
+                        // This trampoline has no function except making the compiler diagnostics better.
+                    }
+
+                    #[export_name = "HardFault"]
+                    // Only emit link_section when building for embedded targets,
+                    // because some hosted platforms (used to check the build)
+                    // cannot handle the long link section names.
+                    #[cfg_attr(target_os = "none", link_section = ".HardFault.user")]
+                    #f
+                )
+            }
         }
         Exception::NonMaskableInt | Exception::Other => {
             let valid_signature = f.sig.constness.is_none()
@@ -634,7 +766,7 @@ fn check_attr_whitelist(attrs: &[Attribute], caller: WhiteListCaller) -> Result<
             }
         };
 
-        return Err(parse::Error::new(attr.span(), &err_str)
+        return Err(parse::Error::new(attr.span(), err_str)
             .to_compile_error()
             .into());
     }

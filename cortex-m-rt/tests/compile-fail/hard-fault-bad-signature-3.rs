@@ -11,16 +11,8 @@ fn foo() -> ! {
     loop {}
 }
 
-#[exception]
+#[exception(trampoline = false)]
 unsafe fn HardFault(_ef: &ExceptionFrame) -> ! {
+    //~^ ERROR `HardFault` handler must have signature `unsafe fn() -> !`
     loop {}
-}
-
-pub mod reachable {
-    use cortex_m_rt::{exception, ExceptionFrame};
-
-    #[exception] //~ ERROR symbol `_HardFault` is already defined
-    unsafe fn HardFault(_ef: &ExceptionFrame) -> ! {
-        loop {}
-    }
 }

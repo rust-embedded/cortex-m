@@ -119,6 +119,88 @@ mod fpu_consts {
 #[cfg(has_fpu)]
 use self::fpu_consts::*;
 
+/// Priority Grouping
+///
+/// Determines the split of preemption priority from sub-priority.
+#[derive(Debug, Clone, Copy)]
+#[repr(u8)]
+pub enum PriorityGrouping<const NVIC_PRIO_BITS: u8> {
+    /// Priority grouping 0
+    Prigroup0 = 0,
+    /// Priority grouping 1
+    Prigroup1 = 1,
+    /// Priority grouping 2
+    Prigroup2 = 2,
+    /// Priority grouping 3
+    Prigroup3 = 3,
+    /// Priority grouping 4
+    Prigroup4 = 4,
+    /// Priority grouping 5
+    Prigroup5 = 5,
+    /// Priority grouping 6
+    Prigroup6 = 6,
+    /// Priority grouping 7
+    Prigroup7 = 7,
+}
+
+impl<const NVIC_PRIO_BITS: u8> PriorityGrouping<NVIC_PRIO_BITS> {
+    #[inline]
+    const fn preemption_priority_bits(&self) -> u8 {
+        let bits = 7 - *self as u8;
+
+        if bits > NVIC_PRIO_BITS {
+            NVIC_PRIO_BITS
+        } else {
+            bits
+        }
+    }
+
+    #[inline]
+    const fn sub_priority_bits(&self) -> u8 {
+        let bits = *self as u8 + NVIC_PRIO_BITS;
+
+        if bits <= 7 {
+            0
+        } else {
+            bits - 7
+        }
+    }
+
+    /// Encode `preemption_priority` and `sub_priority` to fit in `NVIC_PRIO_BITS`.
+    #[inline]
+    pub const fn encode_priority(&self, preemption_priority: u8, sub_priority: u8) -> u8 {
+        let preemption_priority_bits = self.preemption_priority_bits();
+        let sub_priority_bits = self.sub_priority_bits();
+
+        let premption_priority_mask = (1 << preemption_priority_bits) - 1;
+        let sub_priority_mask = (1 << sub_priority_bits) - 1;
+
+        debug_assert!(preemption_priority <= premption_priority_mask);
+        debug_assert!(sub_priority <= sub_priority_mask);
+
+        let priority = ((preemption_priority & premption_priority_mask) << sub_priority_bits)
+            | (sub_priority & sub_priority_mask);
+
+        // Priority is stored in the highest bits.
+        priority << (8 - NVIC_PRIO_BITS)
+    }
+
+    /// Decode the priority stored in `NVIC_PRIO_BITS` into a tuple consisting of
+    /// the preemption priority and sub-priority.
+    #[inline]
+    pub const fn decode_priority(&self, mut priority: u8) -> (u8, u8) {
+        // Priority is stored in the highest bits.
+        priority >>= 8 - NVIC_PRIO_BITS;
+
+        let sub_priority_bits = self.sub_priority_bits();
+
+        let preemption_priority = priority >> sub_priority_bits;
+        let sub_priority = priority & ((1 << sub_priority_bits) - 1);
+
+        (preemption_priority, sub_priority)
+    }
+}
+
 #[cfg(has_fpu)]
 impl SCB {
     /// Shorthand for `set_fpu_access_mode(FpuAccessMode::Disabled)`
@@ -839,7 +921,8 @@ impl SCB {
 }
 
 const SCB_AIRCR_VECTKEY: u32 = 0x05FA << 16;
-const SCB_AIRCR_PRIGROUP_MASK: u32 = 0x7 << 8;
+const SCB_AIRCR_PRIGROUP_POS: u32 = 8;
+const SCB_AIRCR_PRIGROUP_MASK: u32 = 0x7 << SCB_AIRCR_PRIGROUP_POS;
 const SCB_AIRCR_SYSRESETREQ: u32 = 1 << 2;
 
 impl SCB {
@@ -848,18 +931,47 @@ impl SCB {
     pub fn sys_reset() -> ! {
         crate::asm::dsb();
         unsafe {
-            (*Self::PTR).aircr.modify(
-                |r| {
-                    SCB_AIRCR_VECTKEY | // otherwise the write is ignored
-            r & SCB_AIRCR_PRIGROUP_MASK | // keep priority group unchanged
-            SCB_AIRCR_SYSRESETREQ
-                }, // set the bit
-            )
+            (*Self::PTR).aircr.modify(|r| {
+                SCB_AIRCR_VECTKEY | // Unlock for writing.
+                r & SCB_AIRCR_PRIGROUP_MASK | // Keep priority grouping unchanged.
+                SCB_AIRCR_SYSRESETREQ // Set reset bit.
+            })
         };
         crate::asm::dsb();
         loop {
             // wait for the reset
             crate::asm::nop(); // avoid rust-lang/rust#28728
+        }
+    }
+
+    /// Set the priority grouping.
+    #[inline]
+    pub fn set_priority_grouping<const NVIC_PRIO_BITS: u8>(
+        &mut self,
+        grouping: PriorityGrouping<NVIC_PRIO_BITS>,
+    ) {
+        unsafe {
+            self.aircr.write({
+                SCB_AIRCR_VECTKEY | // Unlock for writing.
+                (grouping as u32) << SCB_AIRCR_PRIGROUP_POS
+            });
+        }
+    }
+
+    /// Get the priority grouping.
+    #[inline]
+    pub fn get_priority_grouping<const NVIC_PRIO_BITS: u8>(
+        &self,
+    ) -> PriorityGrouping<NVIC_PRIO_BITS> {
+        match self.aircr.read() & SCB_AIRCR_PRIGROUP_MASK >> SCB_AIRCR_PRIGROUP_POS {
+            0 => PriorityGrouping::Prigroup0,
+            1 => PriorityGrouping::Prigroup1,
+            2 => PriorityGrouping::Prigroup2,
+            3 => PriorityGrouping::Prigroup3,
+            4 => PriorityGrouping::Prigroup4,
+            5 => PriorityGrouping::Prigroup5,
+            6 => PriorityGrouping::Prigroup6,
+            _ => PriorityGrouping::Prigroup7,
         }
     }
 }

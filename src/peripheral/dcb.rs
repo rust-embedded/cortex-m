@@ -22,10 +22,8 @@ pub struct RegisterBlock {
 }
 
 impl DCB {
-    /// Enables TRACE. This is for example required by the
-    /// `peripheral::DWT` cycle counter to work properly.
-    /// As by STM documentation, this flag is not reset on
-    /// soft-reset, only on power reset.
+    /// Global enable for all [`DWT`](crate::peripheral::DWT) and
+    /// [`ITM`](crate::peripheral::ITM) features.
     ///
     /// Note: vendor-specific registers may have to be set to completely
     /// enable tracing. For example, on the STM32F401RE, `TRACE_MODE`

@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   Also fixes `VectActive::from` to take a `u16` and subtract `16` for
   `VectActive::Interrupt`s to match `SBC::vect_active()` (#373).
 - DWT: add `configure` API for address, cycle count comparison (#342, #367).
-- ITM: add `configure` API (#342).
+- ITM: add `configure` API; `lock`, `unlock`, `busy` functions (#342, #383).
 - TPIU: add API for *Formatter and Flush Control* (FFCR) and *Selected Pin Control* (SPPR) registers (#342).
 - TPIU: add `swo_supports` for checking what SWO configurations the target supports. (#381)
 - Add `std` and `serde` crate features for improved host-side ITM decode functionality when working with the downstream `itm`, `cargo-rtic-scope` crates (#363, #366).

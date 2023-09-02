@@ -1,5 +1,8 @@
 //! Instrumentation Trace Macrocell
 //!
+//! The documentation in this module contains references to ARM specifications, namely:
+//! - coresight: [*ARM CoreSight Architecture Specification*, Version 3.0](https://developer.arm.com/documentation/ihi0029/latest).
+//!
 //! *NOTE* Not available on Armv6-M and Armv8-M Baseline.
 
 use core::cell::UnsafeCell;
@@ -31,7 +34,7 @@ pub struct RegisterBlock {
     /// Lock Access
     pub lar: WO<u32>,
     /// Lock Status
-    pub lsr: RO<u32>,
+    pub lsr: RO<Lsr>,
 }
 
 bitfield! {
@@ -48,6 +51,15 @@ bitfield! {
     u8, gtsfreq, set_gtsfreq: 11, 10;
     u8, tracebusid, set_tracebusid: 22, 16;
     busy, _: 23;
+}
+
+bitfield! {
+    /// Software Lock Status Register
+    #[repr(C)]
+    #[derive(Copy, Clone)]
+    pub struct Lsr(u32);
+    sli, _: 0;
+    slk, _: 1;
 }
 
 /// Stimulus Port
@@ -158,7 +170,7 @@ pub enum TimestampClkSrc {
 
 /// Available settings for the ITM peripheral.
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
-pub struct ITMSettings {
+pub struct ITMConfiguration {
     /// Whether to enable ITM.
     pub enable: bool,
     /// Whether DWT packets should be forwarded to ITM.
@@ -175,42 +187,189 @@ pub struct ITMSettings {
     pub timestamp_clk_src: TimestampClkSrc,
 }
 
+/// Possible errors on [ITM::configure].
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+#[non_exhaustive]
+pub enum ITMConfigurationError {
+    /// Global timestamp generation is not supported on this target.
+    /// Request [`GlobalTimestampOptions::Disabled`] instead.
+    ///
+    /// [`ITM_TCR`](struct@Tcr) register remains unchanged on this error.
+    GTS,
+    /// The requested timestamp clock source is not supported on this target.
+    ///
+    /// *NOTE*: `GTSFREQ` in [`ITM_TCR`](struct@Tcr) field has
+    /// potentially been changed on this error.
+    TimestampClkSrc,
+    /// The target does not implement the local timestamp prescaler.
+    /// Request [`LocalTimestampOptions::Disabled`] or
+    /// [`LocalTimestampOptions::Disabled`] instead.
+    ///
+    /// *NOTE*: `GTSFREQ` and `SWOENA` in [`ITM_TCR`](struct@Tcr) fields
+    /// have potentially changed on this error.
+    TSPrescale,
+}
+
 impl ITM {
-    /// Removes the software lock on the ITM.
+    /// Disengage the software lock on the [`ITM`]. Must be called
+    /// before any mutating [`ITM`] functions if a software lock
+    /// mechanism is implemented. See
+    /// [`has_software_lock`](ITM::has_software_lock).
+    ///
+    /// See (coresight, B2.3.10).
     #[inline]
     pub fn unlock(&mut self) {
+        if !self.locked() {
+            return;
+        }
+
         // NOTE(unsafe) atomic write to a stateless, write-only register
-        unsafe { self.lar.write(0xC5AC_CE55) }
+        unsafe {
+            self.lar.write(0xC5AC_CE55);
+        }
+
+        while self.locked() {}
     }
 
-    /// Configures the ITM with the passed [ITMSettings].
+    /// Engages the software lock on the [`ITM`]. Should be called after
+    /// any other mutating [`ITM`] functions.
+    ///
+    /// See (coresight, B2.3.10).
     #[inline]
-    pub fn configure(&mut self, settings: ITMSettings) {
+    pub fn lock(&mut self) {
+        if self.locked() {
+            return;
+        }
+
+        // NOTE(unsafe) atomic write to a stateless, write-only register
+        unsafe { self.lar.write(0) }
+
+        while !self.locked() {}
+    }
+
+    /// Checks whether the target implements the software lock
+    /// mechanism. If `true`, [`unlock`](ITM::unlock) must be called
+    /// before any other mutating [`ITM`] functions.
+    ///
+    /// See (coresight, B2.3.10).
+    #[inline]
+    fn has_software_lock(&self) -> bool {
+        self.lsr.read().sli()
+    }
+
+    /// Checks whether the peripheral is locked.
+    ///
+    /// See (coresight, B2.3.10).
+    #[inline]
+    fn locked(&self) -> bool {
+        self.has_software_lock() && self.lsr.read().slk()
+    }
+
+    /// Indicates whether the [`ITM`] is currently processing events.
+    /// Returns `true` if [`ITM`] events are present and are being drained.
+    #[inline]
+    pub fn busy(&self) -> bool {
+        self.tcr.read().busy()
+    }
+
+    /// Tries to configure the [`ITM`] with the passed
+    /// [`ITMConfiguration`]. Handles register unlocks. On `Err`, the
+    /// [`ITM`] will not be relocked.
+    #[allow(clippy::missing_inline_in_public_items)]
+    pub fn configure(&mut self, settings: ITMConfiguration) -> Result<(), ITMConfigurationError> {
+        use ITMConfigurationError as Error;
+
+        // The ITM must be unlocked before we apply any changes.
+        self.unlock();
+
+        // The ITM must then be disabled before altering certain fields
+        // in order to avoid trace stream corruption.
+        //
+        // NOTE: this is only required before modifying the TraceBusID
+        // field, but better be on the safe side for now.
         unsafe {
             self.tcr.modify(|mut r| {
-                r.set_itmena(settings.enable);
-                r.set_tsena(settings.local_timestamps != LocalTimestampOptions::Disabled);
-                r.set_txena(settings.forward_dwt);
-                r.set_tsprescale(match settings.local_timestamps {
-                    LocalTimestampOptions::Disabled | LocalTimestampOptions::Enabled => 0b00,
-                    LocalTimestampOptions::EnabledDiv4 => 0b10,
-                    LocalTimestampOptions::EnabledDiv16 => 0b10,
-                    LocalTimestampOptions::EnabledDiv64 => 0b11,
-                });
+                r.set_itmena(false);
+                r
+            });
+            while self.busy() {}
+        }
+
+        unsafe {
+            self.tcr.modify(|mut r| {
                 r.set_gtsfreq(match settings.global_timestamps {
                     GlobalTimestampOptions::Disabled => 0b00,
                     GlobalTimestampOptions::Every128Cycles => 0b01,
                     GlobalTimestampOptions::Every8192Cycles => 0b10,
                     GlobalTimestampOptions::EveryPacket => 0b11,
                 });
-                r.set_swoena(match settings.timestamp_clk_src {
-                    TimestampClkSrc::SystemClock => false,
-                    TimestampClkSrc::AsyncTPIU => true,
-                });
-                r.set_tracebusid(settings.bus_id.unwrap_or(0));
 
                 r
             });
         }
+        // GTSFREQ is potentially RAZ/WI
+        if settings.global_timestamps != GlobalTimestampOptions::Disabled
+            && self.tcr.read().gtsfreq() == 0
+        {
+            return Err(Error::GTS);
+        }
+
+        unsafe {
+            self.tcr.modify(|mut r| {
+                r.set_swoena(match settings.timestamp_clk_src {
+                    TimestampClkSrc::SystemClock => false,
+                    TimestampClkSrc::AsyncTPIU => true,
+                });
+
+                r
+            });
+        }
+        // SWOENA is potentially either RAZ or RAO
+        if !{
+            match settings.timestamp_clk_src {
+                TimestampClkSrc::SystemClock => !self.tcr.read().swoena(),
+                TimestampClkSrc::AsyncTPIU => self.tcr.read().swoena(),
+            }
+        } {
+            return Err(Error::TimestampClkSrc);
+        }
+
+        unsafe {
+            self.tcr.modify(|mut r| {
+                r.set_tsprescale(match settings.local_timestamps {
+                    LocalTimestampOptions::Disabled | LocalTimestampOptions::Enabled => 0b00,
+                    LocalTimestampOptions::EnabledDiv4 => 0b10,
+                    LocalTimestampOptions::EnabledDiv16 => 0b10,
+                    LocalTimestampOptions::EnabledDiv64 => 0b11,
+                });
+
+                r
+            })
+        }
+        // TSPrescale is potentially RAZ/WI
+        if settings.local_timestamps != LocalTimestampOptions::Disabled
+            && settings.local_timestamps != LocalTimestampOptions::Enabled
+            && self.tcr.read().tsprescale() == 0
+        {
+            return Err(Error::TSPrescale);
+        }
+
+        unsafe {
+            self.tcr.modify(|mut r| {
+                r.set_tsena(settings.local_timestamps != LocalTimestampOptions::Disabled);
+                r.set_txena(settings.forward_dwt); // forward hardware event packets from the DWT to the ITM
+                r.set_tracebusid(settings.bus_id.unwrap_or(0));
+
+                // must be modified after TraceBusID, see last section in
+                // <https://developer.arm.com/documentation/ddi0403/d/Debug-Architecture/ARMv7-M-Debug/The-Instrumentation-Trace-Macrocell/Trace-Control-Register--ITM-TCR?lang=en>
+                r.set_itmena(settings.enable);
+
+                r
+            });
+        }
+
+        self.lock();
+
+        Ok(())
     }
 }

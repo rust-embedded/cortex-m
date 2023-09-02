@@ -37,10 +37,13 @@ pub struct RegisterBlock {
     pub pcsr: RO<u32>,
     /// Comparators
     #[cfg(armv6m)]
-    pub c: [Comparator; 2],
+    pub comps: [Comparator<NoCycleCompare>; 2],
+    #[cfg(not(armv6m))]
+    /// Cycle count compare enabled Comparator
+    pub comp0: Comparator<HasCycleCompare>,
     #[cfg(not(armv6m))]
     /// Comparators
-    pub c: [Comparator; 16],
+    pub comps: [Comparator<NoCycleCompare>; 15],
     #[cfg(not(armv6m))]
     reserved: [u32; 932],
     /// Lock Access
@@ -66,9 +69,31 @@ bitfield! {
     u8, numcomp, _: 31, 28;
 }
 
+mod private {
+    /// A public trait inaccessible by external users to ensure no one else can
+    /// impl a sealed trait outside of the crate of origin. For more info on this
+    /// design pattern, see https://rust-lang.github.io/api-guidelines/future-proofing.html
+    pub trait Sealed {}
+}
+
+/// A zero-sized marker trait indicating the capabilities of a given comparator.
+pub trait ComparatorSupportedFunctions: private::Sealed {}
+
+/// Marker indicating that this comparator has cycle comparison abilities. This
+/// is the case only for the first comparator for armv7m.
+pub enum HasCycleCompare {}
+impl ComparatorSupportedFunctions for HasCycleCompare {}
+impl private::Sealed for HasCycleCompare {}
+
+/// Marker indicating this comparator does not have cycle comparison abilities. This
+/// is the case for all armv6m comparators and comparators 1-15 for armv7m.
+pub enum NoCycleCompare {}
+impl ComparatorSupportedFunctions for NoCycleCompare {}
+impl private::Sealed for NoCycleCompare {}
+
 /// Comparator
 #[repr(C)]
-pub struct Comparator {
+pub struct Comparator<SupportedFunctions: ComparatorSupportedFunctions> {
     /// Comparator
     pub comp: RW<u32>,
     /// Comparator Mask
@@ -76,6 +101,7 @@ pub struct Comparator {
     /// Comparator Function
     pub function: RW<Function>,
     reserved: u32,
+    _supported_functions: core::marker::PhantomData<SupportedFunctions>,
 }
 
 bitfield! {
@@ -101,29 +127,33 @@ impl DWT {
     ///
     /// A value of zero indicates no comparator support.
     #[inline]
-    pub fn num_comp(&self) -> u8 {
-        self.ctrl.read().numcomp()
+    pub fn num_comp() -> u8 {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { (*DWT::PTR).ctrl.read().numcomp() }
     }
 
     /// Returns `true` if the the implementation supports sampling and exception tracing
     #[cfg(not(armv6m))]
     #[inline]
-    pub fn has_exception_trace(&self) -> bool {
-        !self.ctrl.read().notrcpkt()
+    pub fn has_exception_trace() -> bool {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { !(*DWT::PTR).ctrl.read().notrcpkt() }
     }
 
     /// Returns `true` if the implementation includes external match signals
     #[cfg(not(armv6m))]
     #[inline]
-    pub fn has_external_match(&self) -> bool {
-        !self.ctrl.read().noexttrig()
+    pub fn has_external_match() -> bool {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { !(*DWT::PTR).ctrl.read().noexttrig() }
     }
 
     /// Returns `true` if the implementation supports a cycle counter
     #[inline]
-    pub fn has_cycle_counter(&self) -> bool {
+    pub fn has_cycle_counter() -> bool {
         #[cfg(not(armv6m))]
-        return !self.ctrl.read().nocyccnt();
+        // NOTE(unsafe) atomic read with no side effects
+        return unsafe { !(*DWT::PTR).ctrl.read().nocyccnt() };
 
         #[cfg(armv6m)]
         return false;
@@ -132,8 +162,9 @@ impl DWT {
     /// Returns `true` if the implementation the profiling counters
     #[cfg(not(armv6m))]
     #[inline]
-    pub fn has_profiling_counter(&self) -> bool {
-        !self.ctrl.read().noprfcnt()
+    pub fn has_profiling_counter() -> bool {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { !(*DWT::PTR).ctrl.read().noprfcnt() }
     }
 
     /// Enables the cycle counter
@@ -414,64 +445,96 @@ pub enum ComparatorFunction {
 pub enum DwtError {
     /// Invalid combination of [AccessType] and [EmitOption].
     InvalidFunction,
+    /// An unsupported function was requested, such as [`CycleCount`](ComparatorFunction::CycleCount) on
+    /// `armv6m`, or on a comparator other than 0 on `armv7m`.
+    UnsupportedFunction,
 }
 
-impl Comparator {
-    /// Configure the function of the comparator
+impl<SupportedFunctions: ComparatorSupportedFunctions> Comparator<SupportedFunctions> {
+    /// Private function for configuring address compare on any [`Comparator`] since they all support this.
+    /// Utilized publicly through [`Comparator::configure`].
+    fn configure_address_compare(
+        &self,
+        settings: ComparatorAddressSettings,
+    ) -> Result<(), DwtError> {
+        // FUNCTION, EMITRANGE
+        // See Table C1-14
+        let (function, emit_range) = match (&settings.access_type, &settings.emit) {
+            (AccessType::ReadOnly, EmitOption::Data) => (0b1100, false),
+            (AccessType::ReadOnly, EmitOption::Address) => (0b1100, true),
+            (AccessType::ReadOnly, EmitOption::AddressData) => (0b1110, true),
+            (AccessType::ReadOnly, EmitOption::PCData) => (0b1110, false),
+            (AccessType::ReadOnly, EmitOption::WatchpointDebugEvent) => (0b0101, false),
+            (AccessType::ReadOnly, EmitOption::CompareMatchEvent) => (0b1001, false),
+
+            (AccessType::WriteOnly, EmitOption::Data) => (0b1101, false),
+            (AccessType::WriteOnly, EmitOption::Address) => (0b1101, true),
+            (AccessType::WriteOnly, EmitOption::AddressData) => (0b1111, true),
+            (AccessType::WriteOnly, EmitOption::PCData) => (0b1111, false),
+            (AccessType::WriteOnly, EmitOption::WatchpointDebugEvent) => (0b0110, false),
+            (AccessType::WriteOnly, EmitOption::CompareMatchEvent) => (0b1010, false),
+
+            (AccessType::ReadWrite, EmitOption::Data) => (0b0010, false),
+            (AccessType::ReadWrite, EmitOption::Address) => (0b0001, true),
+            (AccessType::ReadWrite, EmitOption::AddressData) => (0b0010, true),
+            (AccessType::ReadWrite, EmitOption::PCData) => (0b0011, false),
+            (AccessType::ReadWrite, EmitOption::WatchpointDebugEvent) => (0b0111, false),
+            (AccessType::ReadWrite, EmitOption::CompareMatchEvent) => (0b1011, false),
+
+            (AccessType::ReadWrite, EmitOption::PC) => (0b0001, false),
+            (_, EmitOption::PC) => return Err(DwtError::InvalidFunction),
+        };
+
+        unsafe {
+            self.function.modify(|mut r| {
+                r.set_function(function);
+                r.set_emitrange(emit_range);
+                // don't compare data value
+                r.set_datavmatch(false);
+                // don't compare cycle counter value
+                // NOTE: only needed for comparator 0, but is SBZP.
+                r.set_cycmatch(false);
+                // SBZ as needed, see Page 784/C1-724
+                r.set_datavsize(0);
+                r.set_datavaddr0(0);
+                r.set_datavaddr1(0);
+
+                r
+            });
+
+            self.comp.write(settings.address);
+            self.mask.write(settings.mask);
+        }
+
+        Ok(())
+    }
+}
+
+impl Comparator<NoCycleCompare> {
+    /// Configure the function of the [`Comparator`]. Does not support cycle count comparison.
     #[allow(clippy::missing_inline_in_public_items)]
     pub fn configure(&self, settings: ComparatorFunction) -> Result<(), DwtError> {
         match settings {
-            ComparatorFunction::Address(settings) => {
-                // FUNCTION, EMITRANGE
-                // See Table C1-14
-                let (function, emit_range) = match (&settings.access_type, &settings.emit) {
-                    (AccessType::ReadOnly, EmitOption::Data) => (0b1100, false),
-                    (AccessType::ReadOnly, EmitOption::Address) => (0b1100, true),
-                    (AccessType::ReadOnly, EmitOption::AddressData) => (0b1110, true),
-                    (AccessType::ReadOnly, EmitOption::PCData) => (0b1110, false),
-                    (AccessType::ReadOnly, EmitOption::WatchpointDebugEvent) => (0b0101, false),
-                    (AccessType::ReadOnly, EmitOption::CompareMatchEvent) => (0b1001, false),
+            ComparatorFunction::Address(settings) => self.configure_address_compare(settings),
+            ComparatorFunction::CycleCount(_settings) => Err(DwtError::UnsupportedFunction),
+        }
+    }
+}
 
-                    (AccessType::WriteOnly, EmitOption::Data) => (0b1101, false),
-                    (AccessType::WriteOnly, EmitOption::Address) => (0b1101, true),
-                    (AccessType::WriteOnly, EmitOption::AddressData) => (0b1111, true),
-                    (AccessType::WriteOnly, EmitOption::PCData) => (0b1111, false),
-                    (AccessType::WriteOnly, EmitOption::WatchpointDebugEvent) => (0b0110, false),
-                    (AccessType::WriteOnly, EmitOption::CompareMatchEvent) => (0b1010, false),
-
-                    (AccessType::ReadWrite, EmitOption::Data) => (0b0010, false),
-                    (AccessType::ReadWrite, EmitOption::Address) => (0b0001, true),
-                    (AccessType::ReadWrite, EmitOption::AddressData) => (0b0010, true),
-                    (AccessType::ReadWrite, EmitOption::PCData) => (0b0011, false),
-                    (AccessType::ReadWrite, EmitOption::WatchpointDebugEvent) => (0b0111, false),
-                    (AccessType::ReadWrite, EmitOption::CompareMatchEvent) => (0b1011, false),
-
-                    (AccessType::ReadWrite, EmitOption::PC) => (0b0001, false),
-                    (_, EmitOption::PC) => return Err(DwtError::InvalidFunction),
-                };
-
-                unsafe {
-                    self.function.modify(|mut r| {
-                        r.set_function(function);
-                        r.set_emitrange(emit_range);
-                        // don't compare data value
-                        r.set_datavmatch(false);
-                        // don't compare cycle counter value
-                        // NOTE: only needed for comparator 0, but is SBZP.
-                        r.set_cycmatch(false);
-                        // SBZ as needed, see Page 784/C1-724
-                        r.set_datavsize(0);
-                        r.set_datavaddr0(0);
-                        r.set_datavaddr1(0);
-
-                        r
-                    });
-
-                    self.comp.write(settings.address);
-                    self.mask.write(settings.mask);
-                }
-            }
+impl Comparator<HasCycleCompare> {
+    /// Configure the function of the [`Comparator`]. Has support for cycle count comparison
+    /// and checks [`DWT::has_cycle_counter`] for hardware support if
+    /// [`CycleCount`](ComparatorFunction::CycleCount) is requested.
+    #[allow(clippy::missing_inline_in_public_items)]
+    pub fn configure(&self, settings: ComparatorFunction) -> Result<(), DwtError> {
+        match settings {
+            ComparatorFunction::Address(settings) => self.configure_address_compare(settings),
             ComparatorFunction::CycleCount(settings) => {
+                // Check if the HW advertises that it has the cycle counter or not
+                if !DWT::has_cycle_counter() {
+                    return Err(DwtError::UnsupportedFunction);
+                }
+
                 let function = match &settings.emit {
                     EmitOption::PCData => 0b0001,
                     EmitOption::WatchpointDebugEvent => 0b0100,
@@ -499,9 +562,9 @@ impl Comparator {
                     self.comp.write(settings.compare);
                     self.mask.write(0); // SBZ, see Page 784/C1-724
                 }
+
+                Ok(())
             }
         }
-
-        Ok(())
     }
 }

@@ -28,12 +28,13 @@ mod tests {
 
     #[test]
     #[cfg(not(feature = "semihosting"))] // QEMU does not model the cycle counter
+    #[cfg_attr(armv6m, allow(unused_variables))]
     fn cycle_count(p: &mut cortex_m::Peripherals) {
+        use cortex_m::peripheral::DWT;
+
         #[cfg(not(armv6m))]
         {
-            use cortex_m::peripheral::DWT;
-
-            assert!(p.DWT.has_cycle_counter());
+            assert!(DWT::has_cycle_counter());
 
             p.DCB.enable_trace();
             p.DWT.disable_cycle_counter();
@@ -48,7 +49,7 @@ mod tests {
 
         #[cfg(armv6m)]
         {
-            assert!(!p.DWT.has_cycle_counter());
+            assert!(!DWT::has_cycle_counter());
         }
     }
 }

@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   Also fixes `VectActive::from` to take a `u16` and subtract `16` for
   `VectActive::Interrupt`s to match `SBC::vect_active()` (#373).
 - DWT: add `configure` API for address, cycle count comparison (#342, #367).
+    - Differentiated the first `DWT` `Comparator` as the only one able to do cycle
+      count comparisons, and only on `armv7m` (#377).
+    - renamed the field from `c` to `comp0` and `comps[15]` for `armv7m` and
+      `comps[2]` for `armv6m` (#377).
+    - Made the `has_*` implementation checks associated functions (#377).
 - ITM: add `configure` API (#342).
 - TPIU: add API for *Formatter and Flush Control* (FFCR) and *Selected Pin Control* (SPPR) registers (#342).
 - TPIU: add `swo_supports` for checking what SWO configurations the target supports. (#381)

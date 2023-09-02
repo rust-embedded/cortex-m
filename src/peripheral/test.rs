@@ -42,12 +42,21 @@ fn dwt() {
     #[cfg(not(armv6m))]
     assert_eq!(address(&dwt.foldcnt), 0xE000_1018);
     assert_eq!(address(&dwt.pcsr), 0xE000_101C);
-    assert_eq!(address(&dwt.c[0].comp), 0xE000_1020);
-    assert_eq!(address(&dwt.c[0].mask), 0xE000_1024);
-    assert_eq!(address(&dwt.c[0].function), 0xE000_1028);
-    assert_eq!(address(&dwt.c[1].comp), 0xE000_1030);
-    assert_eq!(address(&dwt.c[1].mask), 0xE000_1034);
-    assert_eq!(address(&dwt.c[1].function), 0xE000_1038);
+    if cfg!(not(armv6m)) {
+        assert_eq!(address(&dwt.comp0.comp), 0xE000_1020);
+        assert_eq!(address(&dwt.comp0.mask), 0xE000_1024);
+        assert_eq!(address(&dwt.comp0.function), 0xE000_1028);
+
+        assert_eq!(address(&dwt.comps[0].comp), 0xE000_1030);
+        assert_eq!(address(&dwt.comps[0].mask), 0xE000_1034);
+        assert_eq!(address(&dwt.comps[0].function), 0xE000_1038);
+    }
+    if cfg!(armv6m) {
+        assert_eq!(address(&dwt.comps[0].comp), 0xE000_1020);
+        assert_eq!(address(&dwt.comps[0].mask), 0xE000_1024);
+        assert_eq!(address(&dwt.comps[0].function), 0xE000_1028);
+    }
+
     #[cfg(not(armv6m))]
     assert_eq!(address(&dwt.lar), 0xE000_1FB0);
     #[cfg(not(armv6m))]

@@ -14,7 +14,7 @@ jobs:
   hil-qemu:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -39,7 +39,7 @@ jobs:
   hil-compile-rtt:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -67,7 +67,7 @@ jobs:
     needs:
       - hil-compile-rtt
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Display probe-run version
         run: probe-run --version
       - name: List probes

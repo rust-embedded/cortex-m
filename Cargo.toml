@@ -11,10 +11,10 @@ license = "MIT OR Apache-2.0"
 name = "cortex-m"
 readme = "README.md"
 repository = "https://github.com/rust-embedded/cortex-m"
-version = "0.7.4"
+version = "0.7.4" # preview of 0.8.x (kept at 0.7.x to allow patching during development)
 edition = "2021"
 rust-version = "1.59"
-links = "cortex-m"  # prevent multiple versions of this crate to be linked together
+links = "cortex-m" # prevent multiple versions of this crate to be linked together
 
 [dependencies]
 critical-section = "1.0.0"
@@ -24,7 +24,7 @@ embedded-hal = "0.2.4"
 
 [dependencies.serde]
 version = "1"
-features = [ "derive" ]
+features = ["derive"]
 optional = true
 
 [features]
@@ -54,5 +54,5 @@ targets = [
     "thumbv7em-none-eabihf",
     "thumbv7m-none-eabi",
     "thumbv8m.base-none-eabi",
-    "thumbv8m.main-none-eabi"
+    "thumbv8m.main-none-eabi",
 ]

@@ -1,27 +1,23 @@
-[![crates.io](https://img.shields.io/crates/d/cortex-m.svg)](https://crates.io/crates/cortex-m)
-[![crates.io](https://img.shields.io/crates/v/cortex-m.svg)](https://crates.io/crates/cortex-m)
+# Cortex-M crates
 
-# `cortex-m`
+This repository contains various crates useful for writing Rust programs
+on Cortex-M microcontrollers:
 
-> Low level access to Cortex-M processors
+* [`cortex-m`]: CPU peripheral access and intrinsics
+* [`cortex-m-rt`]: Startup code and interrupt handling
+* [`cortex-m-semihosting`]: Support for semihosting debugging
+* [`cortex-m-interrupt-number`]: Shared trait for interacting with peripheral access crates
+* [`panic-itm`]: Panic handler that sends messages over the ITM/SWO output
+* [`panic-semihosting`]: Panic handler that sends messages over semihosting
+
+[`cortex-m`]: https://crates.io/crates/cortex-m
+[`cortex-m-rt`]: https://crates.io/crates/cortex-m-rt
+[`cortex-m-semihosting`]: https://crates.io/crates/cortex-m-semihosting
+[`cortex-m-interrupt-number`]: https://crates.io/crates/cortex-m-interrupt-number
+[`panic-itm`]: https://crates.io/crates/panic-itm
+[`panic-semihosting`]: https://crates.io/crates/panic-semihosting
 
 This project is developed and maintained by the [Cortex-M team][team].
-
-## [Documentation](https://docs.rs/crate/cortex-m)
-
-## Minimum Supported Rust Version (MSRV)
-
-This crate is guaranteed to compile on stable Rust 1.59 and up. It might compile with older versions but that may change in any new patch release.
-
-## License
-
-Licensed under either of
-
-- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or
-  http://www.apache.org/licenses/LICENSE-2.0)
-- MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
-
-at your option.
 
 ### Contribution
 
@@ -31,9 +27,9 @@ additional terms or conditions.
 
 ## Code of Conduct
 
-Contribution to this crate is organized under the terms of the [Rust Code of
-Conduct][CoC], the maintainer of this crate, the [Cortex-M team][team], promises
-to intervene to uphold that code of conduct.
+Contribution to this repository is organized under the terms of the [Rust Code
+of Conduct][CoC], the maintainer of this crate, the [Cortex-M team][team],
+promises to intervene to uphold that code of conduct.
 
 [CoC]: CODE_OF_CONDUCT.md
 [team]: https://github.com/rust-embedded/wg#the-cortex-m-team

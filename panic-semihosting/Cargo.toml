@@ -15,7 +15,7 @@ rust-version = "1.59"
 edition = "2021"
 
 [dependencies]
-cortex-m = { path = "..", version = ">= 0.5.6, < 0.8" }
+cortex-m = { path = "../cortex-m", version = ">= 0.5.6, < 0.8" }
 cortex-m-semihosting = { path = "../cortex-m-semihosting", version = ">= 0.5.0, < 0.6" }
 
 [features]

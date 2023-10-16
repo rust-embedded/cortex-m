@@ -4,9 +4,9 @@
 #![no_main]
 #![no_std]
 
-extern crate cortex_m_rt;
 extern crate panic_halt;
 
+use cortex_m::peripheral::scb::Vector;
 use cortex_m_rt::{entry, exception, ExceptionFrame};
 
 #[entry]
@@ -17,7 +17,7 @@ unsafe fn main() -> ! {
 }
 
 #[exception]
-unsafe fn DefaultHandler(_irqn: i16) {
+unsafe fn DefaultHandler(_: Vector) {
     foo();
 }
 

@@ -4,12 +4,10 @@
 #![no_main]
 #![no_std]
 
-extern crate cortex_m;
-extern crate cortex_m_rt as rt;
 extern crate panic_halt;
 
-use cortex_m::asm;
-use rt::{entry, exception, ExceptionFrame};
+use cortex_m::{asm, peripheral::scb::Vector};
+use cortex_m_rt::{entry, exception, ExceptionFrame};
 
 #[entry]
 fn main() -> ! {
@@ -17,7 +15,7 @@ fn main() -> ! {
 }
 
 #[exception]
-unsafe fn DefaultHandler(_irqn: i16) {
+unsafe fn DefaultHandler(_: Vector) {
     asm::bkpt();
 }
 

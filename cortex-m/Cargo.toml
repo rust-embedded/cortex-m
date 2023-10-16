@@ -17,6 +17,7 @@ rust-version = "1.59"
 links = "cortex-m"  # prevent multiple versions of this crate to be linked together
 
 [dependencies]
+cortex-m-interrupt-number = { version = "1.0.0", path = "../cortex-m-interrupt-number" }
 critical-section = "1.0.0"
 volatile-register = "0.2.0"
 bitfield = "0.13.2"

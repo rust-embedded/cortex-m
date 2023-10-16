@@ -4,6 +4,7 @@ members = [
     "cortex-m",
     "cortex-m-rt",
     "cortex-m-semihosting",
+    "cortex-m-interrupt-number",
     "panic-itm",
     "panic-semihosting",
     "testsuite",

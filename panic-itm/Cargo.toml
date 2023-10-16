@@ -13,4 +13,4 @@ repository = "https://github.com/rust-embedded/cortex-m"
 version = "0.4.2"
 
 [dependencies]
-cortex-m = { path = "..", version = ">= 0.5.8, < 0.8" }
+cortex-m = { path = "../cortex-m", version = ">= 0.5.8, < 0.8" }

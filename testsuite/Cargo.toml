@@ -11,7 +11,7 @@ semihosting = ["cortex-m-semihosting", "minitest/semihosting"]
 
 [dependencies]
 cortex-m-rt.path = "../cortex-m-rt"
-cortex-m.path = ".."
+cortex-m.path = "../cortex-m"
 minitest.path = "minitest"
 critical-section = "1.0.0"
 

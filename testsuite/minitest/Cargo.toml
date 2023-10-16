@@ -10,7 +10,7 @@ semihosting = ["cortex-m-semihosting", "minitest-macros/semihosting"]
 rtt = ["rtt-target", "minitest-macros/rtt"]
 
 [dependencies]
-cortex-m.path = "../.."
+cortex-m.path = "../../cortex-m"
 cortex-m-rt.path = "../../cortex-m-rt"
 minitest-macros.path = "macros"
 

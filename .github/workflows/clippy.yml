@@ -16,11 +16,8 @@ jobs:
           ref: refs/pull/${{ github.event.number }}/head
       - uses: actions/checkout@v4
         if: github.event_name != 'pull_request_target'
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
           components: clippy
       - uses: actions-rs/clippy-check@v1
         with:

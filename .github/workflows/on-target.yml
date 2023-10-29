@@ -15,12 +15,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          target: thumbv7m-none-eabi
+          targets: thumbv7m-none-eabi
       - name: Build testsuite
         env:
           RUSTFLAGS: -C link-arg=-Tlink.x -D warnings
@@ -40,12 +37,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          target: thumbv6m-none-eabi
+          targets: thumbv6m-none-eabi
       - name: Modify linkerfile
         run: |
           sed -i 's/FLASH : ORIGIN = 0x00000000, LENGTH = 256K/FLASH : ORIGIN = 0x8000000, LENGTH = 128K/g' memory.x

@@ -184,12 +184,23 @@ pub mod hio;
 pub mod nr;
 
 /// Performs a semihosting operation, takes a pointer to an argument block
+///
+/// # Safety
+///
+/// The syscall number must be a valid [semihosting operation],
+/// and the arguments must be valid for the associated operation.
+///
+/// [semihosting operation]: https://developer.arm.com/documentation/dui0471/i/semihosting/semihosting-operations?lang=en
 #[inline(always)]
 pub unsafe fn syscall<T>(nr: usize, arg: &T) -> usize {
     syscall1(nr, arg as *const T as usize)
 }
 
 /// Performs a semihosting operation, takes one integer as an argument
+///
+/// # Safety
+///
+/// Same as [`syscall`].
 #[inline(always)]
 pub unsafe fn syscall1(_nr: usize, _arg: usize) -> usize {
     match () {

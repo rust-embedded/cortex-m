@@ -1128,6 +1128,7 @@ extern "C" {
 }
 
 #[doc(hidden)]
+#[repr(C)]
 pub union Vector {
     handler: unsafe extern "C" fn(),
     reserved: usize,

@@ -16,6 +16,7 @@ fn main() -> ! {
 }
 
 // interrupts portion of the vector table
+#[repr(C)]
 pub union Vector {
     handler: unsafe extern "C" fn(),
     reserved: usize,

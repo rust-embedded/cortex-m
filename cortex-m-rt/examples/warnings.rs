@@ -22,6 +22,7 @@ extern "C" {
     fn INT();
 }
 
+#[repr(C)]
 union Vector {
     #[allow(dead_code)]
     handler: unsafe extern "C" fn(),

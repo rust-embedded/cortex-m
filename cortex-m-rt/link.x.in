@@ -79,11 +79,11 @@ SECTIONS
 
     /* Reset vector */
     KEEP(*(.vector_table.reset_vector)); /* this is the `__RESET_VECTOR` symbol */
-    __reset_vector = .;
 
     /* Exceptions */
+    __exceptions = .; /* start of exceptions */
     KEEP(*(.vector_table.exceptions)); /* this is the `__EXCEPTIONS` symbol */
-    __eexceptions = .;
+    __eexceptions = .; /* end of exceptions */
 
     /* Device specific interrupts */
     KEEP(*(.vector_table.interrupts)); /* this is the `__INTERRUPTS` symbol */
@@ -231,8 +231,13 @@ origin and length are set to multiples of 8 in the `memory.x` file.");
 
 /* # Position checks */
 
-/* ## .vector_table */
-ASSERT(__reset_vector == ADDR(.vector_table) + 0x8, "
+/* ## .vector_table
+ *
+ * If the *start* of exception vectors is not 8 bytes past the start of the
+ * vector table, then we somehow did not place the reset vector, which should
+ * live 4 bytes past the start of the vector table.
+ */
+ASSERT(__exceptions == ADDR(.vector_table) + 0x8, "
 BUG(cortex-m-rt): the reset vector is missing");
 
 ASSERT(__eexceptions == ADDR(.vector_table) + 0x40, "

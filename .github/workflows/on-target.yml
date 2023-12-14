@@ -49,7 +49,7 @@ jobs:
           RUSTFLAGS: -C link-arg=-Tlink.x -D warnings
         run: cargo build -p testsuite --target thumbv6m-none-eabi --features rtt,cortex-m/critical-section-single-core
       - name: Upload testsuite binaries
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: testsuite-bin
           if-no-files-found: error
@@ -66,9 +66,7 @@ jobs:
         run: probe-run --version
       - name: List probes
         run: probe-run --list-probes
-      # TODO: replace with actions/download-artifact when they update to node20
-      # https://github.com/actions/download-artifact/issues/230
-      - uses: newAM/download-artifact@4202241ccada6f83f838525a8af979a4ec900a49
+      - uses: actions/download-artifact@v4
         with:
           name: testsuite-bin
           path: testsuite-bin

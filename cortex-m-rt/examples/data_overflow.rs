@@ -22,8 +22,8 @@ static mut DATA: [u8; 16 * 1024] = [1u8; 16 * 1024];
 #[entry]
 fn main() -> ! {
     unsafe {
-        let _bigdata = ptr::read_volatile(&RODATA as *const u8);
-        let _bigdata = ptr::read_volatile(&DATA as *const u8);
+        let _bigdata = ptr::read_volatile(ptr::addr_of!(RODATA));
+        let _bigdata = ptr::read_volatile(ptr::addr_of!(DATA));
     }
 
     loop {}

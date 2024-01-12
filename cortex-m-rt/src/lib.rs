@@ -1038,7 +1038,7 @@ pub fn heap_start() -> *mut u32 {
         static mut __sheap: u32;
     }
 
-    unsafe { &mut __sheap }
+    unsafe { core::ptr::addr_of_mut!(__sheap) }
 }
 
 // Entry point is Reset.

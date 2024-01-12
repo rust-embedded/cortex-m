@@ -43,6 +43,7 @@ use cortex_m::iprintln;
 use cortex_m::peripheral::ITM;
 
 #[panic_handler]
+#[cfg(all(not(test), not(doctest)))]
 fn panic(info: &PanicInfo) -> ! {
     interrupt::disable();
 

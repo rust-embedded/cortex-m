@@ -21,12 +21,12 @@ static RODATA2: &[u8; 2] = b"34";
 #[entry]
 fn main() -> ! {
     unsafe {
-        let _bss1 = ptr::read_volatile(&BSS1);
-        let _bss2 = ptr::read_volatile(&BSS2);
-        let _data1 = ptr::read_volatile(&DATA1);
-        let _data2 = ptr::read_volatile(&DATA2);
-        let _rodata1 = ptr::read_volatile(&RODATA1);
-        let _rodata2 = ptr::read_volatile(&RODATA2);
+        let _bss1 = ptr::read_volatile(ptr::addr_of!(BSS1));
+        let _bss2 = ptr::read_volatile(ptr::addr_of!(BSS2));
+        let _data1 = ptr::read_volatile(ptr::addr_of!(DATA1));
+        let _data2 = ptr::read_volatile(ptr::addr_of!(DATA2));
+        let _rodata1 = ptr::read_volatile(ptr::addr_of!(RODATA1));
+        let _rodata2 = ptr::read_volatile(ptr::addr_of!(RODATA2));
     }
 
     loop {}

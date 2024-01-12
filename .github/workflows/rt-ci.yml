@@ -64,6 +64,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - name: Install all Rust targets
         run: rustup target install thumbv6m-none-eabi thumbv7m-none-eabi thumbv7em-none-eabi thumbv7em-none-eabihf thumbv8m.base-none-eabi thumbv8m.main-none-eabi thumbv8m.main-none-eabihf
+      - name: Remove examples that pass by failing
+        run: rm examples/data_overflow.rs
       - name: Build examples for thumbv6m-none-eabi
         run: cargo build --target=thumbv6m-none-eabi --features cortex-m/critical-section-single-core --examples
       - name: Build examples for thumbv7m-none-eabi

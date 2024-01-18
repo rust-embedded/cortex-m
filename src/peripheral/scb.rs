@@ -173,7 +173,10 @@ impl SCB {
         let icsr = unsafe { ptr::read(&(*SCB::PTR).icsr as *const _ as *const u32) };
 
         // NOTE(unsafe): Assume correctly selected target.
-        unsafe { VectActive::from(icsr as u8).unwrap_unchecked() }
+        match VectActive::from(icsr as u8) {
+            Some(val) => val,
+            None => unsafe { core::hint::unreachable_unchecked() },
+        }
     }
 }
 

@@ -23,8 +23,12 @@ bitfield = "0.13.2"
 embedded-hal = "0.2.4"
 
 [dependencies.serde]
-version = ">=1.0.0,<=1.0.100"
+version = "1"
 features = [ "derive" ]
+optional = true
+
+[dependencies.serde_json]
+version = ">=1.0.0,<=1.0.100"
 optional = true
 
 [features]

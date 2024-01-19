@@ -17,7 +17,7 @@ jobs:
 
         include:
           # Test MSRV
-          - rust: 1.38.0
+          - rust: 1.59.0
             features: ""
 
           # Test nightly but don't fail

@@ -38,33 +38,22 @@ impl<T: Debug, E: Debug> TestOutcome for Result<T, E> {
 macro_rules! log {
     ($s:literal $(, $x:expr)* $(,)?)  => {
         {
-            #[cfg(feature = "semihosting")]
+            #[cfg(not(feature = "rtt"))]
             ::cortex_m_semihosting::hprintln!($s $(, $x)*);
             #[cfg(feature = "rtt")]
             ::rtt_target::rprintln!($s $(, $x)*);
-            #[cfg(not(any(feature = "semihosting", feature="rtt")))]
-            let _ = ($( & $x ),*);
         }
     };
 }
 
 /// Stop all tests without failure.
 pub fn exit() -> ! {
-    #[cfg(feature = "rtt")]
-    cortex_m::asm::bkpt();
-    #[cfg(feature = "semihosting")]
     cortex_m_semihosting::debug::exit(cortex_m_semihosting::debug::EXIT_SUCCESS);
-
     unreachable!()
 }
 
 /// Stop all tests and report a failure.
 pub fn fail() -> ! {
-    #[cfg(feature = "rtt")]
-    cortex_m::asm::udf();
-    #[cfg(feature = "semihosting")]
     cortex_m_semihosting::debug::exit(cortex_m_semihosting::debug::EXIT_FAILURE);
-
-    #[cfg(not(feature = "rtt"))]
     unreachable!()
 }

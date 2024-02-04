@@ -27,7 +27,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(not(feature = "semihosting"))] // QEMU does not model the cycle counter
+    #[cfg(feature = "rtt")] // QEMU does not model the cycle counter
     fn cycle_count(p: &mut cortex_m::Peripherals) {
         #[cfg(not(armv6m))]
         {

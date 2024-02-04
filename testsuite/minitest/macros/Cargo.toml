@@ -9,7 +9,6 @@ version = "0.1.0"
 proc-macro = true
 
 [features]
-semihosting = []
 rtt = []
 
 [dependencies]

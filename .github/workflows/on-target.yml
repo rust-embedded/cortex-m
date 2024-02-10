@@ -21,7 +21,7 @@ jobs:
       - name: Build testsuite
         env:
           RUSTFLAGS: -C link-arg=-Tlink.x -D warnings
-        run: cargo build -p testsuite --target thumbv7m-none-eabi --features semihosting,cortex-m/critical-section-single-core
+        run: cargo build -p testsuite --target thumbv7m-none-eabi
       - name: Install QEMU
         run: sudo apt-get update && sudo apt-get install qemu qemu-system-arm
       - name: Run testsuite
@@ -47,7 +47,7 @@ jobs:
       - name: Build testsuite
         env:
           RUSTFLAGS: -C link-arg=-Tlink.x -D warnings
-        run: cargo build -p testsuite --target thumbv6m-none-eabi --features rtt,cortex-m/critical-section-single-core
+        run: cargo build -p testsuite --target thumbv6m-none-eabi --features rtt
       - name: Upload testsuite binaries
         uses: actions/upload-artifact@v4
         with:
@@ -62,10 +62,10 @@ jobs:
       - hil-compile-rtt
     steps:
       - uses: actions/checkout@v4
-      - name: Display probe-run version
-        run: probe-run --version
+      - name: Display probe-rs version
+        run: probe-rs --version
       - name: List probes
-        run: probe-run --list-probes
+        run: probe-rs list
       - uses: actions/download-artifact@v4
         with:
           name: testsuite-bin
@@ -73,7 +73,7 @@ jobs:
       - name: Run on-target tests
         timeout-minutes: 5
         run: |
-          probe-run \
+          probe-rs run \
           --chip STM32F070RBTx \
           --connect-under-reset \
           testsuite-bin/testsuite

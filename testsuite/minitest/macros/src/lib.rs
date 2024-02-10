@@ -203,22 +203,7 @@ fn tests_impl(args: TokenStream, input: TokenStream) -> parse::Result<TokenStrea
 
     #[cfg(feature = "rtt")]
     let init_logging = quote!({
-        let channels = ::rtt_target::rtt_init! {
-            up: {
-                0: {
-                    size: 256
-                    mode: BlockIfFull
-                    name: "minitest"
-                }
-            }
-        };
-        unsafe {
-            ::rtt_target::set_print_channel_cs(
-                channels.up.0,
-                &((|arg, f| ::critical_section::with(|_| f(arg)))
-                    as ::rtt_target::CriticalSectionFunc),
-            );
-        }
+        ::rtt_target::rtt_init_print!();
     });
 
     #[cfg(not(feature = "rtt"))]

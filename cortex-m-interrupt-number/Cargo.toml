@@ -1,0 +1,12 @@
+[package]
+name = "cortex-m-interrupt-number"
+version = "1.0.0"
+edition = "2021"
+categories = ["embedded", "hardware-support", "no-std"]
+description = "Shared trait for Cortex-M interrupt numbers"
+keywords = ["arm", "cortex-m", "register", "peripheral"]
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/rust-embedded/cortex-m"
+
+[dependencies]

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Breaking changes
 
 - `NVIC::request()` no longer requires `&mut self`.
+- `InterruptNumber` is now provided by the `cortex-m-interrupt-number` trait
 
 ### Added
 - Updated `SCB.ICSR.VECTACTIVE`/`SCB::vect_active()` to be 9 bits instead of 8.

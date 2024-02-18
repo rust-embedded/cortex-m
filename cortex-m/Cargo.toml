@@ -13,14 +13,15 @@ readme = "README.md"
 repository = "https://github.com/rust-embedded/cortex-m"
 version = "0.7.4"
 edition = "2021"
-rust-version = "1.59"
+rust-version = "1.60"
 links = "cortex-m"  # prevent multiple versions of this crate to be linked together
 
 [dependencies]
 critical-section = "1.0.0"
 volatile-register = "0.2.2"
 bitfield = "0.13.2"
-embedded-hal = "0.2.4"
+eh0 = { package = "embedded-hal", version = "0.2.4", optional = true }
+eh1 = { package = "embedded-hal", version = "1.0.0" }
 
 [dependencies.serde]
 version = "1"

@@ -13,7 +13,7 @@ jobs:
     continue-on-error: ${{ matrix.experimental || false }}
     strategy:
       matrix:
-        rust: [nightly, stable, 1.59.0]
+        rust: [nightly, stable, 1.60.0]
 
         include:
           # Nightly is only for reference and allowed to fail

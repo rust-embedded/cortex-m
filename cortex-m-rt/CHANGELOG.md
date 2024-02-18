@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add `zero-init-ram` feature to initialize RAM with zeros on startup. This can be necessary on
   safety-critical hardware to properly initialize memory integrity measures.
 - Add optional `exception` argument for `HardFault`. It has one option `trampoline` which is true by default. When set to false, no trampoline will be created and the function will be called as the exception handler directly.
+- MSRV increased to 1.60.0 to align with `embedded-hal` version 1.
 
 ## [v0.7.3]
 

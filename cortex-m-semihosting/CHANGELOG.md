@@ -5,6 +5,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+- MSRV bumped to 1.60 to align with `embedded-hal` version 1.
+
 ## [v0.5.0] - 2022-03-01
 
 - Always use inline-asm, requiring Rust 1.59.

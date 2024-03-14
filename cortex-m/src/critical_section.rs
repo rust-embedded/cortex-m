@@ -17,7 +17,7 @@ unsafe impl Impl for SingleCoreCriticalSection {
     unsafe fn release(was_active: RawRestoreState) {
         // Only re-enable interrupts if they were enabled before the critical section.
         if was_active {
-            // NOTE: Fence guarantees are provided by interrupt::disable(), which performs a
+            // NOTE: Fence guarantees are provided by interrupt::enable(), which performs a
             // `compiler_fence(SeqCst)`.
             interrupt::enable()
         }

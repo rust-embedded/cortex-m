@@ -730,7 +730,7 @@ pub use macros::entry;
 /// ## HardFault handler
 ///
 /// `#[exception(trampoline = true)] unsafe fn HardFault(..` sets the hard fault handler.
-/// If the trampoline parameter is set to true, the handler must have signature `unsafe fn(&ExceptionFrame) -> !`.
+/// If the trampoline parameter is set to true, the handler must have signature `unsafe fn(&mut ExceptionFrame) -> !`.
 /// If set to false, the handler must have signature `unsafe fn() -> !`.
 ///
 /// This handler is not allowed to return as that can cause undefined behavior.

@@ -64,12 +64,13 @@ macro_rules! iprintln {
 /// ```
 #[macro_export]
 macro_rules! singleton {
-    ($name:ident: $ty:ty = $expr:expr) => {
+    ($(#[$meta:meta])* $vis:vis $name:ident: $ty:ty = $expr:expr) => {
         $crate::_export::critical_section::with(|_| {
             // this is a tuple of a MaybeUninit and a bool because using an Option here is
             // problematic:  Due to niche-optimization, an Option could end up producing a non-zero
             // initializer value which would move the entire static from `.bss` into `.data`...
-            static mut $name: (::core::mem::MaybeUninit<$ty>, bool) =
+            $(#[$meta])*
+            $vis static mut $name: (::core::mem::MaybeUninit<$ty>, bool) =
                 (::core::mem::MaybeUninit::uninit(), false);
 
             #[allow(unsafe_code)]
@@ -115,3 +116,14 @@ const CFAIL: () = ();
 /// ```
 #[allow(dead_code)]
 const CPASS: () = ();
+
+/// ```
+/// use cortex_m::singleton;
+///
+/// fn foo() {
+///     // check that attributes and visibility are forwarded
+///     singleton!(#[link_section = ".bss"] pub(crate) FOO: u8 = 0);
+/// }
+/// ```
+#[allow(dead_code)]
+const CPASS_ATTR: () = ();

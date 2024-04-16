@@ -83,8 +83,7 @@ macro_rules! singleton {
                 #[allow(unsafe_code)]
                 unsafe {
                     $name.1 = true;
-                    $name.0 = ::core::mem::MaybeUninit::new(expr);
-                    Some($name.0.assume_init_mut())
+                    Some($name.0.write(expr))
                 }
             }
         })

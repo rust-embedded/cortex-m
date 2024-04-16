@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   exception handler directly.
 - MSRV increased to 1.60.0 to align with `embedded-hal` version 1.
 - Improve linker error message when code does not fit into flash.
+- Update documentation on using custom linker scripts and linker sections
+  and on the `pre_init` function.
 
 ## [v0.7.3]
 

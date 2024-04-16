@@ -12,18 +12,23 @@
 //!
 //! - Initializing `static` variables before the program entry point.
 //!
-//! - Enabling the FPU before the program entry point if the target is `thumbv7em-none-eabihf`.
+//! - Enabling the FPU before the program entry point if the target is `-eabihf`.
 //!
 //! This crate also provides the following attributes:
 //!
 //! - [`#[entry]`][attr-entry] to declare the entry point of the program
 //! - [`#[exception]`][attr-exception] to override an exception handler. If not overridden all
 //!   exception handlers default to an infinite loop.
-//! - [`#[pre_init]`][attr-pre_init] to run code *before* `static` variables are initialized
 //!
 //! This crate also implements a related attribute called `#[interrupt]`, which allows you
 //! to define interrupt handlers. However, since which interrupts are available depends on the
-//! microcontroller in use, this attribute should be re-exported and used from a device crate.
+//! microcontroller in use, this attribute should be re-exported and used from a peripheral
+//! access crate (PAC).
+//!
+//! A [`#[pre_init]`][attr-pre_init] macro is also provided to run a function before RAM
+//! initialisation, but its use is deprecated as it is not defined behaviour to execute Rust
+//! code before initialisation. It is still possible to create a custom `pre_init` function
+//! using assembly.
 //!
 //! The documentation for these attributes can be found in the [Attribute Macros](#attributes)
 //! section.
@@ -33,8 +38,9 @@
 //! ## `memory.x`
 //!
 //! This crate expects the user, or some other crate, to provide the memory layout of the target
-//! device via a linker script named `memory.x`. This section covers the contents of `memory.x`
-//! The `memory.x` file is used during linking by the `link.x` script provided by this crate.
+//! device via a linker script named `memory.x`, described in this section.  The `memory.x` file is
+//! used during linking by the `link.x` script provided by this crate. If you are using a custom
+//! linker script, you do not need a `memory.x` file.
 //!
 //! ### `MEMORY`
 //!
@@ -48,7 +54,7 @@
 //! MEMORY
 //! {
 //!   FLASH : ORIGIN = 0x08000000, LENGTH = 64K
-//!   RAM : ORIGIN = 0x20000000, LENGTH = 20K
+//!   RAM   : ORIGIN = 0x20000000, LENGTH = 20K
 //! }
 //! ```
 //!
@@ -56,7 +62,8 @@
 //!
 //! This optional symbol can be used to indicate where the call stack of the program should be
 //! placed. If this symbol is not used then the stack will be placed at the *end* of the `RAM`
-//! region -- the stack grows downwards towards smaller address.
+//! region -- the stack grows downwards towards smaller address. This is generally a sensible
+//! default and most applications will not need to specify `_stack_start`.
 //!
 //! For Cortex-M, the `_stack_start` must always be aligned to 8 bytes, which is enforced by
 //! the linker script. If you override it, ensure that whatever value you set is a multiple
@@ -65,13 +72,13 @@
 //! This symbol can be used to place the stack in a different memory region, for example:
 //!
 //! ```text
-//! /* Linker script for the STM32F303VCT6 */
+//! /* Linker script for the STM32F303VCT6 with stack in CCM */
 //! MEMORY
 //! {
 //!     FLASH : ORIGIN = 0x08000000, LENGTH = 256K
 //!
 //!     /* .bss, .data and the heap go in this region */
-//!     RAM : ORIGIN = 0x20000000, LENGTH = 40K
+//!     RAM   : ORIGIN = 0x20000000, LENGTH = 40K
 //!
 //!     /* Core coupled (faster) RAM dedicated to hold the stack */
 //!     CCRAM : ORIGIN = 0x10000000, LENGTH = 8K
@@ -106,17 +113,15 @@
 //! graph (see [`#[exception]`]). In this example we define them in the binary crate:
 //!
 //! ```no_run
-//! // IMPORTANT the standard `main` interface is not used because it requires nightly
 //! #![no_main]
 //! #![no_std]
 //!
 //! // Some panic handler needs to be included. This one halts the processor on panic.
-//! extern crate panic_halt;
+//! use panic_halt as _;
 //!
 //! use cortex_m_rt::entry;
 //!
-//! // use `main` as the entry point of this application
-//! // `main` is not allowed to return
+//! // Use `main` as the entry point of this application, which may not return.
 //! #[entry]
 //! fn main() -> ! {
 //!     // initialization
@@ -133,7 +138,6 @@
 //!
 //! ```text
 //! $ cat > memory.x <<EOF
-//! /* Linker script for the STM32F103C8T6 */
 //! MEMORY
 //! {
 //!   FLASH : ORIGIN = 0x08000000, LENGTH = 64K
@@ -141,8 +145,7 @@
 //! }
 //! EOF
 //!
-//! $ cargo rustc --target thumbv7m-none-eabi -- \
-//!       -C link-arg=-nostartfiles -C link-arg=-Tlink.x
+//! $ cargo rustc --target thumbv7m-none-eabi -- -C link-arg=-nostartfiles -C link-arg=-Tlink.x
 //!
 //! $ file target/thumbv7m-none-eabi/debug/app
 //! app: ELF 32-bit LSB executable, ARM, EABI5 version 1 (SYSV), statically linked, (..)
@@ -160,8 +163,8 @@
 //!
 //! If this feature is enabled then the interrupts section of the vector table is left unpopulated
 //! and some other crate, or the user, will have to populate it. This mode is meant to be used in
-//! conjunction with crates generated using `svd2rust`. Those *device crates* will populate the
-//! missing part of the vector table when their `"rt"` feature is enabled.
+//! conjunction with crates generated using `svd2rust`. Those peripheral access crates, or PACs,
+//! will populate the missing part of the vector table when their `"rt"` feature is enabled.
 //!
 //! ## `set-sp`
 //!
@@ -169,19 +172,18 @@
 //! `_stack_start` value from the linker script. This is not usually required, but some debuggers
 //! do not initialise SP when performing a soft reset, which can lead to stack corruption.
 //!
-//! ## `zero-init-ram`
-//!
-//! If this feature is enabled, RAM is initialized with zeros during startup from the `_ram_start`
-//! value to the `_ram_end` value from the linker script. This is not usually required, but might be
-//! necessary to properly initialize checksum-based memory integrity measures on safety-critical
-//! hardware.
-//!
 //! ## `set-vtor`
 //!
 //! If this feature is enabled, the vector table offset register (VTOR) is initialised in the reset
 //! handler to the start of the vector table defined in the linker script. This is not usually
 //! required, but some bootloaders do not set VTOR before jumping to application code, leading to
 //! your main function executing but interrupt handlers not being used.
+//!
+//! ## `zero-init-ram`
+//!
+//! If this feature is enabled, RAM is initialized with zeros during startup from the `_ram_start`
+//! value to the `_ram_end` value from the linker script. This is not usually required, but might be
+//! necessary to properly initialize memory integrity measures on some hardware.
 //!
 //! # Inspection
 //!
@@ -252,13 +254,21 @@
 //! `__EXCEPTIONS` in the `.vector_table` section.
 //!
 //! - `__pre_init`. This is a function to be run before RAM is initialized. It defaults to an empty
-//! function. The function called can be changed by applying the [`#[pre_init]`][attr-pre_init]
-//! attribute to a function.
+//! function. As this runs before RAM is initialised, it is not sound to use a Rust function for
+//! `pre_init`, and instead it should typically be written in assembly using `global_asm` or an
+//! external assembly file.
 //!
 //! If you override any exception handler you'll find it as an unmangled symbol, e.g. `SysTick` or
 //! `SVCall`, in the output of `objdump`,
 //!
 //! # Advanced usage
+//!
+//! ## Custom linker script
+//!
+//! To use your own linker script, ensure it is placed in the linker search path (for example in
+//! the crate root or in Cargo's `OUT_DIR`) and use it with `-C link-arg=-Tmy_script.ld` instead
+//! of the normal `-C link-arg=-Tlink.x`. The provided `link.x` may be used as a starting point
+//! for customisation.
 //!
 //! ## Setting the program entry point
 //!
@@ -278,7 +288,7 @@
 //!
 //! This section covers how an external crate can insert device specific interrupt handlers into the
 //! vector table. Most users don't need to concern themselves with these details, but if you are
-//! interested in how device crates generated using `svd2rust` integrate with `cortex-m-rt` read on.
+//! interested in how PACs generated using `svd2rust` integrate with `cortex-m-rt` read on.
 //!
 //! The information in this section applies when the `"device"` feature has been enabled.
 //!
@@ -381,8 +391,7 @@
 //! to be used as thread stacks) -- this can considerably reduce initialization time on devices that
 //! operate at low frequencies.
 //!
-//! The only correct way to use this section is by placing `static mut` variables with type
-//! [`MaybeUninit`] in it.
+//! The only correct way to use this section is with [`MaybeUninit`] types.
 //!
 //! [`MaybeUninit`]: https://doc.rust-lang.org/core/mem/union.MaybeUninit.html
 //!
@@ -398,16 +407,14 @@
 //! ```
 //!
 //! Be very careful with the `link_section` attribute because it's easy to misuse in ways that cause
-//! undefined behavior. At some point in the future we may add an attribute to safely place static
-//! variables in this section.
+//! undefined behavior.
 //!
 //! ## Extra Sections
 //!
-//! Some microcontrollers provide additional memory regions beyond RAM and FLASH.
-//! For example, some STM32 devices provide "CCM" or core-coupled RAM that is
-//! only accessible from the core. In order to access these using
-//! [`link_section`] attributes from your code, you need to modify `memory.x`
-//! to declare the additional sections:
+//! Some microcontrollers provide additional memory regions beyond RAM and FLASH. For example,
+//! some STM32 devices provide "CCM" or core-coupled RAM that is only accessible from the core. In
+//! order to place variables in these sections using [`link_section`] attributes from your code,
+//! you need to modify `memory.x` to declare the additional sections:
 //!
 //! [`link_section`]: https://doc.rust-lang.org/reference/abi.html#the-link_section-attribute
 //!
@@ -432,9 +439,15 @@
 //! You can then use something like this to place a variable into this specific section of memory:
 //!
 //! ```no_run,edition2018
+//! # extern crate core;
+//! # use core::mem::MaybeUninit;
 //! #[link_section=".ccmram.BUFFERS"]
-//! static mut BUF: [u8; 1024] = [0u8; 1024];
+//! static mut BUF: MaybeUninit<[u8; 1024]> = MaybeUninit::uninit();
 //! ```
+//!
+//! However, note that these sections are not initialised by cortex-m-rt, and so must be used
+//! either with `MaybeUninit` types or you must otherwise arrange for them to be initialised
+//! yourself, such as in `pre_init`.
 //!
 //! [attr-entry]: attr.entry.html
 //! [attr-exception]: attr.exception.html
@@ -577,7 +590,7 @@ cfg_global_asm! {
 ///
 /// **NOTE**: This attribute is exposed by `cortex-m-rt` only when the `device` feature is enabled.
 /// However, that export is not meant to be used directly -- using it will result in a compilation
-/// error. You should instead use the device crate (usually generated using `svd2rust`) re-export of
+/// error. You should instead use the PAC (usually generated using `svd2rust`) re-export of
 /// that attribute. You need to use the re-export to have the compiler check that the interrupt
 /// exists on the target device.
 ///
@@ -586,7 +599,7 @@ cfg_global_asm! {
 /// ``` ignore
 /// extern crate device;
 ///
-/// // the attribute comes from the device crate not from cortex-m-rt
+/// // the attribute comes from the PAC not from cortex-m-rt
 /// use device::interrupt;
 ///
 /// #[interrupt]

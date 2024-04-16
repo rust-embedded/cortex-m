@@ -7,10 +7,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-- Add `zero-init-ram` feature to initialize RAM with zeros on startup. This can be necessary on
-  safety-critical hardware to properly initialize memory integrity measures.
-- Add optional `exception` argument for `HardFault`. It has one option `trampoline` which is true by default. When set to false, no trampoline will be created and the function will be called as the exception handler directly.
+## [v0.7.4]
+
+- Add `zero-init-ram` feature to initialize RAM with zeros on startup.
+  This can be necessary to properly initialise hardware error detection.
+- Add optional `exception` argument for `HardFault`.
+  It has one option `trampoline` which is `true` by default. When set to `false`,
+  no trampoline will be created and the function will be called as the
+  exception handler directly.
 - MSRV increased to 1.60.0 to align with `embedded-hal` version 1.
+- Improve linker error message when code does not fit into flash.
+- Update documentation on using custom linker scripts and linker sections
+  and on the `pre_init` function.
 
 ## [v0.7.3]
 
@@ -621,7 +629,8 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.3...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.4...HEAD
+[v0.7.4]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.3...c-m-rt-v0.7.4
 [v0.7.3]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.2...c-m-rt-v0.7.3
 [v0.7.2]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.1...c-m-rt-v0.7.2
 [v0.7.1]: https://github.com/rust-embedded/cortex-m-rt/compare/v0.7.0...v0.7.1

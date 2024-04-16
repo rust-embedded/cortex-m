@@ -94,7 +94,7 @@ pub fn isb() {
     compiler_fence(Ordering::SeqCst);
     #[cfg(cortex_m)]
     unsafe {
-        asm!("isb", options(nomem, nostack, preserves_flags))
+        asm!("isb", options(nostack, preserves_flags))
     };
     compiler_fence(Ordering::SeqCst);
 }
@@ -111,7 +111,7 @@ pub fn dsb() {
     compiler_fence(Ordering::SeqCst);
     #[cfg(cortex_m)]
     unsafe {
-        asm!("dsb", options(nomem, nostack, preserves_flags))
+        asm!("dsb", options(nostack, preserves_flags))
     };
     compiler_fence(Ordering::SeqCst);
 }
@@ -126,7 +126,7 @@ pub fn dmb() {
     compiler_fence(Ordering::SeqCst);
     #[cfg(cortex_m)]
     unsafe {
-        asm!("dmb", options(nomem, nostack, preserves_flags))
+        asm!("dmb", options(nostack, preserves_flags))
     };
     compiler_fence(Ordering::SeqCst);
 }

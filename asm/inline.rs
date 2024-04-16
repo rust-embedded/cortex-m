@@ -72,21 +72,21 @@ pub unsafe fn __delay(cyc: u32) {
 #[inline(always)]
 pub unsafe fn __dmb() {
     compiler_fence(Ordering::SeqCst);
-    asm!("dmb", options(nomem, nostack, preserves_flags));
+    asm!("dmb", options(nostack, preserves_flags));
     compiler_fence(Ordering::SeqCst);
 }
 
 #[inline(always)]
 pub unsafe fn __dsb() {
     compiler_fence(Ordering::SeqCst);
-    asm!("dsb", options(nomem, nostack, preserves_flags));
+    asm!("dsb", options(nostack, preserves_flags));
     compiler_fence(Ordering::SeqCst);
 }
 
 #[inline(always)]
 pub unsafe fn __isb() {
     compiler_fence(Ordering::SeqCst);
-    asm!("isb", options(nomem, nostack, preserves_flags));
+    asm!("isb", options(nostack, preserves_flags));
     compiler_fence(Ordering::SeqCst);
 }
 

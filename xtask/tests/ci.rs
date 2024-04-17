@@ -58,8 +58,6 @@ fn check_crates_build(is_nightly: bool, is_msrv: bool) {
             // Relies on all crates in this repo to use the same convention.
             let should_use_feature = |feat: &str| {
                 match feat {
-                    // critical-section doesn't build in 1.38 due to using `#[doc(include_str!(..))]`
-                    "critical-section-single-core" => !is_msrv,
                     // This is nightly-only, so don't use it on stable.
                     "inline-asm" => is_nightly,
                     // This only affects thumbv7em targets.
@@ -105,7 +103,7 @@ fn main() {
 
     let output = Command::new("rustc").arg("-V").output().unwrap();
     let is_nightly = str::from_utf8(&output.stdout).unwrap().contains("nightly");
-    let is_msrv = str::from_utf8(&output.stdout).unwrap().contains("1.38");
+    let is_msrv = str::from_utf8(&output.stdout).unwrap().contains("1.59");
 
     check_crates_build(is_nightly, is_msrv);
 

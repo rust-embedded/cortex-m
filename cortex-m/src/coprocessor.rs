@@ -6,7 +6,7 @@
 /// This instruction moves one Register to a Coprocessor Register.
 /// For this function to compile to a single instruction, compile to opt-level > 2.
 #[inline(always)]
-pub(crate) fn mcr<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32, const OP2: u32>(value: u32) {
+pub fn mcr<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32, const OP2: u32>(value: u32) {
     unsafe {
         core::arch::asm!(
             "MCR p{cp}, #{op1}, {0}, c{crn}, c{crm}, #{op2}",
@@ -27,7 +27,7 @@ pub(crate) fn mcr<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32,
 /// This instruction moves one Coprocessor Register to a Register.
 /// For this function to compile to a single instruction, compile to opt-level > 2.
 #[inline(always)]
-pub(crate) fn mrc<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32, const OP2: u32>() -> u32 {
+pub fn mrc<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32, const OP2: u32>() -> u32 {
     // Preallocate the value.
     let a: u32;
 
@@ -53,7 +53,7 @@ pub(crate) fn mrc<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32,
 /// This instruction moves two Registers to Coprocessor Registers.
 /// For this function to compile to a single instruction, compile to opt-level > 2.
 #[inline(always)]
-pub(crate) fn mcrr<const CP: u32, const OP1: u32, const CRM: u32>(a: u32, b: u32) {
+pub fn mcrr<const CP: u32, const OP1: u32, const CRM: u32>(a: u32, b: u32) {
     unsafe {
         core::arch::asm!(
             "MCRR p{cp}, #{op1}, {0}, {1}, c{crm}",
@@ -73,7 +73,7 @@ pub(crate) fn mcrr<const CP: u32, const OP1: u32, const CRM: u32>(a: u32, b: u32
 /// This instruction moves two Coprocessor Registers to Registers.
 /// For this function to compile to a single instruction, compile to opt-level > 2.
 #[inline(always)]
-pub(crate) fn mrrc<const CP: u32, const OPC: u32, const CRM: u32>() -> (u32, u32) {
+pub fn mrrc<const CP: u32, const OPC: u32, const CRM: u32>() -> (u32, u32) {
     // Preallocate the values.
     let a: u32;
     let b: u32;

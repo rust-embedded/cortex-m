@@ -4,7 +4,6 @@
 
 /// Internal function to create an inlined MCR instruction.
 /// This instruction moves one Register to a Coprocessor Register.
-/// For this function to compile to a single instruction, compile to opt-level > 2.
 #[inline(always)]
 pub fn mcr<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32, const OP2: u32>(value: u32) {
     unsafe {
@@ -25,7 +24,6 @@ pub fn mcr<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32, const 
 
 /// Internal function to create an inlined MRC instruction.
 /// This instruction moves one Coprocessor Register to a Register.
-/// For this function to compile to a single instruction, compile to opt-level > 2.
 #[inline(always)]
 pub fn mrc<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32, const OP2: u32>() -> u32 {
     // Preallocate the value.
@@ -51,7 +49,6 @@ pub fn mrc<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32, const 
 
 /// Internal function to create an inlined MCRR instruction.
 /// This instruction moves two Registers to Coprocessor Registers.
-/// For this function to compile to a single instruction, compile to opt-level > 2.
 #[inline(always)]
 pub fn mcrr<const CP: u32, const OP1: u32, const CRM: u32>(a: u32, b: u32) {
     unsafe {
@@ -71,7 +68,6 @@ pub fn mcrr<const CP: u32, const OP1: u32, const CRM: u32>(a: u32, b: u32) {
 
 /// Internal function to create an inlined MRRC instruction.
 /// This instruction moves two Coprocessor Registers to Registers.
-/// For this function to compile to a single instruction, compile to opt-level > 2.
 #[inline(always)]
 pub fn mrrc<const CP: u32, const OPC: u32, const CRM: u32>() -> (u32, u32) {
     // Preallocate the values.

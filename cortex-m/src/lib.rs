@@ -59,6 +59,8 @@ mod macros;
 pub mod asm;
 #[cfg(armv8m)]
 pub mod cmse;
+#[cfg(all(not(armv6m), feature = "coprocessor"))]
+pub mod coprocessor;
 pub mod delay;
 pub mod interrupt;
 #[cfg(all(not(armv6m), not(armv8m_base)))]

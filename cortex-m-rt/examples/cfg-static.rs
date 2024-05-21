@@ -4,6 +4,8 @@
 #![deny(warnings)]
 #![no_main]
 #![no_std]
+// This example uses an undefined cfg, `cfg(never)`
+#![allow(unexpected_cfgs)]
 
 extern crate cortex_m_rt as rt;
 extern crate panic_halt;

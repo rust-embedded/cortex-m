@@ -21,6 +21,7 @@ main() {
         divergent-default-handler
         divergent-exception
         entry-static
+        hard-fault-trampoline
         main
         minimal
         override-exception

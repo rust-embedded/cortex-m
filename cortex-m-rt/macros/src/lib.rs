@@ -368,6 +368,10 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                     #(#attrs)*
                     #[doc(hidden)]
                     #[export_name = "_HardFault"]
+                    // Only emit link_section when building for embedded targets,
+                    // because some hosted platforms (used to check the build)
+                    // cannot handle the long link section names.
+                    #[cfg_attr(target_os = "none", link_section = ".HardFault.user")]
                     unsafe extern "C" fn #tramp_ident(frame: &::cortex_m_rt::ExceptionFrame) {
                         #ident(frame)
                     }
@@ -379,7 +383,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                     // Depending on the stack mode in EXC_RETURN, fetches stack from either MSP or PSP.
                     core::arch::global_asm!(
                         ".cfi_sections .debug_frame
-                        .section .HardFault.user, \"ax\"
+                        .section .HardFaultTrampoline, \"ax\"
                         .global HardFault
                         .type HardFault,%function
                         .thumb_func

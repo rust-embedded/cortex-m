@@ -4,6 +4,16 @@ fn main() {
     let target = env::var("TARGET").unwrap();
     let host_triple = env::var("HOST").unwrap();
 
+    println!("cargo:rustc-check-cfg=cfg(armv6m)");
+    println!("cargo:rustc-check-cfg=cfg(armv7em)");
+    println!("cargo:rustc-check-cfg=cfg(armv7m)");
+    println!("cargo:rustc-check-cfg=cfg(armv8m)");
+    println!("cargo:rustc-check-cfg=cfg(armv8m_base)");
+    println!("cargo:rustc-check-cfg=cfg(armv8m_main)");
+    println!("cargo:rustc-check-cfg=cfg(cortex_m)");
+    println!("cargo:rustc-check-cfg=cfg(has_fpu)");
+    println!("cargo:rustc-check-cfg=cfg(native)");
+
     if host_triple == target {
         println!("cargo:rustc-cfg=native");
     }

@@ -76,4 +76,5 @@ jobs:
           probe-rs run \
           --chip STM32F070RBTx \
           --connect-under-reset \
+          --probe 0483:374b:066CFF504955857567220634 \
           testsuite-bin/testsuite

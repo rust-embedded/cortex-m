@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+- MSRV is now Rust 1.61 to support syn verions >=2.0.68
+
 ## [v0.7.4]
 
 - Add `zero-init-ram` feature to initialize RAM with zeros on startup.

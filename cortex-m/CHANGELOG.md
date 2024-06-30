@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 - Inline assembly is now always used, requiring Rust 1.59.
+- Bumped MSRV to 1.61 for compatibility with syn versions >=2.0.68.
 
 ### Removed
 - removed all peripherals `ptr()` functions in favor of the associated constant `PTR` (#385).

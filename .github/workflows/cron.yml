@@ -2,6 +2,7 @@ on:
   schedule:
     # Run every week at 8am UTC Saturday.
     - cron: '0 8 * * SAT'
+  workflow_dispatch:
 
 name: Cron CI
 

@@ -4,6 +4,7 @@ on:
       - "gh-readonly-queue/**"
   pull_request:
   merge_group:
+  workflow_dispatch:
 
 name: Code formatting check
 

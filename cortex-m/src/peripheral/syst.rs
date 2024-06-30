@@ -1,4 +1,18 @@
 //! SysTick: System Timer
+//!
+//! # Example
+//!
+//! ```no_run
+//! use cortex_m::peripheral::{Peripherals, SYST};
+//!
+//! let core_periph = cortex_m::peripheral::Peripherals::take().unwrap();
+//! let mut syst = core_periph.SYST;
+//! syst.set_reload(0xffffff);
+//! syst.clear_current();
+//! syst.enable_counter();
+//!
+//! let syst_value: u32 = SYST::get_current();
+//! ```
 
 use volatile_register::{RO, RW};
 

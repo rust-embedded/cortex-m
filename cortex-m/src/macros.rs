@@ -37,7 +37,7 @@ macro_rules! iprintln {
 /// have to provide one from elsewhere, typically your chip's HAL crate.
 ///
 /// For debuggability, you can set an explicit name for a singleton.  This name only shows up the
-/// the debugger and is not referencable from other code.  See example below.
+/// the debugger and is not referenceable from other code.  See example below.
 ///
 /// # Example
 ///

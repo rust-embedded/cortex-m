@@ -54,7 +54,7 @@ pub unsafe fn enable() {
 
 /// Execute closure `f` with interrupts disabled in the current core.
 ///
-/// This method does not synchronise multiple cores and may disable required
+/// This method does not synchronize multiple cores and may disable required
 /// interrupts on some platforms; see the `critical-section` crate for a cross-platform
 /// way to enter a critical section which provides a `CriticalSection` token.
 ///

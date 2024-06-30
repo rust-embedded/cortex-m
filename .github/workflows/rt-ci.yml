@@ -10,7 +10,7 @@ name: cortex-m-rt CI
 
 jobs:
   rt-ci-linux:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     continue-on-error: ${{ matrix.experimental || false }}
     strategy:
       matrix:

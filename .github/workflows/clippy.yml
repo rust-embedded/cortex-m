@@ -12,15 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        if: github.event_name == 'pull_request_target'
-        with:
-          ref: refs/pull/${{ github.event.number }}/head
-      - uses: actions/checkout@v4
-        if: github.event_name != 'pull_request_target'
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
-      - uses: actions-rs/clippy-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all --features cortex-m/critical-section-single-core
+      - run: cargo clippy --all --features cortex-m/critical-section-single-core -- --deny warnings

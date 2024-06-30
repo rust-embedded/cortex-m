@@ -368,7 +368,7 @@ pub enum EmitOption {
     WatchpointDebugEvent,
     /// Generate a `CMPMATCH[N]` event.
     ///
-    /// See more in section "CMPMATCH[N] event generation" page C1-730.
+    /// See more in section "`CMPMATCH[N]` event generation" page C1-730.
     CompareMatchEvent,
 }
 

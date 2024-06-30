@@ -42,13 +42,13 @@ fn tests_impl(args: TokenStream, input: TokenStream) -> parse::Result<TokenStrea
                 let mut should_error = false;
 
                 f.attrs.retain(|attr| {
-                    if attr.path.is_ident("init") {
+                    if attr.path().is_ident("init") {
                         test_kind = Some(Attr::Init);
                         false
-                    } else if attr.path.is_ident("test") {
+                    } else if attr.path().is_ident("test") {
                         test_kind = Some(Attr::Test);
                         false
-                    } else if attr.path.is_ident("should_error") {
+                    } else if attr.path().is_ident("should_error") {
                         should_error = true;
                         false
                     } else {
@@ -307,7 +307,7 @@ fn extract_cfgs(attrs: &[Attribute]) -> Vec<Attribute> {
     let mut cfgs = vec![];
 
     for attr in attrs {
-        if attr.path.is_ident("cfg") {
+        if attr.path().is_ident("cfg") {
             cfgs.push(attr.clone());
         }
     }

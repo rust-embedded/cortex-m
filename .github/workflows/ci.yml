@@ -4,6 +4,7 @@ on:
       - "gh-readonly-queue/**"
   pull_request:
   merge_group:
+  workflow_dispatch:
 
 name: cortex-m CI
 
@@ -30,5 +31,3 @@ jobs:
           toolchain: ${{ matrix.rust }}
       - name: Run tests
         run: cargo test --all --exclude cortex-m-rt --exclude testsuite --features cortex-m/critical-section-single-core
-
-# FIXME: test on macOS and Windows

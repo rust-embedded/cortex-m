@@ -4,6 +4,7 @@ on:
       - "gh-readonly-queue/**"
   pull_request:
   merge_group:
+  workflow_dispatch:
 
 name: Code formatting check
 
@@ -16,7 +17,4 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
-      - uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+      - run: cargo fmt --all -- --check

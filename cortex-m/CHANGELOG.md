@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added `critical-section-single-core` feature which provides an implementation for the `critical_section` crate for single-core systems, based on disabling all interrupts. (#447)
 - Added support for `embedded-hal` version 1 delay traits, requiring rust 1.60.
 - `singleton!()` now forwards attributes (#522).
+- Added `set_sevonpend` and `clear_sevonpend` (#539).
 
 ### Fixed
 - Fixed `singleton!()` statics sometimes ending up in `.data` instead of `.bss` (#364, #380).

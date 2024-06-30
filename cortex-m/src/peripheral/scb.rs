@@ -362,7 +362,7 @@ impl SCB {
         let mut cbp = unsafe { CBP::new() };
 
         // Disable I-cache
-        // NOTE(unsafe): We have synchronised access by &mut self
+        // NOTE(unsafe): We have synchronized access by &mut self
         unsafe { self.ccr.modify(|r| r & !SCB_CCR_IC_MASK) };
 
         // Invalidate I-cache
@@ -435,7 +435,7 @@ impl SCB {
         }
 
         // Turn off the D-cache
-        // NOTE(unsafe): We have synchronised access by &mut self
+        // NOTE(unsafe): We have synchronized access by &mut self
         unsafe { self.ccr.modify(|r| r & !SCB_CCR_DC_MASK) };
 
         // Clean and invalidate whatever was left in it

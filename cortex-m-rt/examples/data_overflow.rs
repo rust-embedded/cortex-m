@@ -12,18 +12,31 @@ use core::ptr;
 
 use rt::entry;
 
-// This large static array uses most of .rodata
-static RODATA: [u8; 48 * 1024] = [1u8; 48 * 1024];
+// Large static arrays uses most of .rodata
+static RODATA_0: [u8; 8 * 1024] = [1u8; 8 * 1024];
+static RODATA_1: [u8; 8 * 1024] = [1u8; 8 * 1024];
+static RODATA_2: [u8; 8 * 1024] = [1u8; 8 * 1024];
+static RODATA_3: [u8; 8 * 1024] = [1u8; 8 * 1024];
+static RODATA_4: [u8; 8 * 1024] = [1u8; 8 * 1024];
+static RODATA_5: [u8; 8 * 1024] = [1u8; 8 * 1024];
 
-// This large mutable array causes .data to use the rest of FLASH
+// These large mutable arrays causes .data to use the rest of FLASH
 // without also overflowing RAM.
-static mut DATA: [u8; 16 * 1024] = [1u8; 16 * 1024];
+static mut DATA_0: [u8; 8 * 1024] = [1u8; 8 * 1024];
+static mut DATA_1: [u8; 8 * 1024] = [1u8; 8 * 1024];
 
 #[entry]
 fn main() -> ! {
     unsafe {
-        let _bigdata = ptr::read_volatile(ptr::addr_of!(RODATA));
-        let _bigdata = ptr::read_volatile(ptr::addr_of!(DATA));
+        let _ = ptr::read_volatile(ptr::addr_of!(RODATA_0));
+        let _ = ptr::read_volatile(ptr::addr_of!(RODATA_1));
+        let _ = ptr::read_volatile(ptr::addr_of!(RODATA_2));
+        let _ = ptr::read_volatile(ptr::addr_of!(RODATA_3));
+        let _ = ptr::read_volatile(ptr::addr_of!(RODATA_4));
+        let _ = ptr::read_volatile(ptr::addr_of!(RODATA_5));
+
+        let _ = ptr::read_volatile(ptr::addr_of!(DATA_0));
+        let _ = ptr::read_volatile(ptr::addr_of!(DATA_1));
     }
 
     loop {}

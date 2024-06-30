@@ -27,7 +27,7 @@ panic-halt = "0.2.0"
 cortex-m-semihosting = { path = "../cortex-m-semihosting" }
 
 [target.'cfg(not(target_os = "none"))'.dev-dependencies]
-compiletest_rs = "0.7"
+compiletest_rs = "0.11"
 
 [[example]]
 name = "device"

@@ -28,10 +28,10 @@
 //! panicked at 'FOO', src/main.rs:6:5
 //! ```
 
+#![no_std]
 #![cfg(any(all(target_arch = "arm", target_os = "none"), doc))]
 #![deny(missing_docs)]
 #![deny(warnings)]
-#![no_std]
 
 extern crate cortex_m;
 

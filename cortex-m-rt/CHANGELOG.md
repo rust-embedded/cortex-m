@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.7.5]
+
+- Fix incorrect dependency on cortex-m-rt-macros in v0.7.4 which led to
+  incorrect HardFault handlers being generated.
 - MSRV is now Rust 1.61 to support syn verions >=2.0.68
 
 ## [v0.7.4]
@@ -631,7 +635,8 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.4...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.5...HEAD
+[v0.7.4]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.4...c-m-rt-v0.7.5
 [v0.7.4]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.3...c-m-rt-v0.7.4
 [v0.7.3]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.2...c-m-rt-v0.7.3
 [v0.7.2]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.1...c-m-rt-v0.7.2

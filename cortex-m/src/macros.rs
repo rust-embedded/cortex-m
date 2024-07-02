@@ -36,8 +36,8 @@ macro_rules! iprintln {
 /// you can enable the `critical-section-single-core` feature for this crate. For other systems, you
 /// have to provide one from elsewhere, typically your chip's HAL crate.
 ///
-/// For debuggability, you can set an explicit name for a singleton.  This name only shows up the
-/// the debugger and is not referenceable from other code.  See example below.
+/// For debuggability, you can set an explicit name for a singleton. This name only shows up the
+/// debugger and is not referenceable from other code. See example below.
 ///
 /// # Example
 ///

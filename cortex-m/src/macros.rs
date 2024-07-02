@@ -33,8 +33,8 @@ macro_rules! iprintln {
 /// # Notes
 /// This macro is unsound on multi core systems.
 ///
-/// For debuggability, you can set an explicit name for a singleton.  This name only shows up the
-/// the debugger and is not referencable from other code.  See example below.
+/// For debuggability, you can set an explicit name for a singleton. This name only shows up the
+/// debugger and is not referenceable from other code. See example below.
 ///
 /// # Example
 ///

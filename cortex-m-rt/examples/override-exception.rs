@@ -22,7 +22,7 @@ unsafe fn DefaultHandler(_irqn: i16) {
 }
 
 #[exception]
-unsafe fn HardFault(_ef: &ExceptionFrame) -> ! {
+unsafe fn HardFault(_ef: &mut ExceptionFrame) -> ! {
     asm::bkpt();
 
     loop {}

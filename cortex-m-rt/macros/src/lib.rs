@@ -325,7 +325,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                         && match &f.sig.inputs[0] {
                             FnArg::Typed(arg) => match arg.ty.as_ref() {
                                 Type::Reference(r) => {
-                                    r.lifetime.is_none() && r.mutability.is_none()
+                                    r.lifetime.is_none() && r.mutability.is_some()
                                 }
                                 _ => false,
                             },
@@ -346,7 +346,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                 return parse::Error::new(
                     fspan,
                     if args.trampoline {
-                        "`HardFault` handler must have signature `unsafe fn(&ExceptionFrame) -> !`"
+                        "`HardFault` handler must have signature `unsafe fn(&mut ExceptionFrame) -> !`"
                     } else {
                         "`HardFault` handler must have signature `unsafe fn() -> !`"
                     },
@@ -368,7 +368,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                     #(#attrs)*
                     #[doc(hidden)]
                     #[export_name = "_HardFault"]
-                    unsafe extern "C" fn #tramp_ident(frame: &::cortex_m_rt::ExceptionFrame) {
+                    unsafe extern "C" fn #tramp_ident(frame: &mut ::cortex_m_rt::ExceptionFrame) {
                         #ident(frame)
                     }
 

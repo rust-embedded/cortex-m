@@ -12,7 +12,7 @@ fn foo() -> ! {
 }
 
 #[exception]
-unsafe fn HardFault(_ef: &ExceptionFrame) -> ! {
+unsafe fn HardFault(_ef: &mut ExceptionFrame) -> ! {
     loop {}
 }
 
@@ -20,7 +20,7 @@ pub mod reachable {
     use cortex_m_rt::{exception, ExceptionFrame};
 
     #[exception] //~ ERROR symbol `_HardFault` is already defined
-    unsafe fn HardFault(_ef: &ExceptionFrame) -> ! {
+    unsafe fn HardFault(_ef: &mut ExceptionFrame) -> ! {
         loop {}
     }
 }

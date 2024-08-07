@@ -46,6 +46,7 @@ device = []
 set-sp = []
 set-vtor = []
 zero-init-ram = []
+paint-stack = []
 
 [package.metadata.docs.rs]
 features = ["device"]

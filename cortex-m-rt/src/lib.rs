@@ -188,8 +188,8 @@
 //! ## `paint-stack`
 //!
 //! Everywhere between `__sheap` and `___stack_start` is painted with the fixed value `STACK_PAINT_VALUE`.
-//! You can then inspect memory during debugging to determine how much of the stack has been used
-//! - where the stack has been used the 'paint' will have been 'scrubbed off' and the memory will
+//! You can then inspect memory during debugging to determine how much of the stack has been used -
+//! where the stack has been used the 'paint' will have been 'scrubbed off' and the memory will
 //! have a value other than `STACK_PAINT_VALUE`.
 //!
 //! # Inspection
@@ -232,7 +232,7 @@
 //!   using the `main` symbol so you will also find that symbol in your program.
 //!
 //! - `DefaultHandler`. This is the default handler. If not overridden using `#[exception] fn
-//! DefaultHandler(..` this will be an infinite loop.
+//!   DefaultHandler(..` this will be an infinite loop.
 //!
 //! - `HardFault` and `_HardFault`. These function handle the hard fault handling and what they
 //!   do depends on whether the hard fault is overridden and whether the trampoline is enabled (which it is by default).
@@ -899,6 +899,7 @@ pub static __ONCE__: () = ();
 /// Registers stacked (pushed onto the stack) during an exception.
 #[derive(Clone, Copy)]
 #[repr(C)]
+#[allow(dead_code)]
 pub struct ExceptionFrame {
     r0: u32,
     r1: u32,

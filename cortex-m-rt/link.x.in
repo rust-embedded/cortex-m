@@ -7,7 +7,7 @@
   static mut __sbss }`).
 
 - `EXTERN` forces the linker to keep a symbol in the final binary. We use this to make sure a
-  symbol if not dropped if it appears in or near the front of the linker arguments and "it's not
+  symbol is not dropped if it appears in or near the front of the linker arguments and "it's not
   needed" by any of the preceding objects (linker arguments)
 
 - `PROVIDE` is used to provide default values that can be overridden by a user linker script

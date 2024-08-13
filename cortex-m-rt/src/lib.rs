@@ -8,7 +8,7 @@
 //! This crates takes care of:
 //!
 //! - The memory layout of the program. In particular, it populates the vector table so the device
-//! can boot correctly, and properly dispatch exceptions and interrupts.
+//!   can boot correctly, and properly dispatch exceptions and interrupts.
 //!
 //! - Initializing `static` variables before the program entry point.
 //!
@@ -221,42 +221,42 @@
 //! One will always find the following (unmangled) symbols in `cortex-m-rt` applications:
 //!
 //! - `Reset`. This is the reset handler. The microcontroller will execute this function upon
-//! booting. This function will call the user program entry point (cf. [`#[entry]`][attr-entry])
-//! using the `main` symbol so you will also find that symbol in your program.
+//!   booting. This function will call the user program entry point (cf. [`#[entry]`][attr-entry])
+//!   using the `main` symbol so you will also find that symbol in your program.
 //!
 //! - `DefaultHandler`. This is the default handler. If not overridden using `#[exception] fn
 //! DefaultHandler(..` this will be an infinite loop.
 //!
 //! - `HardFault` and `_HardFault`. These function handle the hard fault handling and what they
-//! do depends on whether the hard fault is overridden and whether the trampoline is enabled (which it is by default).
+//!   do depends on whether the hard fault is overridden and whether the trampoline is enabled (which it is by default).
 //!   - No override: Both are the same function. The function is an infinite loop defined in the cortex-m-rt crate.
 //!   - Trampoline enabled: `HardFault` is the real hard fault handler defined in assembly. This function is simply a
-//! trampoline that jumps into the rust defined `_HardFault` function. This second function jumps to the user-defined
-//! handler with the exception frame as parameter. This second jump is usually optimised away with inlining.
+//!     trampoline that jumps into the rust defined `_HardFault` function. This second function jumps to the user-defined
+//!     handler with the exception frame as parameter. This second jump is usually optimised away with inlining.
 //!   - Trampoline disabled: `HardFault` is the user defined function. This means the user function is called directly
-//! from the vector table. `_HardFault` still exists, but is an empty function that is purely there for compiler
-//! diagnostics.
+//!     from the vector table. `_HardFault` still exists, but is an empty function that is purely there for compiler
+//!     diagnostics.
 //!
 //! - `__STACK_START`. This is the first entry in the `.vector_table` section. This symbol contains
-//! the initial value of the stack pointer; this is where the stack will be located -- the stack
-//! grows downwards towards smaller addresses.
+//!   the initial value of the stack pointer; this is where the stack will be located -- the stack
+//!   grows downwards towards smaller addresses.
 //!
 //! - `__RESET_VECTOR`. This is the reset vector, a pointer to the `Reset` function. This vector
-//! is located in the `.vector_table` section after `__STACK_START`.
+//!   is located in the `.vector_table` section after `__STACK_START`.
 //!
 //! - `__EXCEPTIONS`. This is the core exceptions portion of the vector table; it's an array of 14
-//! exception vectors, which includes exceptions like `HardFault` and `SysTick`. This array is
-//! located after `__RESET_VECTOR` in the `.vector_table` section.
+//!   exception vectors, which includes exceptions like `HardFault` and `SysTick`. This array is
+//!   located after `__RESET_VECTOR` in the `.vector_table` section.
 //!
 //! - `__INTERRUPTS`. This is the device specific interrupt portion of the vector table; its exact
-//! size depends on the target device but if the `"device"` feature has not been enabled it will
-//! have a size of 32 vectors (on ARMv6-M) or 240 vectors (on ARMv7-M). This array is located after
-//! `__EXCEPTIONS` in the `.vector_table` section.
+//!   size depends on the target device but if the `"device"` feature has not been enabled it will
+//!   have a size of 32 vectors (on ARMv6-M) or 240 vectors (on ARMv7-M). This array is located after
+//!   `__EXCEPTIONS` in the `.vector_table` section.
 //!
 //! - `__pre_init`. This is a function to be run before RAM is initialized. It defaults to an empty
-//! function. As this runs before RAM is initialised, it is not sound to use a Rust function for
-//! `pre_init`, and instead it should typically be written in assembly using `global_asm` or an
-//! external assembly file.
+//!   function. As this runs before RAM is initialised, it is not sound to use a Rust function for
+//!   `pre_init`, and instead it should typically be written in assembly using `global_asm` or an
+//!   external assembly file.
 //!
 //! If you override any exception handler you'll find it as an unmangled symbol, e.g. `SysTick` or
 //! `SVCall`, in the output of `objdump`,

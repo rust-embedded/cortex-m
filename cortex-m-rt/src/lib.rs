@@ -187,7 +187,8 @@
 //!
 //! ## `paint-stack`
 //!
-//! Everywhere between `__sheap` and `___stack_start` is painted with the fixed value `STACK_PAINT_VALUE`.
+//! Everywhere between `__sheap` and `___stack_start` is painted with the fixed value
+//! `STACK_PAINT_VALUE`, which is `0xCCCC_CCCC`.
 //! You can then inspect memory during debugging to determine how much of the stack has been used -
 //! where the stack has been used the 'paint' will have been 'scrubbed off' and the memory will
 //! have a value other than `STACK_PAINT_VALUE`.
@@ -475,9 +476,8 @@
 extern crate cortex_m_rt_macros as macros;
 
 /// The 32-bit value the stack is painted with before the program runs.
-///
-/// Note: keep this value in-sync with the start-up assembly code, as we can't
-/// use const values in `global_asm!` yet.
+// Note: keep this value in-sync with the start-up assembly code, as we can't
+// use const values in `global_asm!` yet.
 #[cfg(feature = "paint-stack")]
 pub const STACK_PAINT_VALUE: u32 = 0xcccc_cccc;
 

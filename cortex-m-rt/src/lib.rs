@@ -185,6 +185,14 @@
 //! value to the `_ram_end` value from the linker script. This is not usually required, but might be
 //! necessary to properly initialize memory integrity measures on some hardware.
 //!
+//! ## `paint-stack`
+//!
+//! Everywhere between `__sheap` and `___stack_start` is painted with the fixed value
+//! `STACK_PAINT_VALUE`, which is `0xCCCC_CCCC`.
+//! You can then inspect memory during debugging to determine how much of the stack has been used -
+//! where the stack has been used the 'paint' will have been 'scrubbed off' and the memory will
+//! have a value other than `STACK_PAINT_VALUE`.
+//!
 //! # Inspection
 //!
 //! This section covers how to inspect a binary that builds on top of `cortex-m-rt`.
@@ -225,7 +233,7 @@
 //!   using the `main` symbol so you will also find that symbol in your program.
 //!
 //! - `DefaultHandler`. This is the default handler. If not overridden using `#[exception] fn
-//! DefaultHandler(..` this will be an infinite loop.
+//!   DefaultHandler(..` this will be an infinite loop.
 //!
 //! - `HardFault` and `_HardFault`. These function handle the hard fault handling and what they
 //!   do depends on whether the hard fault is overridden and whether the trampoline is enabled (which it is by default).
@@ -467,6 +475,12 @@
 
 extern crate cortex_m_rt_macros as macros;
 
+/// The 32-bit value the stack is painted with before the program runs.
+// Note: keep this value in-sync with the start-up assembly code, as we can't
+// use const values in `global_asm!` yet.
+#[cfg(feature = "paint-stack")]
+pub const STACK_PAINT_VALUE: u32 = 0xcccc_cccc;
+
 #[cfg(cortex_m)]
 use core::arch::global_asm;
 use core::fmt;
@@ -545,24 +559,37 @@ cfg_global_asm! {
     "ldr r0, =__sbss
      ldr r1, =__ebss
      movs r2, #0
-     2:
+     0:
      cmp r1, r0
-     beq 3f
+     beq 1f
      stm r0!, {{r2}}
-     b 2b
-     3:",
+     b 0b
+     1:",
+
+    // If enabled, paint stack/heap RAM with 0xcccccccc.
+    // `__sheap` and `_stack_start` come from the linker script.
+    #[cfg(feature = "paint-stack")]
+    "ldr r0, =__sheap
+     ldr r1, =_stack_start
+     ldr r2, =0xcccccccc // This must match STACK_PAINT_VALUE
+     0:
+     cmp r1, r0
+     beq 1f
+     stm r0!, {{r2}}
+     b 0b
+     1:",
 
     // Initialise .data memory. `__sdata`, `__sidata`, and `__edata` come from the linker script.
     "ldr r0, =__sdata
      ldr r1, =__edata
      ldr r2, =__sidata
-     4:
+     0:
      cmp r1, r0
-     beq 5f
+     beq 1f
      ldm r2!, {{r3}}
      stm r0!, {{r3}}
-     b 4b
-     5:",
+     b 0b
+     1:",
 
     // Potentially enable an FPU.
     // SCB.CPACR is 0xE000_ED88.
@@ -872,6 +899,7 @@ pub static __ONCE__: () = ();
 /// Registers stacked (pushed onto the stack) during an exception.
 #[derive(Clone, Copy)]
 #[repr(C)]
+#[allow(dead_code)]
 pub struct ExceptionFrame {
     r0: u32,
     r1: u32,

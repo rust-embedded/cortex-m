@@ -1247,7 +1247,7 @@ pub static __INTERRUPTS: [unsafe extern "C" fn(); 240] = [{
 }; 240];
 
 // ARMv8-M can have up to 496 device specific interrupts
-#[cfg(all(any(not(feature = "device")), armv8m))]
+#[cfg(all(not(feature = "device"), armv8m))]
 #[doc(hidden)]
 #[cfg_attr(cortex_m, link_section = ".vector_table.interrupts")]
 #[no_mangle]

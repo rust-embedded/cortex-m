@@ -258,8 +258,8 @@
 //!
 //! - `__INTERRUPTS`. This is the device specific interrupt portion of the vector table; its exact
 //!   size depends on the target device but if the `"device"` feature has not been enabled it will
-//!   have a size of 32 vectors (on ARMv6-M) or 240 vectors (on ARMv7-M). This array is located after
-//!   `__EXCEPTIONS` in the `.vector_table` section.
+//!   have a size of 32 vectors (on ARMv6-M), 240 vectors (on ARMv7-M) or 496 vectors (on ARMv8-M).
+//!   This array is located after `__EXCEPTIONS` in the `.vector_table` section.
 //!
 //! - `__pre_init`. This is a function to be run before RAM is initialized. It defaults to an empty
 //!   function. As this runs before RAM is initialised, it is not sound to use a Rust function for
@@ -1234,7 +1234,7 @@ pub static __EXCEPTIONS: [Vector; 14] = [
 
 // If we are not targeting a specific device we bind all the potential device specific interrupts
 // to the default handler
-#[cfg(all(any(not(feature = "device"), test), not(armv6m)))]
+#[cfg(all(any(not(feature = "device"), test), not(armv6m), not(armv8m)))]
 #[doc(hidden)]
 #[cfg_attr(cortex_m, link_section = ".vector_table.interrupts")]
 #[no_mangle]
@@ -1245,6 +1245,19 @@ pub static __INTERRUPTS: [unsafe extern "C" fn(); 240] = [{
 
     DefaultHandler
 }; 240];
+
+// ARMv8-M can have up to 496 device specific interrupts
+#[cfg(all(any(not(feature = "device")), armv8m))]
+#[doc(hidden)]
+#[cfg_attr(cortex_m, link_section = ".vector_table.interrupts")]
+#[no_mangle]
+pub static __INTERRUPTS: [unsafe extern "C" fn(); 496] = [{
+    extern "C" {
+        fn DefaultHandler();
+    }
+
+    DefaultHandler
+}; 496];
 
 // ARMv6-M can only have a maximum of 32 device specific interrupts
 #[cfg(all(not(feature = "device"), armv6m))]

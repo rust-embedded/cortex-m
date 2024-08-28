@@ -59,7 +59,7 @@ INCLUDE device.x"#
     } else if target.starts_with("thumbv8m") {
         println!("cargo:rustc-cfg=cortex_m");
         println!("cargo:rustc-cfg=armv8m");
-        240
+        496
     } else {
         // Non ARM target. We assume you're just testing the syntax.
         // This value seems as good as any.

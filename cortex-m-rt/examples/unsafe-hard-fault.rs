@@ -13,6 +13,6 @@ fn foo() -> ! {
 }
 
 #[exception]
-unsafe fn HardFault(_ef: &ExceptionFrame) -> ! {
+unsafe fn HardFault(_ef: &mut ExceptionFrame) -> ! {
     loop {}
 }

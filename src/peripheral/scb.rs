@@ -172,25 +172,8 @@ impl SCB {
     pub fn vect_active() -> VectActive {
         let icsr = unsafe { ptr::read(&(*SCB::PTR).icsr as *const _ as *const u32) };
 
-        match icsr as u8 {
-            0 => VectActive::ThreadMode,
-            2 => VectActive::Exception(Exception::NonMaskableInt),
-            3 => VectActive::Exception(Exception::HardFault),
-            #[cfg(not(armv6m))]
-            4 => VectActive::Exception(Exception::MemoryManagement),
-            #[cfg(not(armv6m))]
-            5 => VectActive::Exception(Exception::BusFault),
-            #[cfg(not(armv6m))]
-            6 => VectActive::Exception(Exception::UsageFault),
-            #[cfg(any(armv8m, native))]
-            7 => VectActive::Exception(Exception::SecureFault),
-            11 => VectActive::Exception(Exception::SVCall),
-            #[cfg(not(armv6m))]
-            12 => VectActive::Exception(Exception::DebugMonitor),
-            14 => VectActive::Exception(Exception::PendSV),
-            15 => VectActive::Exception(Exception::SysTick),
-            irqn => VectActive::Interrupt { irqn: irqn - 16 },
-        }
+        // NOTE(unsafe): Assume correctly selected target.
+        unsafe { VectActive::from(icsr as u8).unwrap_unchecked() }
     }
 }
 
@@ -300,7 +283,7 @@ impl VectActive {
             12 => VectActive::Exception(Exception::DebugMonitor),
             14 => VectActive::Exception(Exception::PendSV),
             15 => VectActive::Exception(Exception::SysTick),
-            irqn if irqn >= 16 => VectActive::Interrupt { irqn },
+            irqn if irqn >= 16 => VectActive::Interrupt { irqn: irqn - 16 },
             _ => return None,
         })
     }

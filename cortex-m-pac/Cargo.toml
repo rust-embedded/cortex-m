@@ -1,0 +1,24 @@
+[package]
+name = "cortex-m-pac"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.60"
+repository = "https://github.com/rust-embedded/cortex-m"
+authors = ["The Cortex-M Team <cortex-m@teams.rust-embedded.org>",]
+categories = ["embedded", "hardware-support", "no-std"]
+description = "Low level access to Cortex-M processors"
+documentation = "https://docs.rs/cortex-m-pac"
+keywords = ["arm", "cortex-m", "register", "peripheral"]
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+
+[package.metadata.docs.rs]
+targets = [
+    "thumbv8m.main-none-eabihf",
+    "thumbv6m-none-eabi",
+    "thumbv7em-none-eabi",
+    "thumbv7em-none-eabihf",
+    "thumbv7m-none-eabi",
+    "thumbv8m.base-none-eabi",
+    "thumbv8m.main-none-eabi"
+]

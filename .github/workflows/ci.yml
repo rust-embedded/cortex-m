@@ -27,4 +27,8 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
       - name: Run tests
+        if: ${{ matrix.rust != '1.61.0' }}
         run: cargo test --all --exclude cortex-m-rt --exclude testsuite --features cortex-m/critical-section-single-core
+      - name: Run tests for 1.61.0 (need to exclude cortex-m-pac)
+        if: ${{ matrix.rust == '1.61.0' }}
+        run: cargo test --all --exclude cortex-m-rt --exclude testsuite --exclude cortex-m-pac --features cortex-m/critical-section-single-core

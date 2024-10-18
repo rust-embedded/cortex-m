@@ -1079,7 +1079,10 @@ pub fn heap_start() -> *mut u32 {
         static mut __sheap: u32;
     }
 
-    unsafe { core::ptr::addr_of_mut!(__sheap) }
+    #[allow(unused_unsafe)] // no longer unsafe since rust 1.82.0
+    unsafe {
+        core::ptr::addr_of_mut!(__sheap)
+    }
 }
 
 // Entry point is Reset.

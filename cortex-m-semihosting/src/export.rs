@@ -1,5 +1,9 @@
 //! IMPLEMENTATION DETAILS USED BY MACROS
 
+// This must be replaced by a different solution before rust edition 2024
+// https://doc.rust-lang.org/nightly/edition-guide/rust-2024/static-mut-references.html
+#![allow(static_mut_refs)]
+
 use core::fmt::{self, Write};
 
 use crate::hio::{self, HostStream};

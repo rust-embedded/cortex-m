@@ -103,6 +103,7 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
         #[doc(hidden)]
         #[export_name = "main"]
         pub unsafe extern "C" fn #tramp_ident() {
+            #[allow(static_mut_refs)]
             #ident(
                 #(#resource_args),*
             )
@@ -500,6 +501,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                 #[doc(hidden)]
                 #[export_name = #ident_s]
                 pub unsafe extern "C" fn #tramp_ident() {
+                    #[allow(static_mut_refs)]
                     #ident(
                         #(#resource_args),*
                     )
@@ -614,6 +616,7 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
         #[doc(hidden)]
         #[export_name = #ident_s]
         pub unsafe extern "C" fn #tramp_ident() {
+            #[allow(static_mut_refs)]
             #ident(
                 #(#resource_args),*
             )

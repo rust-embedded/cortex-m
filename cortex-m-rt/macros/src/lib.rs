@@ -85,7 +85,7 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
                 {
                     #(#attrs)*
                     static mut #ident: #ty = #expr;
-                    &mut #ident
+                    unsafe { &mut #ident }
                 }
             }
         })
@@ -487,7 +487,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                         {
                             #(#attrs)*
                             static mut #ident: #ty = #expr;
-                            &mut #ident
+                            unsafe { &mut #ident }
                         }
                     }
                 })
@@ -598,7 +598,7 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
                 {
                     #(#attrs)*
                     static mut #ident: #ty = #expr;
-                    &mut #ident
+                    unsafe { &mut #ident }
                 }
             }
         })

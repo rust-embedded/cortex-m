@@ -53,7 +53,7 @@ const SYST_CALIB_NOREF: u32 = 1 << 31;
 impl SYST {
     /// Clears current value to 0
     ///
-    /// After calling `clear_current()`, the next call to `has_wrapped()` will return `false`.
+    /// After calling `clear_current()`, the next call to `has_wrapped()`, unless called after the reload time (if the counter is enabled), will return `false`.
     #[inline]
     pub fn clear_current(&mut self) {
         unsafe { self.cvr.write(0) }

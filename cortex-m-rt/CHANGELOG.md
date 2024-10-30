@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 - MSRV is now Rust 1.61 to support syn verions >=2.0.68
+- The `_stack_end` symbol is added, e.g. for use with MSPLIM.
 
 ## [v0.7.4]
 

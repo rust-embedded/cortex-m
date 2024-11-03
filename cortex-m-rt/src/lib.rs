@@ -58,16 +58,21 @@
 //! }
 //! ```
 //!
-//! ### `_stack_start`
+//! ### `_stack_start` / `_stack_end`
 //!
-//! This optional symbol can be used to indicate where the call stack of the program should be
-//! placed. If this symbol is not used then the stack will be placed at the *end* of the `RAM`
-//! region -- the stack grows downwards towards smaller address. This is generally a sensible
-//! default and most applications will not need to specify `_stack_start`.
+//! The `_stack_start` optional symbol can be used to indicate where the call stack of the program
+//! should be placed. If this symbol is not used then the stack will be placed at the *end* of the
+//! `RAM` region -- the stack grows downwards towards smaller address. This is generally a sensible
+//! default and most applications will not need to specify `_stack_start`. The same goes for
+//! `_stack_end` which is automatically placed after the end of statically allocated RAM.
+//!
+//! **NOTE:** If you change `_stack_start`, make sure to also set `_stack_end` correctly to match
+//! new stack area if you are using it, e.g for MSPLIM. The `_stack_end` is not used internally by
+//! `cortex-m-rt` and is only for application use.
 //!
 //! For Cortex-M, the `_stack_start` must always be aligned to 8 bytes, which is enforced by
 //! the linker script. If you override it, ensure that whatever value you set is a multiple
-//! of 8 bytes.
+//! of 8 bytes. The `_stack_end` is aligned to 4 bytes.
 //!
 //! This symbol can be used to place the stack in a different memory region, for example:
 //!
@@ -85,6 +90,7 @@
 //! }
 //!
 //! _stack_start = ORIGIN(CCRAM) + LENGTH(CCRAM);
+//! _stack_end = ORIGIN(CCRAM); /* Optional, add if used by the application */
 //! ```
 //!
 //! ### `_stext`
@@ -187,7 +193,7 @@
 //!
 //! ## `paint-stack`
 //!
-//! Everywhere between `__sheap` and `___stack_start` is painted with the fixed value
+//! Everywhere between `__sheap` and `_stack_start` is painted with the fixed value
 //! `STACK_PAINT_VALUE`, which is `0xCCCC_CCCC`.
 //! You can then inspect memory during debugging to determine how much of the stack has been used -
 //! where the stack has been used the 'paint' will have been 'scrubbed off' and the memory will

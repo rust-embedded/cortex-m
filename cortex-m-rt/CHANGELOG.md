@@ -7,8 +7,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.7.5]
+
+- Fix incorrect dependency on cortex-m-rt-macros in v0.7.4 which led to
+  incorrect HardFault handlers being generated.
 - MSRV is now Rust 1.61 to support syn verions >=2.0.68
-- The `_stack_end` symbol is added, e.g. for use with MSPLIM.
+- The `_stack_end` symbol is added, e.g. for use with MSPLIM (#565)
+- Macros now expand to include an `unsafe` block and `allow(static_mut_refs)`
+  when generating the `&'static mut` references in entry/interrupt handlers
+  (#561, #558)
+- `expect` attribute now permitted on entry/interrupt handlers (#557)
+- Up to 496 interrupts now permitted on ARMv8-M (#555)
+- Add new `paint-stack` feature which writes a fixed value to the entire stack
+  during initialisation (#548)
+- The hard fault handler `_HardFault` is now placed in the `.HardFault.user`
+  linker section (#535)
 
 ## [v0.7.4]
 
@@ -632,7 +645,8 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.4...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.5...HEAD
+[v0.7.4]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.4...c-m-rt-v0.7.5
 [v0.7.4]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.3...c-m-rt-v0.7.4
 [v0.7.3]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.2...c-m-rt-v0.7.3
 [v0.7.2]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.1...c-m-rt-v0.7.2

@@ -2,6 +2,7 @@
 #![no_std]
 
 extern crate cortex_m_rt;
+use core::sync::atomic::{AtomicBool, Ordering};
 
 #[cfg(target_env = "")] // appease clippy
 #[panic_handler]
@@ -11,8 +12,16 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
     minitest::fail()
 }
 
+static CRITICAL_SECTION_FLAG: AtomicBool = AtomicBool::new(false);
+
+#[cortex_m_rt::exception]
+fn PendSV() {
+    CRITICAL_SECTION_FLAG.store(true, Ordering::SeqCst);
+}
+
 #[minitest::tests]
 mod tests {
+    use crate::{Ordering, CRITICAL_SECTION_FLAG};
     use minitest::log;
 
     #[init]
@@ -50,5 +59,17 @@ mod tests {
         {
             assert!(!p.DWT.has_cycle_counter());
         }
+    }
+
+    #[test]
+    fn critical_section_nesting() {
+        critical_section::with(|_| {
+            critical_section::with(|_| {
+                cortex_m::peripheral::SCB::set_pendsv();
+                assert!(!CRITICAL_SECTION_FLAG.load(Ordering::SeqCst));
+            });
+            assert!(!CRITICAL_SECTION_FLAG.load(Ordering::SeqCst));
+        });
+        assert!(CRITICAL_SECTION_FLAG.load(Ordering::SeqCst));
     }
 }

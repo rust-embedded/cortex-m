@@ -1,3 +1,4 @@
+use core::sync::atomic::{compiler_fence, Ordering};
 use critical_section::{set_impl, Impl, RawRestoreState};
 
 use crate::interrupt;
@@ -8,18 +9,15 @@ set_impl!(SingleCoreCriticalSection);
 
 unsafe impl Impl for SingleCoreCriticalSection {
     unsafe fn acquire() -> RawRestoreState {
-        let was_active = primask::read().is_active();
+        let restore_state = primask::read();
         // NOTE: Fence guarantees are provided by interrupt::disable(), which performs a `compiler_fence(SeqCst)`.
         interrupt::disable();
-        was_active
+        restore_state.0
     }
 
-    unsafe fn release(was_active: RawRestoreState) {
-        // Only re-enable interrupts if they were enabled before the critical section.
-        if was_active {
-            // NOTE: Fence guarantees are provided by interrupt::enable(), which performs a
-            // `compiler_fence(SeqCst)`.
-            interrupt::enable()
-        }
+    unsafe fn release(restore_state: RawRestoreState) {
+        // Ensure no preceeding memory accesses are reordered to after interrupts are enabled.
+        compiler_fence(Ordering::SeqCst);
+        primask::write(restore_state);
     }
 }

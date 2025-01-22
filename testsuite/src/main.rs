@@ -12,16 +12,16 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
     minitest::fail()
 }
 
-static CRITICAL_SECTION_FLAG: AtomicBool = AtomicBool::new(false);
+static EXCEPTION_FLAG: AtomicBool = AtomicBool::new(false);
 
 #[cortex_m_rt::exception]
 fn PendSV() {
-    CRITICAL_SECTION_FLAG.store(true, Ordering::SeqCst);
+    EXCEPTION_FLAG.store(true, Ordering::SeqCst);
 }
 
 #[minitest::tests]
 mod tests {
-    use crate::{Ordering, CRITICAL_SECTION_FLAG};
+    use crate::{Ordering, EXCEPTION_FLAG};
     use minitest::log;
 
     #[init]
@@ -63,13 +63,27 @@ mod tests {
 
     #[test]
     fn critical_section_nesting() {
+        EXCEPTION_FLAG.store(false, Ordering::SeqCst);
         critical_section::with(|_| {
             critical_section::with(|_| {
                 cortex_m::peripheral::SCB::set_pendsv();
-                assert!(!CRITICAL_SECTION_FLAG.load(Ordering::SeqCst));
+                assert!(!EXCEPTION_FLAG.load(Ordering::SeqCst));
             });
-            assert!(!CRITICAL_SECTION_FLAG.load(Ordering::SeqCst));
+            assert!(!EXCEPTION_FLAG.load(Ordering::SeqCst));
         });
-        assert!(CRITICAL_SECTION_FLAG.load(Ordering::SeqCst));
+        assert!(EXCEPTION_FLAG.load(Ordering::SeqCst));
+    }
+
+    #[test]
+    fn interrupt_free_nesting() {
+        EXCEPTION_FLAG.store(false, Ordering::SeqCst);
+        cortex_m::interrupt::free(|| {
+            cortex_m::interrupt::free(|| {
+                cortex_m::peripheral::SCB::set_pendsv();
+                assert!(!EXCEPTION_FLAG.load(Ordering::SeqCst));
+            });
+            assert!(!EXCEPTION_FLAG.load(Ordering::SeqCst));
+        });
+        assert!(EXCEPTION_FLAG.load(Ordering::SeqCst));
     }
 }

@@ -2,6 +2,7 @@
 
 #[cfg(cortex_m)]
 use core::arch::asm;
+#[cfg(cortex_m)]
 use core::sync::atomic::{compiler_fence, Ordering};
 
 /// All exceptions with configurable priority are ...

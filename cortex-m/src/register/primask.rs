@@ -53,7 +53,7 @@ pub fn read_raw() -> u32 {
 /// Note that bits [31:1] are reserved and SBZP (Should-Be-Zero-or-Preserved)
 #[cfg(cortex_m)]
 #[inline]
-pub fn write_raw(r: u32) {
+pub unsafe fn write_raw(r: u32) {
     // Ensure no preceeding memory accesses are reordered to after interrupts are possibly enabled.
     compiler_fence(Ordering::SeqCst);
     unsafe { asm!("msr PRIMASK, {}", in(reg) r, options(nomem, nostack, preserves_flags)) };

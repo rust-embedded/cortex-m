@@ -76,7 +76,9 @@ where
 
     let r = f();
 
-    crate::register::primask::write_raw(primask);
+    unsafe {
+        crate::register::primask::write_raw(primask);
+    }
 
     r
 }

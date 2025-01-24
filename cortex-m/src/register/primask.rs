@@ -51,6 +51,13 @@ pub fn read_raw() -> u32 {
 
 /// Writes the entire PRIMASK register
 /// Note that bits [31:1] are reserved and SBZP (Should-Be-Zero-or-Preserved)
+///
+/// # Safety
+///
+/// This method is unsafe as other unsafe code may rely on interrupts remaining disabled, for
+/// example during a critical section, and being able to safely re-enable them would lead to
+/// undefined behaviour. Do not call this function in a context where interrupts are expected to
+/// remain disabled -- for example, in the midst of a critical section or `interrupt::free()` call.
 #[cfg(cortex_m)]
 #[inline]
 pub unsafe fn write_raw(r: u32) {

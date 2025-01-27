@@ -56,17 +56,18 @@ pub fn free<F, R>(f: F) -> R
 where
     F: FnOnce(&CriticalSection) -> R,
 {
-    let primask = crate::register::primask::read();
+    // Backup previous state of PRIMASK register. We access the entire register directly as a
+    // u32 instead of using the primask::read() function to minimize the number of processor
+    // cycles during which interrupts are disabled.
+    let primask = crate::register::primask::read_raw();
 
     // disable interrupts
     disable();
 
     let r = f(unsafe { &CriticalSection::new() });
 
-    // If the interrupts were active before our `disable` call, then re-enable
-    // them. Otherwise, keep them disabled
-    if primask.is_active() {
-        unsafe { enable() }
+    unsafe {
+        crate::register::primask::write_raw(primask);
     }
 
     r

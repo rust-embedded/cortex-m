@@ -77,8 +77,8 @@ mod tests {
     #[test]
     fn interrupt_free_nesting() {
         EXCEPTION_FLAG.store(false, Ordering::SeqCst);
-        cortex_m::interrupt::free(|_| {
-            cortex_m::interrupt::free(|_| {
+        cortex_m::interrupt::free(|| {
+            cortex_m::interrupt::free(|| {
                 cortex_m::peripheral::SCB::set_pendsv();
                 assert!(!EXCEPTION_FLAG.load(Ordering::SeqCst));
             });

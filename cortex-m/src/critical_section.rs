@@ -8,18 +8,17 @@ set_impl!(SingleCoreCriticalSection);
 
 unsafe impl Impl for SingleCoreCriticalSection {
     unsafe fn acquire() -> RawRestoreState {
-        let was_active = primask::read().is_active();
+        // Backup previous state of PRIMASK register. We access the entire register directly as a
+        // u32 instead of using the primask::read() function to minimize the number of processor
+        // cycles during which interrupts are disabled.
+        let restore_state = primask::read_raw();
         // NOTE: Fence guarantees are provided by interrupt::disable(), which performs a `compiler_fence(SeqCst)`.
         interrupt::disable();
-        was_active
+        restore_state
     }
 
-    unsafe fn release(was_active: RawRestoreState) {
-        // Only re-enable interrupts if they were enabled before the critical section.
-        if was_active {
-            // NOTE: Fence guarantees are provided by interrupt::enable(), which performs a
-            // `compiler_fence(SeqCst)`.
-            interrupt::enable()
-        }
+    unsafe fn release(restore_state: RawRestoreState) {
+        // NOTE: Fence guarantees are provided by primask::write_raw(), which performs a `compiler_fence(SeqCst)`.
+        primask::write_raw(restore_state);
     }
 }

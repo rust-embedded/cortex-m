@@ -19,6 +19,11 @@
 //! or critical sections are managed as part of an RTOS. In these cases, you should use
 //! a target-specific implementation instead, typically provided by a HAL or RTOS crate.
 //!
+//! The critical section has been optimized to block interrupts for as few cycles as possible,
+//! but -- due to `critical-section` implementation details -- incurs branches in a normal build
+//! configuration. For minimal interrupt latency, you can achieve inlining by enabling
+//! [linker-plugin-based LTO](https://doc.rust-lang.org/rustc/linker-plugin-lto.html).
+//!
 //! ## `cm7-r0p1`
 //!
 //! This feature enables workarounds for errata found on Cortex-M7 chips with revision r0p1. Some

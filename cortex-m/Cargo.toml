@@ -33,7 +33,7 @@ cm7 = []
 cm7-r0p1 = ["cm7"]
 linker-plugin-lto = []
 std = []
-critical-section-single-core = ["critical-section/restore-state-bool"]
+critical-section-single-core = ["critical-section/restore-state-u32"]
 
 [package.metadata.docs.rs]
 targets = [

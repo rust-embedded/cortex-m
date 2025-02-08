@@ -67,8 +67,10 @@
 //! `_stack_end` which is automatically placed after the end of statically allocated RAM.
 //!
 //! **NOTE:** If you change `_stack_start`, make sure to also set `_stack_end` correctly to match
-//! new stack area if you are using it, e.g for MSPLIM. The `_stack_end` is not used internally by
-//! `cortex-m-rt` and is only for application use.
+//! new stack area if you are using it, e.g for MSPLIM.
+//!
+//! The `_stack_end` is checked by linker script to be less than or equal to `_stack_start` and is
+//! used as a bound in `paint-stack` feature.
 //!
 //! For Cortex-M, the `_stack_start` must always be aligned to 8 bytes, which is enforced by
 //! the linker script. If you override it, ensure that whatever value you set is a multiple
@@ -193,7 +195,7 @@
 //!
 //! ## `paint-stack`
 //!
-//! Everywhere between `__sheap` and `_stack_start` is painted with the fixed value
+//! Everywhere between `_stack_end` and `_stack_start` is painted with the fixed value
 //! `STACK_PAINT_VALUE`, which is `0xCCCC_CCCC`.
 //! You can then inspect memory during debugging to determine how much of the stack has been used -
 //! where the stack has been used the 'paint' will have been 'scrubbed off' and the memory will
@@ -573,9 +575,9 @@ cfg_global_asm! {
      1:",
 
     // If enabled, paint stack/heap RAM with 0xcccccccc.
-    // `__sheap` and `_stack_start` come from the linker script.
+    // `_stack_end` and `_stack_start` come from the linker script.
     #[cfg(feature = "paint-stack")]
-    "ldr r0, =__sheap
+    "ldr r0, =_stack_end
      ldr r1, =_stack_start
      ldr r2, =0xcccccccc // This must match STACK_PAINT_VALUE
      0:

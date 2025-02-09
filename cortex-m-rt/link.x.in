@@ -182,11 +182,12 @@ SECTIONS
     __euninit = .;
   } > RAM
 
-  /* Place the heap right after `.uninit` in RAM */
-  PROVIDE(__sheap = __euninit);
+  /* Align `__sheap` and `_stack_end` pointers to 4 bytes */
+  . = ALIGN(4);
 
-  /* Place stack end at the end of allocated RAM */
-  PROVIDE(_stack_end = __euninit);
+  /* Place the heap start and stack end at the end of allocated RAM */
+  PROVIDE(__sheap = .);
+  PROVIDE(_stack_end = .);
 
   /* ## .got */
   /* Dynamic relocations are unsupported. This section is only used to detect relocatable code in

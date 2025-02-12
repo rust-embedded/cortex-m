@@ -187,6 +187,13 @@
 //! required, but some bootloaders do not set VTOR before jumping to application code, leading to
 //! your main function executing but interrupt handlers not being used.
 //!
+//! ## `set-msplim`
+//!
+//! If this feature is enabled, the main stack pointer limit register (MSPLIM) is initialized in
+//! the reset handler to the `_stack_end` value from the linker script. This feature is only
+//! available on ARMv8-M Mainline and helps enforce stack limits by defining the lowest valid
+//! stack address.
+//!
 //! ## `zero-init-ram`
 //!
 //! If this feature is enabled, RAM is initialized with zeros during startup from the `_ram_start`
@@ -543,6 +550,13 @@ cfg_global_asm! {
     "ldr r0, =0xe000ed08
      ldr r1, =__vector_table
      str r1, [r0]",
+
+    // If enabled, set the Main Stack Pointer Limit (MSPLIM) to the end of the stack.
+    // This feature is only available on ARMv8-M Mainline, where it helps enforce stack limits
+    // by defining the lowest valid stack address.
+    #[cfg(all(armv8m_main, feature = "set-msplim"))]
+    "ldr r0, =_stack_end
+     msr MSPLIM, r0",
 
     // Run user pre-init code which must be executed immediately after startup, before the
     // potentially time-consuming memory initialisation takes place.

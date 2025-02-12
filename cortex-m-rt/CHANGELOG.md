@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+- Add `set_msplim` feature to conditionally set the MSPLIM register at device
+  reset ([#580]).
+
 ## [v0.7.5]
 
 - Fix incorrect dependency on cortex-m-rt-macros in v0.7.4 which led to

@@ -43,8 +43,11 @@ INCLUDE device.x"#
     };
 
     println!("cargo:rustc-check-cfg=cfg(armv6m)");
+    println!("cargo:rustc-check-cfg=cfg(armv7em)");
     println!("cargo:rustc-check-cfg=cfg(armv7m)");
     println!("cargo:rustc-check-cfg=cfg(armv8m)");
+    println!("cargo:rustc-check-cfg=cfg(armv8m_base)");
+    println!("cargo:rustc-check-cfg=cfg(armv8m_main)");
     println!("cargo:rustc-check-cfg=cfg(cortex_m)");
     println!("cargo:rustc-check-cfg=cfg(has_fpu)");
 
@@ -52,13 +55,24 @@ INCLUDE device.x"#
         println!("cargo:rustc-cfg=cortex_m");
         println!("cargo:rustc-cfg=armv6m");
         32
-    } else if target.starts_with("thumbv7m-") || target.starts_with("thumbv7em-") {
+    } else if target.starts_with("thumbv7m-") {
         println!("cargo:rustc-cfg=cortex_m");
         println!("cargo:rustc-cfg=armv7m");
         240
-    } else if target.starts_with("thumbv8m") {
+    } else if target.starts_with("thumbv7em-") {
+        println!("cargo:rustc-cfg=cortex_m");
+        println!("cargo:rustc-cfg=armv7m");
+        println!("cargo:rustc-cfg=armv7em");
+        240
+    } else if target.starts_with("thumbv8m.base") {
         println!("cargo:rustc-cfg=cortex_m");
         println!("cargo:rustc-cfg=armv8m");
+        println!("cargo:rustc-cfg=armv8m_base");
+        496
+    } else if target.starts_with("thumbv8m.main") {
+        println!("cargo:rustc-cfg=cortex_m");
+        println!("cargo:rustc-cfg=armv8m");
+        println!("cargo:rustc-cfg=armv8m_main");
         496
     } else {
         // Non ARM target. We assume you're just testing the syntax.

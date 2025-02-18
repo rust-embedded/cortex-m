@@ -187,6 +187,13 @@
 //! required, but some bootloaders do not set VTOR before jumping to application code, leading to
 //! your main function executing but interrupt handlers not being used.
 //!
+//! ## `set-msplim`
+//!
+//! If this feature is enabled, the main stack pointer limit register (MSPLIM) is initialized in
+//! the reset handler to the `_stack_end` value from the linker script. This feature is only
+//! available on ARMv8-M Mainline and helps enforce stack limits by defining the lowest valid
+//! stack address.
+//!
 //! ## `zero-init-ram`
 //!
 //! If this feature is enabled, RAM is initialized with zeros during startup from the `_ram_start`
@@ -266,7 +273,8 @@
 //!
 //! - `__INTERRUPTS`. This is the device specific interrupt portion of the vector table; its exact
 //!   size depends on the target device but if the `"device"` feature has not been enabled it will
-//!   have a size of 32 vectors (on ARMv6-M), 240 vectors (on ARMv7-M) or 496 vectors (on ARMv8-M).
+//!   have a size of 32 vectors (on ARMv6-M), 240 vectors (on ARMv7-M, ARMv8-M Baseline) or 480
+//!   vectors (on ARMv8-M Mainline).
 //!   This array is located after `__EXCEPTIONS` in the `.vector_table` section.
 //!
 //! - `__pre_init`. This is a function to be run before RAM is initialized. It defaults to an empty
@@ -543,6 +551,13 @@ cfg_global_asm! {
     "ldr r0, =0xe000ed08
      ldr r1, =__vector_table
      str r1, [r0]",
+
+    // If enabled, set the Main Stack Pointer Limit (MSPLIM) to the end of the stack.
+    // This feature is only available on ARMv8-M Mainline, where it helps enforce stack limits
+    // by defining the lowest valid stack address.
+    #[cfg(all(armv8m_main, feature = "set-msplim"))]
+    "ldr r0, =_stack_end
+     msr MSPLIM, r0",
 
     // Run user pre-init code which must be executed immediately after startup, before the
     // potentially time-consuming memory initialisation takes place.
@@ -1245,7 +1260,7 @@ pub static __EXCEPTIONS: [Vector; 14] = [
 
 // If we are not targeting a specific device we bind all the potential device specific interrupts
 // to the default handler
-#[cfg(all(any(not(feature = "device"), test), not(armv6m), not(armv8m)))]
+#[cfg(all(any(not(feature = "device"), test), not(armv6m), not(armv8m_main)))]
 #[doc(hidden)]
 #[cfg_attr(cortex_m, link_section = ".vector_table.interrupts")]
 #[no_mangle]
@@ -1257,18 +1272,18 @@ pub static __INTERRUPTS: [unsafe extern "C" fn(); 240] = [{
     DefaultHandler
 }; 240];
 
-// ARMv8-M can have up to 496 device specific interrupts
-#[cfg(all(not(feature = "device"), armv8m))]
+// ARMv8-M Mainline can have up to 480 device specific interrupts
+#[cfg(all(not(feature = "device"), armv8m_main))]
 #[doc(hidden)]
 #[cfg_attr(cortex_m, link_section = ".vector_table.interrupts")]
 #[no_mangle]
-pub static __INTERRUPTS: [unsafe extern "C" fn(); 496] = [{
+pub static __INTERRUPTS: [unsafe extern "C" fn(); 480] = [{
     extern "C" {
         fn DefaultHandler();
     }
 
     DefaultHandler
-}; 496];
+}; 480];
 
 // ARMv6-M can only have a maximum of 32 device specific interrupts
 #[cfg(all(not(feature = "device"), armv6m))]

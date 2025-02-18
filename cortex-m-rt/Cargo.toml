@@ -45,6 +45,7 @@ required-features = ["device"]
 device = []
 set-sp = []
 set-vtor = []
+set-msplim = []
 zero-init-ram = []
 paint-stack = []
 

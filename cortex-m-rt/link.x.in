@@ -261,6 +261,12 @@ Possible solutions, from most likely to less likely:
 may be enabling it)
 - Supply the interrupt handlers yourself. Check the documentation for details.");
 
+ASSERT(ADDR(.vector_table) % MAX(128, 1 << LOG2CEIL(SIZEOF(.vector_table))) == 0, "
+ERROR(cortex-m-rt): Interrupt vector table misalignment detected. The vector table must
+be aligned to the larger of:
+- 128 bytes
+- The next power of two greater than or equal to its size");
+
 /* ## .text */
 ASSERT(ADDR(.vector_table) + SIZEOF(.vector_table) <= _stext, "
 ERROR(cortex-m-rt): The .text section can't be placed inside the .vector_table section

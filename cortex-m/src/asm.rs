@@ -171,6 +171,35 @@ pub unsafe fn semihosting_syscall(nr: u32, arg: u32) -> u32 {
     call_asm!(__sh_syscall(nr: u32, arg: u32) -> u32)
 }
 
+/// Switch to unprivileged mode.
+///
+/// Sets CONTROL.SPSEL (setting the program stack to be the active
+/// stack) and CONTROL.nPRIV (setting unprivileged mode), updates the
+/// program stack pointer to the address in `psp`, then jumps to the
+/// address in `entry`.
+///
+/// # Safety
+///
+/// `psp` and `entry` must point to valid stack memory and executable
+/// code, respectively. `psp` must be 8 bytes aligned and point to
+/// stack top as stack grows towards lower addresses.
+#[cfg(cortex_m)]
+#[inline(always)]
+pub unsafe fn enter_unprivileged(psp: *const u32, entry: fn() -> !) -> ! {
+    asm!(
+        "mrs {tmp}, CONTROL",
+        "orr {tmp}, #3",
+        "msr PSP, {psp}",
+        "msr CONTROL, {tmp}",
+        "isb",
+        "bx {ent}",
+        tmp = in(reg) 0,
+        psp = in(reg) psp,
+        ent = in(reg) entry,
+        options(noreturn, nomem, nostack)
+    );
+}
+
 /// Bootstrap.
 ///
 /// Clears CONTROL.SPSEL (setting the main stack to be the active stack),

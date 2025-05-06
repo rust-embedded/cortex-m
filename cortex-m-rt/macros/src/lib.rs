@@ -755,8 +755,8 @@ fn check_attr_whitelist(attrs: &[Attribute], caller: WhiteListCaller) -> Result<
     ];
 
     'o: for attr in attrs {
-        for val in whitelist {
-            if eq(attr, val) {
+        if let Some(attr_name) = get_attr_name(attr) {
+            if whitelist.contains(&attr_name.as_str()) {
                 continue 'o;
             }
         }
@@ -785,4 +785,25 @@ fn check_attr_whitelist(attrs: &[Attribute], caller: WhiteListCaller) -> Result<
 /// Returns `true` if `attr.path` matches `name`
 fn eq(attr: &Attribute, name: &str) -> bool {
     attr.style == AttrStyle::Outer && attr.path().is_ident(name)
+}
+
+fn get_attr_name(attr: &Attribute) -> Option<String> {
+    if !matches!(attr.style, AttrStyle::Outer) {
+        return None;
+    }
+
+    let name = attr.path().get_ident().map(|x| x.to_string());
+
+    // In Rust 2024 edition, link_section attribute must be marked as unsafe.
+    // So, in the case, check the inner content of `#[unsafe(...)]`.
+    match &name {
+        Some(name) if name == "unsafe" => {
+            if let Ok(inner_meta) = attr.parse_args::<syn::Meta>() {
+                inner_meta.path().get_ident().map(|x| x.to_string())
+            } else {
+                None
+            }
+        }
+        _ => name,
+    }
 }

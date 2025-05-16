@@ -628,6 +628,7 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
+#[deprecated(note = "Use core::arch::global_asm! to define the __pre_init function instead")]
 pub fn pre_init(args: TokenStream, input: TokenStream) -> TokenStream {
     let f = parse_macro_input!(input as ItemFn);
 

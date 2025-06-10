@@ -13,6 +13,9 @@ use rt::entry;
 // For example, it can be used to disable the watchdog.
 core::arch::global_asm! {
     r#"
+.global __pre_init
+.type __pre_init,%function
+.thumb_func
 __pre_init:
     // Do what you need to do before RAM is initialized.
     bx lr

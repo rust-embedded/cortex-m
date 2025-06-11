@@ -25,6 +25,7 @@ cortex-m-rt-macros = { path = "macros", version = "=0.7.5" }
 cortex-m = { version = "0.7.4", path = "../cortex-m" }
 panic-halt = "0.2.0"
 cortex-m-semihosting = { path = "../cortex-m-semihosting" }
+far = "0.2.1"
 
 [target.'cfg(not(target_os = "none"))'.dev-dependencies]
 compiletest_rs = "0.11"
@@ -48,6 +49,9 @@ set-vtor = []
 set-msplim = []
 zero-init-ram = []
 paint-stack = []
+
+[build-dependencies]
+far = "0.2.1"
 
 [package.metadata.docs.rs]
 features = ["device"]

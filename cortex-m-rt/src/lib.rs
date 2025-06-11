@@ -49,6 +49,11 @@
 //! program will be placed in the `FLASH` region, whereas the `.bss` and `.data` sections, as well
 //! as the heap, will be placed in the `RAM` region.
 //!
+//! The region names `FLASH` and `RAM` are defaults, but different names can be used if
+//! desired. See the [Advanced Usage](#custom-memory-region-names) section for
+//! details. Throughout the rest of this documentation, `FLASH` and `RAM` will be used to
+//! indicate the purpose of these memory regions, but their names may be different.
+//!
 //! ```text
 //! /* Linker script for the STM32F103C8T6 */
 //! MEMORY
@@ -307,6 +312,17 @@
 //!
 //! The unmangled `main` symbol must have signature `extern "C" fn() -> !` or its invocation from
 //! `Reset`  will result in undefined behavior.
+//!
+//! ## Custom memory region names
+//!
+//! If an environment variable named `CORTEX_M_RT_FLASH_REGION` is defined, its value will be
+//! used instead of `FLASH`. Similarly, if an environment variable named
+//! `CORTEX_M_RT_RAM_REGION` is defined, its value will be used instead of `RAM`.
+//!
+//! This feature can be useful in projects where binary output from two crates (for example a
+//! bootloader and an application) will both be loaded into Flash memory, but at different
+//! addresses. Using these environment variables allows those crates to share a single
+//! `memory.x` file but direct their output to their respective regions.
 //!
 //! ## Incorporating device specific interrupts
 //!

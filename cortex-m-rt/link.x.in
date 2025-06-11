@@ -60,13 +60,13 @@ PROVIDE(__pre_init = DefaultPreInit);
 /* # Sections */
 SECTIONS
 {
-  PROVIDE(_ram_start = ORIGIN(RAM));
-  PROVIDE(_ram_end = ORIGIN(RAM) + LENGTH(RAM));
+  PROVIDE(_ram_start = ORIGIN({{ram_region}}));
+  PROVIDE(_ram_end = ORIGIN({{ram_region}}) + LENGTH({{ram_region}}));
   PROVIDE(_stack_start = _ram_end);
 
-  /* ## Sections in FLASH */
+  /* ## Sections in {{flash_region}} */
   /* ### Vector table */
-  .vector_table ORIGIN(FLASH) :
+  .vector_table ORIGIN({{flash_region}}) :
   {
     __vector_table = .;
 
@@ -87,7 +87,7 @@ SECTIONS
 
     /* Device specific interrupts */
     KEEP(*(.vector_table.interrupts)); /* this is the `__INTERRUPTS` symbol */
-  } > FLASH
+  } > {{flash_region}}
 
   PROVIDE(_stext = ADDR(.vector_table) + SIZEOF(.vector_table));
 
@@ -106,7 +106,7 @@ SECTIONS
 
     . = ALIGN(4); /* Pad .text to the alignment to workaround overlapping load section bug in old lld */
     __etext = .;
-  } > FLASH
+  } > {{flash_region}}
 
   /* ### .rodata */
   .rodata : ALIGN(4)
@@ -120,9 +120,9 @@ SECTIONS
        section will have the correct alignment. */
     . = ALIGN(4);
     __erodata = .;
-  } > FLASH
+  } > {{flash_region}}
 
-  /* ## Sections in RAM */
+  /* ## Sections in {{ram_region}} */
   /* ### .data */
   .data : ALIGN(4)
   {
@@ -130,7 +130,7 @@ SECTIONS
     __sdata = .;
     *(.data .data.*);
     . = ALIGN(4); /* 4-byte align the end (VMA) of this section */
-  } > RAM AT>FLASH
+  } > {{ram_region}} AT>{{flash_region}}
   /* Allow sections from user `memory.x` injected using `INSERT AFTER .data` to
    * use the .data loading mechanism by pushing __edata. Note: do not change
    * output region or load region in those user sections! */
@@ -143,14 +143,14 @@ SECTIONS
   /* ### .gnu.sgstubs
      This section contains the TrustZone-M veneers put there by the Arm GNU linker. */
   /* Security Attribution Unit blocks must be 32 bytes aligned. */
-  /* Note that this pads the FLASH usage to 32 byte alignment. */
+  /* Note that this pads the {{flash_region}} usage to 32 byte alignment. */
   .gnu.sgstubs : ALIGN(32)
   {
     . = ALIGN(32);
     __veneer_base = .;
     *(.gnu.sgstubs*)
     . = ALIGN(32);
-  } > FLASH
+  } > {{flash_region}}
   /* Place `__veneer_limit` outside the `.gnu.sgstubs` section because veneers are
    * always inserted last in the section, which would otherwise be _after_ the `__veneer_limit` symbol.
    */
@@ -165,7 +165,7 @@ SECTIONS
     *(.bss .bss.*);
     *(COMMON); /* Uninitialized C statics */
     . = ALIGN(4); /* 4-byte align the end (VMA) of this section */
-  } > RAM
+  } > {{ram_region}}
   /* Allow sections from user `memory.x` injected using `INSERT AFTER .bss` to
    * use the .bss zeroing mechanism by pushing __ebss. Note: do not change
    * output region or load region in those user sections! */
@@ -180,12 +180,12 @@ SECTIONS
     *(.uninit .uninit.*);
     . = ALIGN(4);
     __euninit = .;
-  } > RAM
+  } > {{ram_region}}
 
   /* Align `__sheap` and `_stack_end` pointers to 4 bytes */
   . = ALIGN(4);
 
-  /* Place the heap start and stack end at the end of allocated RAM */
+  /* Place the heap start and stack end at the end of allocated {{ram_region}} */
   PROVIDE(__sheap = .);
   PROVIDE(_stack_end = .);
 
@@ -209,11 +209,11 @@ SECTIONS
 
 /* Do not exceed this mark in the error messages below                                    | */
 /* # Alignment checks */
-ASSERT(ORIGIN(FLASH) % 4 == 0, "
-ERROR(cortex-m-rt): the start of the FLASH region must be 4-byte aligned");
+ASSERT(ORIGIN({{flash_region}}) % 4 == 0, "
+ERROR(cortex-m-rt): the start of the {{flash_region}} region must be 4-byte aligned");
 
-ASSERT(ORIGIN(RAM) % 4 == 0, "
-ERROR(cortex-m-rt): the start of the RAM region must be 4-byte aligned");
+ASSERT(ORIGIN({{ram_region}}) % 4 == 0, "
+ERROR(cortex-m-rt): the start of the {{ram_region}} region must be 4-byte aligned");
 
 ASSERT(__sdata % 4 == 0 && __edata % 4 == 0, "
 BUG(cortex-m-rt): .data is not 4-byte aligned");
@@ -230,7 +230,7 @@ BUG(cortex-m-rt): start of .heap is not 4-byte aligned");
 ASSERT(_stack_start % 8 == 0, "
 ERROR(cortex-m-rt): stack start address is not 8-byte aligned.
 If you have set _stack_start, check it's set to an address which is a multiple of 8 bytes.
-If you haven't, stack starts at the end of RAM by default. Check that both RAM
+If you haven't, stack starts at the end of {{ram_region}} by default. Check that both {{ram_region}}
 origin and length are set to multiples of 8 in the `memory.x` file.");
 
 ASSERT(_stack_end % 4 == 0, "
@@ -273,9 +273,9 @@ ASSERT(ADDR(.vector_table) + SIZEOF(.vector_table) <= _stext, "
 ERROR(cortex-m-rt): The .text section can't be placed inside the .vector_table section
 Set _stext to an address greater than the end of .vector_table (See output of `nm`)");
 
-ASSERT(_stext >= ORIGIN(FLASH) && _stext < ORIGIN(FLASH) + LENGTH(FLASH), "
-ERROR(cortex-m-rt): The .text section must be placed inside the FLASH memory.
-Set _stext to an address within the FLASH region.");
+ASSERT(_stext >= ORIGIN({{flash_region}}) && _stext < ORIGIN({{flash_region}}) + LENGTH({{flash_region}}), "
+ERROR(cortex-m-rt): The .text section must be placed inside the {{flash_region}} memory.
+Set _stext to an address within the {{flash_region}} region.");
 
 /* # Other checks */
 ASSERT(SIZEOF(.got) == 0, "

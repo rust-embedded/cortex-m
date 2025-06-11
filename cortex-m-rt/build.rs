@@ -1,7 +1,17 @@
+use far::{find, Render};
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::{env, ffi::OsStr};
+
+const FLASH_REGION_ENV: &str = "CORTEX_M_RT_FLASH_REGION";
+const RAM_REGION_ENV: &str = "CORTEX_M_RT_RAM_REGION";
+
+#[derive(Render)]
+struct LinkXReplacements {
+    flash_region: String,
+    ram_region: String,
+}
 
 fn main() {
     let mut target = env::var("TARGET").unwrap();
@@ -18,11 +28,29 @@ fn main() {
 
     // Put the linker script somewhere the linker can find it
     let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
-    let link_x = include_bytes!("link.x.in");
+    let link_x = include_str!("link.x.in");
+
+    // Replace regions in the linker script with the user's
+    // specified region names, or defaults if not specified
+    let tmpl = find::<_, LinkXReplacements>(link_x).unwrap();
+    let mut replacements = LinkXReplacements {
+        flash_region: "FLASH".to_owned(),
+        ram_region: "RAM".to_owned(),
+    };
+    if let Ok(region) = env::var(FLASH_REGION_ENV) {
+        println!("cargo:rerun-if-env-changed={}", FLASH_REGION_ENV);
+        replacements.flash_region = region;
+    };
+    if let Ok(region) = env::var(RAM_REGION_ENV) {
+        println!("cargo:rerun-if-env-changed={}", RAM_REGION_ENV);
+        replacements.ram_region = region;
+    };
+    let link_x = tmpl.replace(&replacements);
+
     let mut f = if env::var_os("CARGO_FEATURE_DEVICE").is_some() {
         let mut f = File::create(out.join("link.x")).unwrap();
 
-        f.write_all(link_x).unwrap();
+        f.write_all(link_x.as_bytes()).unwrap();
 
         // *IMPORTANT*: The weak aliases (i.e. `PROVIDED`) must come *after* `EXTERN(__INTERRUPTS)`.
         // Otherwise the linker will ignore user defined interrupts and always populate the table
@@ -38,7 +66,7 @@ INCLUDE device.x"#
         f
     } else {
         let mut f = File::create(out.join("link.x")).unwrap();
-        f.write_all(link_x).unwrap();
+        f.write_all(link_x.as_bytes()).unwrap();
         f
     };
 

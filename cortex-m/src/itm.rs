@@ -57,7 +57,7 @@ unsafe fn write_aligned_impl(port: &mut Stim, buffer: &[u8]) {
 
 struct Port<'p>(&'p mut Stim);
 
-impl fmt::Write for Port<'_> {
+impl<'p> fmt::Write for Port<'p> {
     #[inline]
     fn write_str(&mut self, s: &str) -> fmt::Result {
         write_all(self.0, s.as_bytes());

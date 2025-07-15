@@ -31,13 +31,10 @@ macro_rules! iprintln {
 /// at most once in the whole lifetime of the program.
 ///
 /// # Notes
+/// This macro is unsound on multi core systems.
 ///
-/// This macro requires a `critical-section` implementation to be set. For most single core systems,
-/// you can enable the `critical-section-single-core` feature for this crate. For other systems, you
-/// have to provide one from elsewhere, typically your chip's HAL crate.
-///
-/// For debuggability, you can set an explicit name for a singleton. This name only shows up the
-/// debugger and is not referenceable from other code. See example below.
+/// For debuggability, you can set an explicit name for a singleton.  This name only shows up the
+/// the debugger and is not referencable from other code.  See example below.
 ///
 /// # Example
 ///
@@ -64,12 +61,11 @@ macro_rules! iprintln {
 /// ```
 #[macro_export]
 macro_rules! singleton {
-    ($(#[$meta:meta])* $name:ident: $ty:ty = $expr:expr) => {
-        $crate::_export::critical_section::with(|_| {
+    ($name:ident: $ty:ty = $expr:expr) => {
+        $crate::interrupt::free(|_| {
             // this is a tuple of a MaybeUninit and a bool because using an Option here is
             // problematic:  Due to niche-optimization, an Option could end up producing a non-zero
             // initializer value which would move the entire static from `.bss` into `.data`...
-            $(#[$meta])*
             static mut $name: (::core::mem::MaybeUninit<$ty>, bool) =
                 (::core::mem::MaybeUninit::uninit(), false);
 
@@ -83,13 +79,14 @@ macro_rules! singleton {
                 #[allow(unsafe_code)]
                 unsafe {
                     $name.1 = true;
-                    Some($name.0.write(expr))
+                    $name.0 = ::core::mem::MaybeUninit::new(expr);
+                    Some(&mut *$name.0.as_mut_ptr())
                 }
             }
         })
     };
-    ($(#[$meta:meta])* : $ty:ty = $expr:expr) => {
-        $crate::singleton!($(#[$meta])* VAR: $ty = $expr)
+    (: $ty:ty = $expr:expr) => {
+        $crate::singleton!(VAR: $ty = $expr)
     };
 }
 
@@ -115,15 +112,3 @@ const CFAIL: () = ();
 /// ```
 #[allow(dead_code)]
 const CPASS: () = ();
-
-/// ```
-/// use cortex_m::singleton;
-///
-/// fn foo() {
-///     // check that attributes are forwarded
-///     singleton!(#[link_section = ".bss"] FOO: u8 = 0);
-///     singleton!(#[link_section = ".bss"]: u8 = 1);
-/// }
-/// ```
-#[allow(dead_code)]
-const CPASS_ATTR: () = ();

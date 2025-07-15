@@ -16,7 +16,7 @@ pub struct RegisterBlock {
     /// AHB Slave Control Register
     pub ahbscr: RW<u32>,
     reserved0: u32,
-    /// Auxiliary Bus Fault Status Register
+    /// Auxilary Bus Fault Status Register
     pub abfsr: RW<u32>,
 }
 

@@ -1,7 +1,7 @@
 //! A delay driver based on SysTick.
 
 use crate::peripheral::{syst::SystClkSource, SYST};
-use eh1::delay::DelayNs;
+use embedded_hal::blocking::delay::{DelayMs, DelayUs};
 
 /// System timer (SysTick) as a delay provider.
 pub struct Delay {
@@ -75,8 +75,7 @@ impl Delay {
     }
 }
 
-#[cfg(feature = "eh0")]
-impl eh0::blocking::delay::DelayMs<u32> for Delay {
+impl DelayMs<u32> for Delay {
     #[inline]
     fn delay_ms(&mut self, ms: u32) {
         Delay::delay_ms(self, ms);
@@ -84,8 +83,7 @@ impl eh0::blocking::delay::DelayMs<u32> for Delay {
 }
 
 // This is a workaround to allow `delay_ms(42)` construction without specifying a type.
-#[cfg(feature = "eh0")]
-impl eh0::blocking::delay::DelayMs<i32> for Delay {
+impl DelayMs<i32> for Delay {
     #[inline(always)]
     fn delay_ms(&mut self, ms: i32) {
         assert!(ms >= 0);
@@ -93,24 +91,21 @@ impl eh0::blocking::delay::DelayMs<i32> for Delay {
     }
 }
 
-#[cfg(feature = "eh0")]
-impl eh0::blocking::delay::DelayMs<u16> for Delay {
+impl DelayMs<u16> for Delay {
     #[inline(always)]
     fn delay_ms(&mut self, ms: u16) {
         Delay::delay_ms(self, u32::from(ms));
     }
 }
 
-#[cfg(feature = "eh0")]
-impl eh0::blocking::delay::DelayMs<u8> for Delay {
+impl DelayMs<u8> for Delay {
     #[inline(always)]
     fn delay_ms(&mut self, ms: u8) {
         Delay::delay_ms(self, u32::from(ms));
     }
 }
 
-#[cfg(feature = "eh0")]
-impl eh0::blocking::delay::DelayUs<u32> for Delay {
+impl DelayUs<u32> for Delay {
     #[inline]
     fn delay_us(&mut self, us: u32) {
         Delay::delay_us(self, us);
@@ -118,8 +113,7 @@ impl eh0::blocking::delay::DelayUs<u32> for Delay {
 }
 
 // This is a workaround to allow `delay_us(42)` construction without specifying a type.
-#[cfg(feature = "eh0")]
-impl eh0::blocking::delay::DelayUs<i32> for Delay {
+impl DelayUs<i32> for Delay {
     #[inline(always)]
     fn delay_us(&mut self, us: i32) {
         assert!(us >= 0);
@@ -127,39 +121,16 @@ impl eh0::blocking::delay::DelayUs<i32> for Delay {
     }
 }
 
-#[cfg(feature = "eh0")]
-impl eh0::blocking::delay::DelayUs<u16> for Delay {
+impl DelayUs<u16> for Delay {
     #[inline(always)]
     fn delay_us(&mut self, us: u16) {
         Delay::delay_us(self, u32::from(us))
     }
 }
 
-#[cfg(feature = "eh0")]
-impl eh0::blocking::delay::DelayUs<u8> for Delay {
+impl DelayUs<u8> for Delay {
     #[inline(always)]
     fn delay_us(&mut self, us: u8) {
         Delay::delay_us(self, u32::from(us))
-    }
-}
-
-impl DelayNs for Delay {
-    #[inline]
-    fn delay_ns(&mut self, ns: u32) {
-        // from the rp2040-hal:
-        let us = ns / 1000 + if ns % 1000 == 0 { 0 } else { 1 };
-        // With rustc 1.73, this can be replaced by:
-        // let us = ns.div_ceil(1000);
-        Delay::delay_us(self, us)
-    }
-
-    #[inline]
-    fn delay_us(&mut self, us: u32) {
-        Delay::delay_us(self, us)
-    }
-
-    #[inline]
-    fn delay_ms(&mut self, ms: u32) {
-        Delay::delay_ms(self, ms)
     }
 }

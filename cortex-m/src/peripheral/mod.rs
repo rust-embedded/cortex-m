@@ -62,7 +62,7 @@ use core::ops;
 
 use crate::interrupt;
 
-#[cfg(cm7)]
+#[cfg(feature = "cm7")]
 pub mod ac;
 #[cfg(not(armv6m))]
 pub mod cbp;
@@ -96,7 +96,7 @@ mod test;
 #[allow(clippy::manual_non_exhaustive)]
 pub struct Peripherals {
     /// Cortex-M7 TCM and cache access control.
-    #[cfg(cm7)]
+    #[cfg(feature = "cm7")]
     pub AC: AC,
 
     /// Cache and branch predictor maintenance operations.
@@ -180,7 +180,7 @@ impl Peripherals {
         TAKEN = true;
 
         Peripherals {
-            #[cfg(cm7)]
+            #[cfg(feature = "cm7")]
             AC: AC {
                 _marker: PhantomData,
             },
@@ -232,15 +232,15 @@ impl Peripherals {
 }
 
 /// Access control
-#[cfg(cm7)]
+#[cfg(feature = "cm7")]
 pub struct AC {
     _marker: PhantomData<*const ()>,
 }
 
-#[cfg(cm7)]
+#[cfg(feature = "cm7")]
 unsafe impl Send for AC {}
 
-#[cfg(cm7)]
+#[cfg(feature = "cm7")]
 impl AC {
     /// Pointer to the register block
     pub const PTR: *const self::ac::RegisterBlock = 0xE000_EF90 as *const _;

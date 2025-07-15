@@ -7,10 +7,11 @@
 use std::collections::BTreeMap;
 use std::env::current_dir;
 use std::fs::{self, File};
+use std::path::Path;
 use std::process::{Command, Stdio};
 
 fn toolchain() -> String {
-    fs::read_to_string("asm-toolchain")
+    fs::read_to_string("cortex-m/asm-toolchain")
         .unwrap()
         .trim()
         .to_string()
@@ -45,7 +46,11 @@ fn assemble_really(target: &str, cfgs: &[&str], plugin_lto: bool) {
 
     // We don't want any system-specific paths to show up since we ship the result to other users.
     // Add `--remap-path-prefix $(pwd)=.`.
-    let mut dir = current_dir().unwrap().as_os_str().to_os_string();
+    let mut dir = current_dir()
+        .unwrap()
+        .join("cortex-m")
+        .as_os_str()
+        .to_os_string();
     dir.push("=.");
     cmd.arg("--remap-path-prefix").arg(dir);
 
@@ -70,17 +75,21 @@ fn assemble_really(target: &str, cfgs: &[&str], plugin_lto: bool) {
     // Pass output and input file.
     cmd.arg("-o").arg(&obj_file);
     cmd.arg("asm/lib.rs");
+    cmd.current_dir("cortex-m");
 
     println!("{:?}", cmd);
     let status = cmd.status().unwrap();
     assert!(status.success());
 
+    let full_obj_file_path = Path::new("cortex-m").join(&obj_file);
+
     // Archive `target.o` -> `bin/target.a`.
-    let mut builder = ar::Builder::new(File::create(format!("bin/{}.a", file_stub)).unwrap());
+    let mut builder =
+        ar::Builder::new(File::create(format!("cortex-m/bin/{}.a", file_stub)).unwrap());
 
     // Use `append`, not `append_path`, to avoid adding any filesystem metadata (modification times,
     // etc.).
-    let file = fs::read(&obj_file).unwrap();
+    let file = fs::read(&full_obj_file_path).unwrap();
     builder
         .append(
             &ar::Header::new(obj_file.as_bytes().to_vec(), file.len() as u64),
@@ -88,7 +97,7 @@ fn assemble_really(target: &str, cfgs: &[&str], plugin_lto: bool) {
         )
         .unwrap();
 
-    fs::remove_file(&obj_file).unwrap();
+    fs::remove_file(&full_obj_file_path).unwrap();
 }
 
 fn assemble(target: &str, cfgs: &[&str]) {
@@ -157,7 +166,7 @@ pub fn assemble_blobs() {
 pub fn check_blobs() {
     // Load each `.a` file in `bin` into memory.
     let mut files_before = BTreeMap::new();
-    for entry in fs::read_dir("bin").unwrap() {
+    for entry in fs::read_dir("cortex-m/bin").unwrap() {
         let entry = entry.unwrap();
         if entry.path().extension().unwrap() == "a" {
             files_before.insert(
@@ -176,7 +185,7 @@ pub fn check_blobs() {
     assemble_blobs();
 
     let mut files_after = BTreeMap::new();
-    for entry in fs::read_dir("bin").unwrap() {
+    for entry in fs::read_dir("cortex-m/bin").unwrap() {
         let entry = entry.unwrap();
         if entry.path().extension().unwrap() == "a" {
             files_after.insert(

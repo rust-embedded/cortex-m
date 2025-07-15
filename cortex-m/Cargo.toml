@@ -14,6 +14,7 @@ repository = "https://github.com/rust-embedded/cortex-m"
 version = "0.7.7"
 edition = "2018"
 links = "cortex-m"  # prevent multiple versions of this crate to be linked together
+rust-version = "1.61"
 
 [dependencies]
 bare-metal = { version = "0.2.4", features = ["const-fn"] }

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+- MSRV is 1.61 to match cortex-m-rt crate
+
 ## [v0.7.7] - 2023-01-03
 
 - Add missing documentation for `critical-section-single-core` feature added

@@ -45,8 +45,8 @@ fn build(package: &str, target: &str, features: &[&str]) {
 #[rustfmt::skip]
 static PACKAGE_FEATURES: &[(&str, &[&str], &[&str])] = &[
     ("cortex-m", ALL_TARGETS, &["inline-asm", "cm7-r0p1", "critical-section-single-core"]), // no `linker-plugin-lto` since it's experimental
-    ("cortex-m-semihosting", ALL_TARGETS, &["inline-asm", "no-semihosting", "jlink-quirks"]),
-    ("panic-semihosting", ALL_TARGETS, &["inline-asm", "exit", "jlink-quirks"]),
+    ("cortex-m-semihosting", ALL_TARGETS, &["no-semihosting", "jlink-quirks"]),
+    ("panic-semihosting", ALL_TARGETS, &["exit", "jlink-quirks"]),
     ("panic-itm", NON_BASE_TARGETS, &[]),
 ];
 

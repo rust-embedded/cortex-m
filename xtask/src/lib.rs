@@ -235,6 +235,6 @@ pub fn check_host_side() {
     {
         let a = VectActive::from(19).unwrap();
         let b = VectActive::from(20).unwrap();
-        assert_eq!(a < b, true);
+        assert!(a < b);
     }
 }

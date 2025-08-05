@@ -60,6 +60,8 @@
 use core::marker::PhantomData;
 use core::ops;
 
+use crate::interrupt;
+
 #[cfg(feature = "cm7")]
 pub mod ac;
 #[cfg(not(armv6m))]
@@ -163,7 +165,7 @@ impl Peripherals {
     /// Returns all the core peripherals *once*
     #[inline]
     pub fn take() -> Option<Self> {
-        critical_section::with(|_| {
+        interrupt::free(|_| {
             if unsafe { TAKEN } {
                 None
             } else {
@@ -242,10 +244,16 @@ unsafe impl Send for AC {}
 impl AC {
     /// Pointer to the register block
     pub const PTR: *const self::ac::RegisterBlock = 0xE000_EF90 as *const _;
+
+    /// Returns a pointer to the register block
+    #[inline(always)]
+    #[deprecated(since = "0.7.5", note = "Use the associated constant `PTR` instead")]
+    pub const fn ptr() -> *const self::ac::RegisterBlock {
+        Self::PTR
+    }
 }
 
 /// Cache and branch predictor maintenance operations
-#[allow(clippy::upper_case_acronyms)]
 pub struct CBP {
     _marker: PhantomData<*const ()>,
 }
@@ -263,6 +271,13 @@ impl CBP {
 
     /// Pointer to the register block
     pub const PTR: *const self::cbp::RegisterBlock = 0xE000_EF50 as *const _;
+
+    /// Returns a pointer to the register block
+    #[inline(always)]
+    #[deprecated(since = "0.7.5", note = "Use the associated constant `PTR` instead")]
+    pub const fn ptr() -> *const self::cbp::RegisterBlock {
+        Self::PTR
+    }
 }
 
 #[cfg(not(armv6m))]
@@ -276,7 +291,6 @@ impl ops::Deref for CBP {
 }
 
 /// CPUID
-#[allow(clippy::upper_case_acronyms)]
 pub struct CPUID {
     _marker: PhantomData<*const ()>,
 }
@@ -286,6 +300,13 @@ unsafe impl Send for CPUID {}
 impl CPUID {
     /// Pointer to the register block
     pub const PTR: *const self::cpuid::RegisterBlock = 0xE000_ED00 as *const _;
+
+    /// Returns a pointer to the register block
+    #[inline(always)]
+    #[deprecated(since = "0.7.5", note = "Use the associated constant `PTR` instead")]
+    pub const fn ptr() -> *const self::cpuid::RegisterBlock {
+        Self::PTR
+    }
 }
 
 impl ops::Deref for CPUID {
@@ -298,7 +319,6 @@ impl ops::Deref for CPUID {
 }
 
 /// Debug Control Block
-#[allow(clippy::upper_case_acronyms)]
 pub struct DCB {
     _marker: PhantomData<*const ()>,
 }
@@ -308,6 +328,13 @@ unsafe impl Send for DCB {}
 impl DCB {
     /// Pointer to the register block
     pub const PTR: *const dcb::RegisterBlock = 0xE000_EDF0 as *const _;
+
+    /// Returns a pointer to the register block
+    #[inline(always)]
+    #[deprecated(since = "0.7.5", note = "Use the associated constant `PTR` instead")]
+    pub const fn ptr() -> *const dcb::RegisterBlock {
+        Self::PTR
+    }
 }
 
 impl ops::Deref for DCB {
@@ -320,7 +347,6 @@ impl ops::Deref for DCB {
 }
 
 /// Data Watchpoint and Trace unit
-#[allow(clippy::upper_case_acronyms)]
 pub struct DWT {
     _marker: PhantomData<*const ()>,
 }
@@ -330,6 +356,13 @@ unsafe impl Send for DWT {}
 impl DWT {
     /// Pointer to the register block
     pub const PTR: *const dwt::RegisterBlock = 0xE000_1000 as *const _;
+
+    /// Returns a pointer to the register block
+    #[inline(always)]
+    #[deprecated(since = "0.7.5", note = "Use the associated constant `PTR` instead")]
+    pub const fn ptr() -> *const dwt::RegisterBlock {
+        Self::PTR
+    }
 }
 
 impl ops::Deref for DWT {
@@ -342,7 +375,6 @@ impl ops::Deref for DWT {
 }
 
 /// Flash Patch and Breakpoint unit
-#[allow(clippy::upper_case_acronyms)]
 pub struct FPB {
     _marker: PhantomData<*const ()>,
 }
@@ -353,6 +385,13 @@ unsafe impl Send for FPB {}
 impl FPB {
     /// Pointer to the register block
     pub const PTR: *const fpb::RegisterBlock = 0xE000_2000 as *const _;
+
+    /// Returns a pointer to the register block
+    #[inline(always)]
+    #[deprecated(since = "0.7.5", note = "Use the associated constant `PTR` instead")]
+    pub const fn ptr() -> *const fpb::RegisterBlock {
+        Self::PTR
+    }
 }
 
 #[cfg(not(armv6m))]
@@ -366,7 +405,6 @@ impl ops::Deref for FPB {
 }
 
 /// Floating Point Unit
-#[allow(clippy::upper_case_acronyms)]
 pub struct FPU {
     _marker: PhantomData<*const ()>,
 }
@@ -377,6 +415,13 @@ unsafe impl Send for FPU {}
 impl FPU {
     /// Pointer to the register block
     pub const PTR: *const fpu::RegisterBlock = 0xE000_EF30 as *const _;
+
+    /// Returns a pointer to the register block
+    #[inline(always)]
+    #[deprecated(since = "0.7.5", note = "Use the associated constant `PTR` instead")]
+    pub const fn ptr() -> *const fpu::RegisterBlock {
+        Self::PTR
+    }
 }
 
 #[cfg(any(has_fpu, native))]
@@ -395,7 +440,6 @@ impl ops::Deref for FPU {
 /// `actlr`. It's called the "implementation control block" in the ARMv8-M
 /// standard, but earlier standards contained the registers, just without a
 /// name.
-#[allow(clippy::upper_case_acronyms)]
 pub struct ICB {
     _marker: PhantomData<*const ()>,
 }
@@ -405,6 +449,13 @@ unsafe impl Send for ICB {}
 impl ICB {
     /// Pointer to the register block
     pub const PTR: *mut icb::RegisterBlock = 0xE000_E004 as *mut _;
+
+    /// Returns a pointer to the register block
+    #[inline(always)]
+    #[deprecated(since = "0.7.5", note = "Use the associated constant `PTR` instead")]
+    pub const fn ptr() -> *mut icb::RegisterBlock {
+        Self::PTR
+    }
 }
 
 impl ops::Deref for ICB {
@@ -424,7 +475,6 @@ impl ops::DerefMut for ICB {
 }
 
 /// Instrumentation Trace Macrocell
-#[allow(clippy::upper_case_acronyms)]
 pub struct ITM {
     _marker: PhantomData<*const ()>,
 }
@@ -435,6 +485,13 @@ unsafe impl Send for ITM {}
 impl ITM {
     /// Pointer to the register block
     pub const PTR: *mut itm::RegisterBlock = 0xE000_0000 as *mut _;
+
+    /// Returns a pointer to the register block
+    #[inline(always)]
+    #[deprecated(since = "0.7.5", note = "Use the associated constant `PTR` instead")]
+    pub const fn ptr() -> *mut itm::RegisterBlock {
+        Self::PTR
+    }
 }
 
 #[cfg(all(not(armv6m), not(armv8m_base)))]
@@ -456,7 +513,6 @@ impl ops::DerefMut for ITM {
 }
 
 /// Memory Protection Unit
-#[allow(clippy::upper_case_acronyms)]
 pub struct MPU {
     _marker: PhantomData<*const ()>,
 }
@@ -466,6 +522,13 @@ unsafe impl Send for MPU {}
 impl MPU {
     /// Pointer to the register block
     pub const PTR: *const mpu::RegisterBlock = 0xE000_ED90 as *const _;
+
+    /// Returns a pointer to the register block
+    #[inline(always)]
+    #[deprecated(since = "0.7.5", note = "Use the associated constant `PTR` instead")]
+    pub const fn ptr() -> *const mpu::RegisterBlock {
+        Self::PTR
+    }
 }
 
 impl ops::Deref for MPU {
@@ -478,7 +541,6 @@ impl ops::Deref for MPU {
 }
 
 /// Nested Vector Interrupt Controller
-#[allow(clippy::upper_case_acronyms)]
 pub struct NVIC {
     _marker: PhantomData<*const ()>,
 }
@@ -488,6 +550,13 @@ unsafe impl Send for NVIC {}
 impl NVIC {
     /// Pointer to the register block
     pub const PTR: *const nvic::RegisterBlock = 0xE000_E100 as *const _;
+
+    /// Returns a pointer to the register block
+    #[inline(always)]
+    #[deprecated(since = "0.7.5", note = "Use the associated constant `PTR` instead")]
+    pub const fn ptr() -> *const nvic::RegisterBlock {
+        Self::PTR
+    }
 }
 
 impl ops::Deref for NVIC {
@@ -500,7 +569,6 @@ impl ops::Deref for NVIC {
 }
 
 /// Security Attribution Unit
-#[allow(clippy::upper_case_acronyms)]
 pub struct SAU {
     _marker: PhantomData<*const ()>,
 }
@@ -511,6 +579,13 @@ unsafe impl Send for SAU {}
 impl SAU {
     /// Pointer to the register block
     pub const PTR: *const sau::RegisterBlock = 0xE000_EDD0 as *const _;
+
+    /// Returns a pointer to the register block
+    #[inline(always)]
+    #[deprecated(since = "0.7.5", note = "Use the associated constant `PTR` instead")]
+    pub const fn ptr() -> *const sau::RegisterBlock {
+        Self::PTR
+    }
 }
 
 #[cfg(armv8m)]
@@ -524,7 +599,6 @@ impl ops::Deref for SAU {
 }
 
 /// System Control Block
-#[allow(clippy::upper_case_acronyms)]
 pub struct SCB {
     _marker: PhantomData<*const ()>,
 }
@@ -534,6 +608,13 @@ unsafe impl Send for SCB {}
 impl SCB {
     /// Pointer to the register block
     pub const PTR: *const scb::RegisterBlock = 0xE000_ED04 as *const _;
+
+    /// Returns a pointer to the register block
+    #[inline(always)]
+    #[deprecated(since = "0.7.5", note = "Use the associated constant `PTR` instead")]
+    pub const fn ptr() -> *const scb::RegisterBlock {
+        Self::PTR
+    }
 }
 
 impl ops::Deref for SCB {
@@ -546,7 +627,6 @@ impl ops::Deref for SCB {
 }
 
 /// SysTick: System Timer
-#[allow(clippy::upper_case_acronyms)]
 pub struct SYST {
     _marker: PhantomData<*const ()>,
 }
@@ -556,6 +636,13 @@ unsafe impl Send for SYST {}
 impl SYST {
     /// Pointer to the register block
     pub const PTR: *const syst::RegisterBlock = 0xE000_E010 as *const _;
+
+    /// Returns a pointer to the register block
+    #[inline(always)]
+    #[deprecated(since = "0.7.5", note = "Use the associated constant `PTR` instead")]
+    pub const fn ptr() -> *const syst::RegisterBlock {
+        Self::PTR
+    }
 }
 
 impl ops::Deref for SYST {
@@ -568,7 +655,6 @@ impl ops::Deref for SYST {
 }
 
 /// Trace Port Interface Unit
-#[allow(clippy::upper_case_acronyms)]
 pub struct TPIU {
     _marker: PhantomData<*const ()>,
 }
@@ -579,6 +665,13 @@ unsafe impl Send for TPIU {}
 impl TPIU {
     /// Pointer to the register block
     pub const PTR: *const tpiu::RegisterBlock = 0xE004_0000 as *const _;
+
+    /// Returns a pointer to the register block
+    #[inline(always)]
+    #[deprecated(since = "0.7.5", note = "Use the associated constant `PTR` instead")]
+    pub const fn ptr() -> *const tpiu::RegisterBlock {
+        Self::PTR
+    }
 }
 
 #[cfg(not(armv6m))]

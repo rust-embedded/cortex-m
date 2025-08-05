@@ -1,18 +1,4 @@
 //! SysTick: System Timer
-//!
-//! # Example
-//!
-//! ```no_run
-//! use cortex_m::peripheral::{Peripherals, SYST};
-//!
-//! let core_periph = cortex_m::peripheral::Peripherals::take().unwrap();
-//! let mut syst = core_periph.SYST;
-//! syst.set_reload(0xffffff);
-//! syst.clear_current();
-//! syst.enable_counter();
-//!
-//! let syst_value: u32 = SYST::get_current();
-//! ```
 
 use volatile_register::{RO, RW};
 
@@ -53,7 +39,7 @@ const SYST_CALIB_NOREF: u32 = 1 << 31;
 impl SYST {
     /// Clears current value to 0
     ///
-    /// After calling `clear_current()`, the next call to `has_wrapped()`, unless called after the reload time (if the counter is enabled), will return `false`.
+    /// After calling `clear_current()`, the next call to `has_wrapped()` will return `false`.
     #[inline]
     pub fn clear_current(&mut self) {
         unsafe { self.cvr.write(0) }

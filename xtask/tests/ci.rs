@@ -1,6 +1,6 @@
 use std::process::Command;
 use std::{env, str};
-use xtask::{check_host_side, install_targets};
+use xtask::{check_blobs, check_host_side, install_targets};
 
 /// List of all compilation targets we support.
 ///
@@ -27,16 +27,9 @@ static NON_BASE_TARGETS: &[&str] = &[
 fn build(package: &str, target: &str, features: &[&str]) {
     println!("building {} for {} {:?}", package, target, features);
     let mut cargo = Command::new("cargo");
-    cargo.args(["build", "-p", package, "--target", target]);
+    cargo.args(&["build", "-p", package, "--target", target]);
     for feat in features {
-        cargo.args(["--features", *feat]);
-    }
-
-    // A `critical_section` implementation is always needed.
-    if package == "cortex-m" {
-        cargo.args(["--features", "critical-section-single-core"]);
-    } else {
-        cargo.args(["--features", "cortex-m/critical-section-single-core"]);
+        cargo.args(&["--features", *feat]);
     }
 
     // Cargo features don't work right when invoked from the workspace root, so change to the
@@ -51,13 +44,13 @@ fn build(package: &str, target: &str, features: &[&str]) {
 
 #[rustfmt::skip]
 static PACKAGE_FEATURES: &[(&str, &[&str], &[&str])] = &[
-    ("cortex-m", ALL_TARGETS, &["cm7-r0p1"]),
+    ("cortex-m", ALL_TARGETS, &["inline-asm", "cm7-r0p1", "critical-section-single-core"]), // no `linker-plugin-lto` since it's experimental
     ("cortex-m-semihosting", ALL_TARGETS, &["no-semihosting", "jlink-quirks"]),
     ("panic-semihosting", ALL_TARGETS, &["exit", "jlink-quirks"]),
     ("panic-itm", NON_BASE_TARGETS, &[]),
 ];
 
-fn check_crates_build(_is_nightly: bool) {
+fn check_crates_build(is_nightly: bool, is_msrv: bool) {
     // Build all crates for each supported target.
     for (package, targets, all_features) in PACKAGE_FEATURES {
         for target in *targets {
@@ -65,8 +58,11 @@ fn check_crates_build(_is_nightly: bool) {
             // Relies on all crates in this repo to use the same convention.
             let should_use_feature = |feat: &str| {
                 match feat {
+                    // This is nightly-only, so don't use it on stable.
+                    "inline-asm" => is_nightly,
                     // This only affects thumbv7em targets.
                     "cm7-r0p1" => target.starts_with("thumbv7em"),
+
                     _ => true,
                 }
             };
@@ -77,7 +73,7 @@ fn check_crates_build(_is_nightly: bool) {
             let used_features = &*all_features
                 .iter()
                 .copied()
-                .filter(|feat| should_use_feature(feat))
+                .filter(|feat| should_use_feature(*feat))
                 .collect::<Vec<_>>();
 
             // (note: we don't test with default features disabled, since we don't use them yet)
@@ -102,10 +98,14 @@ fn main() {
 
     install_targets(&mut ALL_TARGETS.iter().cloned(), None);
 
+    // Check that the ASM blobs are up-to-date.
+    check_blobs();
+
     let output = Command::new("rustc").arg("-V").output().unwrap();
     let is_nightly = str::from_utf8(&output.stdout).unwrap().contains("nightly");
+    let is_msrv = str::from_utf8(&output.stdout).unwrap().contains("1.59");
 
-    check_crates_build(is_nightly);
+    check_crates_build(is_nightly, is_msrv);
 
     // Check host-side applications of the crate.
     check_host_side();

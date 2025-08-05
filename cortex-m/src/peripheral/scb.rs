@@ -170,28 +170,10 @@ impl SCB {
     /// Returns the active exception number
     #[inline]
     pub fn vect_active() -> VectActive {
-        let icsr =
-            unsafe { ptr::read_volatile(&(*SCB::PTR).icsr as *const _ as *const u32) } & 0x1FF;
+        let icsr = unsafe { ptr::read(&(*SCB::PTR).icsr as *const _ as *const u32) };
 
-        match icsr as u16 {
-            0 => VectActive::ThreadMode,
-            2 => VectActive::Exception(Exception::NonMaskableInt),
-            3 => VectActive::Exception(Exception::HardFault),
-            #[cfg(not(armv6m))]
-            4 => VectActive::Exception(Exception::MemoryManagement),
-            #[cfg(not(armv6m))]
-            5 => VectActive::Exception(Exception::BusFault),
-            #[cfg(not(armv6m))]
-            6 => VectActive::Exception(Exception::UsageFault),
-            #[cfg(any(armv8m, native))]
-            7 => VectActive::Exception(Exception::SecureFault),
-            11 => VectActive::Exception(Exception::SVCall),
-            #[cfg(not(armv6m))]
-            12 => VectActive::Exception(Exception::DebugMonitor),
-            14 => VectActive::Exception(Exception::PendSV),
-            15 => VectActive::Exception(Exception::SysTick),
-            irqn => VectActive::Interrupt { irqn: irqn - 16 },
-        }
+        // NOTE(unsafe): Assume correctly selected target.
+        unsafe { VectActive::from(icsr as u8).unwrap_unchecked() }
     }
 }
 
@@ -275,15 +257,15 @@ pub enum VectActive {
 
     /// Device specific exception (external interrupts)
     Interrupt {
-        /// Interrupt number. This number is always within half open range `[0, 512)` (9 bit)
-        irqn: u16,
+        /// Interrupt number. This number is always within half open range `[0, 240)`
+        irqn: u8,
     },
 }
 
 impl VectActive {
-    /// Converts a vector number into `VectActive`
+    /// Converts a `byte` into `VectActive`
     #[inline]
-    pub fn from(vect_active: u16) -> Option<Self> {
+    pub fn from(vect_active: u8) -> Option<Self> {
         Some(match vect_active {
             0 => VectActive::ThreadMode,
             2 => VectActive::Exception(Exception::NonMaskableInt),
@@ -301,7 +283,7 @@ impl VectActive {
             12 => VectActive::Exception(Exception::DebugMonitor),
             14 => VectActive::Exception(Exception::PendSV),
             15 => VectActive::Exception(Exception::SysTick),
-            irqn if (16..512).contains(&irqn) => VectActive::Interrupt { irqn: irqn - 16 },
+            irqn if irqn >= 16 => VectActive::Interrupt { irqn: irqn - 16 },
             _ => return None,
         })
     }
@@ -362,7 +344,7 @@ impl SCB {
         let mut cbp = unsafe { CBP::new() };
 
         // Disable I-cache
-        // NOTE(unsafe): We have synchronized access by &mut self
+        // NOTE(unsafe): We have synchronised access by &mut self
         unsafe { self.ccr.modify(|r| r & !SCB_CCR_IC_MASK) };
 
         // Invalidate I-cache
@@ -435,7 +417,7 @@ impl SCB {
         }
 
         // Turn off the D-cache
-        // NOTE(unsafe): We have synchronized access by &mut self
+        // NOTE(unsafe): We have synchronised access by &mut self
         unsafe { self.ccr.modify(|r| r & !SCB_CCR_DC_MASK) };
 
         // Clean and invalidate whatever was left in it
@@ -664,7 +646,10 @@ impl SCB {
     /// a runtime-dependent `panic!()` call.
     #[inline]
     pub unsafe fn invalidate_dcache_by_slice<T>(&mut self, slice: &mut [T]) {
-        self.invalidate_dcache_by_address(slice.as_ptr() as usize, core::mem::size_of_val(slice));
+        self.invalidate_dcache_by_address(
+            slice.as_ptr() as usize,
+            slice.len() * core::mem::size_of::<T>(),
+        );
     }
 
     /// Cleans D-cache by address.
@@ -747,7 +732,10 @@ impl SCB {
     /// to main memory, overwriting whatever was in main memory.
     #[inline]
     pub fn clean_dcache_by_slice<T>(&mut self, slice: &[T]) {
-        self.clean_dcache_by_address(slice.as_ptr() as usize, core::mem::size_of_val(slice));
+        self.clean_dcache_by_address(
+            slice.as_ptr() as usize,
+            slice.len() * core::mem::size_of::<T>(),
+        );
     }
 
     /// Cleans and invalidates D-cache by address.
@@ -828,26 +816,6 @@ impl SCB {
     pub fn clear_sleeponexit(&mut self) {
         unsafe {
             self.scr.modify(|scr| scr & !SCB_SCR_SLEEPONEXIT);
-        }
-    }
-}
-
-const SCB_SCR_SEVONPEND: u32 = 0x1 << 4;
-
-impl SCB {
-    /// Set the SEVONPEND bit in the SCR register
-    #[inline]
-    pub fn set_sevonpend(&mut self) {
-        unsafe {
-            self.scr.modify(|scr| scr | SCB_SCR_SEVONPEND);
-        }
-    }
-
-    /// Clear the SEVONPEND bit in the SCR register
-    #[inline]
-    pub fn clear_sevonpend(&mut self) {
-        unsafe {
-            self.scr.modify(|scr| scr & !SCB_SCR_SEVONPEND);
         }
     }
 }

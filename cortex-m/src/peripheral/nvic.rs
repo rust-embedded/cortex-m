@@ -36,15 +36,7 @@ pub struct RegisterBlock {
     #[cfg(armv6m)]
     _reserved4: [u32; 16],
 
-    _reserved5: [u32; 16],
-
-    #[cfg(armv8m)]
-    /// Interrupt Target Non-secure (only present on Arm v8-M)
-    pub itns: [RW<u32>; 16],
-    #[cfg(not(armv8m))]
-    _reserved6: [u32; 16],
-
-    _reserved7: [u32; 16],
+    _reserved5: [u32; 48],
 
     /// Interrupt Priority
     ///
@@ -75,7 +67,7 @@ pub struct RegisterBlock {
     pub ipr: [RW<u32>; 8],
 
     #[cfg(not(armv6m))]
-    _reserved8: [u32; 580],
+    _reserved6: [u32; 580],
 
     /// Software Trigger Interrupt
     #[cfg(not(armv6m))]
@@ -94,14 +86,15 @@ impl NVIC {
     /// [`NVIC::pend`]: #method.pend
     #[cfg(not(armv6m))]
     #[inline]
-    pub fn request<I>(interrupt: I)
+    pub fn request<I>(&mut self, interrupt: I)
     where
         I: InterruptNumber,
     {
         let nr = interrupt.number();
 
-        // NOTE(ptr) this is a write to a stateless register
-        unsafe { (*Self::PTR).stir.write(u32::from(nr)) }
+        unsafe {
+            self.stir.write(u32::from(nr));
+        }
     }
 
     /// Disables `interrupt`

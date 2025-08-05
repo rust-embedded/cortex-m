@@ -1,18 +1,21 @@
 //! Link register
 
-#[cfg(cortex_m)]
-use core::arch::asm;
-
 /// Reads the CPU register
 ///
-/// Note that this function can't be used reliably: The value returned at least depends
-/// on whether the compiler chooses to inline the function or not.
-#[cfg(cortex_m)]
+/// **NOTE** This function is available if `cortex-m` is built with the `"inline-asm"` feature.
 #[inline]
 pub fn read() -> u32 {
-    let r;
-    unsafe { asm!("mov {}, lr", out(reg) r, options(nomem, nostack, preserves_flags)) };
-    r
+    call_asm!(__lr_r() -> u32)
 }
 
-// No `write` function for the LR register, as it can't be used soundly.
+/// Writes `bits` to the CPU register
+///
+/// **NOTE** This function is available if `cortex-m` is built with the `"inline-asm"` feature.
+///
+/// # Safety
+/// This function can't be used soundly.
+#[inline]
+#[deprecated = "This function can't be used soundly."]
+pub unsafe fn write(bits: u32) {
+    call_asm!(__lr_w(bits: u32));
+}

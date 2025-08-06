@@ -17,13 +17,18 @@ pub fn bkpt() {
 
 /// Blocks the program for *at least* `cycles` CPU cycles.
 ///
-/// This is implemented in assembly so its execution time is independent of the optimization
-/// level, however it is dependent on the specific architecture and core configuration.
+/// This is implemented in assembly as a fixed number of iterations of a loop, so that execution
+/// time is independent of the optimization level.
 ///
-/// NOTE that the delay can take much longer if interrupts are serviced during its execution
-/// and the execution time may vary with other factors. This delay is mainly useful for simple
-/// timer-less initialization of peripherals if and only if accurate timing is not essential. In
-/// any other case please use a more accurate method to produce a delay.
+/// The loop code is the same for all architectures, however the number of CPU cycles required for
+/// one iteration varies substantially between architectures.  This means that with a 48MHz CPU
+/// clock, a call to `delay(48_000_000)` is guaranteed to take at least 1 second, but for example
+/// could take 2 seconds.
+///
+/// NOTE that the delay can take much longer if interrupts are serviced during its execution and the
+/// execution time may vary with other factors. This delay is mainly useful for simple timer-less
+/// initialization of peripherals if and only if accurate timing is not essential. In any other case
+/// please use a more accurate method to produce a delay.
 #[inline]
 pub fn delay(cycles: u32) {
     call_asm!(__delay(cycles: u32));

@@ -60,6 +60,10 @@ pub unsafe fn __delay(cyc: u32) {
     // Add 1 to prevent an integer underflow which would cause a long freeze
     let real_cyc = 1 + cyc / 2;
     asm!(
+        // The `bne` on some cores (eg Cortex-M4) will take a different number of instructions
+        // depending on the alignment of the branch target.  Set the alignment of the top of the
+        // loop to prevent surprising timing changes when the alignment of the delay() changes.
+        ".p2align 3",
         // Use local labels to avoid R_ARM_THM_JUMP8 relocations which fail on thumbv6m.
         "1:",
         "subs {}, #1",

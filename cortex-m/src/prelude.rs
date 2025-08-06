@@ -1,3 +1,3 @@
 //! Prelude
 
-pub use embedded_hal::prelude::*;
+pub use eh0::prelude::*;

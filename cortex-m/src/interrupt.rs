@@ -51,6 +51,7 @@ pub unsafe fn enable() {
 /// Execute closure `f` in an interrupt-free context.
 ///
 /// This as also known as a "critical section".
+#[cfg(cortex_m)]
 #[inline]
 pub fn free<F, R>(f: F) -> R
 where
@@ -71,4 +72,16 @@ where
     }
 
     r
+}
+
+// Make a `free()` function available to allow checking dependencies without specifying a target,
+// but that will panic at runtime if executed.
+#[doc(hidden)]
+#[cfg(not(cortex_m))]
+#[inline]
+pub fn free<F, R>(_: F) -> R
+where
+    F: FnOnce(&CriticalSection) -> R,
+{
+    panic!("cortex_m::interrupt::free() is only functional on cortex-m platforms");
 }

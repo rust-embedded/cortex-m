@@ -60,8 +60,6 @@
 use core::marker::PhantomData;
 use core::ops;
 
-use crate::interrupt;
-
 #[cfg(feature = "cm7")]
 pub mod ac;
 #[cfg(not(armv6m))]
@@ -165,7 +163,7 @@ impl Peripherals {
     /// Returns all the core peripherals *once*
     #[inline]
     pub fn take() -> Option<Self> {
-        interrupt::free(|_| {
+        crate::interrupt::free(|_| {
             if unsafe { TAKEN } {
                 None
             } else {

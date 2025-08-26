@@ -17,10 +17,10 @@
 //! are:
 //!
 //! - Reduced overhead. FFI eliminates the possibility of inlining so all operations include a
-//! function call overhead when `inline-asm` is not enabled.
+//!   function call overhead when `inline-asm` is not enabled.
 //!
 //! - Some of the `register` API only becomes available only when `inline-asm` is enabled. Check the
-//! API docs for details.
+//!   API docs for details.
 //!
 //! The disadvantage is that `inline-asm` requires a Rust version at least 1.59 to use the `asm!()`
 //! macro. In the future 0.8 and above versions of `cortex-m`, this feature will always be enabled.

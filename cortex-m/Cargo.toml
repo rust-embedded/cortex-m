@@ -40,6 +40,8 @@ inline-asm = []
 linker-plugin-lto = []
 std = []
 critical-section-single-core = ["critical-section/restore-state-u32"]
+# Deprecated feature from when critical-section was an optional dependency
+critical-section = []
 
 [package.metadata.docs.rs]
 targets = [

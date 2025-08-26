@@ -29,7 +29,6 @@ impl Primask {
 }
 
 /// Reads the prioritizable interrupt mask
-#[cfg(cortex_m)]
 #[inline]
 pub fn read() -> Primask {
     if read_raw() & (1 << 0) == (1 << 0) {
@@ -41,11 +40,15 @@ pub fn read() -> Primask {
 
 /// Reads the entire PRIMASK register
 /// Note that bits [31:1] are reserved and UNK (Unknown)
-#[cfg(cortex_m)]
 #[inline]
 pub fn read_raw() -> u32 {
     let r: u32;
-    unsafe { asm!("mrs {}, PRIMASK", out(reg) r, options(nomem, nostack, preserves_flags)) };
+    #[cfg(cortex_m)]
+    unsafe {
+        asm!("mrs {}, PRIMASK", out(reg) r, options(nomem, nostack, preserves_flags))
+    };
+    #[cfg(not(cortex_m))]
+    panic!("cannot read PRIMASK on non-cortex-m platform");
     r
 }
 

@@ -74,9 +74,11 @@ where
     r
 }
 
-// Make a `free()` function available to allow checking dependencies without specifying a target,
-// but that will panic at runtime if executed.
-#[doc(hidden)]
+// Make a `free()` function available on hosted platforms to allow checking dependencies without
+// specifying a target, but that will panic at runtime if executed.
+/// Execute closure `f` in an interrupt-free context.
+///
+/// This as also known as a "critical section".
 #[cfg(not(cortex_m))]
 #[inline]
 pub fn free<F, R>(_: F) -> R

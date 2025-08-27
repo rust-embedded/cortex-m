@@ -180,9 +180,13 @@ pub unsafe fn semihosting_syscall(nr: u32, arg: u32) -> u32 {
 ///
 /// # Safety
 ///
-/// `psp` and `entry` must point to valid stack memory and executable
-/// code, respectively. `psp` must be 8 bytes aligned and point to
-/// stack top as stack grows towards lower addresses.
+/// * `psp` and `entry` must point to valid stack memory and executable code,
+///   respectively.
+/// * `psp` must be 8 bytes aligned and point to stack top as stack grows
+///   towards lower addresses.
+/// * The size of the stack provided here must be large enough for your
+///   program - stack overflows are obviously UB. If your processor supports
+///   it, you may wish to set the `PSPLIM` register to guard against this.
 #[cfg(cortex_m)]
 #[inline(always)]
 pub unsafe fn enter_unprivileged(psp: *const u32, entry: fn() -> !) -> ! {

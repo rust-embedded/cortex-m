@@ -190,7 +190,7 @@ pub unsafe fn semihosting_syscall(nr: u32, arg: u32) -> u32 {
 #[cfg(cortex_m)]
 #[inline(always)]
 pub unsafe fn enter_unprivileged(psp: *const u32, entry: fn() -> !) -> ! {
-    asm!(
+    core::arch::asm!(
         "mrs {tmp}, CONTROL",
         "orr {tmp}, #3",
         "msr PSP, {psp}",

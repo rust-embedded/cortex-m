@@ -18,10 +18,11 @@ rust-version = "1.61"
 
 [dependencies]
 bare-metal = { version = "0.2.4", features = ["const-fn"] }
-critical-section = { version = "1.0.0", optional = true }
-volatile-register = "0.2.0"
+critical-section = "1.0.0"
+volatile-register = "0.2.2"
 bitfield = "0.13.2"
-embedded-hal = "0.2.4"
+eh0 = { package = "embedded-hal", version = "0.2.4" }
+eh1 = { package = "embedded-hal", version = "1.0.0" }
 
 [dependencies.serde]
 version = "1"
@@ -38,7 +39,9 @@ cm7-r0p1 = ["cm7"]
 inline-asm = []
 linker-plugin-lto = []
 std = []
-critical-section-single-core = ["critical-section/restore-state-bool"]
+critical-section-single-core = ["critical-section/restore-state-u32"]
+# Deprecated feature from when critical-section was an optional dependency
+critical-section = []
 
 [package.metadata.docs.rs]
 targets = [

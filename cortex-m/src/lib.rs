@@ -17,10 +17,10 @@
 //! are:
 //!
 //! - Reduced overhead. FFI eliminates the possibility of inlining so all operations include a
-//! function call overhead when `inline-asm` is not enabled.
+//!   function call overhead when `inline-asm` is not enabled.
 //!
 //! - Some of the `register` API only becomes available only when `inline-asm` is enabled. Check the
-//! API docs for details.
+//!   API docs for details.
 //!
 //! The disadvantage is that `inline-asm` requires a Rust version at least 1.59 to use the `asm!()`
 //! macro. In the future 0.8 and above versions of `cortex-m`, this feature will always be enabled.
@@ -34,6 +34,11 @@
 //! and may cause functional problems in systems where some interrupts must not be disabled
 //! or critical sections are managed as part of an RTOS. In these cases, you should use
 //! a target-specific implementation instead, typically provided by a HAL or RTOS crate.
+//!
+//! The critical section has been optimized to block interrupts for as few cycles as possible,
+//! but -- due to `critical-section` implementation details -- incurs branches in a normal build
+//! configuration. For minimal interrupt latency, you can achieve inlining by enabling
+//! [linker-plugin-based LTO](https://doc.rust-lang.org/rustc/linker-plugin-lto.html).
 //!
 //! ## `cm7-r0p1`
 //!
@@ -100,7 +105,6 @@ mod macros;
 pub mod asm;
 #[cfg(armv8m)]
 pub mod cmse;
-mod critical_section;
 pub mod delay;
 pub mod interrupt;
 #[cfg(all(not(armv6m), not(armv8m_base)))]
@@ -110,3 +114,13 @@ pub mod prelude;
 pub mod register;
 
 pub use crate::peripheral::Peripherals;
+
+#[cfg(all(cortex_m, feature = "critical-section-single-core"))]
+mod critical_section;
+
+/// Used to reexport items for use in macros. Do not use directly.
+/// Not covered by semver guarantees.
+#[doc(hidden)]
+pub mod _export {
+    pub use critical_section;
+}

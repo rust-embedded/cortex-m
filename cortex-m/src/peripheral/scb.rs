@@ -646,10 +646,7 @@ impl SCB {
     /// a runtime-dependent `panic!()` call.
     #[inline]
     pub unsafe fn invalidate_dcache_by_slice<T>(&mut self, slice: &mut [T]) {
-        self.invalidate_dcache_by_address(
-            slice.as_ptr() as usize,
-            slice.len() * core::mem::size_of::<T>(),
-        );
+        self.invalidate_dcache_by_address(slice.as_ptr() as usize, core::mem::size_of_val(slice));
     }
 
     /// Cleans D-cache by address.
@@ -732,10 +729,7 @@ impl SCB {
     /// to main memory, overwriting whatever was in main memory.
     #[inline]
     pub fn clean_dcache_by_slice<T>(&mut self, slice: &[T]) {
-        self.clean_dcache_by_address(
-            slice.as_ptr() as usize,
-            slice.len() * core::mem::size_of::<T>(),
-        );
+        self.clean_dcache_by_address(slice.as_ptr() as usize, core::mem::size_of_val(slice));
     }
 
     /// Cleans and invalidates D-cache by address.
@@ -816,6 +810,26 @@ impl SCB {
     pub fn clear_sleeponexit(&mut self) {
         unsafe {
             self.scr.modify(|scr| scr & !SCB_SCR_SLEEPONEXIT);
+        }
+    }
+}
+
+const SCB_SCR_SEVONPEND: u32 = 0x1 << 4;
+
+impl SCB {
+    /// Set the SEVONPEND bit in the SCR register
+    #[inline]
+    pub fn set_sevonpend(&mut self) {
+        unsafe {
+            self.scr.modify(|scr| scr | SCB_SCR_SEVONPEND);
+        }
+    }
+
+    /// Clear the SEVONPEND bit in the SCR register
+    #[inline]
+    pub fn clear_sevonpend(&mut self) {
+        unsafe {
+            self.scr.modify(|scr| scr & !SCB_SCR_SEVONPEND);
         }
     }
 }

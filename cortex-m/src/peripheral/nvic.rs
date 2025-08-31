@@ -36,7 +36,15 @@ pub struct RegisterBlock {
     #[cfg(armv6m)]
     _reserved4: [u32; 16],
 
-    _reserved5: [u32; 48],
+    _reserved5: [u32; 16],
+
+    #[cfg(armv8m)]
+    /// Interrupt Target Non-secure (only present on Arm v8-M)
+    pub itns: [RW<u32>; 16],
+    #[cfg(not(armv8m))]
+    _reserved6: [u32; 16],
+
+    _reserved7: [u32; 16],
 
     /// Interrupt Priority
     ///
@@ -67,7 +75,7 @@ pub struct RegisterBlock {
     pub ipr: [RW<u32>; 8],
 
     #[cfg(not(armv6m))]
-    _reserved6: [u32; 580],
+    _reserved8: [u32; 580],
 
     /// Software Trigger Interrupt
     #[cfg(not(armv6m))]

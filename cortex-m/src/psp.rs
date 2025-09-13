@@ -1,5 +1,7 @@
 //! Process Stack Pointer support
 
+// This is a useful lint for functions like 'asm::wfi()' but it's not a useful
+// lint here.
 #![allow(clippy::missing_inline_in_public_items)]
 
 use core::cell::UnsafeCell;

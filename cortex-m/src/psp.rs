@@ -20,6 +20,7 @@ impl<const N: usize> Stack<N> {
     /// Use a turbofish to specify the size, like:
     ///
     /// ```rust
+    /// # use cortex_m::psp::Stack;
     /// static PSP_STACK: Stack::<4096> = Stack::new();
     /// ```
     pub const fn new() -> Stack<N> {

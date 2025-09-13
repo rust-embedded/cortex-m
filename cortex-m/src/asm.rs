@@ -194,19 +194,21 @@ pub unsafe fn semihosting_syscall(nr: u32, arg: u32) -> u32 {
 ///   it, you may wish to set the `PSPLIM` register to guard against this.
 #[cfg(cortex_m)]
 #[inline(always)]
-pub unsafe fn enter_unprivileged(psp: *const u32, entry: fn() -> !) -> ! {
-    core::arch::asm!(
-        "mrs {tmp}, CONTROL",
-        "orr {tmp}, #3",
-        "msr PSP, {psp}",
-        "msr CONTROL, {tmp}",
-        "isb",
-        "bx {ent}",
-        tmp = in(reg) 0,
-        psp = in(reg) psp,
-        ent = in(reg) entry,
-        options(noreturn, nomem, nostack)
-    );
+pub unsafe fn enter_unprivileged(psp: *const u32, entry: extern "C" fn() -> !) -> ! {
+    unsafe {
+        core::arch::asm!(
+            "mrs {tmp}, CONTROL",
+            "orr {tmp}, #3",
+            "msr PSP, {psp}",
+            "msr CONTROL, {tmp}",
+            "isb",
+            "bx {ent}",
+            tmp = in(reg) 0,
+            psp = in(reg) psp,
+            ent = in(reg) entry,
+            options(noreturn, nostack)
+        );
+    }
 }
 
 /// Bootstrap.

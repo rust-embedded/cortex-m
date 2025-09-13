@@ -111,6 +111,7 @@ pub mod interrupt;
 pub mod itm;
 pub mod peripheral;
 pub mod prelude;
+pub mod psp;
 pub mod register;
 
 pub use crate::peripheral::Peripherals;

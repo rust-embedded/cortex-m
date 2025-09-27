@@ -96,7 +96,7 @@ mod tests {
         let mut handle = super::STACK.take_handle();
         let top = handle.top();
         let bottom = handle.bottom();
-        let delta = unsafe { top.byte_offset_from(bottom) };
-        assert_eq!(delta as usize, super::STACK_SIZE_WORDS * 4);
+        let delta = unsafe { top.offset_from(bottom) };
+        assert_eq!(delta as usize, super::STACK_SIZE_WORDS);
     }
 }

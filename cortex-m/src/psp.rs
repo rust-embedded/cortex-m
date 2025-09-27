@@ -14,13 +14,13 @@ pub struct StackHandle(*mut u32, usize);
 
 impl StackHandle {
     /// Get the pointer to the top of the stack
-    pub const fn top(&mut self) -> *mut u32 {
+    pub fn top(&mut self) -> *mut u32 {
         // SAFETY: The stack was this big when we constructed the handle
         unsafe { self.0.add(self.1) }
     }
 
     /// Get the pointer to the top of the stack
-    pub const fn bottom(&mut self) -> *mut u32 {
+    pub fn bottom(&mut self) -> *mut u32 {
         self.0
     }
 }

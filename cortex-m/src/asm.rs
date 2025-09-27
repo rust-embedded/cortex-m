@@ -176,9 +176,9 @@ pub unsafe fn semihosting_syscall(nr: u32, arg: u32) -> u32 {
     call_asm!(__sh_syscall(nr: u32, arg: u32) -> u32)
 }
 
-/// Switch to unprivileged mode.
+/// Switch to unprivileged mode using the Process Stack
 ///
-/// Sets CONTROL.SPSEL (setting the program stack to be the active
+/// Sets CONTROL.SPSEL (setting the Process Stack to be the active
 /// stack) and CONTROL.nPRIV (setting unprivileged mode), updates the
 /// program stack pointer to the address in `psp`, then jumps to the
 /// address in `entry`.
@@ -194,7 +194,7 @@ pub unsafe fn semihosting_syscall(nr: u32, arg: u32) -> u32 {
 ///   it, you may wish to set the `PSPLIM` register to guard against this.
 #[cfg(cortex_m)]
 #[inline(always)]
-pub unsafe fn enter_unprivileged(psp: *const u32, entry: extern "C" fn() -> !) -> ! {
+pub unsafe fn enter_unprivileged_psp(psp: *const u32, entry: extern "C" fn() -> !) -> ! {
     unsafe {
         core::arch::asm!(
             "mrs {tmp}, CONTROL",
@@ -204,6 +204,36 @@ pub unsafe fn enter_unprivileged(psp: *const u32, entry: extern "C" fn() -> !) -
             "isb",
             "bx {ent}",
             tmp = in(reg) 0,
+            psp = in(reg) psp,
+            ent = in(reg) entry,
+            options(noreturn, nostack)
+        );
+    }
+}
+
+/// Switch to using the Process Stack, but remain in Privileged Mode
+///
+/// Sets CONTROL.SPSEL (setting the Process Stack to be the active stack) but
+/// leaves CONTROL.nPRIV alone, updates the program stack pointer to the
+/// address in `psp`, then jumps to the address in `entry`.
+///
+/// # Safety
+///
+/// * `psp` and `entry` must point to valid stack memory and executable code,
+///   respectively.
+/// * `psp` must be 8 bytes aligned and point to stack top as stack grows
+///   towards lower addresses.
+/// * The size of the stack provided here must be large enough for your
+///   program - stack overflows are obviously UB. If your processor supports
+///   it, you may wish to set the `PSPLIM` register to guard against this.
+#[cfg(cortex_m)]
+#[inline(always)]
+pub unsafe fn enter_privileged_psp(psp: *const u32, entry: extern "C" fn() -> !) -> ! {
+    unsafe {
+        core::arch::asm!(
+            "msr PSP, {psp}",
+            "isb",
+            "bx {ent}",
             psp = in(reg) psp,
             ent = in(reg) entry,
             options(noreturn, nostack)

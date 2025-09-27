@@ -4,7 +4,26 @@
 // lint here.
 #![allow(clippy::missing_inline_in_public_items)]
 
-use core::cell::UnsafeCell;
+use core::{
+    cell::UnsafeCell,
+    sync::atomic::{AtomicBool, Ordering},
+};
+
+/// Represents access to a [`Stack`]
+pub struct StackHandle(*mut u32, usize);
+
+impl StackHandle {
+    /// Get the pointer to the top of the stack
+    pub const fn top(&mut self) -> *mut u32 {
+        // SAFETY: The stack was this big when we constructed the handle
+        unsafe { self.0.add(self.1) }
+    }
+
+    /// Get the pointer to the top of the stack
+    pub const fn bottom(&mut self) -> *mut u32 {
+        self.0
+    }
+}
 
 /// A stack you can use as your Process Stack (PSP)
 ///
@@ -12,6 +31,7 @@ use core::cell::UnsafeCell;
 #[repr(align(8), C)]
 pub struct Stack<const N: usize> {
     space: UnsafeCell<[u32; N]>,
+    taken: AtomicBool,
 }
 
 impl<const N: usize> Stack<N> {
@@ -22,17 +42,27 @@ impl<const N: usize> Stack<N> {
     /// ```rust
     /// # use cortex_m::psp::Stack;
     /// static PSP_STACK: Stack::<4096> = Stack::new();
+    /// fn example() {
+    ///    let handle = PSP_STACK.take_handle();
+    ///    // ...
+    /// }
     /// ```
     pub const fn new() -> Stack<N> {
         Stack {
             space: UnsafeCell::new([0; N]),
+            taken: AtomicBool::new(false),
         }
     }
 
     /// Return the top of the stack
-    pub fn get_top(&self) -> *mut u32 {
+    pub fn take_handle(&self) -> StackHandle {
+        if self.taken.load(Ordering::Acquire) {
+            panic!("Cannot get two handles to one stack!");
+        }
+        self.taken.store(true, Ordering::Release);
+
         let start = self.space.get() as *mut u32;
-        unsafe { start.add(N) }
+        StackHandle(start, N)
     }
 }
 
@@ -44,9 +74,18 @@ impl<const N: usize> core::default::Default for Stack<N> {
     }
 }
 
-/// Switch to running on the PSP
+/// Switch to unprivileged mode running on the Process Stack Pointer (PSP)
+///
+/// In Unprivileged Mode, code can no longer perform privileged operations,
+/// such as disabling interrupts.
+///
 #[cfg(cortex_m)]
-pub fn switch_to_psp<const N: usize>(psp_stack: &Stack<N>, function: extern "C" fn() -> !) -> ! {
-    let stack_top = psp_stack.get_top();
-    unsafe { crate::asm::enter_unprivileged(stack_top, function) }
+pub fn switch_to_unprivileged_psp(mut psp_stack: StackHandle, function: extern "C" fn() -> !) -> ! {
+    unsafe { crate::asm::enter_unprivileged_psp(psp_stack.top(), function) }
+}
+
+/// Switch to running on the Process Stack Pointer (PSP), but remain in privileged mode
+#[cfg(cortex_m)]
+pub fn switch_to_privileged_psp(mut psp_stack: StackHandle, function: extern "C" fn() -> !) -> ! {
+    unsafe { crate::asm::enter_privileged_psp(psp_stack.top(), function) }
 }

@@ -197,13 +197,14 @@ pub unsafe fn semihosting_syscall(nr: u32, arg: u32) -> u32 {
 pub unsafe fn enter_unprivileged_psp(psp: *const u32, entry: extern "C" fn() -> !) -> ! {
     unsafe {
         core::arch::asm!(
-            "mrs {tmp}, CONTROL",
-            "orr {tmp}, #3",
-            "msr PSP, {psp}",
-            "msr CONTROL, {tmp}",
+            "msr     PSP, {psp}",
+            "mrs     {tmp}, CONTROL",
+            "orrs    {tmp}, {flags}",
+            "msr     CONTROL, {tmp}",
             "isb",
-            "bx {ent}",
+            "bx      {ent}",
             tmp = in(reg) 0,
+            flags = in(reg) 3,
             psp = in(reg) psp,
             ent = in(reg) entry,
             options(noreturn, nostack)

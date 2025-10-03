@@ -195,6 +195,13 @@ pub unsafe fn semihosting_syscall(nr: u32, arg: u32) -> u32 {
 #[cfg(cortex_m)]
 #[inline(always)]
 pub unsafe fn enter_unprivileged_psp(psp: *const u32, entry: extern "C" fn() -> !) -> ! {
+    use crate::register::control::{Control, Npriv, Spsel};
+    const CONTROL_FLAGS: u32 = {
+        Control::from_bits(0)
+            .with_npriv(Npriv::Unprivileged)
+            .with_spsel(Spsel::Psp)
+            .bits()
+    };
     unsafe {
         core::arch::asm!(
             "msr     PSP, {psp}",
@@ -204,7 +211,7 @@ pub unsafe fn enter_unprivileged_psp(psp: *const u32, entry: extern "C" fn() -> 
             "isb",
             "bx      {ent}",
             tmp = in(reg) 0,
-            flags = in(reg) 3,
+            flags = in(reg) CONTROL_FLAGS,
             psp = in(reg) psp,
             ent = in(reg) entry,
             options(noreturn, nostack)
@@ -230,11 +237,23 @@ pub unsafe fn enter_unprivileged_psp(psp: *const u32, entry: extern "C" fn() -> 
 #[cfg(cortex_m)]
 #[inline(always)]
 pub unsafe fn enter_privileged_psp(psp: *const u32, entry: extern "C" fn() -> !) -> ! {
+    use crate::register::control::{Control, Npriv, Spsel};
+    const CONTROL_FLAGS: u32 = {
+        Control::from_bits(0)
+            .with_npriv(Npriv::Privileged)
+            .with_spsel(Spsel::Psp)
+            .bits()
+    };
     unsafe {
         core::arch::asm!(
-            "msr PSP, {psp}",
+            "msr     PSP, {psp}",
+            "mrs     {tmp}, CONTROL",
+            "orrs    {tmp}, {flags}",
+            "msr     CONTROL, {tmp}",
             "isb",
-            "bx {ent}",
+            "bx      {ent}",
+            tmp = in(reg) 0,
+            flags = in(reg) CONTROL_FLAGS,
             psp = in(reg) psp,
             ent = in(reg) entry,
             options(noreturn, nostack)

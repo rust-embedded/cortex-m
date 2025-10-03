@@ -1,13 +1,13 @@
-[![crates.io](https://img.shields.io/crates/d/cortex-m-pac.svg)](https://crates.io/crates/cortex-m-pac)
-[![crates.io](https://img.shields.io/crates/v/cortex-m-pac.svg)](https://crates.io/crates/cortex-m-pac)
+[![crates.io](https://img.shields.io/crates/d/cortex-m-types.svg)](https://crates.io/crates/cortex-m-types)
+[![crates.io](https://img.shields.io/crates/v/cortex-m-types.svg)](https://crates.io/crates/cortex-m-types)
 
-# `cortex-m-pac`
+# `cortex-m-types`
 
 > Target-specific traits to be implemented by PACs
 
-This project is developed and maintained by the [Cortex-M team][team].
+This project is developed and maintained by the [Arm team][team].
 
-## [Documentation](https://docs.rs/crate/cortex-m-pac)
+## [Documentation](https://docs.rs/crate/cortex-m-types)
 
 ## Minimum Supported Rust Version (MSRV)
 
@@ -33,7 +33,7 @@ THIS SOFTWARE.
 ## Code of Conduct
 
 Contribution to this crate is organized under the terms of the [Rust Code of
-Conduct][CoC], the maintainer of this crate, the [Cortex-M team][team], promises
+Conduct][CoC], the maintainer of this crate, the [Arm team][team], promises
 to intervene to uphold that code of conduct.
 
 [CoC]: CODE_OF_CONDUCT.md

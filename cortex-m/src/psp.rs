@@ -81,11 +81,27 @@ impl<const N: usize> core::default::Default for Stack<N> {
 ///
 #[cfg(cortex_m)]
 pub fn switch_to_unprivileged_psp(mut psp_stack: StackHandle, function: extern "C" fn() -> !) -> ! {
-    unsafe { crate::asm::enter_unprivileged_psp(psp_stack.top(), function) }
+    // set the stack limit
+    #[cfg(armv8m_main)]
+    unsafe {
+        crate::register::psplim::write(psp_stack.bottom() as u32);
+    }
+    // do the switch
+    unsafe {
+        crate::asm::enter_unprivileged_psp(psp_stack.top(), function);
+    }
 }
 
 /// Switch to running on the Process Stack Pointer (PSP), but remain in privileged mode
 #[cfg(cortex_m)]
 pub fn switch_to_privileged_psp(mut psp_stack: StackHandle, function: extern "C" fn() -> !) -> ! {
-    unsafe { crate::asm::enter_privileged_psp(psp_stack.top(), function) }
+    // set the stack limit
+    #[cfg(armv8m_main)]
+    unsafe {
+        crate::register::psplim::write(psp_stack.bottom() as u32);
+    }
+    // do the switch
+    unsafe {
+        crate::asm::enter_privileged_psp(psp_stack.top(), function);
+    }
 }

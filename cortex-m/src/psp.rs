@@ -19,7 +19,7 @@ impl StackHandle {
         unsafe { self.0.add(self.1) }
     }
 
-    /// Get the pointer to the top of the stack
+    /// Get the pointer to the bottom of the stack
     pub fn bottom(&mut self) -> *mut u32 {
         self.0
     }

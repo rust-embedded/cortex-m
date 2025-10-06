@@ -14,6 +14,10 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
 
 static EXCEPTION_FLAG: AtomicBool = AtomicBool::new(false);
 
+const STACK_SIZE_WORDS: usize = 1024;
+
+static STACK: cortex_m::psp::Stack<STACK_SIZE_WORDS> = cortex_m::psp::Stack::new();
+
 #[cortex_m_rt::exception]
 fn PendSV() {
     EXCEPTION_FLAG.store(true, Ordering::SeqCst);
@@ -85,5 +89,14 @@ mod tests {
             assert!(!EXCEPTION_FLAG.load(Ordering::SeqCst));
         });
         assert!(EXCEPTION_FLAG.load(Ordering::SeqCst));
+    }
+
+    #[test]
+    fn check_stack_handles() {
+        let mut handle = super::STACK.take_handle();
+        let top = handle.top();
+        let bottom = handle.bottom();
+        let delta = unsafe { top.offset_from(bottom) };
+        assert_eq!(delta as usize, super::STACK_SIZE_WORDS);
     }
 }

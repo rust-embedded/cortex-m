@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Mark `pre_init` as deprecated
 - Add `set_msplim` feature to conditionally set the MSPLIM register at device
   reset ([#580]).
+- Add `skip-data-init` feature to optionally skip copying the `.data` section.
 
 ## [v0.7.5]
 

@@ -513,6 +513,11 @@
 #![deny(missing_docs)]
 #![no_std]
 
+#[cfg(all(feature = "skip-data-init", feature = "zero-init-ram"))]
+compile_error!(
+    "features `skip-data-init` and `zero-init-ram` cannot be enabled at the same time"
+);
+
 extern crate cortex_m_rt_macros as macros;
 
 /// The 32-bit value the stack is painted with before the program runs.

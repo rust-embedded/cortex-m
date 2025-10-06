@@ -208,6 +208,30 @@
 //! where the stack has been used the 'paint' will have been 'scrubbed off' and the memory will
 //! have a value other than `STACK_PAINT_VALUE`.
 //!
+//! ## `skip-data-init`
+//!
+//! If this feature is enabled, the `.data` section initialization is skipped during startup.
+//! By default, cortex-m-rt copies the `.data` section from its load address (LMA) in Flash
+//! to its virtual address (VMA) in RAM. However, in some scenarios this copy is unnecessary
+//! or undesirable:
+//!
+//! - When using bootloaders like RP2040's boot2 that copy all data from Flash to RAM and then
+//!   unmap the Flash, the cortex-m-rt data initialization would fail because Flash is no longer
+//!   accessible.
+//! - When the `.data` section is already placed in RAM at the correct address (LMA equals VMA).
+//!
+//! When this feature is enabled, it is the user's responsibility to ensure that the `.data`
+//! section is properly initialized before the program's main function is called. This can be
+//! done by:
+//!
+//! - Using a bootloader that copies the data before jumping to the Reset handler
+//! - Setting `__sidata = ADDR(.data)` in the linker script to make LMA equal to VMA (though this
+//!   wastes Flash space)
+//! - Other custom initialization mechanisms
+//!
+//! **WARNING:** Using this feature without ensuring proper `.data` initialization will result
+//! in undefined behavior if your program uses initialized static variables.
+//!
 //! # Inspection
 //!
 //! This section covers how to inspect a binary that builds on top of `cortex-m-rt`.
@@ -603,6 +627,7 @@ cfg_global_asm! {
      1:",
 
     // Initialise .data memory. `__sdata`, `__sidata`, and `__edata` come from the linker script.
+    #[cfg(not(feature = "skip-data-init"))]
     "ldr r0, =__sdata
      ldr r1, =__edata
      ldr r2, =__sidata

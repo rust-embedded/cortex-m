@@ -221,6 +221,14 @@
 //! where the stack has been used the 'paint' will have been 'scrubbed off' and the memory will
 //! have a value other than `STACK_PAINT_VALUE`.
 //!
+//! ## `skip-data-copy`
+//!
+//! Skips copying the .data section (containing the initial values for static variables) when a bootloader
+//! (or other mechanism) is responsible for initializing the section. Use when the code is loaded from a location
+//! that's invalid after the bootloader runs (e.g. copy-from-XIP or copy-from-network boot). For example,
+//! rp2040-boot2 with `BOOT_LOADER_RAM_MEMCPY` (not the default of boot2!) set, which copies the code out
+//! of the XIP flash memory and then disables the XIP peripheral afterwards.
+//!
 //! # Inspection
 //!
 //! This section covers how to inspect a binary that builds on top of `cortex-m-rt`.
@@ -616,6 +624,7 @@ cfg_global_asm! {
      1:",
 
     // Initialise .data memory. `__sdata`, `__sidata`, and `__edata` come from the linker script.
+    #[cfg(not(feature = "skip-data-copy"))]
     "ldr r0, =__sdata
      ldr r1, =__edata
      ldr r2, =__sidata

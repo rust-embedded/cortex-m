@@ -24,6 +24,14 @@ use cortex_m_rt::entry;
 use cortex_m_semihosting::hprintln;
 use panic_halt as _;
 
+// Minimal dummy critical-section implementation for single-core boards
+#[no_mangle]
+extern "C" fn _critical_section_1_0_acquire() -> u8 {
+    0
+}
+#[no_mangle]
+extern "C" fn _critical_section_1_0_release(_token: u8) {}
+
 static mut COUNTER: u32 = 42;
 
 #[entry]
@@ -33,9 +41,11 @@ fn main() -> ! {
         (COUNTER - 1, COUNTER)
     };
 
+    // Print via semihosting; ignore errors
     hprintln!("Previous counter value: {}", prev);
     hprintln!("New counter value: {}", new);
 
+    // Panic if data section not initialized properly
     if prev != 42 || new != 43 {
         panic!("Unexpected COUNTER value! Data section may not be initialized.");
     }

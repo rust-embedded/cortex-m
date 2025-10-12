@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Mark `pre_init` as deprecated
 - Add `set_msplim` feature to conditionally set the MSPLIM register at device
   reset ([#580]).
+- Add `skip-data-copy` feature to prevent copying the `.data` section from the 
+  load address to the virtual address. Use when the load address is inaccessible 
+  by the time user code runs, such as when copying from flash or when booting
+  from an external device. Note that this relies on the bootloader to have already
+  copied `.data` to the VMA before relinquishing control.
 
 ## [v0.7.5]
 

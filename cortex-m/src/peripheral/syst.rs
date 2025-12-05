@@ -32,7 +32,8 @@ pub struct RegisterBlock {
 }
 
 /// SysTick clock source
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[cfg_attr(not(feature = "certified_subset"), derive(Debug))]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum SystClkSource {
     /// Core-provided clock
     Core,

@@ -2,7 +2,10 @@
 //!
 //! **NOTE** This module is only available on ARMv7-M and newer.
 
-use core::{fmt, ptr, slice};
+use core::{ptr, slice};
+
+#[cfg(not(feature = "certified_subset"))]
+use core::fmt;
 
 use crate::peripheral::itm::Stim;
 
@@ -55,8 +58,10 @@ unsafe fn write_aligned_impl(port: &mut Stim, buffer: &[u8]) {
     }
 }
 
+#[cfg(not(feature = "certified_subset"))]
 struct Port<'p>(&'p mut Stim);
 
+#[cfg(not(feature = "certified_subset"))]
 impl<'p> fmt::Write for Port<'p> {
     #[inline]
     fn write_str(&mut self, s: &str) -> fmt::Result {
@@ -145,6 +150,7 @@ pub fn write_aligned(port: &mut Stim, buffer: &Aligned<[u8]>) {
 
 /// Writes `fmt::Arguments` to the ITM `port`
 #[inline]
+#[cfg(not(feature = "certified_subset"))]
 pub fn write_fmt(port: &mut Stim, args: fmt::Arguments) {
     use core::fmt::Write;
 

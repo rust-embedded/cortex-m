@@ -49,5 +49,7 @@ set-msplim = []
 zero-init-ram = []
 paint-stack = []
 
+certified_subset = []
+
 [package.metadata.docs.rs]
 features = ["device"]

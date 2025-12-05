@@ -512,6 +512,8 @@ pub const STACK_PAINT_VALUE: u32 = 0xcccc_cccc;
 
 #[cfg(cortex_m)]
 use core::arch::global_asm;
+
+#[cfg(not(feature = "certified_subset"))]
 use core::fmt;
 
 /// Parse cfg attributes inside a global_asm call.
@@ -1085,6 +1087,7 @@ impl ExceptionFrame {
     }
 }
 
+#[cfg(not(feature = "certified_subset"))]
 impl fmt::Debug for ExceptionFrame {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         struct Hex(u32);

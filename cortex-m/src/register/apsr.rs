@@ -1,7 +1,8 @@
 //! Application Program Status Register
 
 /// Application Program Status Register
-#[derive(Clone, Copy, Debug)]
+#[cfg_attr(not(feature = "certified_subset"), derive(Debug))]
+#[derive(Clone, Copy)]
 pub struct Apsr {
     bits: u32,
 }

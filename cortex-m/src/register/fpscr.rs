@@ -1,7 +1,8 @@
 //! Floating-point Status Control Register
 
 /// Floating-point Status Control Register
-#[derive(Clone, Copy, Debug)]
+#[cfg_attr(not(feature = "certified_subset"), derive(Debug))]
+#[derive(Clone, Copy)]
 pub struct Fpscr {
     bits: u32,
 }
@@ -252,7 +253,8 @@ impl Fpscr {
 }
 
 /// Rounding mode
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[cfg_attr(not(feature = "certified_subset"), derive(Debug))]
+#[derive(Clone, Copy, Eq, PartialEq)]
 pub enum RMode {
     /// Round to Nearest (RN) mode. This is the reset value.
     Nearest,

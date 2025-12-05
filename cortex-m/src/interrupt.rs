@@ -1,6 +1,9 @@
 //! Interrupts
 
-pub use bare_metal::{CriticalSection, Mutex, Nr};
+pub use critical_section::{CriticalSection, Mutex};
+
+//#[cfg(not(feature = "certified_subset"))]
+//pub use bare_metal::{Nr};
 
 /// Trait for enums of external interrupt numbers.
 ///
@@ -25,12 +28,13 @@ pub unsafe trait InterruptNumber: Copy {
 
 /// Implement InterruptNumber for the old bare_metal::Nr trait.
 /// This implementation is for backwards compatibility only and will be removed in cortex-m 0.8.
-unsafe impl<T: Nr + Copy> InterruptNumber for T {
-    #[inline]
-    fn number(self) -> u16 {
-        self.nr() as u16
-    }
-}
+//#[cfg(not(feature = "certified_subset"))]
+//unsafe impl<T: Nr + Copy> InterruptNumber for T {
+//    #[inline]
+//    fn number(self) -> u16 {
+//        self.nr() as u16
+//    }
+//}
 
 /// Disables all interrupts
 #[inline]

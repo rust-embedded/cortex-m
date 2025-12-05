@@ -66,7 +66,8 @@ pub struct RegisterBlock {
 
 /// Type of cache to select on CSSELR writes.
 #[cfg(not(armv6m))]
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(not(feature = "certified_subset"), derive(Debug))]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub enum CsselrCacheType {
     /// Select DCache or unified cache
     DataOrUnified = 0,

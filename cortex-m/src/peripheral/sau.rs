@@ -103,7 +103,7 @@ bitfield! {
 }
 
 /// Possible attribute of a SAU region.
-#[derive(Debug)]
+#[cfg_attr(not(feature = "certified_subset"), derive(Debug))]
 pub enum SauRegionAttribute {
     /// SAU region is Secure
     Secure,
@@ -114,7 +114,7 @@ pub enum SauRegionAttribute {
 }
 
 /// Description of a SAU region.
-#[derive(Debug)]
+#[cfg_attr(not(feature = "certified_subset"), derive(Debug))]
 pub struct SauRegion {
     /// First address of the region, its 5 least significant bits must be set to zero.
     pub base_address: u32,
@@ -125,7 +125,7 @@ pub struct SauRegion {
 }
 
 /// Possible error values returned by the SAU methods.
-#[derive(Debug)]
+#[cfg_attr(not(feature = "certified_subset"), derive(Debug))]
 pub enum SauError {
     /// The region number parameter to set or get a region must be between 0 and
     /// region_numbers() - 1.

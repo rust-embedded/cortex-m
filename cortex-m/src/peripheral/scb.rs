@@ -99,7 +99,8 @@ pub struct RegisterBlock {
 
 /// FPU access mode
 #[cfg(has_fpu)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[cfg_attr(not(feature = "certified_subset"), derive(Debug))]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum FpuAccessMode {
     /// FPU is not accessible
     Disabled,
@@ -178,7 +179,8 @@ impl SCB {
 }
 
 /// Processor core exceptions (internal interrupts)
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[cfg_attr(not(feature = "certified_subset"), derive(Debug))]
+#[derive(Clone, Copy, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "std", derive(PartialOrd, Hash))]
 pub enum Exception {
@@ -245,7 +247,8 @@ impl Exception {
 }
 
 /// Active exception number
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[cfg_attr(not(feature = "certified_subset"), derive(Debug))]
+#[derive(Clone, Copy, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "std", derive(PartialOrd, Hash))]
 pub enum VectActive {
@@ -913,7 +916,8 @@ impl SCB {
 }
 
 /// System handlers, exceptions with configurable priority
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[cfg_attr(not(feature = "certified_subset"), derive(Debug))]
+#[derive(Clone, Copy, Eq, PartialEq)]
 #[repr(u8)]
 pub enum SystemHandler {
     // NonMaskableInt, // priority is fixed

@@ -37,7 +37,8 @@ use bitfield::bitfield;
 
 /// Memory access behaviour: determine which privilege execution mode is used and which Memory
 /// Protection Unit (MPU) is used.
-#[derive(PartialEq, Copy, Clone, Debug)]
+#[cfg_attr(not(feature = "certified_subset"), derive(Debug))]
+#[derive(PartialEq, Copy, Clone)]
 pub enum AccessType {
     /// Access using current privilege level and reading from current security state MPU.
     /// Uses the TT instruction.
@@ -54,7 +55,8 @@ pub enum AccessType {
 
 /// Abstraction of TT instructions and helper functions to determine the security and privilege
 /// attribute of a target address, accessed in different ways.
-#[derive(PartialEq, Copy, Clone, Debug)]
+#[cfg_attr(not(feature = "certified_subset"), derive(Debug))]
+#[derive(PartialEq, Copy, Clone)]
 pub struct TestTarget {
     tt_resp: TtResp,
     access_type: AccessType,

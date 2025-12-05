@@ -6,7 +6,8 @@ use core::arch::asm;
 use core::sync::atomic::{compiler_fence, Ordering};
 
 /// All exceptions with configurable priority are ...
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[cfg_attr(not(feature = "certified_subset"), derive(Debug))]
+#[derive(Clone, Copy, Eq, PartialEq)]
 pub enum Primask {
     /// Active
     Active,

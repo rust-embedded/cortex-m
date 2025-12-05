@@ -1,7 +1,8 @@
 //! Fault Mask Register
 
 /// All exceptions are ...
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[cfg_attr(not(feature = "certified_subset"), derive(Debug))]
+#[derive(Clone, Copy, Eq, PartialEq)]
 pub enum Faultmask {
     /// Active
     Active,

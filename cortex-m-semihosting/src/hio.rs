@@ -39,7 +39,10 @@ pub fn hstdout() -> Result<HostStream, ()> {
     open(":tt\0", nr::open::W_TRUNC)
 }
 
-fn open(name: &str, mode: usize) -> Result<HostStream, ()> {
+/// Open a file on the host. The filename must be zero-terminated.
+pub fn open(name: &str, mode: usize) -> Result<HostStream, ()> {
+    debug_assert_eq!(name.bytes().last(), Some(0), "the filename must be zero-terminated");
+
     let name = name.as_bytes();
     match unsafe { syscall!(OPEN, name.as_ptr(), mode, name.len() - 1) } as isize {
         -1 => Err(()),

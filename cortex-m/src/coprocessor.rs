@@ -1,11 +1,19 @@
 //! Coprocessor access assembly instructions.
 
-
-
-/// Internal function to create an inlined MCR instruction.
 /// This instruction moves one Register to a Coprocessor Register.
+/// This function generates inline assembly and needs the instruction configuration
+/// during compilation time (i.e. as `const`).
+/// The values of the constants required by this function should be defined by
+/// the coprocessor's reference manual.
+///  - CP: The coprocessor's index.
+///  - OP1: First optional operation for the coprocessor.
+///  - CRN: Coprocessor register N.
+///  - CRM: Coprocessor register M.
+///  - OP2: Second optional operation for the coprocessor.
 #[inline(always)]
-pub fn mcr<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32, const OP2: u32>(value: u32) {
+pub fn mcr<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32, const OP2: u32>(
+    value: u32,
+) {
     unsafe {
         core::arch::asm!(
             "MCR p{cp}, #{op1}, {0}, c{crn}, c{crm}, #{op2}",
@@ -20,13 +28,18 @@ pub fn mcr<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32, const 
     }
 }
 
-
-
-/// Internal function to create an inlined MRC instruction.
 /// This instruction moves one Coprocessor Register to a Register.
+/// This function generates inline assembly and needs the instruction configuration
+/// during compilation time (i.e. as `const`).
+/// The values of the constants required by this function should be defined by
+/// the coprocessor's reference manual.
+///  - CP: The coprocessor's index.
+///  - OP1: First optional operation for the coprocessor.
+///  - CRN: Coprocessor register N.
+///  - CRM: Coprocessor register M.
+///  - OP2: Second optional operation for the coprocessor.
 #[inline(always)]
 pub fn mrc<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32, const OP2: u32>() -> u32 {
-    // Preallocate the value.
     let a: u32;
 
     unsafe {
@@ -45,10 +58,14 @@ pub fn mrc<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32, const 
     a
 }
 
-
-
-/// Internal function to create an inlined MCRR instruction.
 /// This instruction moves two Registers to Coprocessor Registers.
+/// This function generates inline assembly and needs the instruction configuration
+/// during compilation time (i.e. as `const`).
+/// The values of the constants required by this function should be defined by
+/// the coprocessor's reference manual.
+///  - CP: The coprocessor's index.
+///  - OP1: First optional operation for the coprocessor.
+///  - CRM: Coprocessor register M.
 #[inline(always)]
 pub fn mcrr<const CP: u32, const OP1: u32, const CRM: u32>(a: u32, b: u32) {
     unsafe {
@@ -64,10 +81,14 @@ pub fn mcrr<const CP: u32, const OP1: u32, const CRM: u32>(a: u32, b: u32) {
     }
 }
 
-
-
-/// Internal function to create an inlined MRRC instruction.
 /// This instruction moves two Coprocessor Registers to Registers.
+/// This function generates inline assembly and needs the instruction configuration
+/// during compilation time (i.e. as `const`).
+/// The values of the constants required by this function should be defined by
+/// the coprocessor's reference manual.
+///  - CP: The coprocessor's index.
+///  - OP1: First optional operation for the coprocessor.
+///  - CRM: Coprocessor register M.
 #[inline(always)]
 pub fn mrrc<const CP: u32, const OPC: u32, const CRM: u32>() -> (u32, u32) {
     // Preallocate the values.

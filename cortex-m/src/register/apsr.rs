@@ -1,8 +1,5 @@
 //! Application Program Status Register
 
-#[cfg(cortex_m)]
-use core::arch::asm;
-
 /// Application Program Status Register
 #[derive(Clone, Copy, Debug)]
 pub struct Apsr {
@@ -48,10 +45,10 @@ impl Apsr {
 }
 
 /// Reads the CPU register
-#[cfg(cortex_m)]
+///
+/// **NOTE** This function is available if `cortex-m` is built with the `"inline-asm"` feature.
 #[inline]
 pub fn read() -> Apsr {
-    let bits;
-    unsafe { asm!("mrs {}, APSR", out(reg) bits, options(nomem, nostack, preserves_flags)) };
+    let bits: u32 = call_asm!(__apsr_r() -> u32);
     Apsr { bits }
 }

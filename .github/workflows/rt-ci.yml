@@ -1,19 +1,17 @@
 on:
-  push:
-    branches-ignore:
-      - "gh-readonly-queue/**"
   pull_request:
   merge_group:
+  workflow_dispatch:
 
 name: cortex-m-rt CI
 
 jobs:
   rt-ci-linux:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     continue-on-error: ${{ matrix.experimental || false }}
     strategy:
       matrix:
-        rust: [nightly, stable, 1.60.0]
+        rust: [nightly, stable, 1.61.0]
 
         include:
           # Nightly is only for reference and allowed to fail

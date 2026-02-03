@@ -11,16 +11,17 @@ license = "MIT OR Apache-2.0"
 name = "cortex-m"
 readme = "README.md"
 repository = "https://github.com/rust-embedded/cortex-m"
-version = "0.7.4"
-edition = "2021"
-rust-version = "1.60"
+version = "0.7.7"
+edition = "2018"
 links = "cortex-m"  # prevent multiple versions of this crate to be linked together
+rust-version = "1.61"
 
 [dependencies]
+bare-metal = { version = "0.2.4", features = ["const-fn"] }
 critical-section = "1.0.0"
 volatile-register = "0.2.2"
 bitfield = "0.13.2"
-eh0 = { package = "embedded-hal", version = "0.2.4", optional = true }
+eh0 = { package = "embedded-hal", version = "0.2.4" }
 eh1 = { package = "embedded-hal", version = "1.0.0" }
 
 [dependencies.serde]
@@ -28,12 +29,19 @@ version = "1"
 features = [ "derive" ]
 optional = true
 
+[dependencies.serde_json]
+version = "1"
+optional = true
+
 [features]
 cm7 = []
 cm7-r0p1 = ["cm7"]
+inline-asm = []
 linker-plugin-lto = []
 std = []
-critical-section-single-core = ["critical-section/restore-state-bool"]
+critical-section-single-core = ["critical-section/restore-state-u32"]
+# Deprecated feature from when critical-section was an optional dependency
+critical-section = []
 
 [package.metadata.docs.rs]
 targets = [

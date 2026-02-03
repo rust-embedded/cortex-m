@@ -36,7 +36,7 @@ macro_rules! syscall1 {
 #[macro_export]
 macro_rules! hprint {
     ($s:expr) => {
-        $crate::export::hstdout_str($s)
+        $crate::export::hstdout_fmt(format_args!($s))
     };
     ($($tt:tt)*) => {
         $crate::export::hstdout_fmt(format_args!($($tt)*))
@@ -53,10 +53,10 @@ macro_rules! hprintln {
         $crate::export::hstdout_str("\n")
     };
     ($s:expr) => {
-        $crate::export::hstdout_str(concat!($s, "\n"))
+        $crate::export::hstdout_fmt(format_args!("{}\n", format_args!($s)))
     };
     ($s:expr, $($tt:tt)*) => {
-        $crate::export::hstdout_fmt(format_args!(concat!($s, "\n"), $($tt)*))
+        $crate::export::hstdout_fmt(format_args!("{}\n", format_args!($s, $($tt)*)))
     };
 }
 
@@ -67,7 +67,7 @@ macro_rules! hprintln {
 #[macro_export]
 macro_rules! heprint {
     ($s:expr) => {
-        $crate::export::hstderr_str($s)
+        $crate::export::hstderr_fmt(format_args!($s))
     };
     ($($tt:tt)*) => {
         $crate::export::hstderr_fmt(format_args!($($tt)*))
@@ -84,10 +84,10 @@ macro_rules! heprintln {
         $crate::export::hstderr_str("\n")
     };
     ($s:expr) => {
-        $crate::export::hstderr_str(concat!($s, "\n"))
+        $crate::export::hstderr_fmt(format_args!("{}\n", format_args!($s)))
     };
     ($s:expr, $($tt:tt)*) => {
-        $crate::export::hstderr_fmt(format_args!(concat!($s, "\n"), $($tt)*))
+        $crate::export::hstderr_fmt(format_args!("{}\n", format_args!($s, $($tt)*)))
     };
 }
 

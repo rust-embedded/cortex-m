@@ -11,6 +11,7 @@ license = "MIT OR Apache-2.0"
 name = "panic-itm"
 repository = "https://github.com/rust-embedded/cortex-m"
 version = "0.4.2"
+edition = "2018"
 
 [dependencies]
 cortex-m = { path = "../cortex-m", version = ">= 0.5.8, < 0.8" }

@@ -85,7 +85,7 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
                 {
                     #(#attrs)*
                     static mut #ident: #ty = #expr;
-                    &mut #ident
+                    unsafe { &mut #ident }
                 }
             }
         })
@@ -103,6 +103,7 @@ pub fn entry(args: TokenStream, input: TokenStream) -> TokenStream {
         #[doc(hidden)]
         #[export_name = "main"]
         pub unsafe extern "C" fn #tramp_ident() {
+            #[allow(static_mut_refs)]
             #ident(
                 #(#resource_args),*
             )
@@ -368,6 +369,10 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                     #(#attrs)*
                     #[doc(hidden)]
                     #[export_name = "_HardFault"]
+                    // Only emit link_section when building for embedded targets,
+                    // because some hosted platforms (used to check the build)
+                    // cannot handle the long link section names.
+                    #[cfg_attr(target_os = "none", link_section = ".HardFault.user")]
                     unsafe extern "C" fn #tramp_ident(frame: &::cortex_m_rt::ExceptionFrame) {
                         #ident(frame)
                     }
@@ -379,7 +384,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                     // Depending on the stack mode in EXC_RETURN, fetches stack from either MSP or PSP.
                     core::arch::global_asm!(
                         ".cfi_sections .debug_frame
-                        .section .HardFault.user, \"ax\"
+                        .section .HardFaultTrampoline, \"ax\"
                         .global HardFault
                         .type HardFault,%function
                         .thumb_func
@@ -482,7 +487,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                         {
                             #(#attrs)*
                             static mut #ident: #ty = #expr;
-                            &mut #ident
+                            unsafe { &mut #ident }
                         }
                     }
                 })
@@ -496,6 +501,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
                 #[doc(hidden)]
                 #[export_name = #ident_s]
                 pub unsafe extern "C" fn #tramp_ident() {
+                    #[allow(static_mut_refs)]
                     #ident(
                         #(#resource_args),*
                     )
@@ -592,7 +598,7 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
                 {
                     #(#attrs)*
                     static mut #ident: #ty = #expr;
-                    &mut #ident
+                    unsafe { &mut #ident }
                 }
             }
         })
@@ -610,6 +616,7 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
         #[doc(hidden)]
         #[export_name = #ident_s]
         pub unsafe extern "C" fn #tramp_ident() {
+            #[allow(static_mut_refs)]
             #ident(
                 #(#resource_args),*
             )
@@ -621,6 +628,7 @@ pub fn interrupt(args: TokenStream, input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
+#[deprecated(note = "Use core::arch::global_asm! to define the __pre_init function instead")]
 pub fn pre_init(args: TokenStream, input: TokenStream) -> TokenStream {
     let f = parse_macro_input!(input as ItemFn);
 
@@ -744,11 +752,12 @@ fn check_attr_whitelist(attrs: &[Attribute], caller: WhiteListCaller) -> Result<
         "forbid",
         "cold",
         "naked",
+        "expect",
     ];
 
     'o: for attr in attrs {
-        for val in whitelist {
-            if eq(attr, val) {
+        if let Some(attr_name) = get_attr_name(attr) {
+            if whitelist.contains(&attr_name.as_str()) {
                 continue 'o;
             }
         }
@@ -777,4 +786,25 @@ fn check_attr_whitelist(attrs: &[Attribute], caller: WhiteListCaller) -> Result<
 /// Returns `true` if `attr.path` matches `name`
 fn eq(attr: &Attribute, name: &str) -> bool {
     attr.style == AttrStyle::Outer && attr.path().is_ident(name)
+}
+
+fn get_attr_name(attr: &Attribute) -> Option<String> {
+    if !matches!(attr.style, AttrStyle::Outer) {
+        return None;
+    }
+
+    let name = attr.path().get_ident().map(|x| x.to_string());
+
+    // In Rust 2024 edition, link_section attribute must be marked as unsafe.
+    // So, in the case, check the inner content of `#[unsafe(...)]`.
+    match &name {
+        Some(name) if name == "unsafe" => {
+            if let Ok(inner_meta) = attr.parse_args::<syn::Meta>() {
+                inner_meta.path().get_ident().map(|x| x.to_string())
+            } else {
+                None
+            }
+        }
+        _ => name,
+    }
 }

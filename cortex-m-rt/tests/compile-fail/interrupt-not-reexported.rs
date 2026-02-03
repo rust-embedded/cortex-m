@@ -11,5 +11,5 @@ fn foo() -> ! {
     loop {}
 }
 
-#[interrupt] //~ ERROR failed to resolve: use of undeclared crate or module `interrupt`
+#[interrupt] //~ ERROR failed to resolve: use of unresolved module or unlinked crate `interrupt`
 fn USART1() {}

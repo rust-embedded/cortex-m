@@ -21,6 +21,7 @@ main() {
         divergent-default-handler
         divergent-exception
         entry-static
+        hard-fault-trampoline
         main
         minimal
         override-exception
@@ -55,8 +56,8 @@ main() {
                 cargo rustc --target "$TARGET" --example "$ex" --features "${needed_features}" --release -- $linker
             done
             for ex in "${fail_examples[@]}"; do
-                ! cargo rustc --target "$TARGET" --example "$ex" --features "${needed_features}" -- $linker
-                ! cargo rustc --target "$TARGET" --example "$ex" --features "${needed_features}" --release -- $linker
+                cargo rustc --target "$TARGET" --example "$ex" --features "${needed_features}" -- $linker && exit 1
+                cargo rustc --target "$TARGET" --example "$ex" --features "${needed_features}" --release -- $linker && exit 1
             done
             cargo rustc --target "$TARGET" --example device --features "device,${needed_features}" -- $linker
             cargo rustc --target "$TARGET" --example device --features "device,${needed_features}" --release -- $linker

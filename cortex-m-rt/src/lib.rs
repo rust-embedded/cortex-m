@@ -8,7 +8,7 @@
 //! This crates takes care of:
 //!
 //! - The memory layout of the program. In particular, it populates the vector table so the device
-//! can boot correctly, and properly dispatch exceptions and interrupts.
+//!   can boot correctly, and properly dispatch exceptions and interrupts.
 //!
 //! - Initializing `static` variables before the program entry point.
 //!
@@ -58,16 +58,23 @@
 //! }
 //! ```
 //!
-//! ### `_stack_start`
+//! ### `_stack_start` / `_stack_end`
 //!
-//! This optional symbol can be used to indicate where the call stack of the program should be
-//! placed. If this symbol is not used then the stack will be placed at the *end* of the `RAM`
-//! region -- the stack grows downwards towards smaller address. This is generally a sensible
-//! default and most applications will not need to specify `_stack_start`.
+//! The `_stack_start` optional symbol can be used to indicate where the call stack of the program
+//! should be placed. If this symbol is not used then the stack will be placed at the *end* of the
+//! `RAM` region -- the stack grows downwards towards smaller address. This is generally a sensible
+//! default and most applications will not need to specify `_stack_start`. The same goes for
+//! `_stack_end` which is automatically placed after the end of statically allocated RAM.
+//!
+//! **NOTE:** If you change `_stack_start`, make sure to also set `_stack_end` correctly to match
+//! new stack area if you are using it, e.g for MSPLIM.
+//!
+//! The `_stack_end` is checked by linker script to be less than or equal to `_stack_start` and is
+//! used as a bound in `paint-stack` feature.
 //!
 //! For Cortex-M, the `_stack_start` must always be aligned to 8 bytes, which is enforced by
 //! the linker script. If you override it, ensure that whatever value you set is a multiple
-//! of 8 bytes.
+//! of 8 bytes. The `_stack_end` is aligned to 4 bytes.
 //!
 //! This symbol can be used to place the stack in a different memory region, for example:
 //!
@@ -85,6 +92,7 @@
 //! }
 //!
 //! _stack_start = ORIGIN(CCRAM) + LENGTH(CCRAM);
+//! _stack_end = ORIGIN(CCRAM); /* Optional, add if used by the application */
 //! ```
 //!
 //! ### `_stext`
@@ -145,11 +153,24 @@
 //! }
 //! EOF
 //!
-//! $ cargo rustc --target thumbv7m-none-eabi -- -C link-arg=-nostartfiles -C link-arg=-Tlink.x
-//!
+//! $ RUSTFLAGS="-C link-arg=-Tlink.x" cargo build --target thumbv7m-none-eabi
 //! $ file target/thumbv7m-none-eabi/debug/app
 //! app: ELF 32-bit LSB executable, ARM, EABI5 version 1 (SYSV), statically linked, (..)
 //! ```
+//!
+//! To avoid typing the long command, you can create a `.cargo/config.toml` file:
+//!
+//! ```toml
+//! [target.thumbv7m-none-eabi]
+//! rustflags = ["-C", "link-arg=-Tlink.x"]
+//!
+//! [build]
+//! target = "thumbv7m-none-eabi"
+//! ```
+//!
+//! With this configuration, a simple `cargo build` is enough.
+//!
+//! For Cortex-M4 devices, use the target thumbv7em-none-eabi instead.
 //!
 //! # Optional features
 //!
@@ -179,11 +200,34 @@
 //! required, but some bootloaders do not set VTOR before jumping to application code, leading to
 //! your main function executing but interrupt handlers not being used.
 //!
+//! ## `set-msplim`
+//!
+//! If this feature is enabled, the main stack pointer limit register (MSPLIM) is initialized in
+//! the reset handler to the `_stack_end` value from the linker script. This feature is only
+//! available on ARMv8-M Mainline and helps enforce stack limits by defining the lowest valid
+//! stack address.
+//!
 //! ## `zero-init-ram`
 //!
 //! If this feature is enabled, RAM is initialized with zeros during startup from the `_ram_start`
 //! value to the `_ram_end` value from the linker script. This is not usually required, but might be
 //! necessary to properly initialize memory integrity measures on some hardware.
+//!
+//! ## `paint-stack`
+//!
+//! Everywhere between `_stack_end` and `_stack_start` is painted with the fixed value
+//! `STACK_PAINT_VALUE`, which is `0xCCCC_CCCC`.
+//! You can then inspect memory during debugging to determine how much of the stack has been used -
+//! where the stack has been used the 'paint' will have been 'scrubbed off' and the memory will
+//! have a value other than `STACK_PAINT_VALUE`.
+//!
+//! ## `skip-data-copy`
+//!
+//! Skips copying the .data section (containing the initial values for static variables) when a bootloader
+//! (or other mechanism) is responsible for initializing the section. Use when the code is loaded from a location
+//! that's invalid after the bootloader runs (e.g. copy-from-XIP or copy-from-network boot). For example,
+//! rp2040-boot2 with `BOOT_LOADER_RAM_MEMCPY` (not the default of boot2!) set, which copies the code out
+//! of the XIP flash memory and then disables the XIP peripheral afterwards.
 //!
 //! # Inspection
 //!
@@ -221,42 +265,43 @@
 //! One will always find the following (unmangled) symbols in `cortex-m-rt` applications:
 //!
 //! - `Reset`. This is the reset handler. The microcontroller will execute this function upon
-//! booting. This function will call the user program entry point (cf. [`#[entry]`][attr-entry])
-//! using the `main` symbol so you will also find that symbol in your program.
+//!   booting. This function will call the user program entry point (cf. [`#[entry]`][attr-entry])
+//!   using the `main` symbol so you will also find that symbol in your program.
 //!
 //! - `DefaultHandler`. This is the default handler. If not overridden using `#[exception] fn
-//! DefaultHandler(..` this will be an infinite loop.
+//!   DefaultHandler(..` this will be an infinite loop.
 //!
 //! - `HardFault` and `_HardFault`. These function handle the hard fault handling and what they
-//! do depends on whether the hard fault is overridden and whether the trampoline is enabled (which it is by default).
+//!   do depends on whether the hard fault is overridden and whether the trampoline is enabled (which it is by default).
 //!   - No override: Both are the same function. The function is an infinite loop defined in the cortex-m-rt crate.
 //!   - Trampoline enabled: `HardFault` is the real hard fault handler defined in assembly. This function is simply a
-//! trampoline that jumps into the rust defined `_HardFault` function. This second function jumps to the user-defined
-//! handler with the exception frame as parameter. This second jump is usually optimised away with inlining.
+//!     trampoline that jumps into the rust defined `_HardFault` function. This second function jumps to the user-defined
+//!     handler with the exception frame as parameter. This second jump is usually optimised away with inlining.
 //!   - Trampoline disabled: `HardFault` is the user defined function. This means the user function is called directly
-//! from the vector table. `_HardFault` still exists, but is an empty function that is purely there for compiler
-//! diagnostics.
+//!     from the vector table. `_HardFault` still exists, but is an empty function that is purely there for compiler
+//!     diagnostics.
 //!
 //! - `__STACK_START`. This is the first entry in the `.vector_table` section. This symbol contains
-//! the initial value of the stack pointer; this is where the stack will be located -- the stack
-//! grows downwards towards smaller addresses.
+//!   the initial value of the stack pointer; this is where the stack will be located -- the stack
+//!   grows downwards towards smaller addresses.
 //!
 //! - `__RESET_VECTOR`. This is the reset vector, a pointer to the `Reset` function. This vector
-//! is located in the `.vector_table` section after `__STACK_START`.
+//!   is located in the `.vector_table` section after `__STACK_START`.
 //!
 //! - `__EXCEPTIONS`. This is the core exceptions portion of the vector table; it's an array of 14
-//! exception vectors, which includes exceptions like `HardFault` and `SysTick`. This array is
-//! located after `__RESET_VECTOR` in the `.vector_table` section.
+//!   exception vectors, which includes exceptions like `HardFault` and `SysTick`. This array is
+//!   located after `__RESET_VECTOR` in the `.vector_table` section.
 //!
 //! - `__INTERRUPTS`. This is the device specific interrupt portion of the vector table; its exact
-//! size depends on the target device but if the `"device"` feature has not been enabled it will
-//! have a size of 32 vectors (on ARMv6-M) or 240 vectors (on ARMv7-M). This array is located after
-//! `__EXCEPTIONS` in the `.vector_table` section.
+//!   size depends on the target device but if the `"device"` feature has not been enabled it will
+//!   have a size of 32 vectors (on ARMv6-M), 240 vectors (on ARMv7-M, ARMv8-M Baseline) or 480
+//!   vectors (on ARMv8-M Mainline).
+//!   This array is located after `__EXCEPTIONS` in the `.vector_table` section.
 //!
 //! - `__pre_init`. This is a function to be run before RAM is initialized. It defaults to an empty
-//! function. As this runs before RAM is initialised, it is not sound to use a Rust function for
-//! `pre_init`, and instead it should typically be written in assembly using `global_asm` or an
-//! external assembly file.
+//!   function. As this runs before RAM is initialised, it is not sound to use a Rust function for
+//!   `pre_init`, and instead it should typically be written in assembly using `global_asm` or an
+//!   external assembly file.
 //!
 //! If you override any exception handler you'll find it as an unmangled symbol, e.g. `SysTick` or
 //! `SVCall`, in the output of `objdump`,
@@ -455,7 +500,7 @@
 //!
 //! # Minimum Supported Rust Version (MSRV)
 //!
-//! The MSRV of this release is Rust 1.60.0.
+//! The MSRV of this release is Rust 1.61.0.
 
 // # Developer notes
 //
@@ -466,6 +511,12 @@
 #![no_std]
 
 extern crate cortex_m_rt_macros as macros;
+
+/// The 32-bit value the stack is painted with before the program runs.
+// Note: keep this value in-sync with the start-up assembly code, as we can't
+// use const values in `global_asm!` yet.
+#[cfg(feature = "paint-stack")]
+pub const STACK_PAINT_VALUE: u32 = 0xcccc_cccc;
 
 #[cfg(cortex_m)]
 use core::arch::global_asm;
@@ -522,6 +573,13 @@ cfg_global_asm! {
      ldr r1, =__vector_table
      str r1, [r0]",
 
+    // If enabled, set the Main Stack Pointer Limit (MSPLIM) to the end of the stack.
+    // This feature is only available on ARMv8-M Mainline, where it helps enforce stack limits
+    // by defining the lowest valid stack address.
+    #[cfg(all(armv8m_main, feature = "set-msplim"))]
+    "ldr r0, =_stack_end
+     msr MSPLIM, r0",
+
     // Run user pre-init code which must be executed immediately after startup, before the
     // potentially time-consuming memory initialisation takes place.
     // Example use cases include disabling default watchdogs or enabling RAM.
@@ -545,24 +603,38 @@ cfg_global_asm! {
     "ldr r0, =__sbss
      ldr r1, =__ebss
      movs r2, #0
-     2:
+     0:
      cmp r1, r0
-     beq 3f
+     beq 1f
      stm r0!, {{r2}}
-     b 2b
-     3:",
+     b 0b
+     1:",
+
+    // If enabled, paint stack/heap RAM with 0xcccccccc.
+    // `_stack_end` and `_stack_start` come from the linker script.
+    #[cfg(feature = "paint-stack")]
+    "ldr r0, =_stack_end
+     ldr r1, =_stack_start
+     ldr r2, =0xcccccccc // This must match STACK_PAINT_VALUE
+     0:
+     cmp r1, r0
+     beq 1f
+     stm r0!, {{r2}}
+     b 0b
+     1:",
 
     // Initialise .data memory. `__sdata`, `__sidata`, and `__edata` come from the linker script.
+    #[cfg(not(feature = "skip-data-copy"))]
     "ldr r0, =__sdata
      ldr r1, =__edata
      ldr r2, =__sidata
-     4:
+     0:
      cmp r1, r0
-     beq 5f
+     beq 1f
      ldm r2!, {{r3}}
      stm r0!, {{r3}}
-     b 4b
-     5:",
+     b 0b
+     1:",
 
     // Potentially enable an FPU.
     // SCB.CPACR is 0xE000_ED88.
@@ -872,6 +944,7 @@ pub static __ONCE__: () = ();
 /// Registers stacked (pushed onto the stack) during an exception.
 #[derive(Clone, Copy)]
 #[repr(C)]
+#[allow(dead_code)]
 pub struct ExceptionFrame {
     r0: u32,
     r1: u32,
@@ -1051,7 +1124,10 @@ pub fn heap_start() -> *mut u32 {
         static mut __sheap: u32;
     }
 
-    unsafe { core::ptr::addr_of_mut!(__sheap) }
+    #[allow(unused_unsafe)] // no longer unsafe since rust 1.82.0
+    unsafe {
+        core::ptr::addr_of_mut!(__sheap)
+    }
 }
 
 // Entry point is Reset.
@@ -1206,7 +1282,7 @@ pub static __EXCEPTIONS: [Vector; 14] = [
 
 // If we are not targeting a specific device we bind all the potential device specific interrupts
 // to the default handler
-#[cfg(all(any(not(feature = "device"), test), not(armv6m)))]
+#[cfg(all(any(not(feature = "device"), test), not(armv6m), not(armv8m_main)))]
 #[doc(hidden)]
 #[cfg_attr(cortex_m, link_section = ".vector_table.interrupts")]
 #[no_mangle]
@@ -1217,6 +1293,19 @@ pub static __INTERRUPTS: [unsafe extern "C" fn(); 240] = [{
 
     DefaultHandler
 }; 240];
+
+// ARMv8-M Mainline can have up to 480 device specific interrupts
+#[cfg(all(not(feature = "device"), armv8m_main))]
+#[doc(hidden)]
+#[cfg_attr(cortex_m, link_section = ".vector_table.interrupts")]
+#[no_mangle]
+pub static __INTERRUPTS: [unsafe extern "C" fn(); 480] = [{
+    extern "C" {
+        fn DefaultHandler();
+    }
+
+    DefaultHandler
+}; 480];
 
 // ARMv6-M can only have a maximum of 32 device specific interrupts
 #[cfg(all(not(feature = "device"), armv6m))]

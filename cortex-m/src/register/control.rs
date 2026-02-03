@@ -1,10 +1,5 @@
 //! Control register
 
-#[cfg(cortex_m)]
-use core::arch::asm;
-#[cfg(cortex_m)]
-use core::sync::atomic::{compiler_fence, Ordering};
-
 /// Control register
 #[derive(Clone, Copy, Debug)]
 pub struct Control {
@@ -14,13 +9,13 @@ pub struct Control {
 impl Control {
     /// Creates a `Control` value from raw bits.
     #[inline]
-    pub fn from_bits(bits: u32) -> Self {
+    pub const fn from_bits(bits: u32) -> Self {
         Self { bits }
     }
 
     /// Returns the contents of the register as raw bits
     #[inline]
-    pub fn bits(self) -> u32 {
+    pub const fn bits(self) -> u32 {
         self.bits
     }
 
@@ -44,6 +39,17 @@ impl Control {
         }
     }
 
+    /// Sets the thread mode privilege level value (nPRIV).
+    #[inline]
+    pub const fn with_npriv(self, npriv: Npriv) -> Self {
+        let mask = 1 << 0;
+        let bits = match npriv {
+            Npriv::Unprivileged => self.bits | mask,
+            Npriv::Privileged => self.bits & !mask,
+        };
+        Self { bits }
+    }
+
     /// Currently active stack pointer
     #[inline]
     pub fn spsel(self) -> Spsel {
@@ -62,6 +68,17 @@ impl Control {
             Spsel::Psp => self.bits |= mask,
             Spsel::Msp => self.bits &= !mask,
         }
+    }
+
+    /// Sets the SPSEL value.
+    #[inline]
+    pub const fn with_spsel(self, spsel: Spsel) -> Self {
+        let mask = 1 << 1;
+        let bits = match spsel {
+            Spsel::Psp => self.bits | mask,
+            Spsel::Msp => self.bits & !mask,
+        };
+        Self { bits }
     }
 
     /// Whether context floating-point is currently active
@@ -155,29 +172,15 @@ impl Fpca {
 }
 
 /// Reads the CPU register
-#[cfg(cortex_m)]
 #[inline]
 pub fn read() -> Control {
-    let bits;
-    unsafe { asm!("mrs {}, CONTROL", out(reg) bits, options(nomem, nostack, preserves_flags)) };
+    let bits: u32 = call_asm!(__control_r() -> u32);
     Control { bits }
 }
 
 /// Writes to the CPU register.
-#[cfg(cortex_m)]
 #[inline]
 pub unsafe fn write(control: Control) {
     let control = control.bits();
-
-    // ISB is required after writing to CONTROL,
-    // per ARM architectural requirements (see Application Note 321).
-    asm!(
-        "msr CONTROL, {}",
-        "isb",
-        in(reg) control,
-        options(nomem, nostack, preserves_flags),
-    );
-
-    // Ensure memory accesses are not reordered around the CONTROL update.
-    compiler_fence(Ordering::SeqCst);
+    call_asm!(__control_w(control: u32));
 }

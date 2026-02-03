@@ -48,10 +48,10 @@
 //! We discourage using this feature when the program will run on hardware as the exit call can
 //! leave the hardware debugger in an inconsistent state.
 
+#![no_std]
 #![cfg(all(target_arch = "arm", target_os = "none"))]
 #![deny(missing_docs)]
 #![deny(warnings)]
-#![no_std]
 
 extern crate cortex_m;
 extern crate cortex_m_semihosting as sh;

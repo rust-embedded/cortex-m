@@ -7,6 +7,7 @@
 //!
 //! For reference please check the section B8.3 of the Armv8-M Architecture Reference Manual.
 
+use crate::interrupt;
 use crate::peripheral::SAU;
 use bitfield::bitfield;
 use volatile_register::{RO, RW};
@@ -161,7 +162,7 @@ impl SAU {
     /// This function is executed under a critical section to prevent having inconsistent results.
     #[inline]
     pub fn set_region(&mut self, region_number: u8, region: SauRegion) -> Result<(), SauError> {
-        critical_section::with(|_| {
+        interrupt::free(|_| {
             let base_address = region.base_address;
             let limit_address = region.limit_address;
             let attribute = region.attribute;
@@ -214,7 +215,7 @@ impl SAU {
     /// This function is executed under a critical section to prevent having inconsistent results.
     #[inline]
     pub fn get_region(&mut self, region_number: u8) -> Result<SauRegion, SauError> {
-        critical_section::with(|_| {
+        interrupt::free(|_| {
             if region_number >= self.region_numbers() {
                 Err(SauError::RegionNumberTooBig)
             } else {

@@ -1,9 +1,6 @@
 //! Interrupts
 
-#[cfg(cortex_m)]
-use core::arch::asm;
-#[cfg(cortex_m)]
-use core::sync::atomic::{compiler_fence, Ordering};
+pub use bare_metal::{CriticalSection, Mutex, Nr};
 
 /// Trait for enums of external interrupt numbers.
 ///
@@ -26,70 +23,67 @@ pub unsafe trait InterruptNumber: Copy {
     fn number(self) -> u16;
 }
 
-/// Disables all interrupts in the current core.
-#[cfg(cortex_m)]
-#[inline]
-pub fn disable() {
-    unsafe {
-        asm!("cpsid i", options(nomem, nostack, preserves_flags));
+/// Implement InterruptNumber for the old bare_metal::Nr trait.
+/// This implementation is for backwards compatibility only and will be removed in cortex-m 0.8.
+unsafe impl<T: Nr + Copy> InterruptNumber for T {
+    #[inline]
+    fn number(self) -> u16 {
+        self.nr() as u16
     }
-
-    // Ensure no subsequent memory accesses are reordered to before interrupts are disabled.
-    compiler_fence(Ordering::SeqCst);
 }
 
-/// Enables all the interrupts in the current core.
+/// Disables all interrupts
+#[inline]
+pub fn disable() {
+    call_asm!(__cpsid());
+}
+
+/// Enables all the interrupts
 ///
 /// # Safety
 ///
-/// - Do not call this function inside a critical section.
-#[cfg(cortex_m)]
+/// - Do not call this function inside an `interrupt::free` critical section
 #[inline]
 pub unsafe fn enable() {
-    // Ensure no preceeding memory accesses are reordered to after interrupts are enabled.
-    compiler_fence(Ordering::SeqCst);
-
-    asm!("cpsie i", options(nomem, nostack, preserves_flags));
+    call_asm!(__cpsie());
 }
 
-/// Execute closure `f` with interrupts disabled in the current core.
+/// Execute closure `f` in an interrupt-free context.
 ///
-/// This method does not synchronise multiple cores and may disable required
-/// interrupts on some platforms; see the `critical-section` crate for a cross-platform
-/// way to enter a critical section which provides a `CriticalSection` token.
-///
-/// This crate provides an implementation for `critical-section` suitable for single-core systems,
-/// based on disabling all interrupts. It can be enabled with the `critical-section-single-core` feature.
+/// This as also known as a "critical section".
 #[cfg(cortex_m)]
 #[inline]
 pub fn free<F, R>(f: F) -> R
 where
-    F: FnOnce() -> R,
+    F: FnOnce(&CriticalSection) -> R,
 {
-    let primask = crate::register::primask::read();
+    // Backup previous state of PRIMASK register. We access the entire register directly as a
+    // u32 instead of using the primask::read() function to minimize the number of processor
+    // cycles during which interrupts are disabled.
+    let primask = crate::register::primask::read_raw();
 
     // disable interrupts
     disable();
 
-    let r = f();
+    let r = f(unsafe { &CriticalSection::new() });
 
-    // If the interrupts were active before our `disable` call, then re-enable
-    // them. Otherwise, keep them disabled
-    if primask.is_active() {
-        unsafe { enable() }
+    unsafe {
+        crate::register::primask::write_raw(primask);
     }
 
     r
 }
 
-// Make a `free()` function available to allow checking dependencies without specifying a target,
-// but that will panic at runtime if executed.
-#[doc(hidden)]
+// Make a `free()` function available on hosted platforms to allow checking dependencies without
+// specifying a target, but that will panic at runtime if executed.
+/// Execute closure `f` in an interrupt-free context.
+///
+/// This as also known as a "critical section".
 #[cfg(not(cortex_m))]
 #[inline]
 pub fn free<F, R>(_: F) -> R
 where
-    F: FnOnce() -> R,
+    F: FnOnce(&CriticalSection) -> R,
 {
     panic!("cortex_m::interrupt::free() is only functional on cortex-m platforms");
 }

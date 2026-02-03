@@ -75,7 +75,6 @@ impl Delay {
     }
 }
 
-#[cfg(feature = "eh0")]
 impl eh0::blocking::delay::DelayMs<u32> for Delay {
     #[inline]
     fn delay_ms(&mut self, ms: u32) {
@@ -84,7 +83,6 @@ impl eh0::blocking::delay::DelayMs<u32> for Delay {
 }
 
 // This is a workaround to allow `delay_ms(42)` construction without specifying a type.
-#[cfg(feature = "eh0")]
 impl eh0::blocking::delay::DelayMs<i32> for Delay {
     #[inline(always)]
     fn delay_ms(&mut self, ms: i32) {
@@ -93,7 +91,6 @@ impl eh0::blocking::delay::DelayMs<i32> for Delay {
     }
 }
 
-#[cfg(feature = "eh0")]
 impl eh0::blocking::delay::DelayMs<u16> for Delay {
     #[inline(always)]
     fn delay_ms(&mut self, ms: u16) {
@@ -101,7 +98,6 @@ impl eh0::blocking::delay::DelayMs<u16> for Delay {
     }
 }
 
-#[cfg(feature = "eh0")]
 impl eh0::blocking::delay::DelayMs<u8> for Delay {
     #[inline(always)]
     fn delay_ms(&mut self, ms: u8) {
@@ -109,7 +105,6 @@ impl eh0::blocking::delay::DelayMs<u8> for Delay {
     }
 }
 
-#[cfg(feature = "eh0")]
 impl eh0::blocking::delay::DelayUs<u32> for Delay {
     #[inline]
     fn delay_us(&mut self, us: u32) {
@@ -118,7 +113,6 @@ impl eh0::blocking::delay::DelayUs<u32> for Delay {
 }
 
 // This is a workaround to allow `delay_us(42)` construction without specifying a type.
-#[cfg(feature = "eh0")]
 impl eh0::blocking::delay::DelayUs<i32> for Delay {
     #[inline(always)]
     fn delay_us(&mut self, us: i32) {
@@ -127,7 +121,6 @@ impl eh0::blocking::delay::DelayUs<i32> for Delay {
     }
 }
 
-#[cfg(feature = "eh0")]
 impl eh0::blocking::delay::DelayUs<u16> for Delay {
     #[inline(always)]
     fn delay_us(&mut self, us: u16) {
@@ -135,7 +128,6 @@ impl eh0::blocking::delay::DelayUs<u16> for Delay {
     }
 }
 
-#[cfg(feature = "eh0")]
 impl eh0::blocking::delay::DelayUs<u8> for Delay {
     #[inline(always)]
     fn delay_us(&mut self, us: u8) {

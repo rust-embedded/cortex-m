@@ -5,16 +5,16 @@
 
 > Startup code and minimal runtime for Cortex-M microcontrollers
 
-This project is developed and maintained by the [Cortex-M team][team].
+This project is developed and maintained by the [Embedded Devices Working Group's Arm team][team].
 
-# [Documentation](https://docs.rs/cortex-m-rt)
+## [Documentation](https://docs.rs/cortex-m-rt)
 
-# Minimum Supported Rust Version (MSRV)
+## Minimum Supported Rust Version (MSRV)
 
 This crate is guaranteed to compile on stable Rust 1.61.0 and up. It *might*
 compile with older versions but that may change in any new patch release.
 
-# License
+## License
 
 Licensed under either of
 
@@ -34,8 +34,8 @@ dual licensed as above, without any additional terms or conditions.
 ## Code of Conduct
 
 Contribution to this crate is organized under the terms of the [Rust Code of
-Conduct][CoC], the maintainer of this crate, the [Cortex-M team][team], promises
+Conduct][CoC], the maintainer of this crate, the [Arm team][team], promises
 to intervene to uphold that code of conduct.
 
 [CoC]: ../CODE_OF_CONDUCT.md
-[team]: https://github.com/rust-embedded/wg#the-cortex-m-team
+[team]: https://github.com/rust-embedded/wg#the-arm-team

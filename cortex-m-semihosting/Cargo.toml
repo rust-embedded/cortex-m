@@ -1,6 +1,6 @@
 [package]
 authors = [
-    "The Cortex-M Team <cortex-m@teams.rust-embedded.org>",
+    "The Embedded Devices Working Group's Arm Team <cortex-m@teams.rust-embedded.org>",
     "Jorge Aparicio <japaricious@gmail.com>",
 ]
 description = "Semihosting for ARM Cortex-M processors"

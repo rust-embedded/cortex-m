@@ -2,7 +2,7 @@
 authors = ["The Embedded Devices Working Group's Arm Team<cortex-m@teams.rust-embedded.org>"]
 name = "testsuite"
 publish = false
-edition = "2018"
+edition = "2021"
 version = "0.1.0"
 
 [features]

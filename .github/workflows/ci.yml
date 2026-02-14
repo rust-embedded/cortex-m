@@ -13,13 +13,17 @@ jobs:
       matrix:
         # All generated code should be running on stable now
         rust: [stable]
+        test_cortex_m_types: [true]
 
         include:
           # Test MSRV
-          - rust: 1.61.0
+          - rust: 1.71.0
+            # Should be set to true for >= 1.81.0
+            test_cortex_m_types: false
 
           # Test nightly but don't fail
           - rust: nightly
+            test_cortex_m_types: true
             experimental: true
     steps:
       - uses: actions/checkout@v4
@@ -27,8 +31,8 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
       - name: Run tests
-        if: ${{ matrix.rust != '1.61.0' }}
+        if: ${{ matrix.test_cortex_m_types }}
         run: cargo test --all --exclude cortex-m-rt --exclude testsuite --features cortex-m/critical-section-single-core
-      - name: Run tests for 1.61.0 (need to exclude cortex-m-types)
-        if: ${{ matrix.rust == '1.61.0' }}
+      - name: Run tests for < 1.81.0 (need to exclude cortex-m-types)
+        if: ${{ matrix.test_cortex_m_types == false }}
         run: cargo test --all --exclude cortex-m-rt --exclude testsuite --exclude cortex-m-types --features cortex-m/critical-section-single-core

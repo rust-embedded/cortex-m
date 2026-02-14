@@ -2,7 +2,7 @@
 
 > Log panic messages using the ITM (Instrumentation Trace Macrocell)
 
-This project is developed and maintained by the [Cortex-M team][team].
+This project is developed and maintained by the [Embedded Devices Working Group's Arm team][team].
 
 ## [Documentation](https://docs.rs/panic-itm)
 
@@ -15,9 +15,9 @@ compile with older versions but that may change in any new patch release.
 
 Licensed under either of
 
-- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or
+- Apache License, Version 2.0 ([LICENSE-APACHE](../LICENSE-APACHE) or
   http://www.apache.org/licenses/LICENSE-2.0)
-- MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+- MIT license ([LICENSE-MIT](../LICENSE-MIT) or http://opensource.org/licenses/MIT)
 
 at your option.
 
@@ -30,8 +30,8 @@ dual licensed as above, without any additional terms or conditions.
 ## Code of Conduct
 
 Contribution to this crate is organized under the terms of the [Rust Code of
-Conduct][CoC], the maintainer of this crate, the [Cortex-M team][team], promises
+Conduct][CoC], the maintainer of this crate, the [Arm team][team], promises
 to intervene to uphold that code of conduct.
 
 [CoC]: ../CODE_OF_CONDUCT.md
-[team]: https://github.com/rust-embedded/wg#the-cortex-m-team
+[team]: https://github.com/rust-embedded/wg#the-arm-team

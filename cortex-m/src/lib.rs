@@ -105,6 +105,8 @@ mod macros;
 pub mod asm;
 #[cfg(armv8m)]
 pub mod cmse;
+#[cfg(not(armv6m))]
+pub mod coprocessor;
 pub mod delay;
 pub mod interrupt;
 #[cfg(all(not(armv6m), not(armv8m_base)))]

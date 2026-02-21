@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-- MSRV is 1.61 to match cortex-m-rt crate
+- MSRV is 1.71 to match cortex-m-rt crate
 - Add `enter_unprivileged` function to switch to unprivileged mode (on the Process Stack, or `PSP`)
 - Updated references from 'Cortex-M Team' to 'Arm Team'
 

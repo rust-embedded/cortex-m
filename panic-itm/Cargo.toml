@@ -10,8 +10,8 @@ keywords = ["panic-impl", "panic-handler", "ITM", "ARM", "Cortex-M"]
 license = "MIT OR Apache-2.0"
 name = "panic-itm"
 repository = "https://github.com/rust-embedded/cortex-m"
+edition = "2021"
 version = "0.4.2"
-edition = "2018"
 
 [dependencies]
 cortex-m = { path = "../cortex-m", version = ">= 0.5.8, < 0.8" }

@@ -110,7 +110,7 @@
 //! }
 //!
 //! /* The device stores Flash configuration in 0x400-0x40C so we place .text after that */
-//! _stext = ORIGIN(FLASH) + 0x40C
+//! _stext = ORIGIN(FLASH) + 0x40C;
 //! ```
 //!
 //! # An example

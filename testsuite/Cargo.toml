@@ -4,6 +4,7 @@ name = "testsuite"
 publish = false
 edition = "2021"
 version = "0.1.0"
+rust-version = "1.85"
 
 [features]
 rtt = ["rtt-target", "minitest/rtt"]

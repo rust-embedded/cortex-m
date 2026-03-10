@@ -2,7 +2,6 @@
 name = "cortex-m-types"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.81"
 repository = "https://github.com/rust-embedded/cortex-m"
 authors = ["The Embedded Devices Working Group's Arm Team <cortex-m@teams.rust-embedded.org>",]
 categories = ["embedded", "hardware-support", "no-std"]
@@ -11,6 +10,7 @@ documentation = "https://docs.rs/cortex-m-types"
 keywords = ["arm", "cortex-m", "register", "peripheral"]
 license = "MIT OR Apache-2.0"
 readme = "README.md"
+rust-version = "1.85"
 
 [package.metadata.docs.rs]
 targets = [

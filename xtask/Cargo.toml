@@ -4,6 +4,7 @@ version = "0.0.0"
 authors = ["The Embedded Devices Working Group's Arm Team<cortex-m@teams.rust-embedded.org>"]
 edition = "2021"
 publish = false
+rust-version = "1.85"
 
 [[test]]
 name = "ci"

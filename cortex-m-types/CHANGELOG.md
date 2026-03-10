@@ -7,4 +7,5 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+- MSRV bumped to 1.85
 - Updated references from 'Cortex-M Team' to 'Arm Team'

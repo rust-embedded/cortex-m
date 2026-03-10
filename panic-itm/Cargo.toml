@@ -12,6 +12,7 @@ name = "panic-itm"
 repository = "https://github.com/rust-embedded/cortex-m"
 edition = "2021"
 version = "0.4.2"
+rust-version = "1.85"
 
 [dependencies]
 cortex-m = { path = "../cortex-m", version = ">= 0.5.8, < 0.8" }

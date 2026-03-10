@@ -12,7 +12,7 @@ macro_rules! call_asm {
 
                 #[cfg(not(feature = "inline-asm"))]
                 () => {
-                    extern "C" {
+                    unsafe extern "C" {
                         fn $func($($args: $tys),*) $(-> $ret)?;
                     }
 

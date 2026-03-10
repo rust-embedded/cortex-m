@@ -65,7 +65,7 @@ where
     // disable interrupts
     disable();
 
-    let r = f(unsafe { &CriticalSection::new() });
+    let r = f(&unsafe { CriticalSection::new() });
 
     unsafe {
         crate::register::primask::write_raw(primask);

@@ -121,8 +121,8 @@ const CPASS: () = ();
 ///
 /// fn foo() {
 ///     // check that attributes are forwarded
-///     singleton!(#[link_section = ".bss"] FOO: u8 = 0);
-///     singleton!(#[link_section = ".bss"]: u8 = 1);
+///     singleton!(#[unsafe(link_section = ".bss")] FOO: u8 = 0);
+///     singleton!(#[unsafe(link_section = ".bss")]: u8 = 1);
 /// }
 /// ```
 #[allow(dead_code)]

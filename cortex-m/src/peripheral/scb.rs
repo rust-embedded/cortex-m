@@ -317,7 +317,7 @@ impl SCB {
         cbp.iciallu();
 
         // Enable I-cache
-        extern "C" {
+        unsafe extern "C" {
             // see asm-v7m.s
             fn __enable_icache();
         }
@@ -392,7 +392,7 @@ impl SCB {
         unsafe { self.invalidate_dcache(cpuid) };
 
         // Now turn on the D-cache
-        extern "C" {
+        unsafe extern "C" {
             // see asm-v7m.s
             fn __enable_dcache();
         }
@@ -442,21 +442,23 @@ impl SCB {
     /// It's used immediately before enabling the dcache, but not exported publicly.
     #[inline]
     unsafe fn invalidate_dcache(&mut self, cpuid: &mut CPUID) {
-        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
-        let mut cbp = CBP::new();
+        unsafe {
+            // NOTE(unsafe): No races as all CBP registers are write-only and stateless
+            let mut cbp = CBP::new();
 
-        // Read number of sets and ways
-        let (sets, ways) = cpuid.cache_num_sets_ways(0, CsselrCacheType::DataOrUnified);
+            // Read number of sets and ways
+            let (sets, ways) = cpuid.cache_num_sets_ways(0, CsselrCacheType::DataOrUnified);
 
-        // Invalidate entire D-cache
-        for set in 0..sets {
-            for way in 0..ways {
-                cbp.dcisw(set, way);
+            // Invalidate entire D-cache
+            for set in 0..sets {
+                for way in 0..ways {
+                    cbp.dcisw(set, way);
+                }
             }
-        }
 
-        crate::asm::dsb();
-        crate::asm::isb();
+            crate::asm::dsb();
+            crate::asm::isb();
+        }
     }
 
     /// Cleans the entire D-cache.
@@ -540,37 +542,39 @@ impl SCB {
     /// a runtime-dependent `panic!()` call.
     #[inline]
     pub unsafe fn invalidate_dcache_by_address(&mut self, addr: usize, size: usize) {
-        // No-op zero sized operations
-        if size == 0 {
-            return;
+        unsafe {
+            // No-op zero sized operations
+            if size == 0 {
+                return;
+            }
+
+            // NOTE(unsafe): No races as all CBP registers are write-only and stateless
+            let mut cbp = CBP::new();
+
+            // dminline is log2(num words), so 2**dminline * 4 gives size in bytes
+            let dminline = CPUID::cache_dminline();
+            let line_size = (1 << dminline) * 4;
+
+            debug_assert!((addr & (line_size - 1)) == 0);
+            debug_assert!((size & (line_size - 1)) == 0);
+
+            crate::asm::dsb();
+
+            // Find number of cache lines to invalidate
+            let num_lines = ((size - 1) / line_size) + 1;
+
+            // Compute address of first cache line
+            let mask = 0xFFFF_FFFF - (line_size - 1);
+            let mut addr = addr & mask;
+
+            for _ in 0..num_lines {
+                cbp.dcimvac(addr as u32);
+                addr += line_size;
+            }
+
+            crate::asm::dsb();
+            crate::asm::isb();
         }
-
-        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
-        let mut cbp = CBP::new();
-
-        // dminline is log2(num words), so 2**dminline * 4 gives size in bytes
-        let dminline = CPUID::cache_dminline();
-        let line_size = (1 << dminline) * 4;
-
-        debug_assert!((addr & (line_size - 1)) == 0);
-        debug_assert!((size & (line_size - 1)) == 0);
-
-        crate::asm::dsb();
-
-        // Find number of cache lines to invalidate
-        let num_lines = ((size - 1) / line_size) + 1;
-
-        // Compute address of first cache line
-        let mask = 0xFFFF_FFFF - (line_size - 1);
-        let mut addr = addr & mask;
-
-        for _ in 0..num_lines {
-            cbp.dcimvac(addr as u32);
-            addr += line_size;
-        }
-
-        crate::asm::dsb();
-        crate::asm::isb();
     }
 
     /// Invalidates an object from the D-cache.
@@ -608,7 +612,9 @@ impl SCB {
     /// a runtime-dependent `panic!()` call.
     #[inline]
     pub unsafe fn invalidate_dcache_by_ref<T>(&mut self, obj: &mut T) {
-        self.invalidate_dcache_by_address(obj as *const T as usize, core::mem::size_of::<T>());
+        unsafe {
+            self.invalidate_dcache_by_address(obj as *const T as usize, core::mem::size_of::<T>());
+        }
     }
 
     /// Invalidates a slice from the D-cache.
@@ -646,7 +652,12 @@ impl SCB {
     /// a runtime-dependent `panic!()` call.
     #[inline]
     pub unsafe fn invalidate_dcache_by_slice<T>(&mut self, slice: &mut [T]) {
-        self.invalidate_dcache_by_address(slice.as_ptr() as usize, core::mem::size_of_val(slice));
+        unsafe {
+            self.invalidate_dcache_by_address(
+                slice.as_ptr() as usize,
+                core::mem::size_of_val(slice),
+            );
+        }
     }
 
     /// Cleans D-cache by address.
@@ -1000,32 +1011,34 @@ impl SCB {
     /// [`register::basepri`](crate::register::basepri)) and compromise memory safety.
     #[inline]
     pub unsafe fn set_priority(&mut self, system_handler: SystemHandler, prio: u8) {
-        let index = system_handler as u8;
+        unsafe {
+            let index = system_handler as u8;
 
-        #[cfg(not(armv6m))]
-        {
-            // NOTE(unsafe): Index is bounded to [4,15] by SystemHandler design.
-            // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
-            let priority_ref = (*Self::PTR).shpr.get_unchecked(usize::from(index - 4));
+            #[cfg(not(armv6m))]
+            {
+                // NOTE(unsafe): Index is bounded to [4,15] by SystemHandler design.
+                // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
+                let priority_ref = (*Self::PTR).shpr.get_unchecked(usize::from(index - 4));
 
-            priority_ref.write(prio)
-        }
+                priority_ref.write(prio)
+            }
 
-        #[cfg(armv6m)]
-        {
-            // NOTE(unsafe): Index is bounded to [11,15] by SystemHandler design.
-            // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
-            let priority_ref = (*Self::PTR)
-                .shpr
-                .get_unchecked(usize::from((index - 8) / 4));
+            #[cfg(armv6m)]
+            {
+                // NOTE(unsafe): Index is bounded to [11,15] by SystemHandler design.
+                // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
+                let priority_ref = (*Self::PTR)
+                    .shpr
+                    .get_unchecked(usize::from((index - 8) / 4));
 
-            priority_ref.modify(|value| {
-                let shift = 8 * (index % 4);
-                let mask = 0x0000_00ff << shift;
-                let prio = u32::from(prio) << shift;
+                priority_ref.modify(|value| {
+                    let shift = 8 * (index % 4);
+                    let mask = 0x0000_00ff << shift;
+                    let prio = u32::from(prio) << shift;
 
-                (value & !mask) | prio
-            });
+                    (value & !mask) | prio
+                });
+            }
         }
     }
 

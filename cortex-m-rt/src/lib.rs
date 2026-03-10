@@ -361,13 +361,13 @@
 //!     reserved: usize,
 //! }
 //!
-//! extern "C" {
+//! unsafe extern "C" {
 //!     fn Foo();
 //!     fn Bar();
 //! }
 //!
-//! #[link_section = ".vector_table.interrupts"]
-//! #[no_mangle]
+//! #[unsafe(link_section = ".vector_table.interrupts")]
+//! #[unsafe(no_mangle)]
 //! pub static __INTERRUPTS: [Vector; 5] = [
 //!     // 0-1: Reserved
 //!     Vector { reserved: 0 },
@@ -440,14 +440,14 @@
 //!
 //! [`MaybeUninit`]: https://doc.rust-lang.org/core/mem/union.MaybeUninit.html
 //!
-//! ```no_run,edition2018
+//! ```no_run
 //! # extern crate core;
 //! use core::mem::MaybeUninit;
 //!
 //! const STACK_SIZE: usize = 8 * 1024;
 //! const NTHREADS: usize = 4;
 //!
-//! #[link_section = ".uninit.STACKS"]
+//! #[unsafe(link_section = ".uninit.STACKS")]
 //! static mut STACKS: MaybeUninit<[[u8; STACK_SIZE]; NTHREADS]> = MaybeUninit::uninit();
 //! ```
 //!
@@ -483,10 +483,10 @@
 //!
 //! You can then use something like this to place a variable into this specific section of memory:
 //!
-//! ```no_run,edition2018
+//! ```no_run
 //! # extern crate core;
 //! # use core::mem::MaybeUninit;
-//! #[link_section=".ccmram.BUFFERS"]
+//! #[unsafe(link_section=".ccmram.BUFFERS")]
 //! static mut BUF: MaybeUninit<[u8; 1024]> = MaybeUninit::uninit();
 //! ```
 //!
@@ -937,7 +937,7 @@ pub use macros::pre_init;
 // two copies of cortex-m-rt together, linking will fail. We also declare a links key in
 // Cargo.toml which is the more modern way to solve the same problem, but we have to keep
 // __ONCE__ around to prevent linking with versions before the links key was added.
-#[export_name = "error: cortex-m-rt appears more than once in the dependency graph"]
+#[unsafe(export_name = "error: cortex-m-rt appears more than once in the dependency graph")]
 #[doc(hidden)]
 pub static __ONCE__: () = ();
 
@@ -1120,7 +1120,7 @@ impl fmt::Debug for ExceptionFrame {
 /// The returned pointer is guaranteed to be 4-byte aligned.
 #[inline]
 pub fn heap_start() -> *mut u32 {
-    extern "C" {
+    unsafe extern "C" {
         static mut __sheap: u32;
     }
 
@@ -1132,27 +1132,27 @@ pub fn heap_start() -> *mut u32 {
 
 // Entry point is Reset.
 #[doc(hidden)]
-#[cfg_attr(cortex_m, link_section = ".vector_table.reset_vector")]
-#[no_mangle]
+#[cfg_attr(cortex_m, unsafe(link_section = ".vector_table.reset_vector"))]
+#[unsafe(no_mangle)]
 pub static __RESET_VECTOR: unsafe extern "C" fn() -> ! = Reset;
 
 #[doc(hidden)]
-#[cfg_attr(cortex_m, link_section = ".HardFault.default")]
-#[no_mangle]
+#[cfg_attr(cortex_m, unsafe(link_section = ".HardFault.default"))]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn HardFault_() -> ! {
     #[allow(clippy::empty_loop)]
     loop {}
 }
 
 #[doc(hidden)]
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn DefaultHandler_() -> ! {
     #[allow(clippy::empty_loop)]
     loop {}
 }
 
 #[doc(hidden)]
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn DefaultPreInit() {}
 
 /* Exceptions */
@@ -1187,7 +1187,7 @@ pub enum Exception {
 #[doc(hidden)]
 pub use self::Exception as exception;
 
-extern "C" {
+unsafe extern "C" {
     fn Reset() -> !;
 
     fn NonMaskableInt();
@@ -1224,8 +1224,8 @@ pub union Vector {
 }
 
 #[doc(hidden)]
-#[cfg_attr(cortex_m, link_section = ".vector_table.exceptions")]
-#[no_mangle]
+#[cfg_attr(cortex_m, unsafe(link_section = ".vector_table.exceptions"))]
+#[unsafe(no_mangle)]
 pub static __EXCEPTIONS: [Vector; 14] = [
     // Exception 2: Non Maskable Interrupt.
     Vector {
@@ -1284,10 +1284,10 @@ pub static __EXCEPTIONS: [Vector; 14] = [
 // to the default handler
 #[cfg(all(any(not(feature = "device"), test), not(armv6m), not(armv8m_main)))]
 #[doc(hidden)]
-#[cfg_attr(cortex_m, link_section = ".vector_table.interrupts")]
-#[no_mangle]
+#[cfg_attr(cortex_m, unsafe(link_section = ".vector_table.interrupts"))]
+#[unsafe(no_mangle)]
 pub static __INTERRUPTS: [unsafe extern "C" fn(); 240] = [{
-    extern "C" {
+    unsafe extern "C" {
         fn DefaultHandler();
     }
 
@@ -1297,10 +1297,10 @@ pub static __INTERRUPTS: [unsafe extern "C" fn(); 240] = [{
 // ARMv8-M Mainline can have up to 480 device specific interrupts
 #[cfg(all(not(feature = "device"), armv8m_main))]
 #[doc(hidden)]
-#[cfg_attr(cortex_m, link_section = ".vector_table.interrupts")]
-#[no_mangle]
+#[cfg_attr(cortex_m, unsafe(link_section = ".vector_table.interrupts"))]
+#[unsafe(no_mangle)]
 pub static __INTERRUPTS: [unsafe extern "C" fn(); 480] = [{
-    extern "C" {
+    unsafe extern "C" {
         fn DefaultHandler();
     }
 
@@ -1310,10 +1310,10 @@ pub static __INTERRUPTS: [unsafe extern "C" fn(); 480] = [{
 // ARMv6-M can only have a maximum of 32 device specific interrupts
 #[cfg(all(not(feature = "device"), armv6m))]
 #[doc(hidden)]
-#[link_section = ".vector_table.interrupts"]
-#[no_mangle]
+#[unsafe(link_section = ".vector_table.interrupts")]
+#[unsafe(no_mangle)]
 pub static __INTERRUPTS: [unsafe extern "C" fn(); 32] = [{
-    extern "C" {
+    unsafe extern "C" {
         fn DefaultHandler();
     }
 

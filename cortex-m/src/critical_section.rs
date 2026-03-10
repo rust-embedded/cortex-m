@@ -19,6 +19,6 @@ unsafe impl Impl for SingleCoreCriticalSection {
 
     unsafe fn release(restore_state: RawRestoreState) {
         // NOTE: Fence guarantees are provided by primask::write_raw(), which performs a `compiler_fence(SeqCst)`.
-        primask::write_raw(restore_state);
+        unsafe { primask::write_raw(restore_state) };
     }
 }

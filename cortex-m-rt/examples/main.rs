@@ -7,7 +7,7 @@
 extern crate cortex_m_rt as rt;
 extern crate panic_halt;
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn main() -> ! {
     loop {}
 }

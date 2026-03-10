@@ -193,7 +193,7 @@ pub mod nr;
 /// [semihosting operation]: https://developer.arm.com/documentation/dui0471/i/semihosting/semihosting-operations?lang=en
 #[inline(always)]
 pub unsafe fn syscall<T>(nr: usize, arg: &T) -> usize {
-    syscall1(nr, arg as *const T as usize)
+    unsafe { syscall1(nr, arg as *const T as usize) }
 }
 
 /// Performs a semihosting operation, takes one integer as an argument
@@ -209,7 +209,9 @@ pub unsafe fn syscall1(_nr: usize, _arg: usize) -> usize {
             use core::arch::asm;
             let mut nr = _nr as u32;
             let arg = _arg as u32;
-            asm!("bkpt #0xab", inout("r0") nr, in("r1") arg, options(nostack, preserves_flags));
+            unsafe {
+                asm!("bkpt #0xab", inout("r0") nr, in("r1") arg, options(nostack, preserves_flags));
+            }
             nr as usize
         }
         #[cfg(all(thumb, feature = "no-semihosting"))]

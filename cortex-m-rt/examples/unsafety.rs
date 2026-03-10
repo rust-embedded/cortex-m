@@ -11,26 +11,26 @@ use cortex_m_rt::{entry, exception, ExceptionFrame};
 
 #[entry]
 unsafe fn main() -> ! {
-    foo();
+    unsafe { foo() };
 
     loop {}
 }
 
 #[exception]
 unsafe fn DefaultHandler(_irqn: i16) {
-    foo();
+    unsafe { foo() };
 }
 
 #[exception]
 unsafe fn HardFault(_ef: &ExceptionFrame) -> ! {
-    foo();
+    unsafe { foo() };
 
     loop {}
 }
 
 #[exception]
 unsafe fn SysTick() {
-    foo();
+    unsafe { foo() };
 }
 
 unsafe fn foo() {}

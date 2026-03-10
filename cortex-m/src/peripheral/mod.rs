@@ -91,7 +91,7 @@ mod test;
 
 /// Core peripherals
 #[allow(non_snake_case)]
-#[allow(clippy::manual_non_exhaustive)]
+#[non_exhaustive]
 pub struct Peripherals {
     /// Cortex-M7 TCM and cache access control.
     #[cfg(feature = "cm7")]
@@ -145,10 +145,6 @@ pub struct Peripherals {
     /// Trace Port Interface Unit.
     /// Not available on Armv6-M.
     pub TPIU: TPIU,
-
-    // Private field making `Peripherals` non-exhaustive. We don't use `#[non_exhaustive]` so we
-    // can support older Rust versions.
-    _priv: (),
 }
 
 // NOTE `no_mangle` is used here to prevent linking different minor versions of this crate as that
@@ -224,7 +220,6 @@ impl Peripherals {
             TPIU: TPIU {
                 _marker: PhantomData,
             },
-            _priv: (),
         }
     }
 }

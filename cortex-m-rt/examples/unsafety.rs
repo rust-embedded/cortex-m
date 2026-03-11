@@ -7,7 +7,7 @@
 extern crate cortex_m_rt;
 extern crate panic_halt;
 
-use cortex_m_rt::{entry, exception, ExceptionFrame};
+use cortex_m_rt::{ExceptionFrame, entry, exception};
 
 #[entry]
 unsafe fn main() -> ! {

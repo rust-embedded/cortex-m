@@ -25,7 +25,7 @@ fn PendSV() {
 
 #[minitest::tests]
 mod tests {
-    use crate::{Ordering, EXCEPTION_FLAG};
+    use crate::{EXCEPTION_FLAG, Ordering};
     use minitest::log;
 
     #[init]

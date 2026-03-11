@@ -11,7 +11,7 @@
 extern crate cortex_m_rt;
 extern crate panic_halt;
 
-use cortex_m_rt::{entry, exception, interrupt, pre_init, ExceptionFrame};
+use cortex_m_rt::{ExceptionFrame, entry, exception, interrupt, pre_init};
 
 #[allow(non_camel_case_types)]
 enum interrupt {

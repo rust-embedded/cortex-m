@@ -5,12 +5,12 @@ use core::ptr;
 use volatile_register::RW;
 
 #[cfg(not(armv6m))]
-use super::cpuid::CsselrCacheType;
-#[cfg(not(armv6m))]
 use super::CBP;
 #[cfg(not(armv6m))]
 use super::CPUID;
 use super::SCB;
+#[cfg(not(armv6m))]
+use super::cpuid::CsselrCacheType;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 

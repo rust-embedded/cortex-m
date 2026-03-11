@@ -12,8 +12,12 @@ fn main() {
             eprintln!();
             eprintln!("subcommands:");
             eprintln!("    assemble         Reassemble the pre-built artifacts");
-            eprintln!("    check-blobs      Check that the pre-built artifacts are up-to-date and reproducible");
-            eprintln!("    check-host-side  Build the crate in a non-Cortex-M host application and check host side usage of certain types");
+            eprintln!(
+                "    check-blobs      Check that the pre-built artifacts are up-to-date and reproducible"
+            );
+            eprintln!(
+                "    check-host-side  Build the crate in a non-Cortex-M host application and check host side usage of certain types"
+            );
             process::exit(1);
         }
     }

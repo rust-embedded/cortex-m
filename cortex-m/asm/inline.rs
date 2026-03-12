@@ -7,7 +7,7 @@
 //! applicable.
 
 use core::arch::asm;
-use core::sync::atomic::{compiler_fence, Ordering};
+use core::sync::atomic::{Ordering, compiler_fence};
 
 #[inline(always)]
 pub unsafe fn __bkpt() {
@@ -228,7 +228,7 @@ pub use self::v7m::*;
 #[cfg(any(armv7m, armv8m_main))]
 mod v7m {
     use core::arch::asm;
-    use core::sync::atomic::{compiler_fence, Ordering};
+    use core::sync::atomic::{Ordering, compiler_fence};
 
     #[inline(always)]
     pub unsafe fn __basepri_max(val: u8) {

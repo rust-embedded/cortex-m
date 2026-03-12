@@ -293,7 +293,9 @@ pub unsafe fn bootstrap(msp: *const u32, rv: *const u32) -> ! {
 /// a valid reset vector as the second word.
 #[inline]
 pub unsafe fn bootload(vector_table: *const u32) -> ! {
-    let msp = core::ptr::read_volatile(vector_table);
-    let rv = core::ptr::read_volatile(vector_table.offset(1));
-    bootstrap(msp as *const u32, rv as *const u32);
+    unsafe {
+        let msp = core::ptr::read_volatile(vector_table);
+        let rv = core::ptr::read_volatile(vector_table.offset(1));
+        bootstrap(msp as *const u32, rv as *const u32);
+    }
 }

@@ -7,30 +7,30 @@
 extern crate cortex_m_rt;
 extern crate panic_halt;
 
-use cortex_m_rt::{entry, exception, ExceptionFrame};
+use cortex_m_rt::{ExceptionFrame, entry, exception};
 
 #[entry]
 unsafe fn main() -> ! {
-    foo();
+    unsafe { foo() };
 
     loop {}
 }
 
 #[exception]
 unsafe fn DefaultHandler(_irqn: i16) {
-    foo();
+    unsafe { foo() };
 }
 
 #[exception]
 unsafe fn HardFault(_ef: &ExceptionFrame) -> ! {
-    foo();
+    unsafe { foo() };
 
     loop {}
 }
 
 #[exception]
 unsafe fn SysTick() {
-    foo();
+    unsafe { foo() };
 }
 
 unsafe fn foo() {}

@@ -1,8 +1,4 @@
 [package]
-authors = [
-    "The Embedded Devices Working Group's Arm Team <cortex-m@teams.rust-embedded.org>",
-    "Jorge Aparicio <jorge@japaric.io>",
-]
 categories = ["no-std", "embedded"]
 description = "Log panic messages using the ITM (Instrumentation Trace Macrocell)"
 documentation = "https://docs.rs/panic-itm"
@@ -10,8 +6,9 @@ keywords = ["panic-impl", "panic-handler", "ITM", "ARM", "Cortex-M"]
 license = "MIT OR Apache-2.0"
 name = "panic-itm"
 repository = "https://github.com/rust-embedded/cortex-m"
-edition = "2021"
+edition = "2024"
 version = "0.4.2"
+rust-version = "1.85"
 
 [dependencies]
 cortex-m = { path = "../cortex-m", version = ">= 0.5.8, < 0.8" }

@@ -1,8 +1,4 @@
 [package]
-authors = [
-    "The Embedded Devices Working Group's Arm Team <cortex-m@teams.rust-embedded.org>",
-    "Jorge Aparicio <japaricious@gmail.com>",
-]
 description = "Semihosting for ARM Cortex-M processors"
 documentation = "https://docs.rs/cortex-m-semihosting"
 keywords = ["semihosting", "arm", "cortex-m"]
@@ -12,8 +8,8 @@ name = "cortex-m-semihosting"
 readme = "README.md"
 repository = "https://github.com/rust-embedded/cortex-m"
 version = "0.5.0"
-edition = "2021"
-rust-version = "1.71"
+edition = "2024"
+rust-version = "1.85"
 
 [features]
 jlink-quirks = []

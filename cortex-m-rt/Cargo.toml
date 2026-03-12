@@ -1,9 +1,4 @@
 [package]
-authors = [
-    "The Embedded Devices Working Group's Arm Team <cortex-m@teams.rust-embedded.org>",
-    "Jorge Aparicio <jorge@japaric.io>",
-    "Hideki Sekine <sekineh@me.com>",
-]
 categories = ["embedded", "no-std"]
 description = "Minimal runtime / startup for Cortex-M microcontrollers"
 documentation = "https://docs.rs/cortex-m-rt/"
@@ -15,8 +10,8 @@ repository = "https://github.com/rust-embedded/cortex-m"
 version = "0.7.5"
 autoexamples = true
 links = "cortex-m-rt" # Prevent multiple versions of cortex-m-rt being linked
-edition = "2021"
-rust-version = "1.71"
+edition = "2024"
+rust-version = "1.85"
 
 [dependencies]
 cortex-m-rt-macros = { path = "macros", version = "=0.7.5" }

@@ -1,8 +1,4 @@
 [package]
-authors = [
-    "The Embedded Devices Working Group's Arm Team <cortex-m@teams.rust-embedded.org>",
-    "Jorge Aparicio <jorge@japaric.io>",
-]
 categories = ["embedded", "hardware-support", "no-std"]
 description = "Low level access to Cortex-M processors"
 documentation = "https://docs.rs/cortex-m"
@@ -11,10 +7,10 @@ license = "MIT OR Apache-2.0"
 name = "cortex-m"
 readme = "README.md"
 repository = "https://github.com/rust-embedded/cortex-m"
-edition = "2021"
+edition = "2024"
 version = "0.7.7"
 links = "cortex-m"  # prevent multiple versions of this crate to be linked together
-rust-version = "1.71"
+rust-version = "1.85"
 
 [dependencies]
 bare-metal = { version = "0.2.4", features = ["const-fn"] }

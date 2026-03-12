@@ -1,9 +1,9 @@
 [package]
-authors = ["The Embedded Devices Working Group's Arm Team<cortex-m@teams.rust-embedded.org>"]
 name = "testsuite"
 publish = false
-edition = "2021"
+edition = "2024"
 version = "0.1.0"
+rust-version = "1.85"
 
 [features]
 rtt = ["rtt-target", "minitest/rtt"]

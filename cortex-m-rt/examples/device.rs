@@ -1,6 +1,5 @@
 //! Manually create the interrupts portion of the vector table
 
-#![deny(unsafe_code)]
 #![deny(warnings)]
 #![no_main]
 #![no_std]
@@ -22,14 +21,14 @@ pub union Vector {
     reserved: usize,
 }
 
-extern "C" {
+unsafe extern "C" {
     fn WWDG();
     fn PVD();
 }
 
 #[allow(unsafe_code)]
-#[link_section = ".vector_table.interrupts"]
-#[no_mangle]
+#[unsafe(link_section = ".vector_table.interrupts")]
+#[unsafe(no_mangle)]
 pub static __INTERRUPTS: [Vector; 3] = [
     Vector { handler: WWDG },
     Vector { reserved: 0 },

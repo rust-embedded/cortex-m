@@ -149,7 +149,7 @@ pub struct Peripherals {
 
 // NOTE `no_mangle` is used here to prevent linking different minor versions of this crate as that
 // would let you `take` the core peripherals more than once (one per minor version)
-#[no_mangle]
+#[unsafe(no_mangle)]
 static CORE_PERIPHERALS: () = ();
 
 /// Set to `true` when `take` or `steal` was called to make `Peripherals` a singleton.
@@ -171,55 +171,57 @@ impl Peripherals {
     /// Unchecked version of `Peripherals::take`
     #[inline]
     pub unsafe fn steal() -> Self {
-        TAKEN = true;
+        unsafe {
+            TAKEN = true;
 
-        Peripherals {
-            #[cfg(feature = "cm7")]
-            AC: AC {
-                _marker: PhantomData,
-            },
-            CBP: CBP {
-                _marker: PhantomData,
-            },
-            CPUID: CPUID {
-                _marker: PhantomData,
-            },
-            DCB: DCB {
-                _marker: PhantomData,
-            },
-            DWT: DWT {
-                _marker: PhantomData,
-            },
-            FPB: FPB {
-                _marker: PhantomData,
-            },
-            FPU: FPU {
-                _marker: PhantomData,
-            },
-            ICB: ICB {
-                _marker: PhantomData,
-            },
-            ITM: ITM {
-                _marker: PhantomData,
-            },
-            MPU: MPU {
-                _marker: PhantomData,
-            },
-            NVIC: NVIC {
-                _marker: PhantomData,
-            },
-            SAU: SAU {
-                _marker: PhantomData,
-            },
-            SCB: SCB {
-                _marker: PhantomData,
-            },
-            SYST: SYST {
-                _marker: PhantomData,
-            },
-            TPIU: TPIU {
-                _marker: PhantomData,
-            },
+            Peripherals {
+                #[cfg(feature = "cm7")]
+                AC: AC {
+                    _marker: PhantomData,
+                },
+                CBP: CBP {
+                    _marker: PhantomData,
+                },
+                CPUID: CPUID {
+                    _marker: PhantomData,
+                },
+                DCB: DCB {
+                    _marker: PhantomData,
+                },
+                DWT: DWT {
+                    _marker: PhantomData,
+                },
+                FPB: FPB {
+                    _marker: PhantomData,
+                },
+                FPU: FPU {
+                    _marker: PhantomData,
+                },
+                ICB: ICB {
+                    _marker: PhantomData,
+                },
+                ITM: ITM {
+                    _marker: PhantomData,
+                },
+                MPU: MPU {
+                    _marker: PhantomData,
+                },
+                NVIC: NVIC {
+                    _marker: PhantomData,
+                },
+                SAU: SAU {
+                    _marker: PhantomData,
+                },
+                SCB: SCB {
+                    _marker: PhantomData,
+                },
+                SYST: SYST {
+                    _marker: PhantomData,
+                },
+                TPIU: TPIU {
+                    _marker: PhantomData,
+                },
+            }
         }
     }
 }

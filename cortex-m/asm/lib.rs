@@ -41,11 +41,11 @@ macro_rules! shims {
         $( fn $name:ident( $($arg:ident: $argty:ty),* ) $(-> $ret:ty)?; )+
     ) => {
         $(
-            #[no_mangle]
+            #[unsafe(no_mangle)]
             pub unsafe extern "C" fn $name(
                 $($arg: $argty),*
             ) $(-> $ret)? {
-                crate::inline::$name($($arg),*)
+                unsafe { crate::inline::$name($($arg),*) }
             }
         )+
     };
@@ -126,9 +126,9 @@ shims! {
 /// handler gets linked in, this causes a linker error. We always build this file with optimizations
 /// enabled, but even without them the panic handler should never be linked in.
 #[panic_handler]
-#[link_section = ".text.asm_panic_handler"]
+#[unsafe(link_section = ".text.asm_panic_handler")]
 fn panic(_: &core::panic::PanicInfo) -> ! {
-    extern "C" {
+    unsafe extern "C" {
         #[link_name = "cortex-m internal error: panic handler not optimized out, please file an \
         issue at https://github.com/rust-embedded/cortex-m"]
         fn __cortex_m_should_not_panic() -> !;

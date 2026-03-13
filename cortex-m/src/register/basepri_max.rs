@@ -11,11 +11,11 @@
 pub fn write(basepri: u8) {
     #[cfg(feature = "cm7-r0p1")]
     {
-        call_asm!(__basepri_max_cm7_r0p1(basepri: u8));
+        unsafe { crate::asm::inner::__basepri_max_cm7_r0p1(basepri) }
     }
 
     #[cfg(not(feature = "cm7-r0p1"))]
     {
-        call_asm!(__basepri_max(basepri: u8));
+        unsafe { crate::asm::inner::__basepri_max(basepri) }
     }
 }

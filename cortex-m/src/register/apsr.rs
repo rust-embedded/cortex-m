@@ -49,6 +49,6 @@ impl Apsr {
 /// **NOTE** This function is available if `cortex-m` is built with the `"inline-asm"` feature.
 #[inline]
 pub fn read() -> Apsr {
-    let bits: u32 = call_asm!(__apsr_r() -> u32);
+    let bits = unsafe { crate::asm::inner::__apsr_r() };
     Apsr { bits }
 }

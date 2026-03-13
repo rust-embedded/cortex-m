@@ -26,7 +26,7 @@ impl Faultmask {
 /// Reads the CPU register
 #[inline]
 pub fn read() -> Faultmask {
-    let r: u32 = call_asm!(__faultmask_r() -> u32);
+    let r = unsafe { crate::asm::inner::__faultmask_r() };
     if r & (1 << 0) == (1 << 0) {
         Faultmask::Inactive
     } else {

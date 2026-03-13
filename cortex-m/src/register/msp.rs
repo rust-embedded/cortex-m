@@ -3,14 +3,14 @@
 /// Reads the CPU register
 #[inline]
 pub fn read() -> u32 {
-    call_asm!(__msp_r() -> u32)
+    unsafe { crate::asm::inner::__msp_r() }
 }
 
 /// Writes `bits` to the CPU register
 #[inline]
 #[deprecated = "calling this function invokes Undefined Behavior, consider asm::bootstrap as an alternative"]
 pub unsafe fn write(bits: u32) {
-    call_asm!(__msp_w(bits: u32));
+    unsafe { crate::asm::inner::__msp_w(bits) }
 }
 
 /// Reads the Non-Secure CPU register from Secure state.
@@ -19,7 +19,7 @@ pub unsafe fn write(bits: u32) {
 #[cfg(armv8m)]
 #[inline]
 pub fn read_ns() -> u32 {
-    call_asm!(__msp_ns_r() -> u32)
+    unsafe { crate::asm::inner::__msp_ns_r() }
 }
 
 /// Writes `bits` to the Non-Secure CPU register from Secure state.
@@ -28,5 +28,5 @@ pub fn read_ns() -> u32 {
 #[cfg(armv8m)]
 #[inline]
 pub unsafe fn write_ns(bits: u32) {
-    call_asm!(__msp_ns_w(bits: u32));
+    unsafe { crate::asm::inner::__msp_ns_w(bits) };
 }

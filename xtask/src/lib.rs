@@ -20,6 +20,7 @@ fn toolchain() -> String {
 fn rustc() -> Command {
     let mut cmd = Command::new("rustc");
     cmd.arg(format!("+{}", toolchain()));
+    cmd.arg("--edition=2024");
     cmd
 }
 

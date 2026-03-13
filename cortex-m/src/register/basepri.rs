@@ -3,7 +3,7 @@
 /// Reads the CPU register
 #[inline]
 pub fn read() -> u8 {
-    call_asm!(__basepri_r() -> u8)
+    unsafe { crate::asm::inner::__basepri_r() }
 }
 
 /// Writes to the CPU register
@@ -14,11 +14,11 @@ pub fn read() -> u8 {
 pub unsafe fn write(basepri: u8) {
     #[cfg(feature = "cm7-r0p1")]
     {
-        call_asm!(__basepri_w_cm7_r0p1(basepri: u8));
+        unsafe { crate::asm::inner::__basepri_w_cm7_r0p1(basepri) }
     }
 
     #[cfg(not(feature = "cm7-r0p1"))]
     {
-        call_asm!(__basepri_w(basepri: u8));
+        unsafe { crate::asm::inner::__basepri_w(basepri) }
     }
 }

@@ -35,7 +35,7 @@ unsafe impl<T: Nr + Copy> InterruptNumber for T {
 /// Disables all interrupts
 #[inline]
 pub fn disable() {
-    call_asm!(__cpsid());
+    unsafe { crate::asm::inner::__cpsid() };
 }
 
 /// Enables all the interrupts
@@ -45,7 +45,7 @@ pub fn disable() {
 /// - Do not call this function inside an `interrupt::free` critical section
 #[inline]
 pub unsafe fn enable() {
-    call_asm!(__cpsie());
+    unsafe { crate::asm::inner::__cpsie() };
 }
 
 /// Execute closure `f` in an interrupt-free context.

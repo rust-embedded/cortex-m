@@ -3,11 +3,11 @@
 /// Reads the CPU register
 #[inline]
 pub fn read() -> u32 {
-    call_asm!(__psplim_r() -> u32)
+    unsafe { crate::asm::inner::__psplim_r() }
 }
 
 /// Writes `bits` to the CPU register
 #[inline]
 pub unsafe fn write(bits: u32) {
-    call_asm!(__psplim_w(bits: u32))
+    unsafe { crate::asm::inner::__psplim_w(bits) }
 }

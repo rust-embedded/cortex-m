@@ -5,11 +5,51 @@ on:
 
 name: Clippy check
 jobs:
-  clippy:
+  clippy_std_code:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.85
+      - uses: dtolnay/rust-toolchain@1.94.0
         with:
+          # toolchain: 1.94.0
           components: clippy
-      - run: cargo clippy --workspace --features cortex-m/critical-section-single-core -- --deny warnings
+      - name: Run clippy
+        run: cargo clippy --workspace --features cortex-m/critical-section-single-core -- --deny warnings
+  clippy_cortex_crates:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        # All generated code should be running on stable now
+        rust: [1.94.0]
+        target:
+          [
+            "thumbv8m.main-none-eabihf",
+            "thumbv8m.main-none-eabi",
+            "thumbv8m.base-none-eabi",
+
+            "thumbv7em-none-eabihf",
+            "thumbv7em-none-eabi",
+            "thumbv7m-none-eabi",
+
+            "thumbv6m-none-eabi",
+          ]
+
+        #   # Test nightly but don't fail
+        # - rust: nightly
+        #   experimental: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+          target: ${{ matrix.target }}
+          components: clippy
+      - name: Run clippy
+        # The excluded packages require std.
+        run: >-
+          cargo clippy --workspace
+          --exclude cortex-m-macros
+          --exclude testsuite
+          --exclude xtask
+          --features cortex-m/critical-section-single-core --target ${{matrix.target}} -- --deny warnings

@@ -1,11 +1,3 @@
-//! Inline assembly implementing the routines exposed in `cortex_m::asm`.
-//!
-//! If the `inline-asm` feature is enabled, these functions will be directly called by the
-//! `cortex-m` wrappers. Otherwise, `cortex-m` links against them via prebuilt archives.
-//!
-//! All of these functions should be blanket-`unsafe`. `cortex-m` provides safe wrappers where
-//! applicable.
-
 use core::arch::asm;
 use core::sync::atomic::{Ordering, compiler_fence};
 
@@ -68,9 +60,9 @@ pub unsafe fn __delay(cyc: u32) {
             // loop to prevent surprising timing changes when the alignment of the delay() changes.
             ".p2align 3",
             // Use local labels to avoid R_ARM_THM_JUMP8 relocations which fail on thumbv6m.
-            "1:",
-            "subs {}, #1",
-            "bne 1b",
+            "2:", // not 1 or 0 because of https://github.com/llvm/llvm-project/issues/99547
+            "subs {}, #1", // subtract 1 from real_cyc
+            "bne 2b",      // branch back to 2 if real_cyc is not zero
             inout(reg) real_cyc => _,
             options(nomem, nostack),
         )
@@ -230,14 +222,14 @@ pub unsafe fn __bootstrap(msp: u32, rv: u32) -> ! {
     };
 }
 
-// v7m *AND* v8m.main, but *NOT* v8m.base
-#[cfg(any(armv7m, armv8m_main))]
-pub use self::v7m::*;
-#[cfg(any(armv7m, armv8m_main))]
-mod v7m {
-    use core::arch::asm;
-    use core::sync::atomic::{Ordering, compiler_fence};
+#[cfg(any(armv7m, armv8m))]
+pub(crate) use v7m::*;
 
+#[cfg(any(armv7m, armv8m))]
+pub(crate) mod v7m {
+    use super::*;
+
+    #[cfg(any(armv7m, armv8m_main))]
     #[inline(always)]
     pub unsafe fn __basepri_max(val: u8) {
         unsafe {
@@ -245,6 +237,7 @@ mod v7m {
         };
     }
 
+    #[cfg(any(armv7m, armv8m_main))]
     #[inline(always)]
     pub unsafe fn __basepri_r() -> u8 {
         let r;
@@ -252,11 +245,13 @@ mod v7m {
         r
     }
 
+    #[cfg(any(armv7m, armv8m_main))]
     #[inline(always)]
     pub unsafe fn __basepri_w(val: u8) {
         unsafe { asm!("msr BASEPRI, {}", in(reg) val, options(nomem, nostack, preserves_flags)) };
     }
 
+    #[cfg(any(armv7m, armv8m_main))]
     #[inline(always)]
     pub unsafe fn __faultmask_r() -> u32 {
         let r;
@@ -264,6 +259,7 @@ mod v7m {
         r
     }
 
+    // Should this be safe?
     #[inline(always)]
     pub unsafe fn __enable_icache() {
         unsafe {
@@ -286,6 +282,7 @@ mod v7m {
         compiler_fence(Ordering::SeqCst);
     }
 
+    // Should this be safe?
     #[inline(always)]
     pub unsafe fn __enable_dcache() {
         unsafe {
@@ -309,11 +306,12 @@ mod v7m {
     }
 }
 
-#[cfg(armv7em)]
+#[cfg(feature = "cm7-r0p1")]
 pub use self::v7em::*;
-#[cfg(armv7em)]
+
+#[cfg(feature = "cm7-r0p1")]
 mod v7em {
-    use core::arch::asm;
+    use super::*;
 
     #[inline(always)]
     pub unsafe fn __basepri_max_cm7_r0p1(val: u8) {
@@ -357,7 +355,7 @@ pub use self::v8m::*;
 /// Baseline and Mainline.
 #[cfg(armv8m)]
 mod v8m {
-    use core::arch::asm;
+    use super::*;
 
     #[inline(always)]
     pub unsafe fn __tt(mut target: u32) -> u32 {
@@ -430,7 +428,7 @@ pub use self::v8m_main::*;
 /// Mainline only.
 #[cfg(armv8m_main)]
 mod v8m_main {
-    use core::arch::asm;
+    use super::*;
 
     #[inline(always)]
     pub unsafe fn __msplim_r() -> u32 {
@@ -462,7 +460,7 @@ pub use self::fpu::*;
 /// All targets with FPU.
 #[cfg(has_fpu)]
 mod fpu {
-    use core::arch::asm;
+    use super::*;
 
     #[inline(always)]
     pub unsafe fn __fpscr_r() -> u32 {
@@ -476,3 +474,22 @@ mod fpu {
         unsafe { asm!("vmsr fpscr, {}", in(reg) val, options(nomem, nostack)) };
     }
 }
+
+// /// We *must* define a panic handler here, even though nothing here should ever be able to panic.
+// ///
+// /// We prove that nothing will ever panic by calling a function that doesn't exist. If the panic
+// /// handler gets linked in, this causes a linker error. We always build this file with optimizations
+// /// enabled, but even without them the panic handler should never be linked in.
+// #[panic_handler]
+// #[unsafe(link_section = ".text.asm_panic_handler")]
+// fn panic(_: &core::panic::PanicInfo) -> ! {
+//     unsafe extern "C" {
+//         #[link_name = "cortex-m internal error: panic handler not optimized out, please file an \
+//         issue at https://github.com/rust-embedded/cortex-m"]
+//         fn __cortex_m_should_not_panic() -> !;
+//     }
+
+//     unsafe {
+//         __cortex_m_should_not_panic();
+//     }
+// }

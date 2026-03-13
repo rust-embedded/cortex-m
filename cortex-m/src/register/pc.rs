@@ -5,7 +5,7 @@
 /// **NOTE** This function is available if `cortex-m` is built with the `"inline-asm"` feature.
 #[inline]
 pub fn read() -> u32 {
-    call_asm!(__pc_r() -> u32)
+    unsafe { crate::asm::inner::__pc_r() }
 }
 
 /// Writes `bits` to the CPU register
@@ -13,5 +13,5 @@ pub fn read() -> u32 {
 /// **NOTE** This function is available if `cortex-m` is built with the `"inline-asm"` feature.
 #[inline]
 pub unsafe fn write(bits: u32) {
-    call_asm!(__pc_w(bits: u32));
+    unsafe { crate::asm::inner::__pc_w(bits) }
 }

@@ -101,8 +101,6 @@ extern crate bare_metal;
 extern crate volatile_register;
 
 #[macro_use]
-mod call_asm;
-#[macro_use]
 mod macros;
 
 pub mod asm;

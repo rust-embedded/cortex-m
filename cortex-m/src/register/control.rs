@@ -174,7 +174,7 @@ impl Fpca {
 /// Reads the CPU register
 #[inline]
 pub fn read() -> Control {
-    let bits: u32 = call_asm!(__control_r() -> u32);
+    let bits = unsafe { crate::asm::inner::__control_r() };
     Control { bits }
 }
 
@@ -182,5 +182,5 @@ pub fn read() -> Control {
 #[inline]
 pub unsafe fn write(control: Control) {
     let control = control.bits();
-    call_asm!(__control_w(control: u32));
+    unsafe { crate::asm::inner::__control_w(control) };
 }

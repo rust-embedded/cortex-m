@@ -1,10 +1,10 @@
 //! Miscellaneous assembly instructions
 
-// When inline assembly is enabled, pull in the assembly routines here. `call_asm!` will invoke
-// these routines.
-#[cfg(feature = "inline-asm")]
-#[path = "../asm/inline.rs"]
-pub(crate) mod inline;
+#![allow(missing_docs)]
+
+#[cfg_attr(cortex_m, path = "asm/inner.rs")]
+#[cfg_attr(not(cortex_m), path = "asm/inner_mock.rs")]
+pub mod inner;
 
 /// Puts the processor in Debug state. Debuggers can pick this up as a "breakpoint".
 ///
@@ -12,7 +12,7 @@ pub(crate) mod inline;
 /// exception.
 #[inline(always)]
 pub fn bkpt() {
-    call_asm!(__bkpt());
+    unsafe { inner::__bkpt() };
 }
 
 /// Blocks the program for *at least* `cycles` CPU cycles.
@@ -31,13 +31,13 @@ pub fn bkpt() {
 /// please use a more accurate method to produce a delay.
 #[inline]
 pub fn delay(cycles: u32) {
-    call_asm!(__delay(cycles: u32));
+    unsafe { inner::__delay(cycles) };
 }
 
 /// A no-operation. Useful to prevent delay loops from being optimized away.
 #[inline]
 pub fn nop() {
-    call_asm!(__nop());
+    unsafe { inner::__nop() };
 }
 
 /// Generate an Undefined Instruction exception.
@@ -45,25 +45,25 @@ pub fn nop() {
 /// Can be used as a stable alternative to `core::intrinsics::abort`.
 #[inline]
 pub fn udf() -> ! {
-    call_asm!(__udf() -> !)
+    unsafe { inner::__udf() }
 }
 
 /// Wait For Event
 #[inline]
 pub fn wfe() {
-    call_asm!(__wfe())
+    unsafe { inner::__wfe() }
 }
 
 /// Wait For Interrupt
 #[inline]
 pub fn wfi() {
-    call_asm!(__wfi())
+    unsafe { inner::__wfi() }
 }
 
 /// Send Event
 #[inline]
 pub fn sev() {
-    call_asm!(__sev())
+    unsafe { inner::__sev() }
 }
 
 /// Instruction Synchronization Barrier
@@ -72,7 +72,7 @@ pub fn sev() {
 /// from cache or memory, after the instruction has been completed.
 #[inline]
 pub fn isb() {
-    call_asm!(__isb())
+    unsafe { inner::__isb() }
 }
 
 /// Data Synchronization Barrier
@@ -84,7 +84,7 @@ pub fn isb() {
 ///  * all cache and branch predictor maintenance operations before this instruction complete
 #[inline]
 pub fn dsb() {
-    call_asm!(__dsb())
+    unsafe { inner::__dsb() }
 }
 
 /// Data Memory Barrier
@@ -94,7 +94,7 @@ pub fn dsb() {
 /// after the `DMB` instruction.
 #[inline]
 pub fn dmb() {
-    call_asm!(__dmb())
+    unsafe { inner::__dmb() }
 }
 
 /// Test Target
@@ -108,7 +108,7 @@ pub fn dmb() {
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub fn tt(addr: *mut u32) -> u32 {
     let addr = addr as u32;
-    call_asm!(__tt(addr: u32) -> u32)
+    unsafe { crate::asm::inner::__tt(addr) }
 }
 
 /// Test Target Unprivileged
@@ -123,7 +123,7 @@ pub fn tt(addr: *mut u32) -> u32 {
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub fn ttt(addr: *mut u32) -> u32 {
     let addr = addr as u32;
-    call_asm!(__ttt(addr: u32) -> u32)
+    unsafe { crate::asm::inner::__ttt(addr) }
 }
 
 /// Test Target Alternate Domain
@@ -139,7 +139,7 @@ pub fn ttt(addr: *mut u32) -> u32 {
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub fn tta(addr: *mut u32) -> u32 {
     let addr = addr as u32;
-    call_asm!(__tta(addr: u32) -> u32)
+    unsafe { crate::asm::inner::__tta(addr) }
 }
 
 /// Test Target Alternate Domain Unprivileged
@@ -155,7 +155,7 @@ pub fn tta(addr: *mut u32) -> u32 {
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub fn ttat(addr: *mut u32) -> u32 {
     let addr = addr as u32;
-    call_asm!(__ttat(addr: u32) -> u32)
+    unsafe { crate::asm::inner::__ttat(addr) }
 }
 
 /// Branch and Exchange Non-secure
@@ -165,7 +165,7 @@ pub fn ttat(addr: *mut u32) -> u32 {
 #[inline]
 #[cfg(armv8m)]
 pub unsafe fn bx_ns(addr: u32) {
-    call_asm!(__bxns(addr: u32));
+    unsafe { crate::asm::inner::__bxns(addr) };
 }
 
 /// Semihosting syscall.
@@ -173,7 +173,7 @@ pub unsafe fn bx_ns(addr: u32) {
 /// This method is used by cortex-m-semihosting to provide semihosting syscalls.
 #[inline]
 pub unsafe fn semihosting_syscall(nr: u32, arg: u32) -> u32 {
-    call_asm!(__sh_syscall(nr: u32, arg: u32) -> u32)
+    unsafe { inner::__sh_syscall(nr, arg) }
 }
 
 /// Switch to unprivileged mode using the Process Stack
@@ -276,7 +276,7 @@ pub unsafe fn bootstrap(msp: *const u32, rv: *const u32) -> ! {
     // Ensure thumb mode is set.
     let rv = (rv as u32) | 1;
     let msp = msp as u32;
-    call_asm!(__bootstrap(msp: u32, rv: u32) -> !);
+    unsafe { inner::__bootstrap(msp, rv) }
 }
 
 /// Bootload.

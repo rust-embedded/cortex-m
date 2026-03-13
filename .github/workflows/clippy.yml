@@ -7,9 +7,30 @@ name: Clippy check
 jobs:
   clippy:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # All generated code should be running on stable now
+        rust: [1.94.0]
+        target: [
+            "thumbv8m.main-none-eabihf",
+            # "thumbv8m.main-none-eabi",
+            # "thumbv8m.base-none-eabi",
+            # "thumbv7em-none-eabihf",
+            "thumbv7em-none-eabi",
+            # "thumbv7m-none-eabi",
+            # "thumbv6m-none-eabi",
+          ]
+
+        #   # Test nightly but don't fail
+        # - rust: nightly
+        #   experimental: true
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.85
+      - uses: dtolnay/rust-toolchain@master
         with:
+          toolchain: ${{ matrix.rust }}
+          target: ${{ matrix.target }}
           components: clippy
-      - run: cargo clippy --all --features cortex-m/critical-section-single-core -- --deny warnings
+      - name: Run clippy
+        run: cargo clippy -p cortex-m -p cortex-m-rt --features cortex-m/critical-section-single-core --target ${{matrix.target}} -- --deny warnings
+        # run: cargo clippy --all --features cortex-m/critical-section-single-core -- --deny warnings

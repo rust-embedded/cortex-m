@@ -1,5 +1,4 @@
 [package]
-authors = ["Jorge Aparicio <jorge@japaric.io>"]
 categories = ["embedded", "no-std"]
 description = "Attributes re-exported in `cortex-m-rt`"
 documentation = "https://docs.rs/cortex-m-rt"

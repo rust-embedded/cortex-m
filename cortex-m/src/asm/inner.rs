@@ -2,11 +2,7 @@ use core::arch::asm;
 use core::sync::atomic::{Ordering, compiler_fence};
 
 #[inline(always)]
-pub unsafe fn __bkpt() {
-    unsafe { asm!("bkpt", options(nomem, nostack, preserves_flags)) };
-}
-
-#[inline(always)]
+#[cortex_m_macros::asm_cfg(cortex_m)]
 pub unsafe fn __control_r() -> u32 {
     let r;
     unsafe { asm!("mrs {}, CONTROL", out(reg) r, options(nomem, nostack, preserves_flags)) };
@@ -14,6 +10,7 @@ pub unsafe fn __control_r() -> u32 {
 }
 
 #[inline(always)]
+#[cortex_m_macros::asm_cfg(cortex_m)]
 pub unsafe fn __control_w(w: u32) {
     // ISB is required after writing to CONTROL,
     // per ARM architectural requirements (see Application Note 321).
@@ -31,6 +28,7 @@ pub unsafe fn __control_w(w: u32) {
 }
 
 #[inline(always)]
+#[cortex_m_macros::asm_cfg(cortex_m)]
 pub unsafe fn __cpsid() {
     unsafe { asm!("cpsid i", options(nomem, nostack, preserves_flags)) };
 
@@ -47,6 +45,7 @@ pub unsafe fn __cpsie() {
 }
 
 #[inline(always)]
+#[cortex_m_macros::asm_cfg(cortex_m)]
 pub unsafe fn __delay(cyc: u32) {
     // The loop will normally take 3 to 4 CPU cycles per iteration, but superscalar cores
     // (eg. Cortex-M7) can potentially do it in 2, so we use that as the lower bound, since delaying
@@ -91,6 +90,7 @@ pub unsafe fn __isb() {
 }
 
 #[inline(always)]
+#[cortex_m_macros::asm_cfg(cortex_m)]
 pub unsafe fn __msp_r() -> u32 {
     let r;
     unsafe { asm!("mrs {}, MSP", out(reg) r, options(nomem, nostack, preserves_flags)) };
@@ -98,6 +98,7 @@ pub unsafe fn __msp_r() -> u32 {
 }
 
 #[inline(always)]
+#[cortex_m_macros::asm_cfg(cortex_m)]
 pub unsafe fn __msp_w(val: u32) {
     // Technically is writing to the stack pointer "not pushing any data to the stack"?
     // In any event, if we don't set `nostack` here, this method is useless as the new
@@ -108,6 +109,7 @@ pub unsafe fn __msp_w(val: u32) {
 
 // NOTE: No FFI shim, this requires inline asm.
 #[inline(always)]
+#[cortex_m_macros::asm_cfg(cortex_m)]
 pub unsafe fn __apsr_r() -> u32 {
     let r;
     unsafe { asm!("mrs {}, APSR", out(reg) r, options(nomem, nostack, preserves_flags)) };
@@ -115,6 +117,7 @@ pub unsafe fn __apsr_r() -> u32 {
 }
 
 #[inline(always)]
+#[cortex_m_macros::asm_cfg(cortex_m)]
 pub unsafe fn __nop() {
     // NOTE: This is a `pure` asm block, but applying that option allows the compiler to eliminate
     // the nop entirely (or to collapse multiple subsequent ones). Since the user probably wants N
@@ -124,6 +127,7 @@ pub unsafe fn __nop() {
 
 // NOTE: No FFI shim, this requires inline asm.
 #[inline(always)]
+#[cortex_m_macros::asm_cfg(cortex_m)]
 pub unsafe fn __pc_r() -> u32 {
     let r;
     unsafe { asm!("mov {}, pc", out(reg) r, options(nomem, nostack, preserves_flags)) };
@@ -132,12 +136,14 @@ pub unsafe fn __pc_r() -> u32 {
 
 // NOTE: No FFI shim, this requires inline asm.
 #[inline(always)]
+#[cortex_m_macros::asm_cfg(cortex_m)]
 pub unsafe fn __pc_w(val: u32) {
     unsafe { asm!("mov pc, {}", in(reg) val, options(nomem, nostack, preserves_flags)) };
 }
 
 // NOTE: No FFI shim, this requires inline asm.
 #[inline(always)]
+#[cortex_m_macros::asm_cfg(cortex_m)]
 pub unsafe fn __lr_r() -> u32 {
     let r;
     unsafe { asm!("mov {}, lr", out(reg) r, options(nomem, nostack, preserves_flags)) };
@@ -146,11 +152,13 @@ pub unsafe fn __lr_r() -> u32 {
 
 // NOTE: No FFI shim, this requires inline asm.
 #[inline(always)]
+#[cortex_m_macros::asm_cfg(cortex_m)]
 pub unsafe fn __lr_w(val: u32) {
     unsafe { asm!("mov lr, {}", in(reg) val, options(nomem, nostack, preserves_flags)) };
 }
 
 #[inline(always)]
+#[cortex_m_macros::asm_cfg(cortex_m)]
 pub unsafe fn __primask_r() -> u32 {
     let r;
     unsafe { asm!("mrs {}, PRIMASK", out(reg) r, options(nomem, nostack, preserves_flags)) };
@@ -158,6 +166,7 @@ pub unsafe fn __primask_r() -> u32 {
 }
 
 #[inline(always)]
+#[cortex_m_macros::asm_cfg(cortex_m)]
 pub unsafe fn __psp_r() -> u32 {
     let r;
     unsafe { asm!("mrs {}, PSP", out(reg) r, options(nomem, nostack, preserves_flags)) };
@@ -165,6 +174,7 @@ pub unsafe fn __psp_r() -> u32 {
 }
 
 #[inline(always)]
+#[cortex_m_macros::asm_cfg(cortex_m)]
 pub unsafe fn __psp_w(val: u32) {
     // See comment on __msp_w. Unlike MSP, there are legitimate use-cases for modifying PSP
     // if MSP is currently being used as the stack pointer.
@@ -191,17 +201,9 @@ pub unsafe fn __wfi() {
     unsafe { asm!("wfi", options(nomem, nostack, preserves_flags)) };
 }
 
-/// Semihosting syscall.
-#[inline(always)]
-pub unsafe fn __sh_syscall(mut nr: u32, arg: u32) -> u32 {
-    unsafe {
-        asm!("bkpt #0xab", inout("r0") nr, in("r1") arg, options(nomem, nostack, preserves_flags))
-    };
-    nr
-}
-
 /// Set CONTROL.SPSEL to 0, write `msp` to MSP, branch to `rv`.
 #[inline(always)]
+#[cortex_m_macros::asm_cfg(cortex_m)]
 pub unsafe fn __bootstrap(msp: u32, rv: u32) -> ! {
     unsafe {
         asm!(
@@ -222,37 +224,37 @@ pub unsafe fn __bootstrap(msp: u32, rv: u32) -> ! {
     };
 }
 
-#[cfg(any(armv7m, armv8m))]
+#[cfg(any(not(cortex_m), armv7m, armv8m))]
 pub(crate) use v7m::*;
 
-#[cfg(any(armv7m, armv8m))]
+#[cfg(any(not(cortex_m), armv7m, armv8m))]
 pub(crate) mod v7m {
     use super::*;
 
-    #[cfg(any(armv7m, armv8m_main))]
     #[inline(always)]
+    #[cortex_m_macros::asm_cfg(any(armv7m, armv8m_main))]
     pub unsafe fn __basepri_max(val: u8) {
         unsafe {
             asm!("msr BASEPRI_MAX, {}", in(reg) val, options(nomem, nostack, preserves_flags))
         };
     }
 
-    #[cfg(any(armv7m, armv8m_main))]
     #[inline(always)]
+    #[cortex_m_macros::asm_cfg(any(armv7m, armv8m_main))]
     pub unsafe fn __basepri_r() -> u8 {
         let r;
         unsafe { asm!("mrs {}, BASEPRI", out(reg) r, options(nomem, nostack, preserves_flags)) };
         r
     }
 
-    #[cfg(any(armv7m, armv8m_main))]
     #[inline(always)]
+    #[cortex_m_macros::asm_cfg(any(armv7m, armv8m_main))]
     pub unsafe fn __basepri_w(val: u8) {
         unsafe { asm!("msr BASEPRI, {}", in(reg) val, options(nomem, nostack, preserves_flags)) };
     }
 
-    #[cfg(any(armv7m, armv8m_main))]
     #[inline(always)]
+    #[cortex_m_macros::asm_cfg(any(armv7m, armv8m_main))]
     pub unsafe fn __faultmask_r() -> u32 {
         let r;
         unsafe { asm!("mrs {}, FAULTMASK", out(reg) r, options(nomem, nostack, preserves_flags)) };

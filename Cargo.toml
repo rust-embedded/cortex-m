@@ -2,6 +2,7 @@
 resolver = "3"
 members = [
     "cortex-m",
+    "cortex-m/macros",
     "cortex-m-types",
     "cortex-m-rt",
     "cortex-m-semihosting",

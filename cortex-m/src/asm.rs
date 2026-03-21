@@ -4,6 +4,8 @@
 
 #[cfg(cortex_m)]
 use core::arch::asm;
+#[cfg(cortex_m)]
+use core::sync::atomic::{Ordering, compiler_fence};
 
 pub mod inner;
 
@@ -34,14 +36,35 @@ pub fn bkpt() {
 #[inline]
 #[cortex_m_macros::asm_cfg(cortex_m)]
 pub fn delay(cycles: u32) {
-    unsafe { inner::__delay(cycles) };
+    // The loop will normally take 3 to 4 CPU cycles per iteration, but superscalar cores
+    // (eg. Cortex-M7) can potentially do it in 2, so we use that as the lower bound, since delaying
+    // for more cycles is okay.
+    // Add 1 to prevent an integer underflow which would cause a long freeze
+    let real_cyc = 1 + cycles / 2;
+    unsafe {
+        asm!(
+            // The `bne` on some cores (eg Cortex-M4) will take a different number of instructions
+            // depending on the alignment of the branch target.  Set the alignment of the top of the
+            // loop to prevent surprising timing changes when the alignment of the delay() changes.
+            ".p2align 3",
+            // Use local labels to avoid R_ARM_THM_JUMP8 relocations which fail on thumbv6m.
+            "2:", // not 1 or 0 because of https://github.com/llvm/llvm-project/issues/99547
+            "subs {}, #1", // subtract 1 from real_cyc
+            "bne 2b",      // branch to 2 if result is non-zero
+            inout(reg) real_cyc => _,
+            options(nomem, nostack),
+        )
+    };
 }
 
 /// A no-operation. Useful to prevent delay loops from being optimized away.
 #[inline]
 #[cortex_m_macros::asm_cfg(cortex_m)]
 pub fn nop() {
-    unsafe { inner::__nop() };
+    // NOTE: This is a `pure` asm block, but applying that option allows the compiler to eliminate
+    // the nop entirely (or to collapse multiple subsequent ones). Since the user probably wants N
+    // nops when they call `nop` N times, let's not add that option.
+    unsafe { asm!("nop", options(nomem, nostack, preserves_flags)) };
 }
 
 /// Generate an Undefined Instruction exception.
@@ -50,28 +73,28 @@ pub fn nop() {
 #[inline]
 #[cortex_m_macros::asm_cfg(cortex_m)]
 pub fn udf() -> ! {
-    unsafe { inner::__udf() }
+    unsafe { asm!("udf #0", options(noreturn, nomem, nostack, preserves_flags)) };
 }
 
 /// Wait For Event
 #[inline]
 #[cortex_m_macros::asm_cfg(cortex_m)]
 pub fn wfe() {
-    unsafe { inner::__wfe() }
+    unsafe { asm!("wfe", options(nomem, nostack, preserves_flags)) };
 }
 
 /// Wait For Interrupt
 #[inline]
 #[cortex_m_macros::asm_cfg(cortex_m)]
 pub fn wfi() {
-    unsafe { inner::__wfi() }
+    unsafe { asm!("wfi", options(nomem, nostack, preserves_flags)) };
 }
 
 /// Send Event
 #[inline]
 #[cortex_m_macros::asm_cfg(cortex_m)]
 pub fn sev() {
-    unsafe { inner::__sev() }
+    unsafe { asm!("sev", options(nomem, nostack, preserves_flags)) };
 }
 
 /// Instruction Synchronization Barrier
@@ -81,7 +104,9 @@ pub fn sev() {
 #[inline]
 #[cortex_m_macros::asm_cfg(cortex_m)]
 pub fn isb() {
-    unsafe { inner::__isb() }
+    compiler_fence(Ordering::SeqCst);
+    unsafe { asm!("isb", options(nostack, preserves_flags)) };
+    compiler_fence(Ordering::SeqCst);
 }
 
 /// Data Synchronization Barrier
@@ -94,7 +119,9 @@ pub fn isb() {
 #[inline]
 #[cortex_m_macros::asm_cfg(cortex_m)]
 pub fn dsb() {
-    unsafe { inner::__dsb() }
+    compiler_fence(Ordering::SeqCst);
+    unsafe { asm!("dsb", options(nostack, preserves_flags)) };
+    compiler_fence(Ordering::SeqCst);
 }
 
 /// Data Memory Barrier
@@ -105,7 +132,9 @@ pub fn dsb() {
 #[inline]
 #[cortex_m_macros::asm_cfg(cortex_m)]
 pub fn dmb() {
-    unsafe { inner::__dmb() }
+    compiler_fence(Ordering::SeqCst);
+    unsafe { asm!("dmb", options(nostack, preserves_flags)) };
+    compiler_fence(Ordering::SeqCst);
 }
 
 /// Test Target
@@ -118,8 +147,15 @@ pub fn dmb() {
 // The __tt function does not dereference the pointer received.
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub fn tt(addr: *mut u32) -> u32 {
-    let addr = addr as u32;
-    unsafe { crate::asm::inner::__tt(addr) }
+    let mut addr = addr as u32;
+    unsafe {
+        asm!(
+            "tt {addr}, {addr}",
+            addr = inout(reg) addr,
+            options(nomem, nostack, preserves_flags),
+        )
+    };
+    addr
 }
 
 /// Test Target Unprivileged
@@ -133,8 +169,15 @@ pub fn tt(addr: *mut u32) -> u32 {
 // The __ttt function does not dereference the pointer received.
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub fn ttt(addr: *mut u32) -> u32 {
-    let addr = addr as u32;
-    unsafe { crate::asm::inner::__ttt(addr) }
+    let mut addr = addr as u32;
+    unsafe {
+        asm!(
+            "ttt {addr}, {addr}",
+            addr = inout(reg)addr,
+            options(nomem, nostack, preserves_flags),
+        )
+    };
+    addr
 }
 
 /// Test Target Alternate Domain
@@ -149,8 +192,15 @@ pub fn ttt(addr: *mut u32) -> u32 {
 // The __tta function does not dereference the pointer received.
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub fn tta(addr: *mut u32) -> u32 {
-    let addr = addr as u32;
-    unsafe { crate::asm::inner::__tta(addr) }
+    let mut addr = addr as u32;
+    unsafe {
+        asm!(
+            "tta {addr}, {addr}",
+            addr = inout(reg) addr,
+            options(nomem, nostack, preserves_flags),
+        )
+    };
+    addr
 }
 
 /// Test Target Alternate Domain Unprivileged
@@ -165,8 +215,15 @@ pub fn tta(addr: *mut u32) -> u32 {
 // The __ttat function does not dereference the pointer received.
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub fn ttat(addr: *mut u32) -> u32 {
-    let addr = addr as u32;
-    unsafe { crate::asm::inner::__ttat(addr) }
+    let mut addr = addr as u32;
+    unsafe {
+        asm!(
+            "ttat {addr}, {addr}",
+            addr = inout(reg) addr,
+            options(nomem, nostack, preserves_flags),
+        )
+    };
+    addr
 }
 
 /// Branch and Exchange Non-secure
@@ -176,7 +233,7 @@ pub fn ttat(addr: *mut u32) -> u32 {
 #[inline]
 #[cortex_m_macros::asm_cfg(armv8m)]
 pub unsafe fn bx_ns(addr: u32) {
-    unsafe { crate::asm::inner::__bxns(addr) };
+    unsafe { asm!("BXNS {}", in(reg) addr, options(nomem, nostack, preserves_flags)) };
 }
 
 /// Semihosting syscall.
@@ -292,7 +349,23 @@ pub unsafe fn bootstrap(msp: *const u32, rv: *const u32) -> ! {
     // Ensure thumb mode is set.
     let rv = (rv as u32) | 1;
     let msp = msp as u32;
-    unsafe { inner::__bootstrap(msp, rv) }
+    unsafe {
+        asm!(
+            "mrs {tmp}, CONTROL",
+            "bics {tmp}, {spsel}",
+            "msr CONTROL, {tmp}",
+            "isb",
+            "msr MSP, {msp}",
+            "bx {rv}",
+            // `out(reg) _` is not permitted in a `noreturn` asm! call,
+            // so instead use `in(reg) 0` and don't restore it afterwards.
+            tmp = in(reg) 0,
+            spsel = in(reg) 2,
+            msp = in(reg) msp,
+            rv = in(reg) rv,
+            options(noreturn, nomem, nostack),
+        )
+    };
 }
 
 /// Bootload.

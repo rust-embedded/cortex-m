@@ -79,29 +79,48 @@ impl<const N: usize> core::default::Default for Stack<N> {
 /// In Unprivileged Mode, code can no longer perform privileged operations,
 /// such as disabling interrupts.
 ///
-#[cfg(cortex_m)]
-pub fn switch_to_unprivileged_psp(mut psp_stack: StackHandle, function: extern "C" fn() -> !) -> ! {
-    // set the stack limit
-    #[cfg(armv8m_main)]
-    unsafe {
-        crate::register::psplim::write(psp_stack.bottom() as u32);
+pub fn switch_to_unprivileged_psp(psp_stack: StackHandle, function: extern "C" fn() -> !) -> ! {
+    #[cfg(cortex_m)]
+    {
+        let mut psp_stack = psp_stack;
+        // set the stack limit
+        #[cfg(armv8m_main)]
+        unsafe {
+            crate::register::psplim::write(psp_stack.bottom() as u32);
+        }
+        // do the switch
+        unsafe {
+            crate::asm::enter_unprivileged_psp(psp_stack.top(), function);
+        }
     }
-    // do the switch
-    unsafe {
-        crate::asm::enter_unprivileged_psp(psp_stack.top(), function);
+    #[cfg(not(cortex_m))]
+    {
+        _ = psp_stack;
+        _ = function;
+        unimplemented!()
     }
 }
 
 /// Switch to running on the Process Stack Pointer (PSP), but remain in privileged mode
 #[cfg(cortex_m)]
-pub fn switch_to_privileged_psp(mut psp_stack: StackHandle, function: extern "C" fn() -> !) -> ! {
-    // set the stack limit
-    #[cfg(armv8m_main)]
-    unsafe {
-        crate::register::psplim::write(psp_stack.bottom() as u32);
+pub fn switch_to_privileged_psp(psp_stack: StackHandle, function: extern "C" fn() -> !) -> ! {
+    #[cfg(cortex_m)]
+    {
+        let mut psp_stack = psp_stack;
+        // set the stack limit
+        #[cfg(armv8m_main)]
+        unsafe {
+            crate::register::psplim::write(psp_stack.bottom() as u32);
+        }
+        // do the switch
+        unsafe {
+            crate::asm::enter_privileged_psp(psp_stack.top(), function);
+        }
     }
-    // do the switch
-    unsafe {
-        crate::asm::enter_privileged_psp(psp_stack.top(), function);
+    #[cfg(not(cortex_m))]
+    {
+        _ = psp_stack;
+        _ = function;
+        unimplemented!()
     }
 }

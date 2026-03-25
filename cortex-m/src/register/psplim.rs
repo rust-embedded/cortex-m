@@ -1,15 +1,19 @@
 //! Process Stack Pointer Limit Register
 
+use core::arch::asm;
+
 /// Reads the CPU register
 #[inline]
 #[cortex_m_macros::asm_cfg(armv8m_main)]
 pub fn read() -> u32 {
-    unsafe { crate::asm::inner::__psplim_r() }
+    let r;
+    unsafe { asm!("mrs {}, PSPLIM", out(reg) r, options(nomem, nostack, preserves_flags)) };
+    r
 }
 
 /// Writes `bits` to the CPU register
 #[inline]
 #[cortex_m_macros::asm_cfg(armv8m_main)]
 pub unsafe fn write(bits: u32) {
-    unsafe { crate::asm::inner::__psplim_w(bits) }
+    unsafe { asm!("msr PSPLIM, {}", in(reg) bits, options(nomem, nostack, preserves_flags)) };
 }

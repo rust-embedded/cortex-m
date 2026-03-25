@@ -79,8 +79,7 @@ impl<const N: usize> core::default::Default for Stack<N> {
 /// In Unprivileged Mode, code can no longer perform privileged operations,
 /// such as disabling interrupts.
 ///
-pub fn switch_to_unprivileged_psp(psp_stack: StackHandle, function: extern "C" fn() -> !) -> ! {
-    let mut psp_stack = psp_stack;
+pub fn switch_to_unprivileged_psp(mut psp_stack: StackHandle, function: extern "C" fn() -> !) -> ! {
     // set the stack limit
     #[cfg(armv8m_main)]
     unsafe {
@@ -93,8 +92,7 @@ pub fn switch_to_unprivileged_psp(psp_stack: StackHandle, function: extern "C" f
 }
 
 /// Switch to running on the Process Stack Pointer (PSP), but remain in privileged mode
-pub fn switch_to_privileged_psp(psp_stack: StackHandle, function: extern "C" fn() -> !) -> ! {
-    let mut psp_stack = psp_stack;
+pub fn switch_to_privileged_psp(mut psp_stack: StackHandle, function: extern "C" fn() -> !) -> ! {
     // set the stack limit
     #[cfg(armv8m_main)]
     unsafe {

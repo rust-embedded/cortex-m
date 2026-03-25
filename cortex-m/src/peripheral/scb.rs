@@ -1,6 +1,10 @@
 //! System Control Block
 
+#[cfg(any(armv7m, armv8m))]
+use core::arch::asm;
 use core::ptr;
+#[cfg(any(armv7m, armv8m))]
+use core::sync::atomic::{Ordering, compiler_fence};
 
 use volatile_register::RW;
 
@@ -304,6 +308,7 @@ impl SCB {
     ///
     /// This operation first invalidates the entire I-cache.
     #[inline]
+    #[cortex_m_macros::asm_cfg(any(armv7m, armv7em, armv8m))]
     pub fn enable_icache(&mut self) {
         // Don't do anything if I-cache is already enabled
         if Self::icache_enabled() {
@@ -318,10 +323,25 @@ impl SCB {
 
         // NOTE(unsafe): The asm routine manages exclusive access to the SCB
         // registers and applies the proper barriers; it is technically safe on
-        // its own, and is only `unsafe` here because it's `extern "C"`.
+        // its own, and is only `unsafe` here because it's asm.
         unsafe {
-            crate::asm::inner::__enable_icache();
-        }
+            asm!(
+                "ldr {0}, =0xE000ED14",         // CCR
+                "mrs {2}, PRIMASK",             // save critical nesting info
+                "cpsid i",                      // mask interrupts
+                "ldr {1}, [{0}]",               // read CCR
+                "orr.w {1}, {1}, #(1 << 17)",   // Set bit 17, IC
+                "str {1}, [{0}]",               // write it back
+                "dsb",                          // ensure store completes
+                "isb",                          // synchronize pipeline
+                "msr PRIMASK, {2}",             // unnest critical section
+                out(reg) _,
+                out(reg) _,
+                out(reg) _,
+                options(nostack),
+            )
+        };
+        compiler_fence(Ordering::SeqCst);
     }
 
     /// Disables I-cache if currently enabled.
@@ -360,6 +380,7 @@ impl SCB {
 
     /// Invalidates the entire I-cache.
     #[inline]
+    #[cortex_m_macros::asm_cfg(any(armv6m, armv7m, armv7em, armv8m))]
     pub fn invalidate_icache(&mut self) {
         // NOTE(unsafe): No races as all CBP registers are write-only and stateless
         let mut cbp = unsafe { CBP::new() };
@@ -376,6 +397,7 @@ impl SCB {
     /// This operation first invalidates the entire D-cache, ensuring it does
     /// not contain stale values before being enabled.
     #[inline]
+    #[cortex_m_macros::asm_cfg(any(armv6m, armv7m, armv7em, armv8m))]
     pub fn enable_dcache(&mut self, cpuid: &mut CPUID) {
         // Don't do anything if D-cache is already enabled
         if Self::dcache_enabled() {
@@ -387,10 +409,26 @@ impl SCB {
 
         // NOTE(unsafe): The asm routine manages exclusive access to the SCB
         // registers and applies the proper barriers; it is technically safe on
-        // its own, and is only `unsafe` here because it's `extern "C"`.
+        // its own, and is only `unsafe` here because it's asm.
         unsafe {
-            crate::asm::inner::__enable_dcache();
-        }
+            asm!(
+                // Should this be replaced with a register modify?
+                "ldr {0}, =0xE000ED14",         // CCR
+                "mrs {2}, PRIMASK",             // save critical nesting info
+                "cpsid i",                      // mask interrupts
+                "ldr {1}, [{0}]",               // read CCR
+                "orr.w {1}, {1}, #(1 << 16)",   // Set bit 16, DC
+                "str {1}, [{0}]",               // write it back
+                "dsb",                          // ensure store completes
+                "isb",                          // synchronize pipeline
+                "msr PRIMASK, {2}",             // unnest critical section
+                out(reg) _,
+                out(reg) _,
+                out(reg) _,
+                options(nostack),
+            )
+        };
+        compiler_fence(Ordering::SeqCst);
     }
 
     /// Disables D-cache if currently enabled.
@@ -429,6 +467,7 @@ impl SCB {
     ///
     /// It's used immediately before enabling the dcache, but not exported publicly.
     #[inline]
+    #[cfg(cortex_m)]
     unsafe fn invalidate_dcache(&mut self, cpuid: &mut CPUID) {
         unsafe {
             // NOTE(unsafe): No races as all CBP registers are write-only and stateless

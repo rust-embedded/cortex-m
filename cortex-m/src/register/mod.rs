@@ -30,15 +30,15 @@
 //!
 //! - Cortex-M* Devices Generic User Guide - Section 2.1.3 Core registers
 
-#[cfg(all(not(armv6m), not(armv8m_base)))]
+#[cfg(any(armv7m, armv8m_main))]
 pub mod basepri;
 
-#[cfg(all(not(armv6m), not(armv8m_base)))]
+#[cfg(any(armv7m, armv8m_main))]
 pub mod basepri_max;
 
 pub mod control;
 
-#[cfg(all(not(armv6m), not(armv8m_base)))]
+#[cfg(any(armv7m, armv8m_main))]
 pub mod faultmask;
 
 #[cfg(has_fpu)]

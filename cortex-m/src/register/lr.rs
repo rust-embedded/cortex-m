@@ -1,11 +1,17 @@
 //! Link register
 
+#[cfg(any(armv6m, armv7m, armv7em, armv8m))]
+use core::arch::asm;
+
 /// Reads the CPU register
 ///
 /// **NOTE** This function is available if `cortex-m` is built with the `"inline-asm"` feature.
 #[inline]
+#[cortex_m_macros::asm_cfg(any(armv6m, armv7m, armv7em, armv8m))]
 pub fn read() -> u32 {
-    unsafe { crate::asm::inner::__lr_r() }
+    let r;
+    unsafe { asm!("mov {}, lr", out(reg) r, options(nomem, nostack, preserves_flags)) };
+    r
 }
 
 /// Writes `bits` to the CPU register
@@ -16,6 +22,7 @@ pub fn read() -> u32 {
 /// This function can't be used soundly.
 #[inline]
 #[deprecated = "This function can't be used soundly."]
+#[cortex_m_macros::asm_cfg(any(armv6m, armv7m, armv7em, armv8m))]
 pub unsafe fn write(bits: u32) {
-    unsafe { crate::asm::inner::__lr_w(bits) }
+    unsafe { asm!("mov lr, {}", in(reg) bits, options(nomem, nostack, preserves_flags)) };
 }

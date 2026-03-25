@@ -1,5 +1,8 @@
 //! Interrupts
 
+use core::arch::asm;
+use core::sync::atomic::{Ordering, compiler_fence};
+
 pub use bare_metal::{CriticalSection, Mutex, Nr};
 
 /// Trait for enums of external interrupt numbers.
@@ -35,7 +38,10 @@ unsafe impl<T: Nr + Copy> InterruptNumber for T {
 /// Disables all interrupts
 #[inline]
 pub fn disable() {
-    unsafe { crate::asm::inner::__cpsid() };
+    unsafe { asm!("cpsid i", options(nomem, nostack, preserves_flags)) };
+
+    // Ensure no subsequent memory accesses are reordered to before interrupts are disabled.
+    compiler_fence(Ordering::SeqCst);
 }
 
 /// Enables all the interrupts
@@ -44,8 +50,12 @@ pub fn disable() {
 ///
 /// - Do not call this function inside an `interrupt::free` critical section
 #[inline]
+#[cortex_m_macros::asm_cfg(any(armv6m, armv7m, armv7em, armv8m))]
 pub unsafe fn enable() {
-    unsafe { crate::asm::inner::__cpsie() };
+    // Ensure no preceeding memory accesses are reordered to after interrupts are enabled.
+    compiler_fence(Ordering::SeqCst);
+
+    unsafe { asm!("cpsie i", options(nomem, nostack, preserves_flags)) };
 }
 
 /// Execute closure `f` in an interrupt-free context.

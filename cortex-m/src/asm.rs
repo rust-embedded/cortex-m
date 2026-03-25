@@ -7,8 +7,6 @@ use core::arch::asm;
 #[cfg(cortex_m)]
 use core::sync::atomic::{Ordering, compiler_fence};
 
-pub mod inner;
-
 /// Puts the processor in Debug state. Debuggers can pick this up as a "breakpoint".
 ///
 /// **NOTE** calling `bkpt` when the processor is not connected to a debugger will cause an

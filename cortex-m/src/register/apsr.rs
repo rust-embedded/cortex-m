@@ -1,6 +1,6 @@
 //! Application Program Status Register
 
-#[cfg(any(armv6m, armv7m, armv7em, armv8m))]
+#[cfg(cortex_m)]
 use core::arch::asm;
 
 /// Application Program Status Register
@@ -51,7 +51,7 @@ impl Apsr {
 ///
 /// **NOTE** This function is available if `cortex-m` is built with the `"inline-asm"` feature.
 #[inline]
-#[cortex_m_macros::asm_cfg(any(armv6m, armv7m, armv7em, armv8m))]
+#[cortex_m_macros::asm_cfg(cortex_m)]
 pub fn read() -> Apsr {
     let bits;
     unsafe { asm!("mrs {}, APSR", out(reg) bits, options(nomem, nostack, preserves_flags)) };

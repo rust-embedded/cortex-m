@@ -308,7 +308,7 @@ impl SCB {
     ///
     /// This operation first invalidates the entire I-cache.
     #[inline]
-    #[cortex_m_macros::asm_cfg(any(armv7m, armv7em, armv8m))]
+    #[cortex_m_macros::asm_cfg(cortex_m)]
     pub fn enable_icache(&mut self) {
         // Don't do anything if I-cache is already enabled
         if Self::icache_enabled() {
@@ -380,7 +380,6 @@ impl SCB {
 
     /// Invalidates the entire I-cache.
     #[inline]
-    #[cortex_m_macros::asm_cfg(any(armv6m, armv7m, armv7em, armv8m))]
     pub fn invalidate_icache(&mut self) {
         // NOTE(unsafe): No races as all CBP registers are write-only and stateless
         let mut cbp = unsafe { CBP::new() };
@@ -397,7 +396,7 @@ impl SCB {
     /// This operation first invalidates the entire D-cache, ensuring it does
     /// not contain stale values before being enabled.
     #[inline]
-    #[cortex_m_macros::asm_cfg(any(armv6m, armv7m, armv7em, armv8m))]
+    #[cortex_m_macros::asm_cfg(cortex_m)]
     pub fn enable_dcache(&mut self, cpuid: &mut CPUID) {
         // Don't do anything if D-cache is already enabled
         if Self::dcache_enabled() {

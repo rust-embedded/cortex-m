@@ -1,6 +1,6 @@
 //! Fault Mask Register
 
-#[cfg(any(armv6m, armv7m, armv7em, armv8m))]
+#[cfg(cortex_m)]
 use core::arch::asm;
 
 /// All exceptions are ...

@@ -1,6 +1,8 @@
 //! Interrupts
 
+#[cfg(cortex_m)]
 use core::arch::asm;
+#[cfg(cortex_m)]
 use core::sync::atomic::{Ordering, compiler_fence};
 
 pub use bare_metal::{CriticalSection, Mutex, Nr};
@@ -37,6 +39,7 @@ unsafe impl<T: Nr + Copy> InterruptNumber for T {
 
 /// Disables all interrupts
 #[inline]
+#[cortex_m_macros::asm_cfg(cortex_m)]
 pub fn disable() {
     unsafe { asm!("cpsid i", options(nomem, nostack, preserves_flags)) };
 
@@ -50,7 +53,7 @@ pub fn disable() {
 ///
 /// - Do not call this function inside an `interrupt::free` critical section
 #[inline]
-#[cortex_m_macros::asm_cfg(any(armv6m, armv7m, armv7em, armv8m))]
+#[cortex_m_macros::asm_cfg(cortex_m)]
 pub unsafe fn enable() {
     // Ensure no preceeding memory accesses are reordered to after interrupts are enabled.
     compiler_fence(Ordering::SeqCst);

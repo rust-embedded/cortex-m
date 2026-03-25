@@ -1,5 +1,11 @@
 //! Control register
 
+#[cfg(cortex_m)]
+use core::arch::asm;
+#[cfg(cortex_m)]
+use core::sync::atomic::{Ordering, compiler_fence};
+use cortex_m_macros::asm_cfg;
+
 /// Control register
 #[derive(Clone, Copy, Debug)]
 pub struct Control {
@@ -173,14 +179,28 @@ impl Fpca {
 
 /// Reads the CPU register
 #[inline]
+#[asm_cfg(cortex_m)]
 pub fn read() -> Control {
-    let bits: u32 = call_asm!(__control_r() -> u32);
+    let bits;
+    unsafe { asm!("mrs {}, CONTROL", out(reg) bits, options(nomem, nostack, preserves_flags)) };
     Control { bits }
 }
 
 /// Writes to the CPU register.
 #[inline]
+#[asm_cfg(cortex_m)]
 pub unsafe fn write(control: Control) {
     let control = control.bits();
-    call_asm!(__control_w(control: u32));
+
+    // ISB is required after writing to CONTROL,
+    // per ARM architectural requirements (see Application Note 321).
+    unsafe {
+        asm!(
+            "msr CONTROL, {}",
+            "isb",
+            in(reg) control,
+            options(nomem, nostack, preserves_flags),
+        );
+        compiler_fence(Ordering::SeqCst);
+    }
 }

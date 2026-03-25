@@ -94,11 +94,12 @@
 // Don't warn about feature(asm) being stable on Rust >= 1.59.0
 #![allow(stable_features)]
 
+#[cfg(all(feature = "cm7-r0p1", not(armv7em)))]
+compile_error!("The feature \"cm7-r0p1\" is only compatible with the armv7em target");
+
 extern crate bare_metal;
 extern crate volatile_register;
 
-#[macro_use]
-mod call_asm;
 #[macro_use]
 mod macros;
 

@@ -6,13 +6,14 @@
 use core::arch::asm;
 #[cfg(cortex_m)]
 use core::sync::atomic::{Ordering, compiler_fence};
+use cortex_m_macros::asm_cfg;
 
 /// Puts the processor in Debug state. Debuggers can pick this up as a "breakpoint".
 ///
 /// **NOTE** calling `bkpt` when the processor is not connected to a debugger will cause an
 /// exception.
 #[inline(always)]
-#[cortex_m_macros::asm_cfg(cortex_m)]
+#[asm_cfg(cortex_m)]
 pub fn bkpt() {
     unsafe { asm!("bkpt", options(nomem, nostack, preserves_flags)) };
 }
@@ -32,7 +33,7 @@ pub fn bkpt() {
 /// initialization of peripherals if and only if accurate timing is not essential. In any other case
 /// please use a more accurate method to produce a delay.
 #[inline]
-#[cortex_m_macros::asm_cfg(cortex_m)]
+#[asm_cfg(cortex_m)]
 pub fn delay(cycles: u32) {
     // The loop will normally take 3 to 4 CPU cycles per iteration, but superscalar cores
     // (eg. Cortex-M7) can potentially do it in 2, so we use that as the lower bound, since delaying
@@ -57,7 +58,7 @@ pub fn delay(cycles: u32) {
 
 /// A no-operation. Useful to prevent delay loops from being optimized away.
 #[inline]
-#[cortex_m_macros::asm_cfg(cortex_m)]
+#[asm_cfg(cortex_m)]
 pub fn nop() {
     // NOTE: This is a `pure` asm block, but applying that option allows the compiler to eliminate
     // the nop entirely (or to collapse multiple subsequent ones). Since the user probably wants N
@@ -69,28 +70,28 @@ pub fn nop() {
 ///
 /// Can be used as a stable alternative to `core::intrinsics::abort`.
 #[inline]
-#[cortex_m_macros::asm_cfg(cortex_m)]
+#[asm_cfg(cortex_m)]
 pub fn udf() -> ! {
     unsafe { asm!("udf #0", options(noreturn, nomem, nostack, preserves_flags)) };
 }
 
 /// Wait For Event
 #[inline]
-#[cortex_m_macros::asm_cfg(cortex_m)]
+#[asm_cfg(cortex_m)]
 pub fn wfe() {
     unsafe { asm!("wfe", options(nomem, nostack, preserves_flags)) };
 }
 
 /// Wait For Interrupt
 #[inline]
-#[cortex_m_macros::asm_cfg(cortex_m)]
+#[asm_cfg(cortex_m)]
 pub fn wfi() {
     unsafe { asm!("wfi", options(nomem, nostack, preserves_flags)) };
 }
 
 /// Send Event
 #[inline]
-#[cortex_m_macros::asm_cfg(cortex_m)]
+#[asm_cfg(cortex_m)]
 pub fn sev() {
     unsafe { asm!("sev", options(nomem, nostack, preserves_flags)) };
 }
@@ -100,7 +101,7 @@ pub fn sev() {
 /// Flushes the pipeline in the processor, so that all instructions following the `ISB` are fetched
 /// from cache or memory, after the instruction has been completed.
 #[inline]
-#[cortex_m_macros::asm_cfg(cortex_m)]
+#[asm_cfg(cortex_m)]
 pub fn isb() {
     compiler_fence(Ordering::SeqCst);
     unsafe { asm!("isb", options(nostack, preserves_flags)) };
@@ -115,7 +116,7 @@ pub fn isb() {
 ///  * any explicit memory access made before this instruction is complete
 ///  * all cache and branch predictor maintenance operations before this instruction complete
 #[inline]
-#[cortex_m_macros::asm_cfg(cortex_m)]
+#[asm_cfg(cortex_m)]
 pub fn dsb() {
     compiler_fence(Ordering::SeqCst);
     unsafe { asm!("dsb", options(nostack, preserves_flags)) };
@@ -128,7 +129,7 @@ pub fn dsb() {
 /// instruction are observed before any explicit memory accesses that appear in program order
 /// after the `DMB` instruction.
 #[inline]
-#[cortex_m_macros::asm_cfg(cortex_m)]
+#[asm_cfg(cortex_m)]
 pub fn dmb() {
     compiler_fence(Ordering::SeqCst);
     unsafe { asm!("dmb", options(nostack, preserves_flags)) };
@@ -141,7 +142,7 @@ pub fn dmb() {
 /// Returns a Test Target Response Payload (cf section D1.2.215 of
 /// Armv8-M Architecture Reference Manual).
 #[inline]
-#[cortex_m_macros::asm_cfg(armv8m)]
+#[asm_cfg(armv8m)]
 // The __tt function does not dereference the pointer received.
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub fn tt(addr: *mut u32) -> u32 {
@@ -163,7 +164,7 @@ pub fn tt(addr: *mut u32) -> u32 {
 /// Returns a Test Target Response Payload (cf section D1.2.215 of
 /// Armv8-M Architecture Reference Manual).
 #[inline]
-#[cortex_m_macros::asm_cfg(armv8m)]
+#[asm_cfg(armv8m)]
 // The __ttt function does not dereference the pointer received.
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub fn ttt(addr: *mut u32) -> u32 {
@@ -186,7 +187,7 @@ pub fn ttt(addr: *mut u32) -> u32 {
 /// Returns a Test Target Response Payload (cf section D1.2.215 of
 /// Armv8-M Architecture Reference Manual).
 #[inline]
-#[cortex_m_macros::asm_cfg(armv8m)]
+#[asm_cfg(armv8m)]
 // The __tta function does not dereference the pointer received.
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub fn tta(addr: *mut u32) -> u32 {
@@ -209,7 +210,7 @@ pub fn tta(addr: *mut u32) -> u32 {
 /// Returns a Test Target Response Payload (cf section D1.2.215 of
 /// Armv8-M Architecture Reference Manual).
 #[inline]
-#[cortex_m_macros::asm_cfg(armv8m)]
+#[asm_cfg(armv8m)]
 // The __ttat function does not dereference the pointer received.
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub fn ttat(addr: *mut u32) -> u32 {
@@ -229,7 +230,7 @@ pub fn ttat(addr: *mut u32) -> u32 {
 /// See section C2.4.26 of Armv8-M Architecture Reference Manual for details.
 /// Undefined if executed in Non-Secure state.
 #[inline]
-#[cortex_m_macros::asm_cfg(armv8m)]
+#[asm_cfg(armv8m)]
 pub unsafe fn bx_ns(addr: u32) {
     unsafe { asm!("BXNS {}", in(reg) addr, options(nomem, nostack, preserves_flags)) };
 }
@@ -238,7 +239,7 @@ pub unsafe fn bx_ns(addr: u32) {
 ///
 /// This method is used by cortex-m-semihosting to provide semihosting syscalls.
 #[inline]
-#[cortex_m_macros::asm_cfg(cortex_m)]
+#[asm_cfg(cortex_m)]
 pub unsafe fn semihosting_syscall(mut nr: u32, arg: u32) -> u32 {
     unsafe {
         asm!("bkpt #0xab", inout("r0") nr, in("r1") arg, options(nomem, nostack, preserves_flags))
@@ -263,7 +264,7 @@ pub unsafe fn semihosting_syscall(mut nr: u32, arg: u32) -> u32 {
 ///   program - stack overflows are obviously UB. If your processor supports
 ///   it, you may wish to set the `PSPLIM` register to guard against this.
 #[inline(always)]
-#[cortex_m_macros::asm_cfg(cortex_m)]
+#[asm_cfg(cortex_m)]
 pub unsafe fn enter_unprivileged_psp(psp: *const u32, entry: extern "C" fn() -> !) -> ! {
     use crate::register::control::{Control, Npriv, Spsel};
     const CONTROL_FLAGS: u32 = {
@@ -305,7 +306,7 @@ pub unsafe fn enter_unprivileged_psp(psp: *const u32, entry: extern "C" fn() -> 
 ///   program - stack overflows are obviously UB. If your processor supports
 ///   it, you may wish to set the `PSPLIM` register to guard against this.
 #[inline(always)]
-#[cortex_m_macros::asm_cfg(cortex_m)]
+#[asm_cfg(cortex_m)]
 pub unsafe fn enter_privileged_psp(psp: *const u32, entry: extern "C" fn() -> !) -> ! {
     use crate::register::control::{Control, Npriv, Spsel};
     const CONTROL_FLAGS: u32 = {
@@ -342,7 +343,7 @@ pub unsafe fn enter_privileged_psp(psp: *const u32, entry: extern "C" fn() -> !)
 /// `msp` and `rv` must point to valid stack memory and executable code,
 /// respectively.
 #[inline]
-#[cortex_m_macros::asm_cfg(cortex_m)]
+#[asm_cfg(cortex_m)]
 pub unsafe fn bootstrap(msp: *const u32, rv: *const u32) -> ! {
     // Ensure thumb mode is set.
     let rv = (rv as u32) | 1;
@@ -379,7 +380,7 @@ pub unsafe fn bootstrap(msp: *const u32, rv: *const u32) -> ! {
 /// table, with a valid stack pointer as the first word and
 /// a valid reset vector as the second word.
 #[inline]
-#[cortex_m_macros::asm_cfg(cortex_m)]
+#[asm_cfg(cortex_m)]
 pub unsafe fn bootload(vector_table: *const u32) -> ! {
     unsafe {
         let msp = core::ptr::read_volatile(vector_table);

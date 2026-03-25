@@ -2,10 +2,11 @@
 
 #[cfg(any(armv7m, armv8m))]
 use core::arch::asm;
+use cortex_m_macros::asm_cfg;
 
 /// Reads the CPU register
 #[inline]
-#[cortex_m_macros::asm_cfg(any(armv7m, armv8m_main))]
+#[asm_cfg(any(armv7m, armv8m_main))]
 pub fn read() -> u8 {
     let r;
     unsafe { asm!("mrs {}, BASEPRI", out(reg) r, options(nomem, nostack, preserves_flags)) };
@@ -17,7 +18,7 @@ pub fn read() -> u8 {
 /// **IMPORTANT** If you are using a Cortex-M7 device with revision r0p1 you MUST enable the
 /// `cm7-r0p1` Cargo feature or this function WILL misbehave.
 #[inline]
-#[cortex_m_macros::asm_cfg(any(armv7m, armv8m_main))]
+#[asm_cfg(any(armv7m, armv8m_main))]
 pub unsafe fn write(basepri: u8) {
     #[cfg(not(feature = "cm7-r0p1"))]
     {

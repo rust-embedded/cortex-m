@@ -5,7 +5,7 @@ use core::arch::asm;
 use core::ptr;
 #[cfg(any(armv7m, armv8m))]
 use core::sync::atomic::{Ordering, compiler_fence};
-
+use cortex_m_macros::asm_cfg;
 use volatile_register::RW;
 
 #[cfg(not(armv6m))]
@@ -308,7 +308,7 @@ impl SCB {
     ///
     /// This operation first invalidates the entire I-cache.
     #[inline]
-    #[cortex_m_macros::asm_cfg(cortex_m)]
+    #[asm_cfg(cortex_m)]
     pub fn enable_icache(&mut self) {
         // Don't do anything if I-cache is already enabled
         if Self::icache_enabled() {
@@ -396,7 +396,7 @@ impl SCB {
     /// This operation first invalidates the entire D-cache, ensuring it does
     /// not contain stale values before being enabled.
     #[inline]
-    #[cortex_m_macros::asm_cfg(cortex_m)]
+    #[asm_cfg(cortex_m)]
     pub fn enable_dcache(&mut self, cpuid: &mut CPUID) {
         // Don't do anything if D-cache is already enabled
         if Self::dcache_enabled() {

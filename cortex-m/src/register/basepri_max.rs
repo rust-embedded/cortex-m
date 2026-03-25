@@ -2,6 +2,7 @@
 
 #[cfg(any(armv7m, armv8m))]
 use core::arch::asm;
+use cortex_m_macros::asm_cfg;
 
 /// Writes to BASEPRI *if*
 ///
@@ -11,7 +12,7 @@ use core::arch::asm;
 /// **IMPORTANT** If you are using a Cortex-M7 device with revision r0p1 you MUST enable the
 /// `cm7-r0p1` Cargo feature or this function WILL misbehave.
 #[inline]
-#[cortex_m_macros::asm_cfg(any(armv7m, armv8m_main))]
+#[asm_cfg(any(armv7m, armv8m_main))]
 pub fn write(basepri: u8) {
     #[cfg(not(feature = "cm7-r0p1"))]
     {

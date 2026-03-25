@@ -4,6 +4,7 @@
 use core::arch::asm;
 #[cfg(cortex_m)]
 use core::sync::atomic::{Ordering, compiler_fence};
+use cortex_m_macros::asm_cfg;
 
 /// All exceptions with configurable priority are ...
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -41,7 +42,7 @@ pub fn read() -> Primask {
 /// Reads the entire PRIMASK register
 /// Note that bits [31:1] are reserved and UNK (Unknown)
 #[inline]
-#[cortex_m_macros::asm_cfg(cortex_m)]
+#[asm_cfg(cortex_m)]
 pub fn read_raw() -> u32 {
     let r: u32;
     unsafe { asm!("mrs {}, PRIMASK", out(reg) r, options(nomem, nostack, preserves_flags)) };
@@ -58,7 +59,7 @@ pub fn read_raw() -> u32 {
 /// undefined behaviour. Do not call this function in a context where interrupts are expected to
 /// remain disabled -- for example, in the midst of a critical section or `interrupt::free()` call.
 #[inline]
-#[cortex_m_macros::asm_cfg(cortex_m)]
+#[asm_cfg(cortex_m)]
 pub unsafe fn write_raw(r: u32) {
     // Ensure no preceeding memory accesses are reordered to after interrupts are possibly enabled.
     compiler_fence(Ordering::SeqCst);

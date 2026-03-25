@@ -2,12 +2,13 @@
 
 #[cfg(cortex_m)]
 use core::arch::asm;
+use cortex_m_macros::asm_cfg;
 
 /// Reads the CPU register
 ///
 /// **NOTE** This function is available if `cortex-m` is built with the `"inline-asm"` feature.
 #[inline]
-#[cortex_m_macros::asm_cfg(cortex_m)]
+#[asm_cfg(cortex_m)]
 pub fn read() -> u32 {
     let r;
     unsafe { asm!("mov {}, lr", out(reg) r, options(nomem, nostack, preserves_flags)) };
@@ -22,7 +23,7 @@ pub fn read() -> u32 {
 /// This function can't be used soundly.
 #[inline]
 #[deprecated = "This function can't be used soundly."]
-#[cortex_m_macros::asm_cfg(cortex_m)]
+#[asm_cfg(cortex_m)]
 pub unsafe fn write(bits: u32) {
     unsafe { asm!("mov lr, {}", in(reg) bits, options(nomem, nostack, preserves_flags)) };
 }

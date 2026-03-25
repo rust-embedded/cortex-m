@@ -4,6 +4,7 @@
 use core::arch::asm;
 #[cfg(cortex_m)]
 use core::sync::atomic::{Ordering, compiler_fence};
+use cortex_m_macros::asm_cfg;
 
 /// Control register
 #[derive(Clone, Copy, Debug)]
@@ -178,7 +179,7 @@ impl Fpca {
 
 /// Reads the CPU register
 #[inline]
-#[cortex_m_macros::asm_cfg(cortex_m)]
+#[asm_cfg(cortex_m)]
 pub fn read() -> Control {
     let bits;
     unsafe { asm!("mrs {}, CONTROL", out(reg) bits, options(nomem, nostack, preserves_flags)) };
@@ -187,7 +188,7 @@ pub fn read() -> Control {
 
 /// Writes to the CPU register.
 #[inline]
-#[cortex_m_macros::asm_cfg(cortex_m)]
+#[asm_cfg(cortex_m)]
 pub unsafe fn write(control: Control) {
     let control = control.bits();
 

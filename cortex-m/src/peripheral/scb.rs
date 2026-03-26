@@ -5,6 +5,7 @@ use core::arch::asm;
 use core::ptr;
 #[cfg(any(armv7m, armv8m))]
 use core::sync::atomic::{Ordering, compiler_fence};
+#[cfg(not(armv6m))]
 use cortex_m_macros::asm_cfg;
 use volatile_register::RW;
 

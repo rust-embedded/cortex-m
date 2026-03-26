@@ -10,7 +10,7 @@ extern crate cortex_m_rt;
 extern crate panic_halt;
 
 use core::arch::asm;
-use cortex_m_rt::{entry, exception, ExceptionFrame};
+use cortex_m_rt::{ExceptionFrame, entry, exception};
 
 // This defines both `HardFault` and `_HardFault`. Both should have
 // link_section attributes placing them at the end of the .text section,

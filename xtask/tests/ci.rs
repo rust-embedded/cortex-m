@@ -1,6 +1,6 @@
 use std::process::Command;
 use std::{env, str};
-use xtask::{check_blobs, check_host_side, install_targets};
+use xtask::{check_host_side, install_targets};
 
 /// List of all compilation targets we support.
 ///
@@ -97,9 +97,6 @@ fn main() {
     env::set_current_dir("..").unwrap();
 
     install_targets(&mut ALL_TARGETS.iter().cloned(), None);
-
-    // Check that the ASM blobs are up-to-date.
-    check_blobs();
 
     let output = Command::new("rustc").arg("-V").output().unwrap();
     let is_nightly = str::from_utf8(&output.stdout).unwrap().contains("nightly");

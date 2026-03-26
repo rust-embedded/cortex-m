@@ -1,5 +1,8 @@
 //! Floating-point Status Control Register
 
+#[cfg(has_fpu)]
+use core::arch::asm;
+
 /// Floating-point Status Control Register
 #[derive(Clone, Copy, Debug)]
 pub struct Fpscr {
@@ -292,14 +295,17 @@ impl RMode {
 
 /// Read the FPSCR register
 #[inline]
+#[cfg(has_fpu)]
 pub fn read() -> Fpscr {
-    let r: u32 = call_asm!(__fpscr_r() -> u32);
+    let r;
+    unsafe { asm!("vmrs {}, fpscr", out(reg) r, options(nomem, nostack, preserves_flags)) };
     Fpscr::from_bits(r)
 }
 
 /// Set the value of the FPSCR register
 #[inline]
+#[cfg(has_fpu)]
 pub unsafe fn write(fpscr: Fpscr) {
     let fpscr = fpscr.bits();
-    call_asm!(__fpscr_w(fpscr: u32));
+    unsafe { asm!("vmsr fpscr, {}", in(reg) fpscr, options(nomem, nostack)) };
 }

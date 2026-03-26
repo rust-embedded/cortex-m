@@ -1,6 +1,6 @@
 //! A delay driver based on SysTick.
 
-use crate::peripheral::{syst::SystClkSource, SYST};
+use crate::peripheral::{SYST, syst::SystClkSource};
 use eh1::delay::DelayNs;
 
 /// System timer (SysTick) as a delay provider.

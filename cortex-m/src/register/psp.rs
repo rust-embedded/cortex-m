@@ -1,13 +1,23 @@
 //! Process Stack Pointer
 
+#[cfg(cortex_m)]
+use core::arch::asm;
+use cortex_m_macros::asm_cfg;
+
 /// Reads the CPU register
 #[inline]
+#[asm_cfg(cortex_m)]
 pub fn read() -> u32 {
-    call_asm!(__psp_r() -> u32)
+    let r;
+    unsafe { asm!("mrs {}, PSP", out(reg) r, options(nomem, nostack, preserves_flags)) };
+    r
 }
 
 /// Writes `bits` to the CPU register
 #[inline]
+#[asm_cfg(cortex_m)]
 pub unsafe fn write(bits: u32) {
-    call_asm!(__psp_w(bits: u32))
+    // See comment on __msp_w. Unlike MSP, there are legitimate use-cases for modifying PSP
+    // if MSP is currently being used as the stack pointer.
+    unsafe { asm!("msr PSP, {}", in(reg) bits, options(nomem, nostack, preserves_flags)) };
 }

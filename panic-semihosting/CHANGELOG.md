@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+- MSRV bumped to 1.85
+- Updated references from 'Cortex-M Team' to 'Arm Team'
+
 ## [v0.6.0] - 2022-03-01
 
 - Always use inline-asm, requiring Rust 1.59.

@@ -1,8 +1,4 @@
 [package]
-authors = [
-    "The Cortex-M Team <cortex-m@teams.rust-embedded.org>",
-    "Jorge Aparicio <jorge@japaric.io>",
-]
 categories = ["embedded", "hardware-support", "no-std"]
 description = "Low level access to Cortex-M processors"
 documentation = "https://docs.rs/cortex-m"
@@ -11,10 +7,10 @@ license = "MIT OR Apache-2.0"
 name = "cortex-m"
 readme = "README.md"
 repository = "https://github.com/rust-embedded/cortex-m"
+edition = "2024"
 version = "0.7.7"
-edition = "2018"
 links = "cortex-m"  # prevent multiple versions of this crate to be linked together
-rust-version = "1.61"
+rust-version = "1.85"
 
 [dependencies]
 bare-metal = { version = "0.2.4", features = ["const-fn"] }
@@ -23,6 +19,7 @@ volatile-register = "0.2.2"
 bitfield = "0.13.2"
 eh0 = { package = "embedded-hal", version = "0.2.4" }
 eh1 = { package = "embedded-hal", version = "1.0.0" }
+cortex-m-macros = { path = "macros", version = "=0.1.0" }
 
 [dependencies.serde]
 version = "1"

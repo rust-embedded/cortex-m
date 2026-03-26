@@ -1,9 +1,11 @@
 [workspace]
-resolver = "2"
+resolver = "3"
 members = [
     "cortex-m",
+    "cortex-m/macros",
     "cortex-m-types",
     "cortex-m-rt",
+    "cortex-m-rt/macros",
     "cortex-m-semihosting",
     "panic-itm",
     "panic-semihosting",

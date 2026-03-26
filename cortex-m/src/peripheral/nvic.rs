@@ -124,9 +124,11 @@ impl NVIC {
     where
         I: InterruptNumber,
     {
-        let nr = interrupt.number();
-        // NOTE(ptr) this is a write to a stateless register
-        (*Self::PTR).iser[usize::from(nr / 32)].write(1 << (nr % 32))
+        unsafe {
+            let nr = interrupt.number();
+            // NOTE(ptr) this is a write to a stateless register
+            (*Self::PTR).iser[usize::from(nr / 32)].write(1 << (nr % 32))
+        }
     }
 
     /// Returns the NVIC priority of `interrupt`
@@ -224,20 +226,22 @@ impl NVIC {
     where
         I: InterruptNumber,
     {
-        #[cfg(not(armv6m))]
-        {
-            let nr = interrupt.number();
-            self.ipr[usize::from(nr)].write(prio)
-        }
+        unsafe {
+            #[cfg(not(armv6m))]
+            {
+                let nr = interrupt.number();
+                self.ipr[usize::from(nr)].write(prio)
+            }
 
-        #[cfg(armv6m)]
-        {
-            self.ipr[Self::ipr_index(interrupt)].modify(|value| {
-                let mask = 0x0000_00ff << Self::ipr_shift(interrupt);
-                let prio = u32::from(prio) << Self::ipr_shift(interrupt);
+            #[cfg(armv6m)]
+            {
+                self.ipr[Self::ipr_index(interrupt)].modify(|value| {
+                    let mask = 0x0000_00ff << Self::ipr_shift(interrupt);
+                    let prio = u32::from(prio) << Self::ipr_shift(interrupt);
 
-                (value & !mask) | prio
-            })
+                    (value & !mask) | prio
+                })
+            }
         }
     }
 

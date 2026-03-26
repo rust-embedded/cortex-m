@@ -8,11 +8,13 @@ use crate::peripheral::itm::Stim;
 
 // NOTE assumes that `bytes` is 32-bit aligned
 unsafe fn write_words(stim: &mut Stim, bytes: &[u32]) {
-    let mut p = bytes.as_ptr();
-    for _ in 0..bytes.len() {
-        while !stim.is_fifo_ready() {}
-        stim.write_u32(ptr::read(p));
-        p = p.offset(1);
+    unsafe {
+        let mut p = bytes.as_ptr();
+        for _ in 0..bytes.len() {
+            while !stim.is_fifo_ready() {}
+            stim.write_u32(ptr::read(p));
+            p = p.offset(1);
+        }
     }
 }
 
@@ -20,44 +22,46 @@ unsafe fn write_words(stim: &mut Stim, bytes: &[u32]) {
 ///
 /// `buffer` must be 4-byte aligned.
 unsafe fn write_aligned_impl(port: &mut Stim, buffer: &[u8]) {
-    let len = buffer.len();
+    unsafe {
+        let len = buffer.len();
 
-    if len == 0 {
-        return;
-    }
+        if len == 0 {
+            return;
+        }
 
-    let split = len & !0b11;
-    #[allow(clippy::cast_ptr_alignment)]
-    write_words(
-        port,
-        slice::from_raw_parts(buffer.as_ptr() as *const u32, split >> 2),
-    );
-
-    // 3 bytes or less left
-    let mut left = len & 0b11;
-    let mut ptr = buffer.as_ptr().add(split);
-
-    // at least 2 bytes left
-    if left > 1 {
-        while !port.is_fifo_ready() {}
-
+        let split = len & !0b11;
         #[allow(clippy::cast_ptr_alignment)]
-        port.write_u16(ptr::read(ptr as *const u16));
+        write_words(
+            port,
+            slice::from_raw_parts(buffer.as_ptr() as *const u32, split >> 2),
+        );
 
-        ptr = ptr.offset(2);
-        left -= 2;
-    }
+        // 3 bytes or less left
+        let mut left = len & 0b11;
+        let mut ptr = buffer.as_ptr().add(split);
 
-    // final byte
-    if left == 1 {
-        while !port.is_fifo_ready() {}
-        port.write_u8(*ptr);
+        // at least 2 bytes left
+        if left > 1 {
+            while !port.is_fifo_ready() {}
+
+            #[allow(clippy::cast_ptr_alignment)]
+            port.write_u16(ptr::read(ptr as *const u16));
+
+            ptr = ptr.offset(2);
+            left -= 2;
+        }
+
+        // final byte
+        if left == 1 {
+            while !port.is_fifo_ready() {}
+            port.write_u8(*ptr);
+        }
     }
 }
 
 struct Port<'p>(&'p mut Stim);
 
-impl<'p> fmt::Write for Port<'p> {
+impl fmt::Write for Port<'_> {
     #[inline]
     fn write_str(&mut self, s: &str) -> fmt::Result {
         write_all(self.0, s.as_bytes());

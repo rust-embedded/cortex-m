@@ -1,4 +1,4 @@
-use critical_section::{set_impl, Impl, RawRestoreState};
+use critical_section::{Impl, RawRestoreState, set_impl};
 
 use crate::interrupt;
 use crate::register::primask;
@@ -19,6 +19,6 @@ unsafe impl Impl for SingleCoreCriticalSection {
 
     unsafe fn release(restore_state: RawRestoreState) {
         // NOTE: Fence guarantees are provided by primask::write_raw(), which performs a `compiler_fence(SeqCst)`.
-        primask::write_raw(restore_state);
+        unsafe { primask::write_raw(restore_state) };
     }
 }

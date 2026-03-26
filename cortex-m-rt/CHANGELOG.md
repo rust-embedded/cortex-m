@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   by the time user code runs, such as when copying from flash or when booting
   from an external device. Note that this relies on the bootloader to have already
   copied `.data` to the VMA before relinquishing control.
+- Updated references from 'Cortex-M Team' to 'Arm Team'
+- Bump MSRV to 1.85
 
 ## [v0.7.5]
 

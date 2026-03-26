@@ -13,10 +13,11 @@ jobs:
       matrix:
         # All generated code should be running on stable now
         rust: [stable]
+        test_cortex_m_types: [true]
 
         include:
           # Test MSRV
-          - rust: 1.61.0
+          - rust: 1.85.0
 
           # Test nightly but don't fail
           - rust: nightly
@@ -27,8 +28,4 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
       - name: Run tests
-        if: ${{ matrix.rust != '1.61.0' }}
         run: cargo test --all --exclude cortex-m-rt --exclude testsuite --features cortex-m/critical-section-single-core
-      - name: Run tests for 1.61.0 (need to exclude cortex-m-types)
-        if: ${{ matrix.rust == '1.61.0' }}
-        run: cargo test --all --exclude cortex-m-rt --exclude testsuite --exclude cortex-m-types --features cortex-m/critical-section-single-core

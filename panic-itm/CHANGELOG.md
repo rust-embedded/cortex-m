@@ -9,8 +9,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
+- MSRV bumped to 1.85
 - switched from `ITM::ptr()` to `ITM::PTR` as `ptr()` has been
   deprecated/removed (#385).
+- Updated references from 'Cortex-M Team' to 'Arm Team'
 
 ## [v0.4.2] - 2020-11-14
 

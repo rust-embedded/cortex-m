@@ -64,10 +64,15 @@ pub struct Comparator {
 
 // DWT CTRL register fields
 const NUMCOMP_OFFSET: u32 = 28;
+#[cfg(not(armv6m))]
 const NOTRCPKT: u32 = 1 << 27;
+#[cfg(not(armv6m))]
 const NOEXTTRIG: u32 = 1 << 26;
+#[cfg(not(armv6m))]
 const NOCYCCNT: u32 = 1 << 25;
+#[cfg(not(armv6m))]
 const NOPRFCNT: u32 = 1 << 24;
+#[cfg(not(armv6m))]
 const CYCCNTENA: u32 = 1 << 0;
 
 impl DWT {

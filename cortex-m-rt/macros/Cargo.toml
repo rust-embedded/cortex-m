@@ -1,5 +1,4 @@
 [package]
-authors = ["Jorge Aparicio <jorge@japaric.io>"]
 categories = ["embedded", "no-std"]
 description = "Attributes re-exported in `cortex-m-rt`"
 documentation = "https://docs.rs/cortex-m-rt"
@@ -9,7 +8,7 @@ name = "cortex-m-rt-macros"
 repository = "https://github.com/rust-embedded/cortex-m"
 version = "0.7.5"
 edition = "2021"
-rust-version = "1.61"
+rust-version = "1.71"
 
 [lib]
 proc-macro = true

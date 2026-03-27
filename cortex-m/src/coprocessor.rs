@@ -12,8 +12,8 @@ use cortex_m_macros::asm_cfg;
 ///  - CRN: Coprocessor register N.
 ///  - CRM: Coprocessor register M.
 ///  - OP2: Second optional operation for the coprocessor.
-#[asm_cfg(any(armv7m, armv8m))]
 #[inline(always)]
+#[asm_cfg(any(armv7m, armv8m))]
 pub unsafe fn mcr<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32, const OP2: u32>(
     value: u32,
 ) {
@@ -41,8 +41,8 @@ pub unsafe fn mcr<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32,
 ///  - CRN: Coprocessor register N.
 ///  - CRM: Coprocessor register M.
 ///  - OP2: Second optional operation for the coprocessor.
-#[asm_cfg(any(armv7m, armv8m))]
 #[inline(always)]
+#[asm_cfg(any(armv7m, armv8m))]
 pub unsafe fn mrc<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32, const OP2: u32>()
 -> u32 {
     let a: u32;
@@ -71,8 +71,8 @@ pub unsafe fn mrc<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32,
 ///  - CP: The coprocessor's index.
 ///  - OP1: First optional operation for the coprocessor.
 ///  - CRM: Coprocessor register M.
-#[asm_cfg(any(armv7m, armv8m))]
 #[inline(always)]
+#[asm_cfg(any(armv7m, armv8m))]
 pub unsafe fn mcrr<const CP: u32, const OP1: u32, const CRM: u32>(a: u32, b: u32) {
     unsafe {
         core::arch::asm!(
@@ -95,8 +95,8 @@ pub unsafe fn mcrr<const CP: u32, const OP1: u32, const CRM: u32>(a: u32, b: u32
 ///  - CP: The coprocessor's index.
 ///  - OP1: First optional operation for the coprocessor.
 ///  - CRM: Coprocessor register M.
-#[asm_cfg(any(armv7m, armv8m))]
 #[inline(always)]
+#[asm_cfg(any(armv7m, armv8m))]
 pub unsafe fn mrrc<const CP: u32, const OPC: u32, const CRM: u32>() -> (u32, u32) {
     // Preallocate the values.
     let a: u32;

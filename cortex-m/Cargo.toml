@@ -20,8 +20,8 @@ rust-version = "1.61"
 bare-metal = { git = "https://github.com/Sonair-AS/bare-metal.git", branch = "certified_subset" }
 critical-section = { git = "https://github.com/Sonair-AS/critical-section.git", branch = "certified_subset" }
 
-volatile-register = "0.2.2"
-bitfield = "0.13.2"
+volatile-register = { git = "https://github.com/Sonair-AS/volatile-register.git", branch = "certified_subset" }
+bitfield = { git = "https://github.com/Sonair-AS/rust-bitfield.git", branch = "certified_subset" }
 eh1 = { package = "embedded-hal", git = "https://github.com/Sonair-AS/embedded-hal.git", branch = "certified_subset" }
 
 [dependencies.serde]

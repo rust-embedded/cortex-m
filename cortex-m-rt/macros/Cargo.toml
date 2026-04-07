@@ -15,9 +15,10 @@ rust-version = "1.61"
 proc-macro = true
 
 [dependencies]
-quote = "1.0"
-proc-macro2 = "1.0"
+quote = { git = "https://github.com/Sonair-AS/quote.git" , branch = "certified_subset" }
+proc-macro2 = { git = "https://github.com/Sonair-AS/proc-macro2.git" , branch = "certified_subset" }
 
 [dependencies.syn]
 features = ["extra-traits", "full"]
-version = "2.0"
+git = "https://github.com/Sonair-AS/syn.git"
+branch = "certified_subset"

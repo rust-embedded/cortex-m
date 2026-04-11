@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   copied `.data` to the VMA before relinquishing control.
 - Updated references from 'Cortex-M Team' to 'Arm Team'
 - Bump MSRV to 1.85
+- Updated to edition 2024
 
 ## [v0.7.5]
 

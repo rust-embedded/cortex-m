@@ -134,6 +134,9 @@ pub enum SauError {
     WrongBaseAddress,
     /// Bits 0 to 4 of the limit address of a SAU region must be set to one.
     WrongLimitAddress,
+    /// The number of regions passed to [`SAU::init`] exceeds the number of regions implemented
+    /// in hardware (as reported by [`SAU::region_numbers`]).
+    TooManyRegions,
 }
 
 impl SAU {
@@ -161,7 +164,7 @@ impl SAU {
     ///
     /// This is a convenience wrapper around [`set_region`] + [`enable`]:
     /// 1. Disables the SAU temporarily.
-    /// 2. Programs up to 8 regions from `regions` (extras silently ignored).
+    /// 2. Programs all regions from `regions`.
     /// 3. Re-enables the SAU.
     ///
     /// Memory not covered by any enabled region is treated as Secure once the SAU is enabled.
@@ -171,18 +174,25 @@ impl SAU {
     /// `scb.enable(cortex_m::peripheral::scb::Exception::SecureFault)` after this.
     ///
     /// # Errors
-    /// Region-programming errors (bad alignment, region number out of range) are silently ignored;
-    /// `take(8)` already bounds the region count to the hardware maximum.
+    /// Returns [`SauError::TooManyRegions`] if `regions.len()` exceeds the number of regions
+    /// implemented in hardware (see [`region_numbers`]). Returns other [`SauError`] variants if
+    /// any region descriptor has a misaligned base or limit address.
+    ///
+    /// On error the SAU is left disabled (in the state set at step 1 above).
     #[inline]
-    pub fn init(&mut self, regions: &[SauRegion]) {
+    pub fn init(&mut self, regions: &[SauRegion]) -> Result<(), SauError> {
+        if regions.len() > self.region_numbers() as usize {
+            return Err(SauError::TooManyRegions);
+        }
         // Disable while reprogramming to avoid partial-update windows.
         unsafe {
             self.ctrl.write(Ctrl(0));
         }
-        for (i, &region) in regions.iter().enumerate().take(8) {
-            let _ = self.set_region(i as u8, region);
+        for (i, &region) in regions.iter().enumerate() {
+            self.set_region(i as u8, region)?;
         }
         self.enable();
+        Ok(())
     }
 
     /// Enable the SAU.

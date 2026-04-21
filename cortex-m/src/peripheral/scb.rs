@@ -100,6 +100,14 @@ pub struct RegisterBlock {
     pub cpacr: RW<u32>,
     #[cfg(armv6m)]
     _reserved9: u32,
+
+    /// Non-Secure Access Control (only present on ARMv8-M)
+    ///
+    /// Controls whether Non-Secure code can access coprocessors. Bits 10–11
+    /// correspond to CP10 and CP11 (the FPU): setting them allows Non-Secure
+    /// code to use floating-point instructions.
+    #[cfg(armv8m)]
+    pub nsacr: RW<u32>,
 }
 
 /// FPU access mode
@@ -168,6 +176,40 @@ impl SCB {
             FpuAccessMode::Enabled => cpacr |= SCB_CPACR_FPU_ENABLE | SCB_CPACR_FPU_USER,
         }
         unsafe { self.cpacr.write(cpacr) }
+    }
+}
+
+/// ARMv8-M TrustZone coprocessor access control.
+#[cfg(armv8m)]
+impl SCB {
+    const SCB_NSACR_CP10_CP11: u32 = 0b11 << 10;
+
+    /// Allow Non-Secure code to use the FPU (CP10 and CP11).
+    ///
+    /// Sets NSACR bits 10–11 so that Non-Secure threads can execute
+    /// floating-point instructions. Without this, any NS FPU instruction
+    /// raises a UsageFault.
+    ///
+    /// Call this before jumping to Non-Secure code if the NS application
+    /// uses floating-point.
+    #[inline]
+    pub fn enable_nonsecure_fpu(&mut self) {
+        unsafe { self.nsacr.modify(|v| v | Self::SCB_NSACR_CP10_CP11) }
+    }
+
+    /// Deny Non-Secure code from using the FPU.
+    ///
+    /// Clears NSACR bits 10–11.
+    #[inline]
+    pub fn disable_nonsecure_fpu(&mut self) {
+        unsafe { self.nsacr.modify(|v| v & !Self::SCB_NSACR_CP10_CP11) }
+    }
+
+    /// Returns `true` if Non-Secure code is allowed to use the FPU.
+    #[inline]
+    pub fn is_nonsecure_fpu_enabled() -> bool {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { ((*Self::PTR).nsacr.read() & Self::SCB_NSACR_CP10_CP11) != 0 }
     }
 }
 

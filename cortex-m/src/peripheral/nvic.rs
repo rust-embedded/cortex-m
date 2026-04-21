@@ -257,6 +257,55 @@ impl NVIC {
         unsafe { (*Self::PTR).icpr[usize::from(nr / 32)].write(1 << (nr % 32)) }
     }
 
+    /// Route `interrupt` to the Non-Secure world (ARMv8-M only).
+    ///
+    /// Sets the corresponding ITNS bit so the interrupt is taken as Non-Secure
+    /// and will not preempt Secure execution. Call this for every peripheral
+    /// interrupt handled by the Non-Secure application before jumping to it.
+    ///
+    /// # Safety
+    /// Must be called from the Secure world. Routing an interrupt to Non-Secure
+    /// while Secure handlers depend on it can violate security invariants.
+    #[cfg(armv8m)]
+    #[inline]
+    pub unsafe fn route_to_nonsecure<I>(interrupt: I)
+    where
+        I: InterruptNumber,
+    {
+        let nr = interrupt.number();
+        unsafe { (*Self::PTR).itns[usize::from(nr / 32)].modify(|v| v | (1 << (nr % 32))) }
+    }
+
+    /// Route `interrupt` back to the Secure world (ARMv8-M only).
+    ///
+    /// Clears the corresponding ITNS bit. After this call the interrupt
+    /// targets Secure state (the default after reset).
+    ///
+    /// # Safety
+    /// Must be called from the Secure world.
+    #[cfg(armv8m)]
+    #[inline]
+    pub unsafe fn route_to_secure<I>(interrupt: I)
+    where
+        I: InterruptNumber,
+    {
+        let nr = interrupt.number();
+        unsafe { (*Self::PTR).itns[usize::from(nr / 32)].modify(|v| v & !(1 << (nr % 32))) }
+    }
+
+    /// Returns `true` if `interrupt` is routed to the Non-Secure world (ARMv8-M only).
+    #[cfg(armv8m)]
+    #[inline]
+    pub fn is_routed_to_nonsecure<I>(interrupt: I) -> bool
+    where
+        I: InterruptNumber,
+    {
+        let nr = interrupt.number();
+        let mask = 1 << (nr % 32);
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { ((*Self::PTR).itns[usize::from(nr / 32)].read() & mask) == mask }
+    }
+
     #[cfg(armv6m)]
     #[inline]
     fn ipr_index<I>(interrupt: I) -> usize

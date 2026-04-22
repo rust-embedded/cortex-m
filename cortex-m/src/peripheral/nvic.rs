@@ -273,7 +273,9 @@ impl NVIC {
         I: InterruptNumber,
     {
         let nr = interrupt.number();
-        unsafe { (*Self::PTR).itns[usize::from(nr / 32)].modify(|v| v | (1 << (nr % 32))) }
+        let group_idx = usize::from(nr / 32);
+        let bit_mask = 1 << (nr % 32);
+        unsafe { (*Self::PTR).itns[group_idx].modify(|v| v | bit_mask) }
     }
 
     /// Route `interrupt` back to the Secure world (ARMv8-M only).
@@ -290,7 +292,9 @@ impl NVIC {
         I: InterruptNumber,
     {
         let nr = interrupt.number();
-        unsafe { (*Self::PTR).itns[usize::from(nr / 32)].modify(|v| v & !(1 << (nr % 32))) }
+        let group_idx = usize::from(nr / 32);
+        let bit_mask = 1 << (nr % 32);
+        unsafe { (*Self::PTR).itns[group_idx].modify(|v| v & !bit_mask) }
     }
 
     /// Returns `true` if `interrupt` is routed to the Non-Secure world (ARMv8-M only).
@@ -301,9 +305,10 @@ impl NVIC {
         I: InterruptNumber,
     {
         let nr = interrupt.number();
-        let mask = 1 << (nr % 32);
+        let group_idx = usize::from(nr / 32);
+        let bit_mask = 1 << (nr % 32);
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { ((*Self::PTR).itns[usize::from(nr / 32)].read() & mask) == mask }
+        unsafe { ((*Self::PTR).itns[group_idx].read() & bit_mask) == bit_mask }
     }
 
     #[cfg(armv6m)]

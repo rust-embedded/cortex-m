@@ -151,6 +151,29 @@ mod tests {
         }
     }
 
+    #[cfg(armv8m)]
+    #[test]
+    fn sau_set_get_region(p: &mut cortex_m::Peripherals) {
+        use cortex_m::peripheral::sau::{SauRegion, SauRegionAttribute};
+
+        // The SAU must have at least one region on any ARMv8-M implementation.
+        let n = p.SAU.region_numbers();
+        assert!(n > 0);
+
+        // Program region 0 as a Non-Secure window and read it back to verify the
+        // register round-trip works correctly.
+        let region = SauRegion {
+            base_address: 0x2000_0000,
+            limit_address: 0x2001_FFFF, // bottom 5 bits already 1 (0x1F)
+            attribute: SauRegionAttribute::NonSecure,
+        };
+        p.SAU.set_region(0, region).unwrap();
+        let got = p.SAU.get_region(0).unwrap();
+        assert_eq!(got.base_address, region.base_address);
+        assert_eq!(got.limit_address, region.limit_address);
+        assert_eq!(got.attribute, region.attribute);
+    }
+
     // this test must be last!
     #[test]
     fn run_psp() {

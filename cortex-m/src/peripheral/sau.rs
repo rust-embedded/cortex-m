@@ -103,7 +103,7 @@ bitfield! {
 }
 
 /// Possible attribute of a SAU region.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SauRegionAttribute {
     /// SAU region is Secure
     Secure,
@@ -114,7 +114,7 @@ pub enum SauRegionAttribute {
 }
 
 /// Description of a SAU region.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SauRegion {
     /// First address of the region, its 5 least significant bits must be set to zero.
     pub base_address: u32,
@@ -134,6 +134,9 @@ pub enum SauError {
     WrongBaseAddress,
     /// Bits 0 to 4 of the limit address of a SAU region must be set to one.
     WrongLimitAddress,
+    /// The number of regions passed to [`SAU::init`] exceeds the number of regions implemented
+    /// in hardware (as reported by [`SAU::region_numbers`]).
+    TooManyRegions,
 }
 
 impl SAU {
@@ -141,6 +144,55 @@ impl SAU {
     #[inline]
     pub fn region_numbers(&self) -> u8 {
         self._type.read().sregion()
+    }
+
+    /// Disable the SAU and mark all memory Non-Secure (ALLNS mode).
+    ///
+    /// Sets `CTRL.ALLNS = 1`, `CTRL.ENABLE = 0`. When the SAU is disabled with ALLNS set, the
+    /// entire address space is treated as Non-Secure (subject to any IDAU overrides). Use this
+    /// when running entirely in Non-Secure mode with no security boundary enforcement.
+    ///
+    /// To re-enable security boundaries, call [`init`] or [`enable`] after programming regions.
+    #[inline]
+    pub fn disable_allns(&mut self) {
+        unsafe {
+            self.ctrl.write(Ctrl(0b10)); // ALLNS=1, ENABLE=0
+        }
+    }
+
+    /// Program SAU regions and enable the SAU.
+    ///
+    /// This is a convenience wrapper around [`set_region`] + [`enable`]:
+    /// 1. Disables the SAU temporarily.
+    /// 2. Programs all regions from `regions`.
+    /// 3. Re-enables the SAU.
+    ///
+    /// Memory not covered by any enabled region is treated as Secure once the SAU is enabled.
+    ///
+    /// To also enable the `SecureFault` exception so TrustZone violations surface as a dedicated
+    /// fault rather than escalating to `HardFault`, call
+    /// `scb.enable(cortex_m::peripheral::scb::Exception::SecureFault)` after this.
+    ///
+    /// # Errors
+    /// Returns [`SauError::TooManyRegions`] if `regions.len()` exceeds the number of regions
+    /// implemented in hardware (see [`region_numbers`]). Returns other [`SauError`] variants if
+    /// any region descriptor has a misaligned base or limit address.
+    ///
+    /// On error the SAU is left disabled (in the state set at step 1 above).
+    #[inline]
+    pub fn init(&mut self, regions: &[SauRegion]) -> Result<(), SauError> {
+        if regions.len() > self.region_numbers() as usize {
+            return Err(SauError::TooManyRegions);
+        }
+        // Disable while reprogramming to avoid partial-update windows.
+        unsafe {
+            self.ctrl.write(Ctrl(0));
+        }
+        for (i, &region) in regions.iter().enumerate() {
+            self.set_region(i as u8, region)?;
+        }
+        self.enable();
+        Ok(())
     }
 
     /// Enable the SAU.
@@ -239,5 +291,56 @@ impl SAU {
                 })
             }
         })
+    }
+}
+
+/// Transfer control to the Non-Secure application. Does not return.
+///
+/// This performs the standard Secure→Non-Secure boot handoff:
+/// 1. Sets `SCB_NS->VTOR` to `ns_vtor` so the Non-Secure world finds its vector table.
+/// 2. Loads `MSP_NS` from the first word of the NS vector table (the initial NS stack pointer).
+/// 3. Reads the NS reset handler address from the second word of the NS vector table.
+/// 4. Executes `BXNS` to atomically switch to Non-Secure state and jump to the handler.
+///
+/// # Safety
+/// - Must be called from the Secure world after all SAU/GTZC setup is complete.
+/// - `ns_vtor` must point to a valid Non-Secure vector table. The Cortex-M33 requires the VTOR
+///   to be at least 32-byte aligned; in practice 128-byte or 256-byte alignment is typical.
+/// - The NS reset handler at `*(ns_vtor + 1)` must be a valid Thumb function address (bit 0 set
+///   in the vector table entry, as per the ARM ABI convention for vector tables).
+/// - Available on ARMv8-M only (`thumbv8m.base` and `thumbv8m.main`).
+#[cfg(armv8m)]
+pub unsafe fn jump_to_nonsecure(ns_vtor: *const u32) -> ! {
+    // SCB_NS->VTOR is the Non-Secure alias of the SCB VTOR register (0xE002_ED08).
+    // Writing it tells the NS world where its vector table lives before we hand off.
+    const SCB_NS_VTOR: *mut u32 = 0xE002_ED08 as *mut u32;
+    unsafe {
+        SCB_NS_VTOR.write_volatile(ns_vtor as usize as u32);
+    }
+
+    // Load the initial NS stack pointer from the first word of the NS vector table
+    // and write it into MSP_NS.
+    let ns_sp = unsafe { core::ptr::read_volatile(ns_vtor) };
+    unsafe {
+        core::arch::asm!(
+            "msr msp_ns, {sp}",
+            sp = in(reg) ns_sp,
+            options(nomem, nostack, preserves_flags),
+        );
+    }
+
+    // Read the NS reset handler address from the second word of the NS vector table.
+    // ARM ABI: bit 0 is set in the stored value (Thumb mode marker).
+    // BXNS requires bit 0 = 0; if bit 0 is set, it raises SecureFault (SFSR.INVTRAN).
+    let ns_reset = unsafe { core::ptr::read_volatile(ns_vtor.add(1)) };
+
+    // BXNS atomically clears bit 0, switches the processor to Non-Secure state, and
+    // branches to the NS reset handler. This instruction does not return.
+    unsafe {
+        core::arch::asm!(
+            "bxns {entry}",
+            entry = in(reg) ns_reset & !1u32,
+            options(noreturn),
+        );
     }
 }

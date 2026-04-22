@@ -306,21 +306,21 @@ impl SAU {
 /// - Must be called from the Secure world after all SAU/GTZC setup is complete.
 /// - `ns_vtor` must point to a valid Non-Secure vector table. The Cortex-M33 requires the VTOR
 ///   to be at least 32-byte aligned; in practice 128-byte or 256-byte alignment is typical.
-/// - The NS reset handler at `*(ns_vtor + 4)` must be a valid Thumb function address (bit 0 set
+/// - The NS reset handler at `*(ns_vtor + 1)` must be a valid Thumb function address (bit 0 set
 ///   in the vector table entry, as per the ARM ABI convention for vector tables).
 /// - Available on ARMv8-M only (`thumbv8m.base` and `thumbv8m.main`).
 #[cfg(armv8m)]
-pub unsafe fn jump_to_nonsecure(ns_vtor: u32) -> ! {
+pub unsafe fn jump_to_nonsecure(ns_vtor: *const u32) -> ! {
     // SCB_NS->VTOR is the Non-Secure alias of the SCB VTOR register (0xE002_ED08).
     // Writing it tells the NS world where its vector table lives before we hand off.
     const SCB_NS_VTOR: *mut u32 = 0xE002_ED08 as *mut u32;
     unsafe {
-        SCB_NS_VTOR.write_volatile(ns_vtor);
+        SCB_NS_VTOR.write_volatile(ns_vtor as usize as u32);
     }
 
     // Load the initial NS stack pointer from the first word of the NS vector table
     // and write it into MSP_NS.
-    let ns_sp = unsafe { core::ptr::read_volatile(ns_vtor as *const u32) };
+    let ns_sp = unsafe { core::ptr::read_volatile(ns_vtor) };
     unsafe {
         core::arch::asm!(
             "msr msp_ns, {sp}",
@@ -332,7 +332,7 @@ pub unsafe fn jump_to_nonsecure(ns_vtor: u32) -> ! {
     // Read the NS reset handler address from the second word of the NS vector table.
     // ARM ABI: bit 0 is set in the stored value (Thumb mode marker).
     // BXNS requires bit 0 = 0; if bit 0 is set, it raises SecureFault (SFSR.INVTRAN).
-    let ns_reset = unsafe { core::ptr::read_volatile((ns_vtor as *const u32).add(1)) };
+    let ns_reset = unsafe { core::ptr::read_volatile(ns_vtor.add(1)) };
 
     // BXNS atomically clears bit 0, switches the processor to Non-Secure state, and
     // branches to the NS reset handler. This instruction does not return.

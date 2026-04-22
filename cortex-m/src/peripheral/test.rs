@@ -116,6 +116,10 @@ fn nvic() {
     assert_eq!(address(&nvic.ispr), 0xE000E200);
     assert_eq!(address(&nvic.icpr), 0xE000E280);
     assert_eq!(address(&nvic.iabr), 0xE000E300);
+    #[cfg(armv8m)]
+    assert_eq!(address(&nvic.itns), 0xE000_E380);
+    #[cfg(armv8m)]
+    assert_eq!(address(&nvic.itns[1]), 0xE000_E384);
     assert_eq!(address(&nvic.ipr), 0xE000E400);
     #[cfg(not(armv6m))]
     assert_eq!(address(&nvic.stir), 0xE000EF00);
@@ -139,6 +143,8 @@ fn scb() {
     assert_eq!(address(&scb.bfar), 0xE000_ED38);
     assert_eq!(address(&scb.afsr), 0xE000_ED3C);
     assert_eq!(address(&scb.cpacr), 0xE000_ED88);
+    #[cfg(armv8m)]
+    assert_eq!(address(&scb.nsacr), 0xE000_ED8C);
 }
 
 #[test]

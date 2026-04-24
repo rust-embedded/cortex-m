@@ -1,8 +1,6 @@
 //! Process Stack Pointer support
 
-// This is a useful lint for functions like 'asm::wfi()' but it's not a useful
-// lint here.
-#![allow(clippy::missing_inline_in_public_items)]
+#![allow(clippy::missing_inline_in_public_items)] // PSP functions contain non-trivial logic; inlining is not beneficial here.
 
 use core::{
     cell::UnsafeCell,
@@ -66,6 +64,8 @@ impl<const N: usize> Stack<N> {
     }
 }
 
+// SAFETY: Stack access is guarded by the AtomicBool `taken` field which ensures only one
+// StackHandle can exist at a time, preventing concurrent mutation.
 unsafe impl<const N: usize> Sync for Stack<N> {}
 
 impl<const N: usize> core::default::Default for Stack<N> {
@@ -83,10 +83,12 @@ impl<const N: usize> core::default::Default for Stack<N> {
 pub fn switch_to_unprivileged_psp(mut psp_stack: StackHandle, function: extern "C" fn() -> !) -> ! {
     // set the stack limit
     #[cfg(armv8m_main)]
+    // SAFETY: Writing PSPLIM with the bottom of the valid stack prevents stack overflow.
     unsafe {
         crate::register::psplim::write(psp_stack.bottom() as u32);
     }
-    // do the switch
+    // SAFETY: psp_stack was obtained from a valid Stack, so top() is a valid, aligned stack pointer.
+    // function is a valid extern "C" fn pointer provided by the caller.
     unsafe {
         crate::asm::enter_unprivileged_psp(psp_stack.top(), function);
     }
@@ -95,12 +97,13 @@ pub fn switch_to_unprivileged_psp(mut psp_stack: StackHandle, function: extern "
 /// Switch to running on the Process Stack Pointer (PSP), but remain in privileged mode
 #[cfg(cortex_m)]
 pub fn switch_to_privileged_psp(mut psp_stack: StackHandle, function: extern "C" fn() -> !) -> ! {
-    // set the stack limit
     #[cfg(armv8m_main)]
+    // SAFETY: Writing PSPLIM with the bottom of the valid stack prevents stack overflow.
     unsafe {
         crate::register::psplim::write(psp_stack.bottom() as u32);
     }
-    // do the switch
+    // SAFETY: psp_stack was obtained from a valid Stack, so top() is a valid, aligned stack pointer.
+    // function is a valid extern "C" fn pointer provided by the caller.
     unsafe {
         crate::asm::enter_privileged_psp(psp_stack.top(), function);
     }

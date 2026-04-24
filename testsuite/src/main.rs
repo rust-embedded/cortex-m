@@ -96,6 +96,7 @@ mod tests {
         let mut handle = super::STACK.take_handle();
         let top = handle.top();
         let bottom = handle.bottom();
+        // SAFETY: Both pointers originate from the same Stack allocation, so offset_from is valid.
         let delta = unsafe { top.offset_from(bottom) };
         assert_eq!(delta as usize, super::STACK_SIZE_WORDS);
     }

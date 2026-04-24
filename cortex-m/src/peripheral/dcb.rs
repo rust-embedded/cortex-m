@@ -27,7 +27,7 @@ impl DCB {
     /// soft-reset, only on power reset.
     #[inline]
     pub fn enable_trace(&mut self) {
-        // set bit 24 / TRCENA
+        // SAFETY: Read-modify-write of DEMCR; &mut self guarantees exclusive access.
         unsafe {
             self.demcr.modify(|w| w | DCB_DEMCR_TRCENA);
         }
@@ -36,7 +36,7 @@ impl DCB {
     /// Disables TRACE. See `DCB::enable_trace()` for more details
     #[inline]
     pub fn disable_trace(&mut self) {
-        // unset bit 24 / TRCENA
+        // SAFETY: Read-modify-write of DEMCR; &mut self guarantees exclusive access.
         unsafe {
             self.demcr.modify(|w| w & !DCB_DEMCR_TRCENA);
         }
@@ -51,8 +51,8 @@ impl DCB {
     /// [Cortex-M0+ r0p1 Technical Reference Manual](http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0484c/BABJHEIG.html), "Note Software cannot access the debug registers."
     #[inline]
     pub fn is_debugger_attached() -> bool {
+        // SAFETY: Atomic 8-bit read of the DHCSR register with no side effects.
         unsafe {
-            // do an 8-bit read of the 32-bit DHCSR register, and get the LSB
             let value = ptr::read_volatile(Self::PTR as *const u8);
             value & 0x1 == 1
         }

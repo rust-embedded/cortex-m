@@ -1,7 +1,6 @@
 //! Semihosting operations
 
-// TODO document
-#![allow(missing_docs)]
+#![allow(missing_docs)] // Semihosting operation numbers are self-descriptive constants from the ARM spec.
 
 pub const CLOCK: usize = 0x10;
 pub const CLOSE: usize = 0x02;

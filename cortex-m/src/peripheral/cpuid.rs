@@ -90,6 +90,7 @@ impl CPUID {
         const CSSELR_LEVEL_POS: u32 = 1;
         const CSSELR_LEVEL_MASK: u32 = 0x7 << CSSELR_LEVEL_POS;
 
+        // SAFETY: Write to CSSELR selects the cache level; &mut self guarantees exclusive access.
         unsafe {
             self.csselr.write(
                 ((u32::from(level) << CSSELR_LEVEL_POS) & CSSELR_LEVEL_MASK)
@@ -123,6 +124,7 @@ impl CPUID {
     pub fn cache_dminline() -> u32 {
         const CTR_DMINLINE_POS: u32 = 16;
         const CTR_DMINLINE_MASK: u32 = 0xF << CTR_DMINLINE_POS;
+        // SAFETY: Atomic read of CTR with no side effects.
         let ctr = unsafe { (*Self::PTR).ctr.read() };
         (ctr & CTR_DMINLINE_MASK) >> CTR_DMINLINE_POS
     }
@@ -135,6 +137,7 @@ impl CPUID {
     pub fn cache_iminline() -> u32 {
         const CTR_IMINLINE_POS: u32 = 0;
         const CTR_IMINLINE_MASK: u32 = 0xF << CTR_IMINLINE_POS;
+        // SAFETY: Atomic read of CTR with no side effects.
         let ctr = unsafe { (*Self::PTR).ctr.read() };
         (ctr & CTR_IMINLINE_MASK) >> CTR_IMINLINE_POS
     }

@@ -41,12 +41,14 @@ impl CBP {
     /// I-cache invalidate all to PoU
     #[inline(always)]
     pub fn iciallu(&mut self) {
+        // SAFETY: Write-only, stateless cache maintenance register; &mut self guarantees exclusivity.
         unsafe { self.iciallu.write(0) };
     }
 
     /// I-cache invalidate by MVA to PoU
     #[inline(always)]
     pub fn icimvau(&mut self, mva: u32) {
+        // SAFETY: Write-only, stateless cache maintenance register; &mut self guarantees exclusivity.
         unsafe { self.icimvau.write(mva) };
     }
 
@@ -79,6 +81,7 @@ impl CBP {
     /// D-cache clean by MVA to PoU
     #[inline(always)]
     pub fn dccmvau(&mut self, mva: u32) {
+        // SAFETY: Write-only, stateless cache maintenance register.
         unsafe {
             self.dccmvau.write(mva);
         }
@@ -87,6 +90,7 @@ impl CBP {
     /// D-cache clean by MVA to PoC
     #[inline(always)]
     pub fn dccmvac(&mut self, mva: u32) {
+        // SAFETY: Write-only, stateless cache maintenance register.
         unsafe {
             self.dccmvac.write(mva);
         }
@@ -97,7 +101,7 @@ impl CBP {
     /// `set` is masked to be between 0 and 3, and `way` between 0 and 511.
     #[inline(always)]
     pub fn dccsw(&mut self, set: u16, way: u16) {
-        // See comment for dcisw() about the format here
+        // SAFETY: Write-only, stateless cache maintenance register. See dcisw() for format details.
         unsafe {
             self.dccsw.write(
                 ((u32::from(way) & (CBP_SW_WAY_MASK >> CBP_SW_WAY_POS)) << CBP_SW_WAY_POS)
@@ -109,6 +113,7 @@ impl CBP {
     /// D-cache clean and invalidate by MVA to PoC
     #[inline(always)]
     pub fn dccimvac(&mut self, mva: u32) {
+        // SAFETY: Write-only, stateless cache maintenance register.
         unsafe {
             self.dccimvac.write(mva);
         }
@@ -119,7 +124,7 @@ impl CBP {
     /// `set` is masked to be between 0 and 3, and `way` between 0 and 511.
     #[inline(always)]
     pub fn dccisw(&mut self, set: u16, way: u16) {
-        // See comment for dcisw() about the format here
+        // SAFETY: Write-only, stateless cache maintenance register. See dcisw() for format details.
         unsafe {
             self.dccisw.write(
                 ((u32::from(way) & (CBP_SW_WAY_MASK >> CBP_SW_WAY_POS)) << CBP_SW_WAY_POS)
@@ -131,6 +136,7 @@ impl CBP {
     /// Branch predictor invalidate all
     #[inline(always)]
     pub fn bpiall(&mut self) {
+        // SAFETY: Write-only, stateless branch predictor invalidation register.
         unsafe {
             self.bpiall.write(0);
         }

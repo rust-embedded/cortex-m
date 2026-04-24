@@ -6,6 +6,8 @@ use crate::register::primask;
 struct SingleCoreCriticalSection;
 set_impl!(SingleCoreCriticalSection);
 
+// SAFETY: On single-core Cortex-M targets, disabling all interrupts via CPSID is sufficient to
+// establish a critical section. The restore state (PRIMASK) is saved and restored correctly.
 unsafe impl Impl for SingleCoreCriticalSection {
     unsafe fn acquire() -> RawRestoreState {
         // Backup previous state of PRIMASK register. We access the entire register directly as a

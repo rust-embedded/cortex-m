@@ -57,18 +57,21 @@ impl SYST {
     /// After calling `clear_current()`, the next call to `has_wrapped()`, unless called after the reload time (if the counter is enabled), will return `false`.
     #[inline]
     pub fn clear_current(&mut self) {
+        // SAFETY: Writing any value to CVR clears it; &mut self guarantees exclusive access.
         unsafe { self.cvr.write(0) }
     }
 
     /// Disables counter
     #[inline]
     pub fn disable_counter(&mut self) {
+        // SAFETY: Read-modify-write of CSR; &mut self guarantees exclusive access.
         unsafe { self.csr.modify(|v| v & !SYST_CSR_ENABLE) }
     }
 
     /// Disables SysTick interrupt
     #[inline]
     pub fn disable_interrupt(&mut self) {
+        // SAFETY: Read-modify-write of CSR; &mut self guarantees exclusive access.
         unsafe { self.csr.modify(|v| v & !SYST_CSR_TICKINT) }
     }
 
@@ -86,12 +89,14 @@ impl SYST {
     /// The sequence translates to `self.set_reload(x); self.clear_current(); self.enable_counter()`
     #[inline]
     pub fn enable_counter(&mut self) {
+        // SAFETY: Read-modify-write of CSR; &mut self guarantees exclusive access.
         unsafe { self.csr.modify(|v| v | SYST_CSR_ENABLE) }
     }
 
     /// Enables SysTick interrupt
     #[inline]
     pub fn enable_interrupt(&mut self) {
+        // SAFETY: Read-modify-write of CSR; &mut self guarantees exclusive access.
         unsafe { self.csr.modify(|v| v | SYST_CSR_TICKINT) }
     }
 
@@ -112,14 +117,14 @@ impl SYST {
     /// Gets current value
     #[inline]
     pub fn get_current() -> u32 {
-        // NOTE(unsafe) atomic read with no side effects
+        // SAFETY: Atomic read of CVR with no side effects.
         unsafe { (*Self::PTR).cvr.read() }
     }
 
     /// Gets reload value
     #[inline]
     pub fn get_reload() -> u32 {
-        // NOTE(unsafe) atomic read with no side effects
+        // SAFETY: Atomic read of RVR with no side effects.
         unsafe { (*Self::PTR).rvr.read() }
     }
 
@@ -130,14 +135,14 @@ impl SYST {
     /// change dynamically).
     #[inline]
     pub fn get_ticks_per_10ms() -> u32 {
-        // NOTE(unsafe) atomic read with no side effects
+        // SAFETY: Atomic read of CALIB with no side effects.
         unsafe { (*Self::PTR).calib.read() & SYST_COUNTER_MASK }
     }
 
     /// Checks if an external reference clock is available
     #[inline]
     pub fn has_reference_clock() -> bool {
-        // NOTE(unsafe) atomic read with no side effects
+        // SAFETY: Atomic read of CALIB with no side effects.
         unsafe { (*Self::PTR).calib.read() & SYST_CALIB_NOREF == 0 }
     }
 
@@ -175,7 +180,7 @@ impl SYST {
     /// from 10 ms.
     #[inline]
     pub fn is_precise() -> bool {
-        // NOTE(unsafe) atomic read with no side effects
+        // SAFETY: Atomic read of CALIB with no side effects.
         unsafe { (*Self::PTR).calib.read() & SYST_CALIB_SKEW == 0 }
     }
 
@@ -183,7 +188,9 @@ impl SYST {
     #[inline]
     pub fn set_clock_source(&mut self, clk_source: SystClkSource) {
         match clk_source {
+            // SAFETY: Read-modify-write of CSR; &mut self guarantees exclusive access.
             SystClkSource::External => unsafe { self.csr.modify(|v| v & !SYST_CSR_CLKSOURCE) },
+            // SAFETY: Read-modify-write of CSR; &mut self guarantees exclusive access.
             SystClkSource::Core => unsafe { self.csr.modify(|v| v | SYST_CSR_CLKSOURCE) },
         }
     }
@@ -195,6 +202,7 @@ impl SYST {
     /// *NOTE* To make the timer wrap every `N` ticks set the reload value to `N - 1`
     #[inline]
     pub fn set_reload(&mut self, value: u32) {
+        // SAFETY: Write to RVR; &mut self guarantees exclusive access.
         unsafe { self.rvr.write(value) }
     }
 }

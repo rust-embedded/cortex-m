@@ -37,18 +37,21 @@ impl Stim {
     /// Writes an `u8` payload into the stimulus port
     #[inline]
     pub fn write_u8(&mut self, value: u8) {
+        // SAFETY: Volatile write to the stimulus port register; &mut self guarantees exclusive access.
         unsafe { ptr::write_volatile(self.register.get() as *mut u8, value) }
     }
 
     /// Writes an `u16` payload into the stimulus port
     #[inline]
     pub fn write_u16(&mut self, value: u16) {
+        // SAFETY: Volatile write to the stimulus port register; &mut self guarantees exclusive access.
         unsafe { ptr::write_volatile(self.register.get() as *mut u16, value) }
     }
 
     /// Writes an `u32` payload into the stimulus port
     #[inline]
     pub fn write_u32(&mut self, value: u32) {
+        // SAFETY: Volatile write to the stimulus port register; &mut self guarantees exclusive access.
         unsafe { ptr::write_volatile(self.register.get(), value) }
     }
 
@@ -56,6 +59,7 @@ impl Stim {
     #[cfg(not(armv8m))]
     #[inline]
     pub fn is_fifo_ready(&self) -> bool {
+        // SAFETY: Volatile read of the stimulus port register with no side effects.
         unsafe { ptr::read_volatile(self.register.get()) & 0b1 == 1 }
     }
 
@@ -66,6 +70,7 @@ impl Stim {
         // ARMv8-M adds a disabled bit; we indicate that we are ready to
         // proceed with a stimulus write if the port is either ready (bit 0) or
         // disabled (bit 1).
+        // SAFETY: Volatile read of the stimulus port register with no side effects.
         unsafe { ptr::read_volatile(self.register.get()) & 0b11 != 0 }
     }
 }

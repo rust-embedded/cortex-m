@@ -1,7 +1,6 @@
 //! Host I/O
 
-// Fixing this lint requires a breaking change that does not add much value
-#![allow(clippy::result_unit_err)]
+#![allow(clippy::result_unit_err)] // Fixing this lint requires a breaking API change that does not add much value.
 
 use crate::nr;
 use core::{fmt, slice};
@@ -41,6 +40,8 @@ pub fn hstdout() -> Result<HostStream, ()> {
 
 fn open(name: &str, mode: usize) -> Result<HostStream, ()> {
     let name = name.as_bytes();
+    // SAFETY: OPEN is a valid semihosting operation; arguments are a valid C string pointer,
+    // a valid mode constant, and the string length (excluding null terminator).
     match unsafe { syscall!(OPEN, name.as_ptr(), mode, name.len() - 1) } as isize {
         -1 => Err(()),
         fd => Ok(HostStream { fd: fd as usize }),
@@ -49,12 +50,17 @@ fn open(name: &str, mode: usize) -> Result<HostStream, ()> {
 
 fn write_all(fd: usize, mut buffer: &[u8]) -> Result<(), ()> {
     while !buffer.is_empty() {
+        // SAFETY: WRITE is a valid semihosting operation with a valid fd, pointer into
+        // the buffer slice, and the remaining buffer length.
         match unsafe { syscall!(WRITE, fd, buffer.as_ptr(), buffer.len()) } {
             // Done
             0 => return Ok(()),
             // `n` bytes were not written
             n if n <= buffer.len() => {
                 let offset = (buffer.len() - n) as isize;
+                // SAFETY: `offset` is the number of bytes successfully written, so
+                // `buffer.as_ptr().offset(offset)` points to the first unwritten byte,
+                // and `n` is the remaining count — both within the original slice.
                 buffer = unsafe { slice::from_raw_parts(buffer.as_ptr().offset(offset), n) }
             }
             #[cfg(feature = "jlink-quirks")]

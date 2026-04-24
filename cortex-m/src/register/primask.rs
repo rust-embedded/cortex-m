@@ -45,6 +45,7 @@ pub fn read() -> Primask {
 #[cfg(cortex_m)]
 pub fn read_raw() -> u32 {
     let r: u32;
+    // SAFETY: Reading PRIMASK is a side-effect-free operation on any Cortex-M core.
     unsafe { asm!("mrs {}, PRIMASK", out(reg) r, options(nomem, nostack, preserves_flags)) };
     r
 }
@@ -71,6 +72,7 @@ pub fn read_raw() -> u32 {
 pub unsafe fn write_raw(r: u32) {
     // Ensure no preceeding memory accesses are reordered to after interrupts are possibly enabled.
     compiler_fence(Ordering::SeqCst);
+    // SAFETY: Caller guarantees that re-enabling interrupts is safe in this context (see fn-level safety doc).
     unsafe { asm!("msr PRIMASK, {}", in(reg) r, options(nomem, nostack, preserves_flags)) };
     // Ensure no subsequent memory accesses are reordered to before interrupts are possibly disabled.
     compiler_fence(Ordering::SeqCst);

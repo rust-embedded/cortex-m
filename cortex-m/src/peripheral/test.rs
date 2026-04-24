@@ -1,3 +1,7 @@
+// SAFETY for all tests in this module: The PTR constants are compile-time MMIO addresses.
+// Dereferencing them in these host-side tests only inspects the pointer arithmetic (via the
+// `address()` helper); the resulting references are never actually read through.
+
 #[test]
 fn cpuid() {
     let cpuid = unsafe { &*crate::peripheral::CPUID::PTR };

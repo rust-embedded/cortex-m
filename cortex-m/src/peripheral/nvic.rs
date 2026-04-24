@@ -100,6 +100,8 @@ impl NVIC {
     {
         let nr = interrupt.number();
 
+        // SAFETY: STIR is a write-only register; writing the interrupt number triggers
+        // the corresponding software interrupt with no read-modify-write race.
         unsafe {
             self.stir.write(u32::from(nr));
         }
@@ -112,7 +114,7 @@ impl NVIC {
         I: InterruptNumber,
     {
         let nr = interrupt.number();
-        // NOTE(unsafe) this is a write to a stateless register
+        // SAFETY: ICER is a stateless write-1-to-clear register; no read-modify-write race.
         unsafe { (*Self::PTR).icer[usize::from(nr / 32)].write(1 << (nr % 32)) }
     }
 
@@ -125,7 +127,7 @@ impl NVIC {
         I: InterruptNumber,
     {
         let nr = interrupt.number();
-        // NOTE(ptr) this is a write to a stateless register
+        // SAFETY: ISER is a stateless write-1-to-set register; no read-modify-write race.
         (*Self::PTR).iser[usize::from(nr / 32)].write(1 << (nr % 32))
     }
 
@@ -142,13 +144,13 @@ impl NVIC {
         #[cfg(not(armv6m))]
         {
             let nr = interrupt.number();
-            // NOTE(unsafe) atomic read with no side effects
+            // SAFETY: Atomic read of IPR with no side effects.
             unsafe { (*Self::PTR).ipr[usize::from(nr)].read() }
         }
 
         #[cfg(armv6m)]
         {
-            // NOTE(unsafe) atomic read with no side effects
+            // SAFETY: Atomic read of IPR with no side effects.
             let ipr_n = unsafe { (*Self::PTR).ipr[Self::ipr_index(interrupt)].read() };
             let prio = (ipr_n >> Self::ipr_shift(interrupt)) & 0x0000_00ff;
             prio as u8
@@ -165,7 +167,7 @@ impl NVIC {
         let nr = interrupt.number();
         let mask = 1 << (nr % 32);
 
-        // NOTE(unsafe) atomic read with no side effects
+        // SAFETY: Atomic read of IABR with no side effects.
         unsafe { ((*Self::PTR).iabr[usize::from(nr / 32)].read() & mask) == mask }
     }
 
@@ -178,7 +180,7 @@ impl NVIC {
         let nr = interrupt.number();
         let mask = 1 << (nr % 32);
 
-        // NOTE(unsafe) atomic read with no side effects
+        // SAFETY: Atomic read of ISER with no side effects.
         unsafe { ((*Self::PTR).iser[usize::from(nr / 32)].read() & mask) == mask }
     }
 
@@ -191,7 +193,7 @@ impl NVIC {
         let nr = interrupt.number();
         let mask = 1 << (nr % 32);
 
-        // NOTE(unsafe) atomic read with no side effects
+        // SAFETY: Atomic read of ISPR with no side effects.
         unsafe { ((*Self::PTR).ispr[usize::from(nr / 32)].read() & mask) == mask }
     }
 
@@ -203,7 +205,7 @@ impl NVIC {
     {
         let nr = interrupt.number();
 
-        // NOTE(unsafe) atomic stateless write; ICPR doesn't store any state
+        // SAFETY: ISPR is a stateless write-1-to-set register; no read-modify-write race.
         unsafe { (*Self::PTR).ispr[usize::from(nr / 32)].write(1 << (nr % 32)) }
     }
 
@@ -249,7 +251,7 @@ impl NVIC {
     {
         let nr = interrupt.number();
 
-        // NOTE(unsafe) atomic stateless write; ICPR doesn't store any state
+        // SAFETY: ICPR is a stateless write-1-to-clear register; no read-modify-write race.
         unsafe { (*Self::PTR).icpr[usize::from(nr / 32)].write(1 << (nr % 32)) }
     }
 

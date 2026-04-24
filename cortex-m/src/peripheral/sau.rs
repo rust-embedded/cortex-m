@@ -146,6 +146,7 @@ impl SAU {
     /// Enable the SAU.
     #[inline]
     pub fn enable(&mut self) {
+        // SAFETY: Read-modify-write of CTRL; &mut self guarantees exclusive access.
         unsafe {
             self.ctrl.modify(|mut ctrl| {
                 ctrl.set_enable(true);
@@ -199,6 +200,8 @@ impl SAU {
                     }
                 }
 
+                // SAFETY: Inside a critical section; all registers are written atomically
+                // with validated values. &mut self guarantees exclusive access.
                 unsafe {
                     self.rnr.write(rnr);
                     self.rbar.write(rbar);
@@ -219,6 +222,7 @@ impl SAU {
             if region_number >= self.region_numbers() {
                 Err(SauError::RegionNumberTooBig)
             } else {
+                // SAFETY: Inside a critical section; writing RNR with a validated region number.
                 unsafe {
                     self.rnr.write(Rnr(region_number.into()));
                 }

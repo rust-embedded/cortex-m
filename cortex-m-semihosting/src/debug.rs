@@ -22,8 +22,7 @@
 
 /// This values are taken from section 5.5.2 of
 /// ADS Debug Target Guide (DUI0058).
-// TODO document
-#[allow(missing_docs)]
+#[allow(missing_docs)] // Exception variant names are self-descriptive; taken from ARM ADS Debug Target Guide (DUI0058) section 5.5.2.
 pub enum Exception {
     // Hardware reason codes
     BranchThroughZero = 0x20000,
@@ -88,6 +87,8 @@ pub fn exit(status: ExitStatus) {
 ///
 pub fn report_exception(reason: Exception) {
     let code = reason as usize;
+    // SAFETY: REPORT_EXCEPTION is a valid semihosting operation; `code` is a valid
+    // exception reason constant from the ARM spec.
     unsafe {
         syscall1!(REPORT_EXCEPTION, code);
     }

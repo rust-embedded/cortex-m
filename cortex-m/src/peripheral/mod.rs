@@ -90,8 +90,8 @@ mod test;
 // NOTE the `PhantomData` used in the peripherals proxy is to make them `Send` but *not* `Sync`
 
 /// Core peripherals
-#[allow(non_snake_case)]
-#[allow(clippy::manual_non_exhaustive)]
+#[allow(non_snake_case)] // Field names match the ARM architecture register block names (e.g. NVIC, SCB).
+#[allow(clippy::manual_non_exhaustive)] // Using `_priv: ()` for non-exhaustive to support older Rust versions without #[non_exhaustive].
 pub struct Peripherals {
     /// Cortex-M7 TCM and cache access control.
     #[cfg(feature = "cm7")]
@@ -164,9 +164,12 @@ impl Peripherals {
     #[inline]
     pub fn take() -> Option<Self> {
         crate::interrupt::free(|_| {
+            // SAFETY: Access to TAKEN is serialised by the interrupt::free critical section.
             if unsafe { TAKEN } {
                 None
             } else {
+                // SAFETY: TAKEN is false and we are in a critical section, so this is the
+                // first call; steal() will set TAKEN = true.
                 Some(unsafe { Peripherals::steal() })
             }
         })
@@ -236,6 +239,8 @@ pub struct AC {
 }
 
 #[cfg(feature = "cm7")]
+// SAFETY: AC contains only a PhantomData marker; the underlying MMIO registers are
+// accessed through raw pointers that do not carry thread-safety requirements.
 unsafe impl Send for AC {}
 
 #[cfg(feature = "cm7")]
@@ -256,6 +261,7 @@ pub struct CBP {
     _marker: PhantomData<*const ()>,
 }
 
+// SAFETY: CBP contains only a PhantomData marker; all register writes are stateless.
 unsafe impl Send for CBP {}
 
 #[cfg(not(armv6m))]
@@ -284,6 +290,8 @@ impl ops::Deref for CBP {
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
+        // SAFETY: PTR points to the fixed MMIO address for this peripheral, which is always valid
+        // on targets where this code compiles (guarded by cfg).
         unsafe { &*Self::PTR }
     }
 }
@@ -293,6 +301,7 @@ pub struct CPUID {
     _marker: PhantomData<*const ()>,
 }
 
+// SAFETY: CPUID contains only a PhantomData marker; all register reads are side-effect-free.
 unsafe impl Send for CPUID {}
 
 impl CPUID {
@@ -312,6 +321,7 @@ impl ops::Deref for CPUID {
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
+        // SAFETY: PTR is a valid MMIO address for CPUID on all Cortex-M targets.
         unsafe { &*Self::PTR }
     }
 }
@@ -321,6 +331,7 @@ pub struct DCB {
     _marker: PhantomData<*const ()>,
 }
 
+// SAFETY: DCB contains only a PhantomData marker.
 unsafe impl Send for DCB {}
 
 impl DCB {
@@ -340,6 +351,7 @@ impl ops::Deref for DCB {
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
+        // SAFETY: PTR is a valid MMIO address for DCB.
         unsafe { &*DCB::PTR }
     }
 }
@@ -349,6 +361,7 @@ pub struct DWT {
     _marker: PhantomData<*const ()>,
 }
 
+// SAFETY: DWT contains only a PhantomData marker.
 unsafe impl Send for DWT {}
 
 impl DWT {
@@ -368,6 +381,7 @@ impl ops::Deref for DWT {
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
+        // SAFETY: PTR is a valid MMIO address for DWT.
         unsafe { &*Self::PTR }
     }
 }
@@ -377,6 +391,7 @@ pub struct FPB {
     _marker: PhantomData<*const ()>,
 }
 
+// SAFETY: FPB contains only a PhantomData marker.
 unsafe impl Send for FPB {}
 
 #[cfg(not(armv6m))]
@@ -398,6 +413,7 @@ impl ops::Deref for FPB {
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
+        // SAFETY: PTR is a valid MMIO address for FPB.
         unsafe { &*Self::PTR }
     }
 }
@@ -407,6 +423,7 @@ pub struct FPU {
     _marker: PhantomData<*const ()>,
 }
 
+// SAFETY: FPU contains only a PhantomData marker.
 unsafe impl Send for FPU {}
 
 #[cfg(any(has_fpu, native))]
@@ -428,6 +445,7 @@ impl ops::Deref for FPU {
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
+        // SAFETY: PTR is a valid MMIO address for FPU.
         unsafe { &*Self::PTR }
     }
 }
@@ -442,6 +460,7 @@ pub struct ICB {
     _marker: PhantomData<*const ()>,
 }
 
+// SAFETY: ICB contains only a PhantomData marker.
 unsafe impl Send for ICB {}
 
 impl ICB {
@@ -461,6 +480,7 @@ impl ops::Deref for ICB {
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
+        // SAFETY: PTR is a valid MMIO address for ICB.
         unsafe { &*Self::PTR }
     }
 }
@@ -468,6 +488,7 @@ impl ops::Deref for ICB {
 impl ops::DerefMut for ICB {
     #[inline(always)]
     fn deref_mut(&mut self) -> &mut Self::Target {
+        // SAFETY: PTR is a valid MMIO address for ICB; &mut self guarantees exclusive access.
         unsafe { &mut *Self::PTR }
     }
 }
@@ -477,6 +498,7 @@ pub struct ITM {
     _marker: PhantomData<*const ()>,
 }
 
+// SAFETY: ITM contains only a PhantomData marker.
 unsafe impl Send for ITM {}
 
 #[cfg(all(not(armv6m), not(armv8m_base)))]
@@ -498,6 +520,7 @@ impl ops::Deref for ITM {
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
+        // SAFETY: PTR is a valid MMIO address for ITM.
         unsafe { &*Self::PTR }
     }
 }
@@ -506,6 +529,7 @@ impl ops::Deref for ITM {
 impl ops::DerefMut for ITM {
     #[inline(always)]
     fn deref_mut(&mut self) -> &mut Self::Target {
+        // SAFETY: PTR is a valid MMIO address for ITM; &mut self guarantees exclusive access.
         unsafe { &mut *Self::PTR }
     }
 }
@@ -515,6 +539,7 @@ pub struct MPU {
     _marker: PhantomData<*const ()>,
 }
 
+// SAFETY: MPU contains only a PhantomData marker.
 unsafe impl Send for MPU {}
 
 impl MPU {
@@ -534,6 +559,7 @@ impl ops::Deref for MPU {
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
+        // SAFETY: PTR is a valid MMIO address for MPU.
         unsafe { &*Self::PTR }
     }
 }
@@ -543,6 +569,7 @@ pub struct NVIC {
     _marker: PhantomData<*const ()>,
 }
 
+// SAFETY: NVIC contains only a PhantomData marker.
 unsafe impl Send for NVIC {}
 
 impl NVIC {
@@ -562,6 +589,7 @@ impl ops::Deref for NVIC {
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
+        // SAFETY: PTR is a valid MMIO address for NVIC.
         unsafe { &*Self::PTR }
     }
 }
@@ -571,6 +599,7 @@ pub struct SAU {
     _marker: PhantomData<*const ()>,
 }
 
+// SAFETY: SAU contains only a PhantomData marker.
 unsafe impl Send for SAU {}
 
 #[cfg(armv8m)]
@@ -592,6 +621,7 @@ impl ops::Deref for SAU {
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
+        // SAFETY: PTR is a valid MMIO address for SAU.
         unsafe { &*Self::PTR }
     }
 }
@@ -601,6 +631,7 @@ pub struct SCB {
     _marker: PhantomData<*const ()>,
 }
 
+// SAFETY: SCB contains only a PhantomData marker.
 unsafe impl Send for SCB {}
 
 impl SCB {
@@ -620,6 +651,7 @@ impl ops::Deref for SCB {
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
+        // SAFETY: PTR is a valid MMIO address for SCB.
         unsafe { &*Self::PTR }
     }
 }
@@ -629,6 +661,7 @@ pub struct SYST {
     _marker: PhantomData<*const ()>,
 }
 
+// SAFETY: SYST contains only a PhantomData marker.
 unsafe impl Send for SYST {}
 
 impl SYST {
@@ -648,6 +681,7 @@ impl ops::Deref for SYST {
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
+        // SAFETY: PTR is a valid MMIO address for SYST.
         unsafe { &*Self::PTR }
     }
 }
@@ -657,6 +691,7 @@ pub struct TPIU {
     _marker: PhantomData<*const ()>,
 }
 
+// SAFETY: TPIU contains only a PhantomData marker.
 unsafe impl Send for TPIU {}
 
 #[cfg(not(armv6m))]
@@ -678,6 +713,7 @@ impl ops::Deref for TPIU {
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
+        // SAFETY: PTR is a valid MMIO address for TPIU.
         unsafe { &*Self::PTR }
     }
 }

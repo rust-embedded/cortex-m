@@ -47,6 +47,8 @@ use cortex_m::peripheral::ITM;
 fn panic(info: &PanicInfo) -> ! {
     interrupt::disable();
 
+    // SAFETY: We are in a panic handler with interrupts disabled, so exclusive access to
+    // the ITM peripheral is guaranteed.
     let itm = unsafe { &mut *ITM::PTR };
     let stim = &mut itm.stim[0];
 

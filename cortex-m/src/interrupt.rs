@@ -26,8 +26,8 @@ pub unsafe trait InterruptNumber: Copy {
     fn number(self) -> u16;
 }
 
-/// Implement InterruptNumber for the old bare_metal::Nr trait.
-/// This implementation is for backwards compatibility only and will be removed in cortex-m 0.8.
+// Implement InterruptNumber for the old bare_metal::Nr trait.
+// This implementation is for backwards compatibility only and will be removed in cortex-m 0.8.
 //#[cfg(not(feature = "certified_subset"))]
 //unsafe impl<T: Nr + Copy> InterruptNumber for T {
 //    #[inline]
@@ -69,8 +69,12 @@ where
     // disable interrupts
     disable();
 
+    // SAFETY: Interrupts were just disabled above via `disable()`, so we are in a valid
+    // critical section. Creating the token is sound.
     let r = f(unsafe { &CriticalSection::new() });
 
+    // SAFETY: Restoring PRIMASK to the value captured before `disable()` re-enables
+    // interrupts only if they were enabled before entering this critical section.
     unsafe {
         crate::register::primask::write_raw(primask);
     }

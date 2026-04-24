@@ -937,7 +937,7 @@ pub static __ONCE__: () = ();
 /// Registers stacked (pushed onto the stack) during an exception.
 #[derive(Clone, Copy)]
 #[repr(C)]
-#[allow(dead_code)]
+#[allow(dead_code)] // Fields are populated by hardware during exception entry, not by Rust code.
 pub struct ExceptionFrame {
     r0: u32,
     r1: u32,
@@ -1118,7 +1118,9 @@ pub fn heap_start() -> *mut u32 {
         static mut __sheap: u32;
     }
 
-    #[allow(unused_unsafe)] // no longer unsafe since rust 1.82.0
+    #[allow(unused_unsafe)] // addr_of_mut! on a static is no longer unsafe since Rust 1.82.0, but kept for MSRV compatibility.
+    // SAFETY: __sheap is defined by the linker script and guaranteed to be a valid, 4-byte
+    // aligned symbol marking the start of the heap region.
     unsafe {
         core::ptr::addr_of_mut!(__sheap)
     }
@@ -1134,14 +1136,14 @@ pub static __RESET_VECTOR: unsafe extern "C" fn() -> ! = Reset;
 #[cfg_attr(cortex_m, link_section = ".HardFault.default")]
 #[no_mangle]
 pub unsafe extern "C" fn HardFault_() -> ! {
-    #[allow(clippy::empty_loop)]
+    #[allow(clippy::empty_loop)] // Intentional infinite loop: default HardFault handler halts the processor.
     loop {}
 }
 
 #[doc(hidden)]
 #[no_mangle]
 pub unsafe extern "C" fn DefaultHandler_() -> ! {
-    #[allow(clippy::empty_loop)]
+    #[allow(clippy::empty_loop)] // Intentional infinite loop: default handler halts the processor on unhandled exceptions.
     loop {}
 }
 

@@ -73,10 +73,9 @@
 
 #![deny(missing_docs)]
 #![no_std]
-#![allow(clippy::identity_op)]
-#![allow(clippy::missing_safety_doc)]
-// Prevent clippy from complaining about empty match expression that are used for cfg gating.
-#![allow(clippy::match_single_binding)]
+#![allow(clippy::identity_op)] // Bit operations like `1 << 0` are used for clarity to match the hardware reference manual.
+#![allow(clippy::missing_safety_doc)] // Safety docs are provided at the module/crate level; per-function docs would be redundant for thin asm wrappers.
+#![allow(clippy::match_single_binding)] // Empty match expressions are used for cfg gating across feature/target combinations.
 // This makes clippy warn about public functions which are not #[inline].
 //
 // Almost all functions in this crate result in trivial or even no assembly.
@@ -91,8 +90,7 @@
 //  - A generated #[derive(Debug)] function (in which case the attribute needs
 //    to be applied to the struct).
 #![deny(clippy::missing_inline_in_public_items)]
-// Don't warn about feature(asm) being stable on Rust >= 1.59.0
-#![allow(stable_features)]
+#![allow(stable_features)] // feature(asm) is stable since Rust 1.59 but the attribute is kept for MSRV compatibility.
 
 extern crate bare_metal;
 extern crate volatile_register;

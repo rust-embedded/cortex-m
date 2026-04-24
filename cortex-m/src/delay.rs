@@ -36,7 +36,7 @@ impl Delay {
     }
 
     /// Delay using the Cortex-M systick for a certain duration, in µs.
-    #[allow(clippy::missing_inline_in_public_items)]
+    #[allow(clippy::missing_inline_in_public_items)] // Contains non-trivial loop and timer logic; inlining would bloat callers.
     pub fn delay_us(&mut self, us: u32) {
         let ticks = (u64::from(us)) * (u64::from(self.frequency)) / 1_000_000;
 
@@ -82,7 +82,7 @@ impl Delay {
 //    }
 //}
 
-//// This is a workaround to allow `delay_ms(42)` construction without specifying a type.
+// This is a workaround to allow `delay_ms(42)` construction without specifying a type.
 //impl eh0::blocking::delay::DelayMs<i32> for Delay {
 //    #[inline(always)]
 //    fn delay_ms(&mut self, ms: i32) {
@@ -112,7 +112,7 @@ impl Delay {
 //    }
 //}
 
-//// This is a workaround to allow `delay_us(42)` construction without specifying a type.
+// This is a workaround to allow `delay_us(42)` construction without specifying a type.
 //impl eh0::blocking::delay::DelayUs<i32> for Delay {
 //    #[inline(always)]
 //    fn delay_us(&mut self, us: i32) {

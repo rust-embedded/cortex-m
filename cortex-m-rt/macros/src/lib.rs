@@ -191,6 +191,8 @@ impl Parse for HardFaultArgs {
     }
 }
 
+#[allow(clippy::too_many_lines)] // Proc-macro attribute handler; splitting would obscure the sequential validation logic.
+#[allow(clippy::cognitive_complexity)] // Inherent complexity from exhaustive exception-name matching and validation.
 #[proc_macro_attribute]
 pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
     let mut f = parse_macro_input!(input as ItemFn);

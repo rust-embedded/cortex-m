@@ -137,7 +137,7 @@ impl SCB {
     /// Gets FPU access mode
     #[inline]
     pub fn fpu_access_mode() -> FpuAccessMode {
-        // NOTE(unsafe) atomic read operation with no side effects
+        // SAFETY: Atomic read of the CPACR register with no side effects.
         let cpacr = unsafe { (*Self::PTR).cpacr.read() };
 
         if cpacr & SCB_CPACR_FPU_MASK == SCB_CPACR_FPU_ENABLE | SCB_CPACR_FPU_USER {
@@ -163,6 +163,7 @@ impl SCB {
             FpuAccessMode::Privileged => cpacr |= SCB_CPACR_FPU_ENABLE,
             FpuAccessMode::Enabled => cpacr |= SCB_CPACR_FPU_ENABLE | SCB_CPACR_FPU_USER,
         }
+        // SAFETY: Writing CPACR with a read-modify-write; &mut self guarantees exclusive access.
         unsafe { self.cpacr.write(cpacr) }
     }
 }
@@ -171,9 +172,11 @@ impl SCB {
     /// Returns the active exception number
     #[inline]
     pub fn vect_active() -> VectActive {
+        // SAFETY: Atomic read of the ICSR register with no side effects.
         let icsr = unsafe { ptr::read(&(*SCB::PTR).icsr as *const _ as *const u32) };
 
-        // NOTE(unsafe): Assume correctly selected target.
+        // SAFETY: The low 8 bits of ICSR always encode a valid VectActive variant on
+        // correctly selected Cortex-M targets.
         unsafe { VectActive::from(icsr as u8).unwrap_unchecked() }
     }
 }
@@ -313,21 +316,17 @@ impl SCB {
             return;
         }
 
-        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
+        // SAFETY: No races as all CBP registers are write-only and stateless.
         let mut cbp = unsafe { CBP::new() };
 
-        // Invalidate I-cache
         cbp.iciallu();
 
-        // Enable I-cache
         extern "C" {
-            // see asm-v7m.s
             fn __enable_icache();
         }
 
-        // NOTE(unsafe): The asm routine manages exclusive access to the SCB
-        // registers and applies the proper barriers; it is technically safe on
-        // its own, and is only `unsafe` here because it's `extern "C"`.
+        // SAFETY: The asm routine manages exclusive access to the SCB registers and
+        // applies the proper barriers; it is only `unsafe` because it is `extern "C"`.
         unsafe {
             __enable_icache();
         }
@@ -343,11 +342,10 @@ impl SCB {
             return;
         }
 
-        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
+        // SAFETY: No races as all CBP registers are write-only and stateless.
         let mut cbp = unsafe { CBP::new() };
 
-        // Disable I-cache
-        // NOTE(unsafe): We have synchronised access by &mut self
+        // SAFETY: We have exclusive access via &mut self.
         unsafe { self.ccr.modify(|r| r & !SCB_CCR_IC_MASK) };
 
         // Invalidate I-cache
@@ -363,17 +361,16 @@ impl SCB {
         crate::asm::dsb();
         crate::asm::isb();
 
-        // NOTE(unsafe): atomic read with no side effects
+        // SAFETY: Atomic read of CCR with no side effects.
         unsafe { (*Self::PTR).ccr.read() & SCB_CCR_IC_MASK == SCB_CCR_IC_MASK }
     }
 
     /// Invalidates the entire I-cache.
     #[inline]
     pub fn invalidate_icache(&mut self) {
-        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
+        // SAFETY: No races as all CBP registers are write-only and stateless.
         let mut cbp = unsafe { CBP::new() };
 
-        // Invalidate I-cache
         cbp.iciallu();
 
         crate::asm::dsb();
@@ -391,18 +388,15 @@ impl SCB {
             return;
         }
 
-        // Invalidate anything currently in the D-cache
+        // SAFETY: D-cache is currently disabled (checked above), so invalidation is safe.
         unsafe { self.invalidate_dcache(cpuid) };
 
-        // Now turn on the D-cache
         extern "C" {
-            // see asm-v7m.s
             fn __enable_dcache();
         }
 
-        // NOTE(unsafe): The asm routine manages exclusive access to the SCB
-        // registers and applies the proper barriers; it is technically safe on
-        // its own, and is only `unsafe` here because it's `extern "C"`.
+        // SAFETY: The asm routine manages exclusive access to the SCB registers and
+        // applies the proper barriers; it is only `unsafe` because it is `extern "C"`.
         unsafe {
             __enable_dcache();
         }
@@ -419,8 +413,7 @@ impl SCB {
             return;
         }
 
-        // Turn off the D-cache
-        // NOTE(unsafe): We have synchronised access by &mut self
+        // SAFETY: We have exclusive access via &mut self.
         unsafe { self.ccr.modify(|r| r & !SCB_CCR_DC_MASK) };
 
         // Clean and invalidate whatever was left in it
@@ -433,7 +426,7 @@ impl SCB {
         crate::asm::dsb();
         crate::asm::isb();
 
-        // NOTE(unsafe) atomic read with no side effects
+        // SAFETY: Atomic read of CCR with no side effects.
         unsafe { (*Self::PTR).ccr.read() & SCB_CCR_DC_MASK == SCB_CCR_DC_MASK }
     }
 
@@ -445,7 +438,7 @@ impl SCB {
     /// It's used immediately before enabling the dcache, but not exported publicly.
     #[inline]
     unsafe fn invalidate_dcache(&mut self, cpuid: &mut CPUID) {
-        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
+        // SAFETY: No races as all CBP registers are write-only and stateless.
         let mut cbp = CBP::new();
 
         // Read number of sets and ways
@@ -468,10 +461,9 @@ impl SCB {
     /// overwriting whatever is already there.
     #[inline]
     pub fn clean_dcache(&mut self, cpuid: &mut CPUID) {
-        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
+        // SAFETY: No races as all CBP registers are write-only and stateless.
         let mut cbp = unsafe { CBP::new() };
 
-        // Read number of sets and ways
         let (sets, ways) = cpuid.cache_num_sets_ways(0, CsselrCacheType::DataOrUnified);
 
         for set in 0..sets {
@@ -491,10 +483,9 @@ impl SCB {
     /// from main memory.
     #[inline]
     pub fn clean_invalidate_dcache(&mut self, cpuid: &mut CPUID) {
-        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
+        // SAFETY: No races as all CBP registers are write-only and stateless.
         let mut cbp = unsafe { CBP::new() };
 
-        // Read number of sets and ways
         let (sets, ways) = cpuid.cache_num_sets_ways(0, CsselrCacheType::DataOrUnified);
 
         for set in 0..sets {
@@ -548,7 +539,7 @@ impl SCB {
             return;
         }
 
-        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
+        // SAFETY: No races as all CBP registers are write-only and stateless.
         let mut cbp = CBP::new();
 
         // dminline is log2(num words), so 2**dminline * 4 gives size in bytes
@@ -680,7 +671,7 @@ impl SCB {
             return;
         }
 
-        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
+        // SAFETY: No races as all CBP registers are write-only and stateless.
         let mut cbp = unsafe { CBP::new() };
 
         crate::asm::dsb();
@@ -756,7 +747,7 @@ impl SCB {
             return;
         }
 
-        // NOTE(unsafe): No races as all CBP registers are write-only and stateless
+        // SAFETY: No races as all CBP registers are write-only and stateless.
         let mut cbp = unsafe { CBP::new() };
 
         crate::asm::dsb();
@@ -783,6 +774,7 @@ impl SCB {
     /// Set the SLEEPDEEP bit in the SCR register
     #[inline]
     pub fn set_sleepdeep(&mut self) {
+        // SAFETY: Read-modify-write of SCR; &mut self guarantees exclusive access.
         unsafe {
             self.scr.modify(|scr| scr | SCB_SCR_SLEEPDEEP);
         }
@@ -791,6 +783,7 @@ impl SCB {
     /// Clear the SLEEPDEEP bit in the SCR register
     #[inline]
     pub fn clear_sleepdeep(&mut self) {
+        // SAFETY: Read-modify-write of SCR; &mut self guarantees exclusive access.
         unsafe {
             self.scr.modify(|scr| scr & !SCB_SCR_SLEEPDEEP);
         }
@@ -803,6 +796,7 @@ impl SCB {
     /// Set the SLEEPONEXIT bit in the SCR register
     #[inline]
     pub fn set_sleeponexit(&mut self) {
+        // SAFETY: Read-modify-write of SCR; &mut self guarantees exclusive access.
         unsafe {
             self.scr.modify(|scr| scr | SCB_SCR_SLEEPONEXIT);
         }
@@ -811,6 +805,7 @@ impl SCB {
     /// Clear the SLEEPONEXIT bit in the SCR register
     #[inline]
     pub fn clear_sleeponexit(&mut self) {
+        // SAFETY: Read-modify-write of SCR; &mut self guarantees exclusive access.
         unsafe {
             self.scr.modify(|scr| scr & !SCB_SCR_SLEEPONEXIT);
         }
@@ -823,6 +818,7 @@ impl SCB {
     /// Set the SEVONPEND bit in the SCR register
     #[inline]
     pub fn set_sevonpend(&mut self) {
+        // SAFETY: Read-modify-write of SCR; &mut self guarantees exclusive access.
         unsafe {
             self.scr.modify(|scr| scr | SCB_SCR_SEVONPEND);
         }
@@ -831,6 +827,7 @@ impl SCB {
     /// Clear the SEVONPEND bit in the SCR register
     #[inline]
     pub fn clear_sevonpend(&mut self) {
+        // SAFETY: Read-modify-write of SCR; &mut self guarantees exclusive access.
         unsafe {
             self.scr.modify(|scr| scr & !SCB_SCR_SEVONPEND);
         }
@@ -846,6 +843,8 @@ impl SCB {
     #[inline]
     pub fn sys_reset() -> ! {
         crate::asm::dsb();
+        // SAFETY: AIRCR write with VECTKEY is required to initiate a system reset.
+        // This is a one-shot stateless write to a write-only effective field.
         unsafe {
             (*Self::PTR).aircr.modify(
                 |r| {
@@ -873,6 +872,7 @@ impl SCB {
     /// Set the PENDSVSET bit in the ICSR register which will pend the PendSV interrupt
     #[inline]
     pub fn set_pendsv() {
+        // SAFETY: Write to ICSR is stateless (write-1-to-set bit); no read-modify-write race.
         unsafe {
             (*Self::PTR).icsr.write(SCB_ICSR_PENDSVSET);
         }
@@ -881,12 +881,14 @@ impl SCB {
     /// Check if PENDSVSET bit in the ICSR register is set meaning PendSV interrupt is pending
     #[inline]
     pub fn is_pendsv_pending() -> bool {
+        // SAFETY: Atomic read of ICSR with no side effects.
         unsafe { (*Self::PTR).icsr.read() & SCB_ICSR_PENDSVSET == SCB_ICSR_PENDSVSET }
     }
 
     /// Set the PENDSVCLR bit in the ICSR register which will clear a pending PendSV interrupt
     #[inline]
     pub fn clear_pendsv() {
+        // SAFETY: Write to ICSR is stateless (write-1-to-clear bit); no read-modify-write race.
         unsafe {
             (*Self::PTR).icsr.write(SCB_ICSR_PENDSVCLR);
         }
@@ -895,6 +897,7 @@ impl SCB {
     /// Set the PENDSTSET bit in the ICSR register which will pend a SysTick interrupt
     #[inline]
     pub fn set_pendst() {
+        // SAFETY: Write to ICSR is stateless (write-1-to-set bit); no read-modify-write race.
         unsafe {
             (*Self::PTR).icsr.write(SCB_ICSR_PENDSTSET);
         }
@@ -903,12 +906,14 @@ impl SCB {
     /// Check if PENDSTSET bit in the ICSR register is set meaning SysTick interrupt is pending
     #[inline]
     pub fn is_pendst_pending() -> bool {
+        // SAFETY: Atomic read of ICSR with no side effects.
         unsafe { (*Self::PTR).icsr.read() & SCB_ICSR_PENDSTSET == SCB_ICSR_PENDSTSET }
     }
 
     /// Set the PENDSTCLR bit in the ICSR register which will clear a pending SysTick interrupt
     #[inline]
     pub fn clear_pendst() {
+        // SAFETY: Write to ICSR is stateless (write-1-to-clear bit); no read-modify-write race.
         unsafe {
             (*Self::PTR).icsr.write(SCB_ICSR_PENDSTCLR);
         }
@@ -965,8 +970,8 @@ impl SCB {
         {
             // NOTE(unsafe) atomic read with no side effects
 
-            // NOTE(unsafe): Index is bounded to [4,15] by SystemHandler design.
-            // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
+            // SAFETY: Index is bounded to [4,15] by the SystemHandler enum variants,
+            // so `index - 4` is in [0,11] — within the 12-element shpr array.
             let priority_ref = unsafe { (*Self::PTR).shpr.get_unchecked(usize::from(index - 4)) };
 
             priority_ref.read()
@@ -976,8 +981,8 @@ impl SCB {
         {
             // NOTE(unsafe) atomic read with no side effects
 
-            // NOTE(unsafe): Index is bounded to [11,15] by SystemHandler design.
-            // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
+            // SAFETY: Index is bounded to [11,15] by the ARMv6-M SystemHandler variants,
+            // so `(index - 8) / 4` is in [0,1] — within the 2-element shpr array.
             let priority_ref = unsafe {
                 (*Self::PTR)
                     .shpr
@@ -1008,8 +1013,8 @@ impl SCB {
 
         #[cfg(not(armv6m))]
         {
-            // NOTE(unsafe): Index is bounded to [4,15] by SystemHandler design.
-            // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
+            // SAFETY: Index is bounded to [4,15] by SystemHandler design,
+            // so `index - 4` is in [0,11] — within the 12-element shpr array.
             let priority_ref = (*Self::PTR).shpr.get_unchecked(usize::from(index - 4));
 
             priority_ref.write(prio)
@@ -1017,8 +1022,8 @@ impl SCB {
 
         #[cfg(armv6m)]
         {
-            // NOTE(unsafe): Index is bounded to [11,15] by SystemHandler design.
-            // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
+            // SAFETY: Index is bounded to [11,15] by the ARMv6-M SystemHandler variants,
+            // so `(index - 8) / 4` is in [0,1] — within the 2-element shpr array.
             let priority_ref = (*Self::PTR)
                 .shpr
                 .get_unchecked(usize::from((index - 8) / 4));
@@ -1064,6 +1069,7 @@ impl SCB {
         if let Some(shift) = SCB::shcsr_enable_shift(exception) {
             // The mutable reference to SCB makes sure that only this code is currently modifying
             // the register.
+            // SAFETY: &mut self guarantees exclusive access to SHCSR.
             unsafe { self.shcsr.modify(|value| value | (1 << shift)) }
         }
     }
@@ -1085,6 +1091,7 @@ impl SCB {
         if let Some(shift) = SCB::shcsr_enable_shift(exception) {
             // The mutable reference to SCB makes sure that only this code is currently modifying
             // the register.
+            // SAFETY: &mut self guarantees exclusive access to SHCSR.
             unsafe { self.shcsr.modify(|value| value & !(1 << shift)) }
         }
     }

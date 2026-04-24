@@ -13,6 +13,7 @@ pub fn tests(args: TokenStream, input: TokenStream) -> TokenStream {
     }
 }
 
+#[allow(clippy::too_many_lines)] // Proc-macro expansion logic is inherently sequential; splitting would reduce readability.
 fn tests_impl(args: TokenStream, input: TokenStream) -> parse::Result<TokenStream> {
     if !args.is_empty() {
         return Err(parse::Error::new(

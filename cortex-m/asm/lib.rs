@@ -34,8 +34,7 @@
 #![no_std]
 #![crate_type = "staticlib"]
 #![deny(warnings)]
-// Don't warn about feature(asm) being stable on Rust >= 1.59.0
-#![allow(stable_features)]
+#![allow(stable_features)] // feature(asm) is stable since Rust 1.59 but the attribute is kept for toolchain compatibility.
 
 mod inline;
 
@@ -137,6 +136,8 @@ fn panic(_: &core::panic::PanicInfo) -> ! {
         fn __cortex_m_should_not_panic() -> !;
     }
 
+    // SAFETY: This function is never actually called — if the panic handler is linked in,
+    // the unresolvable symbol causes a linker error, proving no panic path exists.
     unsafe {
         __cortex_m_should_not_panic();
     }

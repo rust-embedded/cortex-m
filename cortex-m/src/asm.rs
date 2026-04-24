@@ -104,8 +104,7 @@ pub fn dmb() {
 /// Armv8-M Architecture Reference Manual).
 #[inline]
 #[cfg(armv8m)]
-// The __tt function does not dereference the pointer received.
-#[allow(clippy::not_unsafe_ptr_arg_deref)]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] // The pointer is cast to u32 and passed as an integer operand to the TT instruction; it is never dereferenced.
 pub fn tt(addr: *mut u32) -> u32 {
     let addr = addr as u32;
     call_asm!(__tt(addr: u32) -> u32)
@@ -119,8 +118,7 @@ pub fn tt(addr: *mut u32) -> u32 {
 /// Armv8-M Architecture Reference Manual).
 #[inline]
 #[cfg(armv8m)]
-// The __ttt function does not dereference the pointer received.
-#[allow(clippy::not_unsafe_ptr_arg_deref)]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] // The pointer is cast to u32 and passed as an integer operand to the TTT instruction; it is never dereferenced.
 pub fn ttt(addr: *mut u32) -> u32 {
     let addr = addr as u32;
     call_asm!(__ttt(addr: u32) -> u32)
@@ -135,8 +133,7 @@ pub fn ttt(addr: *mut u32) -> u32 {
 /// Armv8-M Architecture Reference Manual).
 #[inline]
 #[cfg(armv8m)]
-// The __tta function does not dereference the pointer received.
-#[allow(clippy::not_unsafe_ptr_arg_deref)]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] // The pointer is cast to u32 and passed as an integer operand to the TTA instruction; it is never dereferenced.
 pub fn tta(addr: *mut u32) -> u32 {
     let addr = addr as u32;
     call_asm!(__tta(addr: u32) -> u32)
@@ -151,8 +148,7 @@ pub fn tta(addr: *mut u32) -> u32 {
 /// Armv8-M Architecture Reference Manual).
 #[inline]
 #[cfg(armv8m)]
-// The __ttat function does not dereference the pointer received.
-#[allow(clippy::not_unsafe_ptr_arg_deref)]
+#[allow(clippy::not_unsafe_ptr_arg_deref)] // The pointer is cast to u32 and passed as an integer operand to the TTAT instruction; it is never dereferenced.
 pub fn ttat(addr: *mut u32) -> u32 {
     let addr = addr as u32;
     call_asm!(__ttat(addr: u32) -> u32)
@@ -202,6 +198,9 @@ pub unsafe fn enter_unprivileged_psp(psp: *const u32, entry: extern "C" fn() -> 
             .with_spsel(Spsel::Psp)
             .bits()
     };
+    // SAFETY: Caller guarantees `psp` points to valid, 8-byte aligned stack memory and
+    // `entry` points to valid executable code. The asm block sets PSP, updates CONTROL,
+    // issues ISB, and branches — all valid privileged operations with the given constraints.
     unsafe {
         core::arch::asm!(
             "msr     PSP, {psp}",
@@ -244,6 +243,8 @@ pub unsafe fn enter_privileged_psp(psp: *const u32, entry: extern "C" fn() -> !)
             .with_spsel(Spsel::Psp)
             .bits()
     };
+    // SAFETY: Same as enter_unprivileged_psp — caller guarantees valid stack and entry
+    // pointers. The only difference is CONTROL.nPRIV stays Privileged.
     unsafe {
         core::arch::asm!(
             "msr     PSP, {psp}",

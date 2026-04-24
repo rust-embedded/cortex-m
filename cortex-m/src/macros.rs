@@ -73,14 +73,18 @@ macro_rules! singleton {
             static mut $name: (::core::mem::MaybeUninit<$ty>, bool) =
                 (::core::mem::MaybeUninit::uninit(), false);
 
-            #[allow(unsafe_code)]
+            #[allow(unsafe_code)] // Required to access the static mut; guarded by the enclosing critical section.
+            // SAFETY: Access is serialised by the critical_section::with closure — no
+            // concurrent access is possible.
             let used = unsafe { $name.1 };
             if used {
                 None
             } else {
                 let expr = $expr;
 
-                #[allow(unsafe_code)]
+                #[allow(unsafe_code)] // Required to mutate the static mut; guarded by the enclosing critical section.
+                // SAFETY: We are inside a critical section and checked `used` is false above,
+                // so this is the first and only write. The MaybeUninit is initialised here.
                 unsafe {
                     $name.1 = true;
                     Some($name.0.write(expr))
@@ -101,7 +105,7 @@ macro_rules! singleton {
 ///     singleton!(: u8 = std::mem::uninitialized());
 /// }
 /// ```
-#[allow(dead_code)]
+#[allow(dead_code)] // This constant exists solely to host the compile_fail doctest above.
 const CFAIL: () = ();
 
 /// ```
@@ -113,7 +117,7 @@ const CFAIL: () = ();
 ///     singleton!(: u8 = 0);
 /// }
 /// ```
-#[allow(dead_code)]
+#[allow(dead_code)] // This constant exists solely to host the compile-pass doctest above.
 const CPASS: () = ();
 
 /// ```
@@ -125,5 +129,5 @@ const CPASS: () = ();
 ///     singleton!(#[link_section = ".bss"]: u8 = 1);
 /// }
 /// ```
-#[allow(dead_code)]
+#[allow(dead_code)] // This constant exists solely to host the compile-pass doctest above.
 const CPASS_ATTR: () = ();

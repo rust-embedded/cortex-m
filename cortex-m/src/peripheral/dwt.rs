@@ -76,7 +76,7 @@ impl DWT {
     /// A value of zero indicates no comparator support.
     #[inline]
     pub fn num_comp() -> u8 {
-        // NOTE(unsafe) atomic read with no side effects
+        // SAFETY: Atomic read of the CTRL register with no side effects.
         unsafe { ((*Self::PTR).ctrl.read() >> NUMCOMP_OFFSET) as u8 }
     }
 
@@ -84,7 +84,7 @@ impl DWT {
     #[cfg(not(armv6m))]
     #[inline]
     pub fn has_exception_trace() -> bool {
-        // NOTE(unsafe) atomic read with no side effects
+        // SAFETY: Atomic read of the CTRL register with no side effects.
         unsafe { (*Self::PTR).ctrl.read() & NOTRCPKT == 0 }
     }
 
@@ -92,7 +92,7 @@ impl DWT {
     #[cfg(not(armv6m))]
     #[inline]
     pub fn has_external_match() -> bool {
-        // NOTE(unsafe) atomic read with no side effects
+        // SAFETY: Atomic read of the CTRL register with no side effects.
         unsafe { (*Self::PTR).ctrl.read() & NOEXTTRIG == 0 }
     }
 
@@ -100,7 +100,7 @@ impl DWT {
     #[cfg(not(armv6m))]
     #[inline]
     pub fn has_cycle_counter() -> bool {
-        // NOTE(unsafe) atomic read with no side effects
+        // SAFETY: Atomic read of the CTRL register with no side effects.
         unsafe { (*Self::PTR).ctrl.read() & NOCYCCNT == 0 }
     }
 
@@ -108,7 +108,7 @@ impl DWT {
     #[cfg(not(armv6m))]
     #[inline]
     pub fn has_profiling_counter() -> bool {
-        // NOTE(unsafe) atomic read with no side effects
+        // SAFETY: Atomic read of the CTRL register with no side effects.
         unsafe { (*Self::PTR).ctrl.read() & NOPRFCNT == 0 }
     }
 
@@ -123,6 +123,7 @@ impl DWT {
     #[cfg(not(armv6m))]
     #[inline]
     pub fn enable_cycle_counter(&mut self) {
+        // SAFETY: Read-modify-write of CTRL; &mut self guarantees exclusive access.
         unsafe { self.ctrl.modify(|r| r | CYCCNTENA) }
     }
 
@@ -130,6 +131,7 @@ impl DWT {
     #[cfg(not(armv6m))]
     #[inline]
     pub fn disable_cycle_counter(&mut self) {
+        // SAFETY: Read-modify-write of CTRL; &mut self guarantees exclusive access.
         unsafe { self.ctrl.modify(|r| r & !CYCCNTENA) }
     }
 
@@ -137,7 +139,7 @@ impl DWT {
     #[cfg(not(armv6m))]
     #[inline]
     pub fn cycle_counter_enabled() -> bool {
-        // NOTE(unsafe) atomic read with no side effects
+        // SAFETY: Atomic read of the CTRL register with no side effects.
         unsafe { (*Self::PTR).ctrl.read() & CYCCNTENA != 0 }
     }
 
@@ -156,7 +158,7 @@ impl DWT {
     #[cfg(not(armv6m))]
     #[inline]
     pub fn cycle_count() -> u32 {
-        // NOTE(unsafe) atomic read with no side effects
+        // SAFETY: Atomic read of the CYCCNT register with no side effects.
         unsafe { (*Self::PTR).cyccnt.read() }
     }
 
@@ -164,6 +166,7 @@ impl DWT {
     #[cfg(not(armv6m))]
     #[inline]
     pub fn set_cycle_count(&mut self, count: u32) {
+        // SAFETY: Write to CYCCNT; &mut self guarantees exclusive access.
         unsafe { self.cyccnt.write(count) }
     }
 
@@ -173,7 +176,7 @@ impl DWT {
     #[cfg(not(armv6m))]
     #[inline]
     pub fn unlock() {
-        // NOTE(unsafe) atomic write to a stateless, write-only register
+        // SAFETY: Atomic write to a stateless, write-only LAR register.
         unsafe { (*Self::PTR).lar.write(0xC5AC_CE55) }
     }
 
@@ -187,7 +190,7 @@ impl DWT {
     #[cfg(not(armv6m))]
     #[inline]
     pub fn cpi_count() -> u8 {
-        // NOTE(unsafe) atomic read with no side effects
+        // SAFETY: Atomic read of the CPICNT register with no side effects.
         unsafe { (*Self::PTR).cpicnt.read() as u8 }
     }
 
@@ -195,6 +198,7 @@ impl DWT {
     #[cfg(not(armv6m))]
     #[inline]
     pub fn set_cpi_count(&mut self, count: u8) {
+        // SAFETY: Write to CPICNT; &mut self guarantees exclusive access.
         unsafe { self.cpicnt.write(count as u32) }
     }
 
@@ -202,7 +206,7 @@ impl DWT {
     #[cfg(not(armv6m))]
     #[inline]
     pub fn exception_count() -> u8 {
-        // NOTE(unsafe) atomic read with no side effects
+        // SAFETY: Atomic read of the EXCCNT register with no side effects.
         unsafe { (*Self::PTR).exccnt.read() as u8 }
     }
 
@@ -210,6 +214,7 @@ impl DWT {
     #[cfg(not(armv6m))]
     #[inline]
     pub fn set_exception_count(&mut self, count: u8) {
+        // SAFETY: Write to EXCCNT; &mut self guarantees exclusive access.
         unsafe { self.exccnt.write(count as u32) }
     }
 
@@ -223,7 +228,7 @@ impl DWT {
     #[cfg(not(armv6m))]
     #[inline]
     pub fn sleep_count() -> u8 {
-        // NOTE(unsafe) atomic read with no side effects
+        // SAFETY: Atomic read of the SLEEPCNT register with no side effects.
         unsafe { (*Self::PTR).sleepcnt.read() as u8 }
     }
 
@@ -231,6 +236,7 @@ impl DWT {
     #[cfg(not(armv6m))]
     #[inline]
     pub fn set_sleep_count(&mut self, count: u8) {
+        // SAFETY: Write to SLEEPCNT; &mut self guarantees exclusive access.
         unsafe { self.sleepcnt.write(count as u32) }
     }
 
@@ -238,7 +244,7 @@ impl DWT {
     #[cfg(not(armv6m))]
     #[inline]
     pub fn lsu_count() -> u8 {
-        // NOTE(unsafe) atomic read with no side effects
+        // SAFETY: Atomic read of the LSUCNT register with no side effects.
         unsafe { (*Self::PTR).lsucnt.read() as u8 }
     }
 
@@ -246,6 +252,7 @@ impl DWT {
     #[cfg(not(armv6m))]
     #[inline]
     pub fn set_lsu_count(&mut self, count: u8) {
+        // SAFETY: Write to LSUCNT; &mut self guarantees exclusive access.
         unsafe { self.lsucnt.write(count as u32) }
     }
 
@@ -255,7 +262,7 @@ impl DWT {
     #[cfg(not(armv6m))]
     #[inline]
     pub fn fold_count() -> u8 {
-        // NOTE(unsafe) atomic read with no side effects
+        // SAFETY: Atomic read of the FOLDCNT register with no side effects.
         unsafe { (*Self::PTR).foldcnt.read() as u8 }
     }
 
@@ -263,6 +270,7 @@ impl DWT {
     #[cfg(not(armv6m))]
     #[inline]
     pub fn set_fold_count(&mut self, count: u8) {
+        // SAFETY: Write to FOLDCNT; &mut self guarantees exclusive access.
         unsafe { self.foldcnt.write(count as u32) }
     }
 }

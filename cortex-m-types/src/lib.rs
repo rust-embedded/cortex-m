@@ -134,6 +134,7 @@ mod test {
         H2 = 2,
     }
 
+    // SAFETY: Test-only enum; all variants are distinct, constant, and within MAX_EXCEPTION_NUMBER.
     unsafe impl ExceptionNumber for Exception {
         const MAX_EXCEPTION_NUMBER: usize = Self::E3 as usize;
 
@@ -152,6 +153,7 @@ mod test {
         }
     }
 
+    // SAFETY: Test-only enum; all variants are distinct, constant, and within MAX_INTERRUPT_NUMBER.
     unsafe impl InterruptNumber for Interrupt {
         const MAX_INTERRUPT_NUMBER: usize = Self::I4 as usize;
 
@@ -171,6 +173,7 @@ mod test {
         }
     }
 
+    // SAFETY: Test-only enum; all variants are distinct, constant, and within MAX_PRIORITY_NUMBER.
     unsafe impl PriorityNumber for Priority {
         const MAX_PRIORITY_NUMBER: usize = Self::P3 as usize;
 
@@ -191,6 +194,7 @@ mod test {
         }
     }
 
+    // SAFETY: Test-only enum; all variants are distinct, constant, and within MAX_CORE_ID_NUMBER.
     unsafe impl CoreIdNumber for CoreId {
         const MAX_CORE_ID_NUMBER: usize = Self::H2 as usize;
 

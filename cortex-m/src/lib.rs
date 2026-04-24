@@ -104,13 +104,17 @@ mod macros;
 
 pub mod asm;
 #[cfg(armv8m)]
+#[cfg(not(feature = "certified_subset"))]
 pub mod cmse;
+#[cfg(not(feature = "certified_subset"))]
 pub mod delay;
 pub mod interrupt;
 #[cfg(all(not(armv6m), not(armv8m_base)))]
+#[cfg(not(feature = "certified_subset"))]
 pub mod itm;
 pub mod peripheral;
 pub mod prelude;
+#[cfg(not(feature = "certified_subset"))]
 pub mod psp;
 pub mod register;
 

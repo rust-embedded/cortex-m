@@ -34,35 +34,44 @@
 pub mod basepri;
 
 #[cfg(all(not(armv6m), not(armv8m_base)))]
+#[cfg(not(feature = "certified_subset"))]
 pub mod basepri_max;
 
 pub mod control;
 
 #[cfg(all(not(armv6m), not(armv8m_base)))]
+#[cfg(not(feature = "certified_subset"))]
 pub mod faultmask;
 
 #[cfg(has_fpu)]
 pub mod fpscr;
 
+#[cfg(not(feature = "certified_subset"))]
 pub mod msp;
 
 pub mod primask;
 
+#[cfg(not(feature = "certified_subset"))]
 pub mod psp;
 
 #[cfg(armv8m_main)]
+#[cfg(not(feature = "certified_subset"))]
 pub mod msplim;
 
 #[cfg(armv8m_main)]
+#[cfg(not(feature = "certified_subset"))]
 pub mod psplim;
 
 // Accessing these registers requires inline assembly because their contents are tied to the current
 // stack frame
 #[cfg(feature = "inline-asm")]
+#[cfg(not(feature = "certified_subset"))]
 pub mod apsr;
 
 #[cfg(feature = "inline-asm")]
+#[cfg(not(feature = "certified_subset"))]
 pub mod lr;
 
 #[cfg(feature = "inline-asm")]
+#[cfg(not(feature = "certified_subset"))]
 pub mod pc;

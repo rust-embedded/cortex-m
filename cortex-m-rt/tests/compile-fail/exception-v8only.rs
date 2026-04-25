@@ -13,4 +13,4 @@ fn foo() -> ! {
 
 #[exception]
 fn SecureFault() {}
-//~^ ERROR no variant, associated function, or constant named `SecureFault` found for enum `cortex_m_rt::Exception` in the current scope [E0599]
+//~^ ERROR no variant or associated item named `SecureFault`

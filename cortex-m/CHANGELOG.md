@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add `enter_unprivileged` function to switch to unprivileged mode (on the Process Stack, or `PSP`)
 - Updated references from 'Cortex-M Team' to 'Arm Team'
 
+## Changed
+
+- Removed `bare_metal::interrupt::Nr` blanket implementation of `InterruptNumber`
+
 ## [v0.7.7] - 2023-01-03
 
 - Add missing documentation for `critical-section-single-core` feature added

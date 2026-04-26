@@ -1,10 +1,10 @@
 //! Nested Vector Interrupt Controller
 
+pub use cortex_m_types::InterruptNumber;
 use volatile_register::RW;
 #[cfg(not(armv6m))]
 use volatile_register::{RO, WO};
 
-use crate::interrupt::InterruptNumber;
 use crate::peripheral::NVIC;
 
 /// Register block
@@ -101,7 +101,7 @@ impl NVIC {
         let nr = interrupt.number();
 
         unsafe {
-            self.stir.write(u32::from(nr));
+            self.stir.write(nr as u32);
         }
     }
 
@@ -113,7 +113,7 @@ impl NVIC {
     {
         let nr = interrupt.number();
         // NOTE(unsafe) this is a write to a stateless register
-        unsafe { (*Self::PTR).icer[usize::from(nr / 32)].write(1 << (nr % 32)) }
+        unsafe { (*Self::PTR).icer[nr / 32].write(1 << (nr % 32)) }
     }
 
     /// Enables `interrupt`
@@ -127,7 +127,7 @@ impl NVIC {
         unsafe {
             let nr = interrupt.number();
             // NOTE(ptr) this is a write to a stateless register
-            (*Self::PTR).iser[usize::from(nr / 32)].write(1 << (nr % 32))
+            (*Self::PTR).iser[nr / 32].write(1 << (nr % 32))
         }
     }
 
@@ -145,7 +145,7 @@ impl NVIC {
         {
             let nr = interrupt.number();
             // NOTE(unsafe) atomic read with no side effects
-            unsafe { (*Self::PTR).ipr[usize::from(nr)].read() }
+            unsafe { (*Self::PTR).ipr[nr].read() }
         }
 
         #[cfg(armv6m)]
@@ -168,7 +168,7 @@ impl NVIC {
         let mask = 1 << (nr % 32);
 
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { ((*Self::PTR).iabr[usize::from(nr / 32)].read() & mask) == mask }
+        unsafe { ((*Self::PTR).iabr[nr / 32].read() & mask) == mask }
     }
 
     /// Checks if `interrupt` is enabled
@@ -181,7 +181,7 @@ impl NVIC {
         let mask = 1 << (nr % 32);
 
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { ((*Self::PTR).iser[usize::from(nr / 32)].read() & mask) == mask }
+        unsafe { ((*Self::PTR).iser[nr / 32].read() & mask) == mask }
     }
 
     /// Checks if `interrupt` is pending
@@ -194,7 +194,7 @@ impl NVIC {
         let mask = 1 << (nr % 32);
 
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { ((*Self::PTR).ispr[usize::from(nr / 32)].read() & mask) == mask }
+        unsafe { ((*Self::PTR).ispr[nr / 32].read() & mask) == mask }
     }
 
     /// Forces `interrupt` into pending state
@@ -206,7 +206,7 @@ impl NVIC {
         let nr = interrupt.number();
 
         // NOTE(unsafe) atomic stateless write; ICPR doesn't store any state
-        unsafe { (*Self::PTR).ispr[usize::from(nr / 32)].write(1 << (nr % 32)) }
+        unsafe { (*Self::PTR).ispr[nr / 32].write(1 << (nr % 32)) }
     }
 
     /// Sets the "priority" of `interrupt` to `prio`
@@ -230,7 +230,7 @@ impl NVIC {
             #[cfg(not(armv6m))]
             {
                 let nr = interrupt.number();
-                self.ipr[usize::from(nr)].write(prio)
+                self.ipr[nr].write(prio)
             }
 
             #[cfg(armv6m)]
@@ -254,7 +254,7 @@ impl NVIC {
         let nr = interrupt.number();
 
         // NOTE(unsafe) atomic stateless write; ICPR doesn't store any state
-        unsafe { (*Self::PTR).icpr[usize::from(nr / 32)].write(1 << (nr % 32)) }
+        unsafe { (*Self::PTR).icpr[nr / 32].write(1 << (nr % 32)) }
     }
 
     #[cfg(armv6m)]
@@ -263,7 +263,7 @@ impl NVIC {
     where
         I: InterruptNumber,
     {
-        usize::from(interrupt.number()) / 4
+        interrupt.number() / 4
     }
 
     #[cfg(armv6m)]
@@ -272,6 +272,6 @@ impl NVIC {
     where
         I: InterruptNumber,
     {
-        (usize::from(interrupt.number()) % 4) * 8
+        (interrupt.number() % 4) * 8
     }
 }

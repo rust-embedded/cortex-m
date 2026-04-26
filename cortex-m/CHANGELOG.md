@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Blanket implementation of `interrupt::InterruptNumber` for implementors of new
+  `cortex_m_types::InterruptNumber` trait. This allows NVIC methods to work with both
+  trait implementations.
+
+### Changed
+
+- Old `interrupt::InterruptNumber` trait is marked as deprecated to encourage PACs/HALs
+  to switch to new trait.
+
+### Removed
+
+- `bare_metal::interrupt::Nr` blanket implementation of `InterruptNumber`
+- `Nr` re-export from `interrupt`
+
 ## [v0.7.10] - 2026-10-21
 
 ### Removed

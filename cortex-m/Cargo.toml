@@ -15,6 +15,7 @@ rust-version = "1.85"
 [dependencies]
 bare-metal = { version = "0.2.4", features = ["const-fn"] }
 critical-section = "1.0.0"
+derive-mmio = "0.6"
 volatile-register = "0.2.2"
 bitfield = "0.13.2"
 eh0 = { package = "embedded-hal", version = "0.2.4" }

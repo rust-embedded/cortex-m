@@ -20,6 +20,49 @@ const STACK_SIZE_WORDS: usize = 1024;
 
 static STACK: cortex_m::psp::Stack<STACK_SIZE_WORDS> = cortex_m::psp::Stack::new();
 
+#[derive(Debug, Clone, Copy, num_enum::TryFromPrimitive)]
+#[repr(u16)]
+pub enum DummyInterrupts {
+    Dummy0 = 0,
+    Dummy1 = 1,
+    Dummy2 = 2,
+    Dummy3 = 3,
+    Dummy4 = 4,
+    Dummy5 = 5,
+    Dummy6 = 6,
+    Dummy7 = 7,
+    Dummy8 = 8,
+    Dummy9 = 9,
+    Dummy10 = 10,
+    Dummy11 = 11,
+    Dummy12 = 12,
+    Dummy13 = 13,
+    Dummy14 = 14,
+    Dummy15 = 15,
+    Dummy16 = 16,
+    Dummy17 = 17,
+    Dummy18 = 18,
+    Dummy19 = 19,
+    Dummy20 = 20,
+    Dummy21 = 21,
+    Dummy22 = 22,
+    Dummy23 = 23,
+    Dummy24 = 24,
+    Dummy25 = 25,
+    Dummy26 = 26,
+    Dummy27 = 27,
+    Dummy28 = 28,
+    Dummy29 = 29,
+    Dummy30 = 30,
+    Dummy31 = 31,
+}
+
+unsafe impl cortex_m::interrupt::InterruptNumber for DummyInterrupts {
+    fn number(self) -> u16 {
+        self as u16
+    }
+}
+
 #[cortex_m_rt::exception]
 fn PendSV() {
     minitest::log!("Hit PendSV!");
@@ -45,7 +88,8 @@ unsafe fn HardFault(frame: &cortex_m_rt::ExceptionFrame) -> ! {
 
 #[minitest::tests]
 mod tests {
-    use crate::{Ordering, PENDSV_FLAG};
+    use crate::{DummyInterrupts, Ordering, PENDSV_FLAG};
+    use cortex_m::peripheral::NVIC;
     use minitest::log;
 
     #[init]
@@ -57,6 +101,23 @@ mod tests {
     #[test]
     fn double_take() {
         assert!(cortex_m::Peripherals::take().is_none());
+    }
+
+    #[test]
+    fn test_priority_bits() {
+        let mut nvic = unsafe { NVIC::steal() };
+        for i in 0..32 {
+            let int = DummyInterrupts::try_from(i).unwrap();
+            // Priorities are encoded in the most-significant bits. 2 should always be implemented.
+            unsafe { nvic.set_priority(int, 0b11 << 6) };
+            assert_eq!(NVIC::get_priority(int), 0b11 << 6);
+            // Set a different value.
+            unsafe { nvic.set_priority(int, 0b01 << 6) };
+            assert_eq!(NVIC::get_priority(int), 0b01 << 6);
+            // Set zero again.
+            unsafe { nvic.set_priority(int, 0) };
+            assert_eq!(NVIC::get_priority(int), 0);
+        }
     }
 
     #[test]

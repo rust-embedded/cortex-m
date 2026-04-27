@@ -1,11 +1,11 @@
 //! Interrupts
 
-pub use bare_metal::{CriticalSection, Mutex, Nr};
 #[cfg(cortex_m)]
 use core::arch::asm;
 #[cfg(cortex_m)]
 use core::sync::atomic::{Ordering, compiler_fence};
 use cortex_m_macros::asm_cfg;
+use critical_section::CriticalSection;
 
 /// Trait for enums of external interrupt numbers.
 ///

@@ -131,7 +131,7 @@ pub struct Peripherals {
     pub MPU: MPU,
 
     /// Nested Vector Interrupt Controller
-    pub NVIC: NVIC,
+    pub NVIC: nvic::OwnedRegisterBlock<{ nvic::BASE_ADDRESS }>,
 
     /// Security Attribution Unit
     pub SAU: SAU,
@@ -213,9 +213,7 @@ impl Peripherals {
                 MPU: MPU {
                     _marker: PhantomData,
                 },
-                NVIC: NVIC {
-                    _marker: PhantomData,
-                },
+                NVIC: nvic::OwnedRegisterBlock::new(),
                 SAU: SAU {
                     _marker: PhantomData,
                 },
@@ -547,30 +545,44 @@ impl ops::Deref for MPU {
 }
 
 /// Nested Vector Interrupt Controller
-pub struct NVIC {
-    _marker: PhantomData<*const ()>,
-}
+pub struct NVIC(nvic::MmioRegisterBlock<'static>);
 
 unsafe impl Send for NVIC {}
 
 impl NVIC {
-    /// Pointer to the register block
-    pub const PTR: *const nvic::RegisterBlock = 0xE000_E100 as *const _;
+    /// Create a new instance of the NVIC driver.
+    ///
+    /// This API consumes the peripheral singleton instance.
+    #[inline]
+    pub const fn new(_resource: nvic::OwnedRegisterBlock<{ nvic::BASE_ADDRESS }>) -> Self {
+        unsafe { Self::steal() }
+    }
 
-    /// Returns a pointer to the register block
-    #[inline(always)]
-    #[deprecated(since = "0.7.5", note = "Use the associated constant `PTR` instead")]
-    pub const fn ptr() -> *const nvic::RegisterBlock {
-        Self::PTR
+    /// Unsafely steal an instance of the NVIC.
+    ///
+    /// # Safety
+    ///
+    /// This potentially allows to create multiple instances of the NVIC register block, which
+    /// might only be valid in certain multi-core environments.
+    #[inline]
+    pub const unsafe fn steal() -> Self {
+        NVIC(unsafe { nvic::RegisterBlock::new_mmio_fixed() })
     }
 }
 
 impl ops::Deref for NVIC {
-    type Target = self::nvic::RegisterBlock;
+    type Target = nvic::MmioRegisterBlock<'static>;
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
-        unsafe { &*Self::PTR }
+        &self.0
+    }
+}
+
+impl ops::DerefMut for NVIC {
+    #[inline(always)]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 

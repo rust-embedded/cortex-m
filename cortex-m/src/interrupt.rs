@@ -22,7 +22,7 @@ use cortex_m_macros::asm_cfg;
 ///
 /// These requirements ensure safe nesting of critical sections.
 #[deprecated(
-    since = "0.7.8",
+    since = "0.8.0",
     note = "Implement the cortex_m_types::InterruptNumber trait instead"
 )]
 pub unsafe trait InterruptNumber: Copy {

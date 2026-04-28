@@ -6,12 +6,36 @@ version = "0.1.0"
 rust-version = "1.85"
 
 [features]
-rtt = ["rtt-target", "minitest/rtt"]
+hardware = ["dep:defmt-rtt"]
+qemu = ["dep:defmt-semihosting"]
+# microbit = ["dep:nrf-pac"]
 
 [dependencies]
-cortex-m-rt.path = "../cortex-m-rt"
+cortex-m-rt = { path = "../cortex-m-rt" }
 cortex-m = { path = "../cortex-m", features = ["critical-section-single-core"] }
-minitest.path = "minitest"
-critical-section = "1.0.0"
-cortex-m-semihosting.path = "../cortex-m-semihosting"
-rtt-target = { version = "0.5.0", optional = true }
+critical-section = "1"
+cortex-m-semihosting = { path = "../cortex-m-semihosting"}
+defmt-semihosting = { version = "0.3", optional = true }
+defmt-rtt = { version = "1", optional = true }
+# nrf-pac = { version = "0.3", features = ["nrf51", "rt"], optional = true }
+defmt = "1"
+
+[dev-dependencies]
+defmt-test = "0.4"
+
+# for the library crate (src/lib.rs)
+[lib]
+harness = false
+
+[[bin]] # <- add this section
+name = "testsuite" # src/main.rs
+test = false
+
+[patch.crates-io]
+cortex-m = { path = "../cortex-m" }
+cortex-m-rt = { path = "../cortex-m-rt" }
+
+[profile.release]
+opt-level = "z"     # Optimize for size
+lto = true          # Enable Link Time Optimization
+codegen-units = 1   # Better optimization at cost of compile time

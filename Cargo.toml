@@ -9,8 +9,8 @@ members = [
     "cortex-m-semihosting",
     "panic-itm",
     "panic-semihosting",
-    "testsuite",
-    "testsuite/minitest",
-    "testsuite/minitest/macros",
     "xtask",
+]
+exclude = [
+    "testsuite",
 ]

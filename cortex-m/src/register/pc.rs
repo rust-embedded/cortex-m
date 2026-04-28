@@ -5,8 +5,6 @@ use core::arch::asm;
 use cortex_m_macros::asm_cfg;
 
 /// Reads the CPU register
-///
-/// **NOTE** This function is available if `cortex-m` is built with the `"inline-asm"` feature.
 #[inline]
 #[asm_cfg(cortex_m)]
 pub fn read() -> u32 {
@@ -16,8 +14,6 @@ pub fn read() -> u32 {
 }
 
 /// Writes `bits` to the CPU register
-///
-/// **NOTE** This function is available if `cortex-m` is built with the `"inline-asm"` feature.
 #[inline]
 #[asm_cfg(cortex_m)]
 pub unsafe fn write(bits: u32) {

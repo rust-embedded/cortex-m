@@ -1,38 +1,38 @@
 //! Nested Vector Interrupt Controller
-
-use volatile_register::RW;
-#[cfg(not(armv6m))]
-use volatile_register::{RO, WO};
-
 use crate::interrupt::InterruptNumber;
 use crate::peripheral::NVIC;
 
-/// Register block
+/// NVIC base address.
+pub const BASE_ADDRESS: usize = 0xE000_E100;
+
+/// NVIC register block.
+#[derive(derive_mmio::Mmio)]
 #[repr(C)]
 pub struct RegisterBlock {
     /// Interrupt Set-Enable
-    pub iser: [RW<u32>; 16],
+    iser: [u32; 16],
 
     _reserved0: [u32; 16],
 
     /// Interrupt Clear-Enable
-    pub icer: [RW<u32>; 16],
+    icer: [u32; 16],
 
     _reserved1: [u32; 16],
 
     /// Interrupt Set-Pending
-    pub ispr: [RW<u32>; 16],
+    ispr: [u32; 16],
 
     _reserved2: [u32; 16],
 
     /// Interrupt Clear-Pending
-    pub icpr: [RW<u32>; 16],
+    icpr: [u32; 16],
 
     _reserved3: [u32; 16],
 
     /// Interrupt Active Bit (not present on Cortex-M0 variants)
     #[cfg(not(armv6m))]
-    pub iabr: [RO<u32>; 16],
+    #[mmio(PureRead)]
+    iabr: [u32; 16],
     #[cfg(armv6m)]
     _reserved4: [u32; 16],
 
@@ -40,7 +40,7 @@ pub struct RegisterBlock {
 
     #[cfg(armv8m)]
     /// Interrupt Target Non-secure (only present on Arm v8-M)
-    pub itns: [RW<u32>; 16],
+    itns: [u32; 16],
     #[cfg(not(armv8m))]
     _reserved6: [u32; 16],
 
@@ -50,36 +50,46 @@ pub struct RegisterBlock {
     ///
     /// On ARMv7-M, 124 word-sized registers are available. Each of those
     /// contains of 4 interrupt priorities of 8 byte each.The architecture
-    /// specifically allows accessing those along byte boundaries, so they are
-    /// represented as 496 byte-sized registers, for convenience, and to allow
-    /// atomic priority updates.
+    /// specifically allows accessing those along byte boundaries.
     ///
     /// On ARMv6-M, the registers must only be accessed along word boundaries,
     /// so convenient byte-sized representation wouldn't work on that
     /// architecture.
     #[cfg(not(armv6m))]
-    pub ipr: [RW<u8>; 496],
+    ipr: [u32; 124],
 
     /// Interrupt Priority
     ///
     /// On ARMv7-M, 124 word-sized registers are available. Each of those
     /// contains of 4 interrupt priorities of 8 byte each.The architecture
-    /// specifically allows accessing those along byte boundaries, so they are
-    /// represented as 496 byte-sized registers, for convenience, and to allow
-    /// atomic priority updates.
+    /// specifically allows accessing those along byte boundaries.
     ///
     /// On ARMv6-M, the registers must only be accessed along word boundaries,
     /// so convenient byte-sized representation wouldn't work on that
     /// architecture.
     #[cfg(armv6m)]
-    pub ipr: [RW<u32>; 8],
+    ipr: [u32; 8],
 
     #[cfg(not(armv6m))]
     _reserved8: [u32; 580],
 
     /// Software Trigger Interrupt
     #[cfg(not(armv6m))]
-    pub stir: WO<u32>,
+    #[mmio(Write)]
+    stir: u32,
+}
+
+impl RegisterBlock {
+    /// Creates a new instance of the NVIC register block.
+    ///
+    /// # Safety
+    ///
+    /// This potentially allows to create multiple instances of the NVIC register block, which
+    /// might only be valid in certain multi-core environments.
+    #[inline]
+    pub const unsafe fn new_mmio_fixed() -> MmioRegisterBlock<'static> {
+        unsafe { RegisterBlock::new_mmio_at(BASE_ADDRESS) }
+    }
 }
 
 impl NVIC {
@@ -100,9 +110,7 @@ impl NVIC {
     {
         let nr = interrupt.number();
 
-        unsafe {
-            self.stir.write(u32::from(nr));
-        }
+        self.write_stir(u32::from(nr));
     }
 
     /// Disables `interrupt`
@@ -112,8 +120,10 @@ impl NVIC {
         I: InterruptNumber,
     {
         let nr = interrupt.number();
-        // NOTE(unsafe) this is a write to a stateless register
-        unsafe { (*Self::PTR).icer[usize::from(nr / 32)].write(1 << (nr % 32)) }
+        // SAFETY: this is a write to a stateless register.
+        let mut nvic = unsafe { Self::steal() };
+        // SAFETY: InterruptNumber is an unsafe trait, we can assume correct implementation.
+        unsafe { nvic.write_icer_unchecked(usize::from(nr / 32), 1 << (nr % 32)) }
     }
 
     /// Enables `interrupt`
@@ -124,18 +134,20 @@ impl NVIC {
     where
         I: InterruptNumber,
     {
-        unsafe {
-            let nr = interrupt.number();
-            // NOTE(ptr) this is a write to a stateless register
-            (*Self::PTR).iser[usize::from(nr / 32)].write(1 << (nr % 32))
-        }
+        let nr = interrupt.number();
+        // SAFETY: this is a write to a stateless register,
+        let mut nvic = unsafe { Self::steal() };
+        // SAFETY: InterruptNumber is an unsafe trait, we can assume correct implementation.
+        unsafe { nvic.write_iser_unchecked(usize::from(nr / 32), 1 << (nr % 32)) }
     }
 
     /// Returns the NVIC priority of `interrupt`
     ///
-    /// *NOTE* NVIC encodes priority in the highest bits of a byte so values like `1` and `2` map
-    /// to the same priority. Also for NVIC priorities, a lower value (e.g. `16`) has higher
-    /// priority (urgency) than a larger value (e.g. `32`).
+    /// *NOTE* The NVIC encodes priorities in the *most-significant* bits of the 8-bit block for
+    /// each interrupt. This means that the priority value retrieved by this function MUST be
+    /// right-shifted by (8 - NUMBER_OF_PRIORITY_BITS), where NUMBER_OF_PRIORITY_BITS can be
+    /// different between cores. Also for NVIC priorities, a lower value (e.g. `0b0000_0000`) has
+    /// higher priority (urgency) than a larger value (e.g. `0b0100_0000`).
     #[inline]
     pub fn get_priority<I>(interrupt: I) -> u8
     where
@@ -144,16 +156,22 @@ impl NVIC {
         #[cfg(not(armv6m))]
         {
             let nr = interrupt.number();
-            // NOTE(unsafe) atomic read with no side effects
-            unsafe { (*Self::PTR).ipr[usize::from(nr)].read() }
+            // SAFETY: atomic read with no side effects
+            let nvic = unsafe { Self::steal() };
+            let ipr_ptr = nvic.pointer_to_ipr_start() as *const u8;
+            // SAFETY:
+            //  - atomic read with no side effects
+            //  - InterruptNumber is an unsafe trait, we can assume correct implementation.
+            unsafe { core::ptr::read_volatile(ipr_ptr.offset(nr as isize)) }
         }
 
         #[cfg(armv6m)]
         {
-            // NOTE(unsafe) atomic read with no side effects
-            let ipr_n = unsafe { (*Self::PTR).ipr[Self::ipr_index(interrupt)].read() };
-            let prio = (ipr_n >> Self::ipr_shift(interrupt)) & 0x0000_00ff;
-            prio as u8
+            // SAFETY: atomic read with no side effects
+            let nvic = unsafe { Self::steal() };
+            // SAFETY: InterruptNumber is an unsafe trait, we can assume correct implementation.
+            let ipr_n = unsafe { nvic.read_ipr_unchecked(Self::ipr_index(interrupt)) };
+            ((ipr_n >> Self::ipr_shift(interrupt)) & 0x0000_00ff) as u8
         }
     }
 
@@ -167,8 +185,10 @@ impl NVIC {
         let nr = interrupt.number();
         let mask = 1 << (nr % 32);
 
-        // NOTE(unsafe) atomic read with no side effects
-        unsafe { ((*Self::PTR).iabr[usize::from(nr / 32)].read() & mask) == mask }
+        // SAFETY: atomic read with no side effects
+        let nvic = unsafe { Self::steal() };
+        // SAFETY: InterruptNumber is an unsafe trait, we can assume correct implementation.
+        unsafe { nvic.read_iabr_unchecked(usize::from(nr / 32)) & mask == mask }
     }
 
     /// Checks if `interrupt` is enabled
@@ -180,8 +200,10 @@ impl NVIC {
         let nr = interrupt.number();
         let mask = 1 << (nr % 32);
 
-        // NOTE(unsafe) atomic read with no side effects
-        unsafe { ((*Self::PTR).iser[usize::from(nr / 32)].read() & mask) == mask }
+        // SAFETY: atomic read with no side effects
+        let nvic = unsafe { Self::steal() };
+        // SAFETY: InterruptNumber is an unsafe trait, we can assume correct implementation.
+        unsafe { nvic.read_iser_unchecked(usize::from(nr / 32)) & mask == mask }
     }
 
     /// Checks if `interrupt` is pending
@@ -193,8 +215,10 @@ impl NVIC {
         let nr = interrupt.number();
         let mask = 1 << (nr % 32);
 
-        // NOTE(unsafe) atomic read with no side effects
-        unsafe { ((*Self::PTR).ispr[usize::from(nr / 32)].read() & mask) == mask }
+        // SAFETY: atomic read with no side effects
+        let nvic = unsafe { Self::steal() };
+        // SAFETY: InterruptNumber is an unsafe trait, we can assume correct implementation.
+        unsafe { nvic.read_ispr_unchecked(usize::from(nr / 32)) & mask == mask }
     }
 
     /// Forces `interrupt` into pending state
@@ -205,14 +229,19 @@ impl NVIC {
     {
         let nr = interrupt.number();
 
-        // NOTE(unsafe) atomic stateless write; ICPR doesn't store any state
-        unsafe { (*Self::PTR).ispr[usize::from(nr / 32)].write(1 << (nr % 32)) }
+        // SAFETY: atomic stateless write; Register doesn't store any state
+        let mut nvic = unsafe { Self::steal() };
+        // SAFETY: InterruptNumber is an unsafe trait, we can assume correct implementation.
+        unsafe { nvic.write_ispr_unchecked(usize::from(nr / 32), 1 << (nr % 32)) }
     }
 
     /// Sets the "priority" of `interrupt` to `prio`
     ///
-    /// *NOTE* See [`get_priority`](struct.NVIC.html#method.get_priority) method for an explanation
-    /// of how NVIC priorities work.
+    /// *NOTE* The NVIC encodes priorities in the *most-significant* bits of the 8-bit block for
+    /// each interrupt. This means that the priority value passed to this function MUST be shifted
+    /// by (8 - NUMBER_OF_PRIORITY_BITS), where NUMBER_OF_PRIORITY_BITS can be different between
+    /// cores. Also for NVIC priorities, a lower value (e.g. `0b0000_0000`) has higher
+    /// priority (urgency) than a larger value (e.g. `0b0010_0000`).
     ///
     /// On ARMv6-M, updating an interrupt priority requires a read-modify-write operation. On
     /// ARMv7-M, the operation is performed in a single atomic write operation.
@@ -226,21 +255,26 @@ impl NVIC {
     where
         I: InterruptNumber,
     {
-        unsafe {
-            #[cfg(not(armv6m))]
-            {
-                let nr = interrupt.number();
-                self.ipr[usize::from(nr)].write(prio)
-            }
+        #[cfg(not(armv6m))]
+        {
+            let nr = interrupt.number();
+            let ipr_ptr = self.pointer_to_ipr_start() as *mut u8;
+            // SAFETY:
+            // - atomic stateless write; IPR doesn't store any state
+            // - InterruptNumber is an unsafe trait, we can assume correct implementation.
+            unsafe { core::ptr::write_volatile(ipr_ptr.offset(nr as isize), prio) }
+        }
 
-            #[cfg(armv6m)]
-            {
-                self.ipr[Self::ipr_index(interrupt)].modify(|value| {
+        #[cfg(armv6m)]
+        {
+            // SAFETY: InterruptNumber is an unsafe trait, we can assume correct implementation.
+            unsafe {
+                self.modify_ipr_unchecked(Self::ipr_index(interrupt), |value| {
                     let mask = 0x0000_00ff << Self::ipr_shift(interrupt);
                     let prio = u32::from(prio) << Self::ipr_shift(interrupt);
 
                     (value & !mask) | prio
-                })
+                });
             }
         }
     }
@@ -253,8 +287,10 @@ impl NVIC {
     {
         let nr = interrupt.number();
 
-        // NOTE(unsafe) atomic stateless write; ICPR doesn't store any state
-        unsafe { (*Self::PTR).icpr[usize::from(nr / 32)].write(1 << (nr % 32)) }
+        // SAFETY: atomic stateless write; ICPR doesn't store any state
+        let mut nvic = unsafe { Self::steal() };
+        // SAFETY: InterruptNumber is an unsafe trait, we can assume correct implementation.
+        unsafe { nvic.write_icpr_unchecked(usize::from(nr / 32), 1 << (nr % 32)) }
     }
 
     #[cfg(armv6m)]

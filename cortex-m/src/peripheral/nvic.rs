@@ -5,6 +5,32 @@ use crate::peripheral::NVIC;
 /// NVIC base address.
 pub const BASE_ADDRESS: usize = 0xE000_E100;
 
+/// NVIC interrupt priority wrapper.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
+pub struct InterruptPriority {
+    raw: u8,
+}
+
+impl InterruptPriority {
+    /// Creates a new [`InterruptPriority`] with the given `priority` value.
+    pub const fn new(priority: u8, num_of_priority_bits: u8) -> Self {
+        Self {
+            raw: priority << (8 - num_of_priority_bits),
+        }
+    }
+
+    /// Raw priority bits which can be written to the NVIC IPR registers.
+    pub const fn raw_priority(&self) -> u8 {
+        self.raw
+    }
+
+    /// Actual priority value.
+    pub const fn priority(&self, num_of_priority_bits: u8) -> u8 {
+        self.raw >> (8 - num_of_priority_bits)
+    }
+}
+
 /// NVIC register block.
 #[derive(derive_mmio::Mmio)]
 #[repr(C)]
@@ -141,15 +167,15 @@ impl NVIC {
         unsafe { nvic.write_iser_unchecked(usize::from(nr / 32), 1 << (nr % 32)) }
     }
 
-    /// Returns the NVIC priority of `interrupt`
+    /// Returns the raw NVIC priority of `interrupt`
     ///
     /// *NOTE* The NVIC encodes priorities in the *most-significant* bits of the 8-bit block for
-    /// each interrupt. This means that the priority value passed to this function MUST be shifted
-    /// by (8 - NUMBER_OF_PRIORITY_BITS), where NUMBER_OF_PRIORITY_BITS can be different between
-    /// cores. Also for NVIC priorities, a lower value (e.g. `0b0000_0000`) has higher
-    /// priority (urgency) than a larger value (e.g. `0b0010_0000`).
+    /// each interrupt. This means that the priority value retrieved from this function MUST be
+    /// right-shifted by (8 - NUMBER_OF_PRIORITY_BITS), where NUMBER_OF_PRIORITY_BITS can be
+    /// different between cores. Also for NVIC priorities, a lower value (e.g. `0b0000_0000`) has
+    /// higher priority (urgency) than a larger value (e.g. `0b0010_0000`).
     #[inline]
-    pub fn get_priority<I>(interrupt: I) -> u8
+    pub fn get_priority_raw<I>(interrupt: I) -> u8
     where
         I: InterruptNumber,
     {
@@ -251,7 +277,7 @@ impl NVIC {
     /// Changing priority levels can break priority-based critical sections (see
     /// [`register::basepri`](crate::register::basepri)) and compromise memory safety.
     #[inline]
-    pub unsafe fn set_priority<I>(&mut self, interrupt: I, prio: u8)
+    pub unsafe fn set_priority_raw<I>(&mut self, interrupt: I, prio_raw: u8)
     where
         I: InterruptNumber,
     {
@@ -262,7 +288,7 @@ impl NVIC {
             // SAFETY:
             // - atomic stateless write; IPR doesn't store any state
             // - InterruptNumber is an unsafe trait, we can assume correct implementation.
-            unsafe { core::ptr::write_volatile(ipr_ptr.offset(nr as isize), prio) }
+            unsafe { core::ptr::write_volatile(ipr_ptr.offset(nr as isize), prio_raw) }
         }
 
         #[cfg(armv6m)]
@@ -273,10 +299,30 @@ impl NVIC {
                     let mask = 0x0000_00ff << Self::ipr_shift(interrupt);
                     let prio = u32::from(prio) << Self::ipr_shift(interrupt);
 
-                    (value & !mask) | prio
+                    (value & !mask) | prio_raw
                 });
             }
         }
+    }
+
+    /// Sets the "priority" of `interrupt` to `prio`
+    ///
+    /// *NOTE* For NVIC priorities, a lower value (e.g. `0`) has higher
+    /// priority (urgency) than a larger value (e.g. `1`).
+    ///
+    /// On ARMv6-M, updating an interrupt priority requires a read-modify-write operation. On
+    /// ARMv7-M, the operation is performed in a single atomic write operation.
+    ///
+    /// # Unsafety
+    ///
+    /// Changing priority levels can break priority-based critical sections (see
+    /// [`register::basepri`](crate::register::basepri)) and compromise memory safety.
+    #[inline]
+    pub unsafe fn set_priority<I>(&mut self, interrupt: I, prio: InterruptPriority)
+    where
+        I: InterruptNumber,
+    {
+        unsafe { self.set_priority_raw(interrupt, prio.raw_priority()) }
     }
 
     /// Clears `interrupt`'s pending state

@@ -89,7 +89,7 @@ unsafe fn HardFault(frame: &cortex_m_rt::ExceptionFrame) -> ! {
 #[minitest::tests]
 mod tests {
     use crate::{DummyInterrupts, Ordering, PENDSV_FLAG};
-    use cortex_m::peripheral::NVIC;
+    use cortex_m::peripheral::{NVIC, nvic::InterruptPriority};
     use minitest::log;
 
     #[init]
@@ -109,14 +109,14 @@ mod tests {
         for i in 0..32 {
             let int = DummyInterrupts::try_from(i).unwrap();
             // Priorities are encoded in the most-significant bits. 2 should always be implemented.
-            unsafe { nvic.set_priority(int, 0b11 << 6) };
-            assert_eq!(NVIC::get_priority(int), 0b11 << 6);
+            unsafe { nvic.set_priority(int, InterruptPriority::new(3, 2)) };
+            assert_eq!(NVIC::get_priority_raw(int), 0b11 << 6);
             // Set a different value.
-            unsafe { nvic.set_priority(int, 0b01 << 6) };
-            assert_eq!(NVIC::get_priority(int), 0b01 << 6);
+            unsafe { nvic.set_priority_raw(int, 0b01 << 6) };
+            assert_eq!(NVIC::get_priority_raw(int), 0b01 << 6);
             // Set zero again.
-            unsafe { nvic.set_priority(int, 0) };
-            assert_eq!(NVIC::get_priority(int), 0);
+            unsafe { nvic.set_priority_raw(int, 0) };
+            assert_eq!(NVIC::get_priority_raw(int), 0);
         }
     }
 

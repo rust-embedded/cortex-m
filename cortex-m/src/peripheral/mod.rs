@@ -169,6 +169,7 @@ impl Peripherals {
     }
 
     /// Steal the peripherals without marking them as taken.
+    #[inline]
     pub const unsafe fn const_steal() -> Self {
         Peripherals {
             #[cfg(feature = "cm7")]

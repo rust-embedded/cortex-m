@@ -1,12 +1,12 @@
 //! System Control Block
 
+use arbitrary_int::{u3, u9};
 #[cfg(any(armv7m, armv8m))]
 use core::arch::asm;
 #[cfg(any(armv7m, armv8m))]
 use core::sync::atomic::{Ordering, compiler_fence};
 #[cfg(not(armv6m))]
 use cortex_m_macros::asm_cfg;
-use volatile_register::RW;
 
 #[cfg(not(armv6m))]
 use super::CBP;
@@ -18,31 +18,31 @@ use super::cpuid::CsselrCacheType;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
+/// SCB peripheral base address
+pub const BASE_ADDR: usize = 0xE000_ED04;
+
+/// VECTKEY register value.
+pub const VECT_KEY: u16 = 0x05FA;
+
 /// Register block
+#[derive(derive_mmio::Mmio)]
 #[repr(C)]
 pub struct RegisterBlock {
     /// Interrupt Control and State
-    pub icsr: RW<u32>,
+    icsr: InterruptControlAndStateRegister,
 
     /// Vector Table Offset (not present on Cortex-M0 variants)
-    pub vtor: RW<u32>,
+    vtor: u32,
 
     /// Application Interrupt and Reset Control
-    pub aircr: RW<u32>,
+    aircr: AppInterruptAndResetControlRegister,
 
     /// System Control
-    pub scr: RW<u32>,
+    scr: SystemControlRegister,
 
     /// Configuration and Control
-    pub ccr: RW<u32>,
+    ccr: ConfigurationAndControlRegister,
 
-    /// System Handler Priority (word accessible only on Cortex-M0 variants)
-    ///
-    /// On ARMv7-M, `shpr[0]` points to SHPR1
-    ///
-    /// On ARMv6-M, `shpr[0]` points to SHPR2
-    #[cfg(not(armv6m))]
-    pub shpr: [RW<u8>; 12],
     #[cfg(armv6m)]
     _reserved1: u32,
     /// System Handler Priority (word accessible only on Cortex-M0 variants)
@@ -51,44 +51,52 @@ pub struct RegisterBlock {
     ///
     /// On ARMv6-M, `shpr[0]` points to SHPR2
     #[cfg(armv6m)]
-    pub shpr: [RW<u32>; 2],
+    shpr: [u32; 2],
+
+    /// System Handler Priority (word accessible only on Cortex-M0 variants)
+    ///
+    /// On ARMv7-M, `shpr[0]` points to SHPR1
+    ///
+    /// On ARMv6-M, `shpr[0]` points to SHPR2
+    #[cfg(not(armv6m))]
+    shpr: [u32; 3],
 
     /// System Handler Control and State
-    pub shcsr: RW<u32>,
+    shcsr: SystemHandlerControlAndStateRegister,
 
     /// Configurable Fault Status (not present on Cortex-M0 variants)
     #[cfg(not(armv6m))]
-    pub cfsr: RW<u32>,
+    cfsr: u32,
     #[cfg(armv6m)]
     _reserved2: u32,
 
     /// HardFault Status (not present on Cortex-M0 variants)
     #[cfg(not(armv6m))]
-    pub hfsr: RW<u32>,
+    hfsr: u32,
     #[cfg(armv6m)]
     _reserved3: u32,
 
     /// Debug Fault Status (not present on Cortex-M0 variants)
     #[cfg(not(armv6m))]
-    pub dfsr: RW<u32>,
+    dfsr: u32,
     #[cfg(armv6m)]
     _reserved4: u32,
 
     /// MemManage Fault Address (not present on Cortex-M0 variants)
     #[cfg(not(armv6m))]
-    pub mmfar: RW<u32>,
+    mmfar: u32,
     #[cfg(armv6m)]
     _reserved5: u32,
 
     /// BusFault Address (not present on Cortex-M0 variants)
     #[cfg(not(armv6m))]
-    pub bfar: RW<u32>,
+    bfar: u32,
     #[cfg(armv6m)]
     _reserved6: u32,
 
     /// Auxiliary Fault Status (not present on Cortex-M0 variants)
     #[cfg(not(armv6m))]
-    pub afsr: RW<u32>,
+    afsr: u32,
     #[cfg(armv6m)]
     _reserved7: u32,
 
@@ -96,7 +104,7 @@ pub struct RegisterBlock {
 
     /// Coprocessor Access Control (not present on Cortex-M0 variants)
     #[cfg(not(armv6m))]
-    pub cpacr: RW<u32>,
+    cpacr: u32,
     #[cfg(armv6m)]
     _reserved9: u32,
 
@@ -107,6 +115,233 @@ pub struct RegisterBlock {
     /// code to use floating-point instructions.
     #[cfg(armv8m)]
     pub nsacr: RW<u32>,
+}
+
+impl RegisterBlock {
+    /// Creates a new instance of the [SCB] register block.
+    ///
+    /// # Safety
+    ///
+    /// This potentially allows to create multiple instances of the NVIC register block, which
+    /// might only be valid in multi-core environments.
+    #[inline]
+    pub const unsafe fn steal() -> MmioRegisterBlock<'static> {
+        unsafe { Self::new_mmio_at(BASE_ADDR) }
+    }
+}
+
+/// Interrupt Control and State Register (ICSR)
+///
+/// See B 3.2.4 in the ARMv7M TRM for more information.
+#[bitbybit::bitfield(
+    u32,
+    default = 0x0,
+    debug,
+    defmt_bitfields(feature = "defmt"),
+    forbid_overlaps
+)]
+pub struct InterruptControlAndStateRegister {
+    /// On writes, sets the NMI exception as pending. On reads, indicates the current state of the
+    /// exception, 1 means the NMI is active.
+    ///
+    /// Because NMI is higher priority than other exceptions, if the processor is not already
+    /// executing the NMI handler, it enters the NMI exception handler as soon as it recognizes the
+    /// write to this bit.
+    #[bit(31, rw)]
+    nmi_pend_set: bool,
+    /// On writes, sets the PendSV exception as pending. On reads, indicates the current state of the
+    /// exception, 1 means the PendSV is pending.
+    #[bit(28, rw)]
+    pend_sv_set: bool,
+    /// Write-only bit which removes the pending status of the PendSV exception.
+    #[bit(27, w)]
+    pend_sv_clr: bool,
+    /// On writes, sets the SysTick exception as pending. On reads, indicates the current state of the
+    /// exception, 1 means the SysTick is pending.
+    #[bit(26, rw)]
+    pend_st_set: bool,
+    /// Write-only bit which removes the pending status of the SysTick exception.
+    #[bit(25, w)]
+    pend_st_clr: bool,
+    /// Indicates whether a pending exception will be serviced on exit from debug halt state.
+    #[bit(23, r)]
+    isr_preempt: bool,
+    /// Indicates whether an external interrupt, generated by the NVIC, is pending.
+    #[bit(22, r)]
+    isr_pending: bool,
+    /// The exception number of the highest priority pending and enabled interrupt. A value of 0
+    /// indicates that there is no pending exception.
+    #[bits(12..=20, r)]
+    vect_pending: u9,
+    /// In Handler mode, indicates whether there is an active exception other than the exception
+    /// indicated by the current value of the IPSR. 0 indicates that there is an active
+    /// exception other than the exception showns by IPSR.
+    #[bit(11, r)]
+    ret_to_base: bool,
+    /// The exception number of the current executing exception. A value of 0 indicates that the
+    /// processor is in Thread mode.
+    #[bits(0..=8, rw)]
+    vect_active: u9,
+}
+
+/// Memory system endianness.
+#[bitbybit::bitenum(u1, exhaustive = true)]
+#[derive(Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
+pub enum Endianness {
+    /// Little endian.
+    Little = 0,
+    /// Big endian.
+    Big = 1,
+}
+
+/// Application Interrupt and Reset Control Register (AIRCR)
+///
+/// See B 3.2.6 in the ARMv7M TRM for more information.
+#[bitbybit::bitfield(
+    u32,
+    default = 0x0,
+    debug,
+    defmt_fields(feature = "defmt"),
+    forbid_overlaps
+)]
+pub struct AppInterruptAndResetControlRegister {
+    /// Register must writes must write [VECT_KEY] to this field, otherwise the write is ignored.
+    ///
+    /// On reads, returns [VECT_KEY].
+    #[bits(16..=31, rw)]
+    vect_key: u16,
+    /// Memory system endianness bit.
+    #[bit(15, r)]
+    endianness: Endianness,
+    /// Priority grouping, indicates the binary point position.
+    #[bits(8..=10, rw)]
+    pri_group: u3,
+    /// Write a 1 to signal the external system to request a local reset.
+    #[bit(2, rw)]
+    sys_reset_req: bool,
+    /// Writing 1 to this bit clears all active state information for fixed and configurable
+    /// exceptions. This includes clearing the IPSR to zero,
+    ///
+    /// The effect of writing a 1 to this bit if the processor is not halted in Debug state is
+    /// UNPREDICTABLE
+    #[bit(1, w)]
+    vect_clr_active: bool,
+    /// Writing 1 to this bit causes a local system reset.
+    ///
+    /// The effect of writing a 1 to this bit if the processor is not halted in Debug state is
+    /// UNPREDICTABLE
+    #[bit(0, w)]
+    vect_reset: bool,
+}
+
+/// System Handler Control and State Register (SHCSR)
+///
+/// See B 3.2.13 in the ARMv7M TRM for more information.
+#[bitbybit::bitfield(
+    u32,
+    default = 0x0,
+    debug,
+    defmt_fields(feature = "defmt"),
+    forbid_overlaps
+)]
+pub struct SystemHandlerControlAndStateRegister {
+    /// UsageFault enabled.
+    #[bit(18, rw)]
+    usgfault_enable: bool,
+    /// BusFault enabled.
+    #[bit(17, rw)]
+    busfault_enable: bool,
+    /// MemFault enabled.
+    #[bit(16, rw)]
+    memfault_enabled: bool,
+
+    /// SVCall pend bit.
+    #[bit(15, rw)]
+    svcall_pend: bool,
+    /// BusFault pend bit.
+    #[bit(14, rw)]
+    busfault_pend: bool,
+    /// MemManage pend bit.
+    #[bit(13, rw)]
+    memfault_pend: bool,
+    /// UsageFault pend bit.
+    #[bit(12, rw)]
+    usgfault_pend: bool,
+
+    /// SysTick is active.
+    ///
+    #[bit(11, rw)]
+    systick_active: bool,
+    /// PendSV is active.
+    #[bit(10, rw)]
+    pendsv_active: bool,
+    /// Monitor is active.
+    #[bit(8, rw)]
+    monitor_active: bool,
+    /// SVCall is active.
+    #[bit(7, rw)]
+    svcall_active: bool,
+    /// UsageFault is active.
+    #[bit(3, rw)]
+    usgfault_active: bool,
+    /// BusFault is active.
+    #[bit(1, rw)]
+    busfault_active: bool,
+    /// MemManage is active.
+    #[bit(0, rw)]
+    memfault_active: bool,
+}
+
+/// Configuration and Control Register (CCR)
+///
+/// See B 3.2.8 in the ARMv7-M TRM for more information.
+#[bitbybit::bitfield(
+    u32,
+    default = 0x0,
+    debug,
+    defmt_fields(feature = "defmt"),
+    forbid_overlaps
+)]
+pub struct ConfigurationAndControlRegister {
+    /// Branch prediction enable bit (BP).
+    #[bit(18, rw)]
+    branch_prediction_enable: bool,
+    /// Instruction Cache enable bit (IC).
+    #[bit(17, rw)]
+    i_cache_enable: bool,
+    /// Data and Unified Cache enable bit (DC).
+    #[bit(16, rw)]
+    d_cache_enable: bool,
+    /// Determines whether the exception entry sequence guarantees 8-byte stack frame alignment,
+    /// adjusting the SP if necessary before saving state.
+    ///
+    /// 0: Guaranteed SP alignment is 4-byte, no SP adjustment is performed.
+    /// 1: 8-byte alignment guaranteed, SP adjusted if necessary.
+    #[bit(9, rw)]
+    stk_align: bool,
+    /// Determines the effect of precise data access faults on handlers running at priority -1 or
+    /// priority -2:
+    #[bit(8, rw)]
+    bfhfnmign: bool,
+    /// Enables the trap on divide by 0.
+    #[bit(4, rw)]
+    div_0_trap: bool,
+    /// Enables the trapping of unaligned word or halfword access.
+    #[bit(3, rw)]
+    unalign_trap: bool,
+    /// Controls whether unprivileged software can access the STIR
+    #[bit(1, rw)]
+    user_set_mpend: bool,
+    /// Controls whether the processor can enter Thread mode with exceptions active:
+    ///
+    /// 0: Any attempt to return to Thread mode will result in an exception if the number
+    /// of active exceptions is non-zero and does not rely on execution priority boosting
+    /// including BASEPRI, FAULTMASK and PRIMASK.
+    /// 1: The processor can enter Thread mode with exceptions active because of a
+    /// controlled return value
+    #[bit(0, rw)]
+    non_base_thread_enable: bool,
 }
 
 /// FPU access mode
@@ -216,10 +451,11 @@ impl SCB {
     /// Returns the active exception number
     #[inline]
     pub fn vect_active() -> VectActive {
-        let icsr = unsafe { (*SCB::PTR).icsr.read() };
+        // SAFETY: Read is side-effect free.
+        let icsr = unsafe { Self::steal() }.read_icsr();
 
-        // NOTE(unsafe): Assume correctly selected target.
-        unsafe { VectActive::from(icsr as u8).unwrap_unchecked() }
+        // SAFETY: Assume correctly selected target.
+        unsafe { VectActive::from((icsr.vect_active().value() & 0xff) as u8).unwrap_unchecked() }
     }
 }
 
@@ -336,15 +572,6 @@ impl VectActive {
 }
 
 #[cfg(not(armv6m))]
-mod scb_consts {
-    pub const SCB_CCR_IC_MASK: u32 = 1 << 17;
-    pub const SCB_CCR_DC_MASK: u32 = 1 << 16;
-}
-
-#[cfg(not(armv6m))]
-use self::scb_consts::*;
-
-#[cfg(not(armv6m))]
 impl SCB {
     /// Enables I-cache if currently disabled.
     ///
@@ -400,8 +627,7 @@ impl SCB {
         let mut cbp = unsafe { CBP::new() };
 
         // Disable I-cache
-        // NOTE(unsafe): We have synchronised access by &mut self
-        unsafe { self.ccr.modify(|r| r & !SCB_CCR_IC_MASK) };
+        self.modify_ccr(|val| val.with_i_cache_enable(false));
 
         // Invalidate I-cache
         cbp.iciallu();
@@ -417,7 +643,7 @@ impl SCB {
         crate::asm::isb();
 
         // NOTE(unsafe): atomic read with no side effects
-        unsafe { (*Self::PTR).ccr.read() & SCB_CCR_IC_MASK == SCB_CCR_IC_MASK }
+        unsafe { Self::steal() }.read_ccr().i_cache_enable()
     }
 
     /// Invalidates the entire I-cache.
@@ -484,8 +710,7 @@ impl SCB {
         }
 
         // Turn off the D-cache
-        // NOTE(unsafe): We have synchronised access by &mut self
-        unsafe { self.ccr.modify(|r| r & !SCB_CCR_DC_MASK) };
+        self.modify_ccr(|val| val.with_d_cache_enable(false));
 
         // Clean and invalidate whatever was left in it
         self.clean_invalidate_dcache(cpuid);
@@ -498,7 +723,7 @@ impl SCB {
         crate::asm::isb();
 
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::PTR).ccr.read() & SCB_CCR_DC_MASK == SCB_CCR_DC_MASK }
+        unsafe { Self::steal() }.read_ccr().d_cache_enable()
     }
 
     /// Invalidates the entire D-cache.
@@ -853,141 +1078,126 @@ impl SCB {
     }
 }
 
-const SCB_SCR_SLEEPDEEP: u32 = 0x1 << 2;
+//const SCB_SCR_SLEEPDEEP: u32 = 0x1 << 2;
+
+/// System control register (SCR)
+///
+/// See B 3.2.7 in the ARMv7M TRM for more information.
+#[bitbybit::bitfield(u32, default = 0x0, debug, defmt_bitfields(feature = "defmt"))]
+pub struct SystemControlRegister {
+    /// If true, then interrupt transitions from inactive to pending are wakeup events.
+    #[bit(4, rw)]
+    sev_on_pend: bool,
+    /// If 1, an implementation can use this bit to use deep sleep as the sleep state.
+    #[bit(2, rw)]
+    deep_sleep: bool,
+    /// Sleep on exit bit.
+    #[bit(1, rw)]
+    sleep_on_exit: bool,
+}
 
 impl SCB {
     /// Set the SLEEPDEEP bit in the SCR register
     #[inline]
     pub fn set_sleepdeep(&mut self) {
-        unsafe {
-            self.scr.modify(|scr| scr | SCB_SCR_SLEEPDEEP);
-        }
+        self.modify_scr(|scr| scr.with_deep_sleep(true));
     }
 
     /// Clear the SLEEPDEEP bit in the SCR register
     #[inline]
     pub fn clear_sleepdeep(&mut self) {
-        unsafe {
-            self.scr.modify(|scr| scr & !SCB_SCR_SLEEPDEEP);
-        }
+        self.modify_scr(|scr| scr.with_deep_sleep(false));
     }
-}
 
-const SCB_SCR_SLEEPONEXIT: u32 = 0x1 << 1;
-
-impl SCB {
     /// Set the SLEEPONEXIT bit in the SCR register
     #[inline]
     pub fn set_sleeponexit(&mut self) {
-        unsafe {
-            self.scr.modify(|scr| scr | SCB_SCR_SLEEPONEXIT);
-        }
+        self.modify_scr(|val| val.with_sleep_on_exit(true));
     }
 
     /// Clear the SLEEPONEXIT bit in the SCR register
     #[inline]
     pub fn clear_sleeponexit(&mut self) {
-        unsafe {
-            self.scr.modify(|scr| scr & !SCB_SCR_SLEEPONEXIT);
-        }
+        self.modify_scr(|val| val.with_sleep_on_exit(false));
     }
-}
 
-const SCB_SCR_SEVONPEND: u32 = 0x1 << 4;
-
-impl SCB {
     /// Set the SEVONPEND bit in the SCR register
     #[inline]
     pub fn set_sevonpend(&mut self) {
-        unsafe {
-            self.scr.modify(|scr| scr | SCB_SCR_SEVONPEND);
-        }
+        self.modify_scr(|val| val.with_sev_on_pend(true));
     }
 
     /// Clear the SEVONPEND bit in the SCR register
     #[inline]
     pub fn clear_sevonpend(&mut self) {
-        unsafe {
-            self.scr.modify(|scr| scr & !SCB_SCR_SEVONPEND);
-        }
+        self.modify_scr(|val| val.with_sev_on_pend(false));
     }
-}
 
-const SCB_AIRCR_VECTKEY: u32 = 0x05FA << 16;
-const SCB_AIRCR_PRIGROUP_MASK: u32 = 0x7 << 8;
-const SCB_AIRCR_SYSRESETREQ: u32 = 1 << 2;
-
-impl SCB {
     /// Initiate a system reset request to reset the MCU
     #[inline]
     pub fn sys_reset() -> ! {
         crate::asm::dsb();
-        unsafe {
-            (*Self::PTR).aircr.modify(
-                |r| {
-                    SCB_AIRCR_VECTKEY | // otherwise the write is ignored
-            r & SCB_AIRCR_PRIGROUP_MASK | // keep priority group unchanged
-            SCB_AIRCR_SYSRESETREQ
-                }, // set the bit
-            )
-        };
+
+        unsafe { Self::steal() }.modify_aircr(|val| {
+            AppInterruptAndResetControlRegister::builder()
+                .with_sys_reset_req(true)
+                .with_vect_key(VECT_KEY)
+                .with_pri_group(val.pri_group())
+                .with_vect_clr_active(false)
+                .with_vect_reset(false)
+                .build()
+        });
         crate::asm::dsb();
         loop {
             // wait for the reset
             crate::asm::nop(); // avoid rust-lang/rust#28728
         }
     }
-}
 
-const SCB_ICSR_PENDSVSET: u32 = 1 << 28;
-const SCB_ICSR_PENDSVCLR: u32 = 1 << 27;
-
-const SCB_ICSR_PENDSTSET: u32 = 1 << 26;
-const SCB_ICSR_PENDSTCLR: u32 = 1 << 25;
-
-impl SCB {
     /// Set the PENDSVSET bit in the ICSR register which will pend the PendSV interrupt
     #[inline]
     pub fn set_pendsv() {
-        unsafe {
-            (*Self::PTR).icsr.write(SCB_ICSR_PENDSVSET);
-        }
+        // Safety: Only writes the PendSV pend bit.
+        unsafe { Self::steal() }
+            .write_icsr(InterruptControlAndStateRegister::ZERO.with_pend_sv_set(true));
     }
 
     /// Check if PENDSVSET bit in the ICSR register is set meaning PendSV interrupt is pending
     #[inline]
     pub fn is_pendsv_pending() -> bool {
-        unsafe { (*Self::PTR).icsr.read() & SCB_ICSR_PENDSVSET == SCB_ICSR_PENDSVSET }
+        // Safety: Only reads the PendSV bit, no side effects on read.
+        unsafe { Self::steal() }.read_icsr().pend_sv_set()
     }
 
     /// Set the PENDSVCLR bit in the ICSR register which will clear a pending PendSV interrupt
     #[inline]
     pub fn clear_pendsv() {
-        unsafe {
-            (*Self::PTR).icsr.write(SCB_ICSR_PENDSVCLR);
-        }
+        // Safety: Only writes the PendSV clear bit.
+        unsafe { Self::steal() }
+            .write_icsr(InterruptControlAndStateRegister::ZERO.with_pend_sv_clr(true));
     }
 
     /// Set the PENDSTSET bit in the ICSR register which will pend a SysTick interrupt
     #[inline]
     pub fn set_pendst() {
-        unsafe {
-            (*Self::PTR).icsr.write(SCB_ICSR_PENDSTSET);
-        }
+        // Safety: Only writes the SysTick pend bit.
+        unsafe { Self::steal() }
+            .write_icsr(InterruptControlAndStateRegister::ZERO.with_pend_st_set(true));
     }
 
     /// Check if PENDSTSET bit in the ICSR register is set meaning SysTick interrupt is pending
     #[inline]
     pub fn is_pendst_pending() -> bool {
-        unsafe { (*Self::PTR).icsr.read() & SCB_ICSR_PENDSTSET == SCB_ICSR_PENDSTSET }
+        // Safety: Only reads the SysTick pending bit, no side effects on read.
+        unsafe { Self::steal() }.read_icsr().pend_st_set()
     }
 
     /// Set the PENDSTCLR bit in the ICSR register which will clear a pending SysTick interrupt
     #[inline]
     pub fn clear_pendst() {
-        unsafe {
-            (*Self::PTR).icsr.write(SCB_ICSR_PENDSTCLR);
-        }
+        // Safety: Only writes the SysTick pending clear bit.
+        unsafe { Self::steal() }
+            .write_icsr(InterruptControlAndStateRegister::ZERO.with_pend_st_clr(true));
     }
 }
 
@@ -1036,30 +1246,20 @@ impl SCB {
     pub fn get_priority(system_handler: SystemHandler) -> u8 {
         let index = system_handler as u8;
 
+        // SAFETY: atomic read with no side effects
+        let scb = unsafe { Self::steal() };
         #[cfg(not(armv6m))]
         {
-            // NOTE(unsafe) atomic read with no side effects
-
-            // NOTE(unsafe): Index is bounded to [4,15] by SystemHandler design.
-            // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
-            let priority_ref = unsafe { (*Self::PTR).shpr.get_unchecked(usize::from(index - 4)) };
-
-            priority_ref.read()
+            let shpr_base = scb.pointer_to_shpr_start() as *mut u8;
+            // SAFETY: Index is bounded to [4,15] by SystemHandler design. On ARMv7-M, all offsets
+            // derives from these values will be in bounds of the SHPR registers.
+            unsafe { core::ptr::read_volatile(shpr_base.offset(isize::from(index - 4))) }
         }
 
         #[cfg(armv6m)]
         {
-            // NOTE(unsafe) atomic read with no side effects
-
-            // NOTE(unsafe): Index is bounded to [11,15] by SystemHandler design.
-            // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
-            let priority_ref = unsafe {
-                (*Self::PTR)
-                    .shpr
-                    .get_unchecked(usize::from((index - 8) / 4))
-            };
-
-            let shpr = priority_ref.read();
+            // SAFETY: Index is bounded to [11,15] by SystemHandler design.
+            let shpr = unsafe { scb.read_shpr_unchecked(usize::from((index - 8) / 4)) };
             let prio = (shpr >> (8 * (index % 4))) & 0x0000_00ff;
             prio as u8
         }
@@ -1079,31 +1279,24 @@ impl SCB {
     /// [`register::basepri`](crate::register::basepri)) and compromise memory safety.
     #[inline]
     pub unsafe fn set_priority(&mut self, system_handler: SystemHandler, prio: u8) {
-        unsafe {
-            let index = system_handler as u8;
+        let index = system_handler as u8;
 
-            #[cfg(not(armv6m))]
-            {
-                // NOTE(unsafe): Index is bounded to [4,15] by SystemHandler design.
-                // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
-                let priority_ref = (*Self::PTR).shpr.get_unchecked(usize::from(index - 4));
+        #[cfg(not(armv6m))]
+        {
+            let shpr_base = self.pointer_to_shpr_start() as *mut u8;
+            // SAFETY: Index is bounded to [4,15] by SystemHandler design. On ARMv7-M, all offsets
+            // derives from these values will be in bounds of the SHPR registers.
+            unsafe { core::ptr::write_volatile(shpr_base.offset(isize::from(index - 4)), prio) };
+        }
 
-                priority_ref.write(prio)
-            }
-
-            #[cfg(armv6m)]
-            {
-                // NOTE(unsafe): Index is bounded to [11,15] by SystemHandler design.
-                // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
-                let priority_ref = (*Self::PTR)
-                    .shpr
-                    .get_unchecked(usize::from((index - 8) / 4));
-
-                priority_ref.modify(|value| {
+        #[cfg(armv6m)]
+        {
+            // SAFETY: Index is bounded to [11,15] by SystemHandler design.
+            unsafe {
+                self.modify_shpr_unchecked(usize::from((index - 8) / 4), |value| {
                     let shift = 8 * (index % 4);
                     let mask = 0x0000_00ff << shift;
                     let prio = u32::from(prio) << shift;
-
                     (value & !mask) | prio
                 });
             }
@@ -1141,7 +1334,11 @@ impl SCB {
         if let Some(shift) = SCB::shcsr_enable_shift(exception) {
             // The mutable reference to SCB makes sure that only this code is currently modifying
             // the register.
-            unsafe { self.shcsr.modify(|value| value | (1 << shift)) }
+            self.modify_shcsr(|val| {
+                SystemHandlerControlAndStateRegister::new_with_raw_value(
+                    val.raw_value() | (1 << shift),
+                )
+            })
         }
     }
 
@@ -1162,7 +1359,11 @@ impl SCB {
         if let Some(shift) = SCB::shcsr_enable_shift(exception) {
             // The mutable reference to SCB makes sure that only this code is currently modifying
             // the register.
-            unsafe { self.shcsr.modify(|value| value & !(1 << shift)) }
+            self.modify_shcsr(|val| {
+                SystemHandlerControlAndStateRegister::new_with_raw_value(
+                    val.raw_value() & !(1 << shift),
+                )
+            })
         }
     }
 
@@ -1179,7 +1380,7 @@ impl SCB {
     #[cfg(not(any(armv6m, armv8m_base)))]
     pub fn is_enabled(&self, exception: Exception) -> bool {
         if let Some(shift) = SCB::shcsr_enable_shift(exception) {
-            (self.shcsr.read() & (1 << shift)) > 0
+            (self.read_shcsr().raw_value() & (1 << shift)) > 0
         } else {
             false
         }

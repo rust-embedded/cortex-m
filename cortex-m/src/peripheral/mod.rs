@@ -598,12 +598,9 @@ impl ops::Deref for SAU {
 }
 
 /// System Control Block
-pub struct SCB {
-    _marker: PhantomData<*const ()>,
-}
+pub struct SCB(scb::MmioRegisterBlock<'static>);
 
-unsafe impl Send for SCB {}
-
+/*
 impl SCB {
     /// Pointer to the register block
     pub const PTR: *const scb::RegisterBlock = 0xE000_ED04 as *const _;
@@ -615,13 +612,22 @@ impl SCB {
         Self::PTR
     }
 }
+*/
 
 impl ops::Deref for SCB {
-    type Target = self::scb::RegisterBlock;
+    type Target = scb::MmioRegisterBlock<'static>;
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
-        unsafe { &*Self::PTR }
+        &self.0
+    }
+}
+
+impl ops::DerefMut for SCB {
+
+    #[inline(always)]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 

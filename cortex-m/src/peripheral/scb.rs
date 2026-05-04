@@ -41,7 +41,7 @@ pub struct RegisterBlock {
     scr: SystemControlRegister,
 
     /// Configuration and Control
-    ccr: u32,
+    ccr: ConfigurationAndControlRegister,
 
     #[cfg(armv6m)]
     _reserved1: u32,
@@ -116,6 +116,7 @@ impl RegisterBlock {
     ///
     /// This potentially allows to create multiple instances of the NVIC register block, which
     /// might only be valid in multi-core environments.
+    #[inline]
     pub const unsafe fn steal() -> MmioRegisterBlock<'static> {
         unsafe { Self::new_mmio_at(BASE_ADDR) }
     }
@@ -180,7 +181,9 @@ pub struct InterruptControlAndStateRegister {
 #[derive(Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Endianness {
+    /// Little endian.
     Little = 0,
+    /// Big endian.
     Big = 1,
 }
 
@@ -200,6 +203,7 @@ pub struct AppInterruptAndResetControlRegister {
     /// On reads, returns [VECT_KEY].
     #[bits(16..=31, rw)]
     vect_key: u16,
+    /// Memory system endianness bit.
     #[bit(15, r)]
     endianness: Endianness,
     /// Priority grouping, indicates the binary point position.
@@ -279,6 +283,57 @@ pub struct SystemHandlerControlAndStateRegister {
     /// MemManage is active.
     #[bit(0, rw)]
     memfault_active: bool,
+}
+
+/// Configuration and Control Register (CCR)
+///
+/// See B 3.2.8 in the ARMv7-M TRM for more information.
+#[bitbybit::bitfield(
+    u32,
+    default = 0x0,
+    debug,
+    defmt_fields(feature = "defmt"),
+    forbid_overlaps
+)]
+pub struct ConfigurationAndControlRegister {
+    /// Branch prediction enable bit (BP).
+    #[bit(18, rw)]
+    branch_prediction_enable: bool,
+    /// Instruction Cache enable bit (IC).
+    #[bit(17, rw)]
+    i_cache_enable: bool,
+    /// Data and Unified Cache enable bit (DC).
+    #[bit(16, rw)]
+    d_cache_enable: bool,
+    /// Determines whether the exception entry sequence guarantees 8-byte stack frame alignment,
+    /// adjusting the SP if necessary before saving state.
+    ///
+    /// 0: Guaranteed SP alignment is 4-byte, no SP adjustment is performed.
+    /// 1: 8-byte alignment guaranteed, SP adjusted if necessary.
+    #[bit(9, rw)]
+    stk_align: bool,
+    /// Determines the effect of precise data access faults on handlers running at priority -1 or
+    /// priority -2:
+    #[bit(8, rw)]
+    bfhfnmign: bool,
+    /// Enables the trap on divide by 0.
+    #[bit(4, rw)]
+    div_0_trap: bool,
+    /// Enables the trapping of unaligned word or halfword access.
+    #[bit(3, rw)]
+    unalign_trap: bool,
+    /// Controls whether unprivileged software can access the STIR
+    #[bit(1, rw)]
+    user_set_mpend: bool,
+    /// Controls whether the processor can enter Thread mode with exceptions active:
+    ///
+    /// 0: Any attempt to return to Thread mode will result in an exception if the number
+    /// of active exceptions is non-zero and does not rely on execution priority boosting
+    /// including BASEPRI, FAULTMASK and PRIMASK.
+    /// 1: The processor can enter Thread mode with exceptions active because of a
+    /// controlled return value
+    #[bit(0, rw)]
+    non_base_thread_enable: bool,
 }
 
 /// FPU access mode
@@ -475,15 +530,6 @@ impl VectActive {
 }
 
 #[cfg(not(armv6m))]
-mod scb_consts {
-    pub const SCB_CCR_IC_MASK: u32 = 1 << 17;
-    pub const SCB_CCR_DC_MASK: u32 = 1 << 16;
-}
-
-#[cfg(not(armv6m))]
-use self::scb_consts::*;
-
-#[cfg(not(armv6m))]
 impl SCB {
     /// Enables I-cache if currently disabled.
     ///
@@ -539,8 +585,7 @@ impl SCB {
         let mut cbp = unsafe { CBP::new() };
 
         // Disable I-cache
-        // NOTE(unsafe): We have synchronised access by &mut self
-        unsafe { self.ccr.modify(|r| r & !SCB_CCR_IC_MASK) };
+        self.modify_ccr(|val| val.with_i_cache_enable(false));
 
         // Invalidate I-cache
         cbp.iciallu();
@@ -556,7 +601,7 @@ impl SCB {
         crate::asm::isb();
 
         // NOTE(unsafe): atomic read with no side effects
-        unsafe { (*Self::PTR).ccr.read() & SCB_CCR_IC_MASK == SCB_CCR_IC_MASK }
+        unsafe { Self::steal() }.read_ccr().i_cache_enable()
     }
 
     /// Invalidates the entire I-cache.
@@ -623,8 +668,7 @@ impl SCB {
         }
 
         // Turn off the D-cache
-        // NOTE(unsafe): We have synchronised access by &mut self
-        unsafe { self.ccr.modify(|r| r & !SCB_CCR_DC_MASK) };
+        self.modify_ccr(|val| val.with_d_cache_enable(false));
 
         // Clean and invalidate whatever was left in it
         self.clean_invalidate_dcache(cpuid);
@@ -637,7 +681,7 @@ impl SCB {
         crate::asm::isb();
 
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Self::PTR).ccr.read() & SCB_CCR_DC_MASK == SCB_CCR_DC_MASK }
+        unsafe { Self::steal() }.read_ccr().d_cache_enable()
     }
 
     /// Invalidates the entire D-cache.
@@ -1005,6 +1049,7 @@ pub struct SystemControlRegister {
     /// If 1, an implementation can use this bit to use deep sleep as the sleep state.
     #[bit(2, rw)]
     deep_sleep: bool,
+    /// Sleep on exit bit.
     #[bit(1, rw)]
     sleep_on_exit: bool,
 }
@@ -1045,17 +1090,7 @@ impl SCB {
     pub fn clear_sevonpend(&mut self) {
         self.modify_scr(|val| val.with_sev_on_pend(false));
     }
-}
 
-const SCB_SCR_SEVONPEND: u32 = 0x1 << 4;
-
-impl SCB {}
-
-const SCB_AIRCR_VECTKEY: u32 = 0x05FA << 16;
-const SCB_AIRCR_PRIGROUP_MASK: u32 = 0x7 << 8;
-const SCB_AIRCR_SYSRESETREQ: u32 = 1 << 2;
-
-impl SCB {
     /// Initiate a system reset request to reset the MCU
     #[inline]
     pub fn sys_reset() -> ! {
@@ -1169,30 +1204,20 @@ impl SCB {
     pub fn get_priority(system_handler: SystemHandler) -> u8 {
         let index = system_handler as u8;
 
+        // SAFETY: atomic read with no side effects
+        let scb = unsafe { Self::steal() };
         #[cfg(not(armv6m))]
         {
-            // NOTE(unsafe) atomic read with no side effects
-
-            // NOTE(unsafe): Index is bounded to [4,15] by SystemHandler design.
-            // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
-            let priority_ref = unsafe { (*Self::PTR).shpr.get_unchecked(usize::from(index - 4)) };
-
-            priority_ref.read()
+            let shpr_base = scb.pointer_to_shpr_start() as *mut u8;
+            // SAFETY: Index is bounded to [4,15] by SystemHandler design. On ARMv7-M, all offsets
+            // derives from these values will be in bounds of the SHPR registers.
+            unsafe { core::ptr::read_volatile(shpr_base.offset(isize::from(index - 4))) }
         }
 
         #[cfg(armv6m)]
         {
-            // NOTE(unsafe) atomic read with no side effects
-
-            // NOTE(unsafe): Index is bounded to [11,15] by SystemHandler design.
-            // TODO: Review it after rust-lang/rust/issues/13926 will be fixed.
-            let priority_ref = unsafe {
-                (*Self::PTR)
-                    .shpr
-                    .get_unchecked(usize::from((index - 8) / 4))
-            };
-
-            let shpr = priority_ref.read();
+            // SAFETY: Index is bounded to [11,15] by SystemHandler design.
+            let shpr = unsafe { scb.read_shpr_unchecked(usize::from((index - 8) / 4)) };
             let prio = (shpr >> (8 * (index % 4))) & 0x0000_00ff;
             prio as u8
         }

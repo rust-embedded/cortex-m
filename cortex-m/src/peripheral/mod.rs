@@ -210,9 +210,7 @@ impl Peripherals {
                 SAU: SAU {
                     _marker: PhantomData,
                 },
-                SCB: SCB {
-                    _marker: PhantomData,
-                },
+                SCB: SCB::steal(),
                 SYST: SYST {
                     _marker: PhantomData,
                 },
@@ -607,23 +605,11 @@ impl SCB {
     ///
     /// This potentially allows to create multiple instances of the NVIC register block, which
     /// might only be valid in multi-core environments.
+    #[inline]
     pub const unsafe fn steal() -> Self {
         SCB(unsafe { scb::RegisterBlock::steal() })
     }
 }
-/*
-impl SCB {
-    /// Pointer to the register block
-    pub const PTR: *const scb::RegisterBlock = 0xE000_ED04 as *const _;
-
-    /// Returns a pointer to the register block
-    #[inline(always)]
-    #[deprecated(since = "0.7.5", note = "Use the associated constant `PTR` instead")]
-    pub const fn ptr() -> *const scb::RegisterBlock {
-        Self::PTR
-    }
-}
-*/
 
 impl ops::Deref for SCB {
     type Target = scb::MmioRegisterBlock<'static>;

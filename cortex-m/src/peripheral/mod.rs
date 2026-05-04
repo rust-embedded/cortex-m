@@ -600,6 +600,17 @@ impl ops::Deref for SAU {
 /// System Control Block
 pub struct SCB(scb::MmioRegisterBlock<'static>);
 
+impl SCB {
+    /// Creates a new instance of the [SCB] register block.
+    ///
+    /// # Safety
+    ///
+    /// This potentially allows to create multiple instances of the NVIC register block, which
+    /// might only be valid in multi-core environments.
+    pub const unsafe fn steal() -> Self {
+        SCB(unsafe { scb::RegisterBlock::steal() })
+    }
+}
 /*
 impl SCB {
     /// Pointer to the register block
@@ -624,7 +635,6 @@ impl ops::Deref for SCB {
 }
 
 impl ops::DerefMut for SCB {
-
     #[inline(always)]
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0

@@ -12,4 +12,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@1.85
         with:
           components: clippy
-      - run: cargo clippy --all --features cortex-m/critical-section-single-core -- --deny warnings
+      - run: cargo clippy --all --features cortex-m/critical-section-single-core -- -D warnings
+      - uses: dtolnay/rust-toolchain@1.85
+        with:
+          components: clippy
+          targets: thumbv7em-none-eabihf
+      - run: cd testsuite && cargo clippy --features qemu -- -D warnings

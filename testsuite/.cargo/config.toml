@@ -1,6 +1,19 @@
+
 [target.'cfg(all(target_arch = "arm", target_os = "none"))']
-rustflags = ["-C", "link-arg=-Tlink.x"]
-runner = "qemu-system-arm -cpu cortex-m3 -machine lm3s6965evb -nographic -semihosting-config enable=on,target=native -kernel"
+rustflags = [
+  "-C", "link-arg=-Tlink.x",
+  "-C", "link-arg=-Tdefmt.x",
+]
+
+[target.thumbv7em-none-eabihf]
+runner = "qemu-run --machine lm3s6965evb --cpu cortex-m3"
+
+[target.thumbv6m-none-eabi]
+runner = "qemu-run --machine microbit --cpu cortex-m0"
 
 [build]
-target = "thumbv7m-none-eabi"
+# target = "thumbv6m-none-eabi"  # Cortex-M0
+target = "thumbv7em-none-eabihf"  # Cortex-M3
+
+[env]
+DEFMT_LOG = "info"

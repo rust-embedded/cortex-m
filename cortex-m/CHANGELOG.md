@@ -7,9 +7,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Deprecated
+- The `inline-asm` feature is now a currently a no-op, will be removed in a future major version
+
+### Changed
+- Updated to edition 2024.
 - MSRV is 1.85 to match cortex-m-rt crate
 - Add `enter_unprivileged` function to switch to unprivileged mode (on the Process Stack, or `PSP`)
 - Updated references from 'Cortex-M Team' to 'Arm Team'
+- Add ITNS field to NVIC peripheral.
+- Expose more bits from within SCR.
+- Refactor asm code to remove need for very old nightly toolchain. Everything is now compiled with
+  the default toolchain.
+- The code should be clippy clean on all supported configurations now.
+- Add embedded-hal 1.0 delays.
 
 ## [v0.7.7] - 2023-01-03
 

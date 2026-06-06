@@ -33,12 +33,13 @@ optional = true
 [features]
 cm7 = []
 cm7-r0p1 = ["cm7"]
-inline-asm = []
 linker-plugin-lto = []
 std = []
 critical-section-single-core = ["critical-section/restore-state-u32"]
 # Deprecated feature from when critical-section was an optional dependency
 critical-section = []
+# Deprecated feature from when inline-asm was optional (to preserve a lower MSRV)
+inline-asm = []
 
 [package.metadata.docs.rs]
 targets = [

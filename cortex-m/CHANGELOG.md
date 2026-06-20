@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - The code should be clippy clean on all supported configurations now.
 - Add embedded-hal 1.0 delays.
 
+### Fixed
+- `SCB::vect_active()` now reads ICSR with a volatile access, preventing the load from being narrowed
+  to a byte read that faults on word-only ICSR models.
+
 ## [v0.7.7] - 2023-01-03
 
 - Add missing documentation for `critical-section-single-core` feature added

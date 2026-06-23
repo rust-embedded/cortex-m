@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - The code should be clippy clean on all supported configurations now.
 - Add embedded-hal 1.0 delays.
 
+## Changed
+
+- Removed `bare_metal::interrupt::Nr` blanket implementation of `InterruptNumber`
+
 ## [v0.7.7] - 2023-01-03
 
 - Add missing documentation for `critical-section-single-core` feature added

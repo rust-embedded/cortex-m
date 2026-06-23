@@ -26,7 +26,11 @@ pub fn bkpt() {
 /// The loop code is the same for all architectures, however the number of CPU cycles required for
 /// one iteration varies substantially between architectures.  This means that with a 48MHz CPU
 /// clock, a call to `delay(48_000_000)` is guaranteed to take at least 1 second, but for example
-/// could take 2 seconds.
+/// could take 3 or more seconds.
+///
+/// In particular, Cortex-M7 cores can sometimes retire two instructions per clock cycle, leading
+/// to this particular loop generally taking one clock cycle per iteration. Most other Cortex-M
+/// cores will take three cycles per iteration.
 ///
 /// NOTE that the delay can take much longer if interrupts are serviced during its execution and the
 /// execution time may vary with other factors. This delay is mainly useful for simple timer-less
@@ -35,11 +39,8 @@ pub fn bkpt() {
 #[inline]
 #[asm_cfg(cortex_m)]
 pub fn delay(cycles: u32) {
-    // The loop will normally take 3 to 4 CPU cycles per iteration, but superscalar cores
-    // (eg. Cortex-M7) can potentially do it in 2, so we use that as the lower bound, since delaying
-    // for more cycles is okay.
-    // Add 1 to prevent an integer underflow which would cause a long freeze
-    let real_cyc = 1 + cycles / 2;
+    // Add 1 to prevent underflow on 0 which would cause a long freeze.
+    let real_cyc = cycles.saturating_add(1);
     unsafe {
         asm!(
             // The `bne` on some cores (eg Cortex-M4) will take a different number of instructions

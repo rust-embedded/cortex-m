@@ -26,6 +26,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   requested, even on Cortex-M7 platforms with dual issue. For other CPUs
   the number of cycles is likely to be twice as long as before.
 
+### Fixed
+- `SCB::vect_active()` now reads ICSR with a volatile access, preventing the load from being narrowed
+  to a byte read that faults on word-only ICSR models.
+
 ## [v0.7.7] - 2023-01-03
 
 - Add missing documentation for `critical-section-single-core` feature added

@@ -2,7 +2,6 @@
 
 #[cfg(any(armv7m, armv8m))]
 use core::arch::asm;
-use core::ptr;
 #[cfg(any(armv7m, armv8m))]
 use core::sync::atomic::{Ordering, compiler_fence};
 #[cfg(not(armv6m))]
@@ -175,7 +174,7 @@ impl SCB {
     /// Returns the active exception number
     #[inline]
     pub fn vect_active() -> VectActive {
-        let icsr = unsafe { ptr::read(&(*SCB::PTR).icsr as *const _ as *const u32) };
+        let icsr = unsafe { (*SCB::PTR).icsr.read() };
 
         // NOTE(unsafe): Assume correctly selected target.
         unsafe { VectActive::from(icsr as u8).unwrap_unchecked() }

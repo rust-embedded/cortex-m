@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   the default toolchain.
 - The code should be clippy clean on all supported configurations now.
 - Add embedded-hal 1.0 delays.
+- Changed number of cycles performed in `asm::delay()` to guarantee that the
+  number of CPU cycles consumed is always at least the number of cycles
+  requested, even on Cortex-M7 platforms with dual issue. For other CPUs
+  the number of cycles is likely to be twice as long as before.
 
 ## [v0.7.7] - 2023-01-03
 

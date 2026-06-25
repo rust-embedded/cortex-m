@@ -50,7 +50,7 @@ static PACKAGE_FEATURES: &[(&str, &[&str], &[&str])] = &[
     ("panic-itm", NON_BASE_TARGETS, &[]),
 ];
 
-fn check_crates_build(is_nightly: bool, is_msrv: bool) {
+fn check_crates_build(is_nightly: bool, _is_msrv: bool) {
     // Build all crates for each supported target.
     for (package, targets, all_features) in PACKAGE_FEATURES {
         for target in *targets {

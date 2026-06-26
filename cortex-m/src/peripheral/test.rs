@@ -109,16 +109,16 @@ fn mpu() {
 
 #[test]
 fn nvic() {
-    let nvic = unsafe { &*crate::peripheral::NVIC::PTR };
+    let nvic = unsafe { crate::peripheral::NVIC::steal() };
 
-    assert_eq!(address(&nvic.iser), 0xE000E100);
-    assert_eq!(address(&nvic.icer), 0xE000E180);
-    assert_eq!(address(&nvic.ispr), 0xE000E200);
-    assert_eq!(address(&nvic.icpr), 0xE000E280);
-    assert_eq!(address(&nvic.iabr), 0xE000E300);
-    assert_eq!(address(&nvic.ipr), 0xE000E400);
+    assert_eq!(address(nvic.pointer_to_iser_start()), 0xE000E100);
+    assert_eq!(address(nvic.pointer_to_icer_start()), 0xE000E180);
+    assert_eq!(address(nvic.pointer_to_ispr_start()), 0xE000E200);
+    assert_eq!(address(nvic.pointer_to_icpr_start()), 0xE000E280);
+    assert_eq!(address(nvic.pointer_to_iabr_start()), 0xE000E300);
+    assert_eq!(address(nvic.pointer_to_ipr_start()), 0xE000E400);
     #[cfg(not(armv6m))]
-    assert_eq!(address(&nvic.stir), 0xE000EF00);
+    assert_eq!(address(nvic.pointer_to_stir()), 0xE000EF00);
 }
 
 #[test]

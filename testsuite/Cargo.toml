@@ -9,9 +9,10 @@ rust-version = "1.85"
 rtt = ["rtt-target", "minitest/rtt"]
 
 [dependencies]
-cortex-m-rt.path = "../cortex-m-rt"
+cortex-m-rt = { path = "../cortex-m-rt"}
 cortex-m = { path = "../cortex-m", features = ["critical-section-single-core"] }
-minitest.path = "minitest"
-critical-section = "1.0.0"
-cortex-m-semihosting.path = "../cortex-m-semihosting"
-rtt-target = { version = "0.5.0", optional = true }
+minitest = { path = "minitest" }
+critical-section = "1"
+num_enum = { version = "0.7", default-features = false }
+cortex-m-semihosting = { path = "../cortex-m-semihosting" }
+rtt-target = { version = "0.6", optional = true }

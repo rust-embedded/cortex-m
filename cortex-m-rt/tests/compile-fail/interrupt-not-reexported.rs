@@ -11,5 +11,5 @@ fn foo() -> ! {
     loop {}
 }
 
-#[interrupt] //~ ERROR cannot find module or crate `interrupt`
+#[interrupt] //~ ERROR cannot find module or crate `interrupt` in this scope [E0433]
 fn USART1() {}

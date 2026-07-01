@@ -49,8 +49,6 @@ impl Apsr {
 }
 
 /// Reads the CPU register
-///
-/// **NOTE** This function is available if `cortex-m` is built with the `"inline-asm"` feature.
 #[inline]
 #[asm_cfg(cortex_m)]
 pub fn read() -> Apsr {

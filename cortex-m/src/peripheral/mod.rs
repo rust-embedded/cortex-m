@@ -139,6 +139,13 @@ pub struct Peripherals {
     /// System Control Block
     pub SCB: SCB,
 
+    /// Nonsecure alias for System Control Block
+    ///
+    /// This lets a CPU running in Secure mode access the Nonsecure System Control
+    /// Block, without switching to Nonsecure mode to do so.
+    #[cfg(feature = "secure-mode")]
+    pub SCBNS: SCBNS,
+
     /// SysTick: System Timer
     pub SYST: SYST,
 
@@ -213,6 +220,10 @@ impl Peripherals {
                     _marker: PhantomData,
                 },
                 SCB: SCB {
+                    _marker: PhantomData,
+                },
+                #[cfg(feature = "secure-mode")]
+                SCBNS: SCBNS {
                     _marker: PhantomData,
                 },
                 SYST: SYST {
@@ -614,6 +625,34 @@ impl SCB {
 
 impl ops::Deref for SCB {
     type Target = self::scb::RegisterBlock;
+
+    #[inline(always)]
+    fn deref(&self) -> &Self::Target {
+        unsafe { &*Self::PTR }
+    }
+}
+
+/// Nonsecure alias for the System Control Block
+///
+/// This lets a CPU running in Secure mode access the Nonsecure System Control
+/// Block, without switching to Nonsecure mode to do so.
+#[cfg(feature = "secure-mode")]
+pub struct SCBNS {
+    _marker: core::marker::PhantomData<*const ()>,
+}
+
+#[cfg(feature = "secure-mode")]
+unsafe impl Send for SCBNS {}
+
+#[cfg(feature = "secure-mode")]
+impl SCBNS {
+    /// Pointer to the nonsecure alias for the register block
+    pub const PTR: *const scb::RegisterBlock = 0xE002_ED04 as *const _;
+}
+
+#[cfg(feature = "secure-mode")]
+impl ops::Deref for SCBNS {
+    type Target = scb::RegisterBlock;
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {

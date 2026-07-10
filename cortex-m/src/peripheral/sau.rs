@@ -83,14 +83,23 @@ bitfield! {
     #[repr(C)]
     #[derive(Copy, Clone)]
     pub struct Sfsr(u32);
-    invep, _: 0;
-    invis, _: 1;
-    inver, _: 2;
-    auviol, _: 3;
-    invtran, _: 4;
-    lsperr, _: 5;
-    sfarvalid, _: 6;
-    lserr, _: 7;
+    impl Debug;
+    /// Invalid Entry Point
+    pub invep, _: 0;
+    /// Invalid Integrity Signature
+    pub invis, _: 1;
+    /// Invalid Exception Return
+    pub inver, _: 2;
+    /// Attribution Unit Violation
+    pub auviol, _: 3;
+    /// Invalid Transition
+    pub invtran, _: 4;
+    /// Lazy state preservation error
+    pub lsperr, _: 5;
+    /// SFAR is valid
+    pub sfarvalid, _: 6;
+    /// Lazy state error
+    pub lserr, _: 7;
 }
 
 bitfield! {
@@ -98,8 +107,12 @@ bitfield! {
     #[repr(C)]
     #[derive(Copy, Clone)]
     pub struct Sfar(u32);
+    impl Debug;
     u32;
-    address, _: 31, 0;
+    /// Faulting memory address
+    ///
+    /// Only valid if SFSR.SFARVALID = 1
+    pub address, _: 31, 0;
 }
 
 /// Possible attribute of a SAU region.

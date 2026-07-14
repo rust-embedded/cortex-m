@@ -16,5 +16,4 @@ jlink-quirks = []
 no-semihosting = []
 
 [dependencies]
-cortex-m = { path = "../cortex-m", version = ">= 0.5.8, < 0.8" }
 critical-section = "1.0.0"

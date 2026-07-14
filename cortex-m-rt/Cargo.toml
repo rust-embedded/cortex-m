@@ -17,7 +17,6 @@ rust-version = "1.85"
 cortex-m-rt-macros = { path = "macros", version = "=0.7.5" }
 
 [dev-dependencies]
-cortex-m = { version = "0.7.4", path = "../cortex-m" }
 panic-halt = "0.2.0"
 cortex-m-semihosting = { path = "../cortex-m-semihosting" }
 

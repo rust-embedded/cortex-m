@@ -26,7 +26,11 @@ pub fn bkpt() {
 /// The loop code is the same for all architectures, however the number of CPU cycles required for
 /// one iteration varies substantially between architectures.  This means that with a 48MHz CPU
 /// clock, a call to `delay(48_000_000)` is guaranteed to take at least 1 second, but for example
-/// could take 2 seconds.
+/// could take 3 or more seconds.
+///
+/// In particular, Cortex-M7 cores can sometimes retire two instructions per clock cycle, leading
+/// to this particular loop generally taking one clock cycle per iteration. Most other Cortex-M
+/// cores will take three cycles per iteration.
 ///
 /// NOTE that the delay can take much longer if interrupts are serviced during its execution and the
 /// execution time may vary with other factors. This delay is mainly useful for simple timer-less
@@ -35,11 +39,8 @@ pub fn bkpt() {
 #[inline]
 #[asm_cfg(cortex_m)]
 pub fn delay(cycles: u32) {
-    // The loop will normally take 3 to 4 CPU cycles per iteration, but superscalar cores
-    // (eg. Cortex-M7) can potentially do it in 2, so we use that as the lower bound, since delaying
-    // for more cycles is okay.
-    // Add 1 to prevent an integer underflow which would cause a long freeze
-    let real_cyc = 1 + cycles / 2;
+    // Add 1 to prevent underflow on 0 which would cause a long freeze.
+    let real_cyc = cycles.saturating_add(1);
     unsafe {
         asm!(
             // The `bne` on some cores (eg Cortex-M4) will take a different number of instructions
@@ -387,4 +388,119 @@ pub unsafe fn bootload(vector_table: *const u32) -> ! {
         let rv = core::ptr::read_volatile(vector_table.offset(1));
         bootstrap(msp as *const u32, rv as *const u32);
     }
+}
+
+/// This instruction moves one Register to a Coprocessor Register.
+/// This function generates inline assembly and needs the instruction configuration
+/// during compilation time (i.e. as `const`).
+/// The values of the constants required by this function should be defined by
+/// the coprocessor's reference manual.
+///  - CP: The coprocessor's index.
+///  - OP1: First optional operation for the coprocessor.
+///  - CRN: Coprocessor register N.
+///  - CRM: Coprocessor register M.
+///  - OP2: Second optional operation for the coprocessor.
+#[inline(always)]
+#[asm_cfg(any(armv7m, armv8m))]
+pub unsafe fn mcr<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32, const OP2: u32>(
+    value: u32,
+) {
+    unsafe {
+        core::arch::asm!(
+            "MCR p{cp}, #{op1}, {0}, c{crn}, c{crm}, #{op2}",
+            in(reg) value,
+            cp  = const CP,
+            op1 = const OP1,
+            crn = const CRN,
+            crm = const CRM,
+            op2 = const OP2,
+            options(nostack, nomem)
+        )
+    };
+}
+
+/// This instruction moves one Coprocessor Register to a Register.
+/// This function generates inline assembly and needs the instruction configuration
+/// during compilation time (i.e. as `const`).
+/// The values of the constants required by this function should be defined by
+/// the coprocessor's reference manual.
+///  - CP: The coprocessor's index.
+///  - OP1: First optional operation for the coprocessor.
+///  - CRN: Coprocessor register N.
+///  - CRM: Coprocessor register M.
+///  - OP2: Second optional operation for the coprocessor.
+#[inline(always)]
+#[asm_cfg(any(armv7m, armv8m))]
+pub unsafe fn mrc<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32, const OP2: u32>()
+-> u32 {
+    let a: u32;
+
+    unsafe {
+        core::arch::asm!(
+            "MRC p{cp}, #{op1}, {0}, c{crn}, c{crm}, #{op2}",
+            out(reg) a,
+            cp  = const CP,
+            op1 = const OP1,
+            crn = const CRN,
+            crm = const CRM,
+            op2 = const OP2,
+            options(nostack, nomem)
+        )
+    };
+
+    a
+}
+
+/// This instruction moves two Registers to Coprocessor Registers.
+/// This function generates inline assembly and needs the instruction configuration
+/// during compilation time (i.e. as `const`).
+/// The values of the constants required by this function should be defined by
+/// the coprocessor's reference manual.
+///  - CP: The coprocessor's index.
+///  - OP1: First optional operation for the coprocessor.
+///  - CRM: Coprocessor register M.
+#[inline(always)]
+#[asm_cfg(any(armv7m, armv8m))]
+pub unsafe fn mcrr<const CP: u32, const OP1: u32, const CRM: u32>(a: u32, b: u32) {
+    unsafe {
+        core::arch::asm!(
+            "MCRR p{cp}, #{op1}, {0}, {1}, c{crm}",
+            in(reg) a,
+            in(reg) b,
+            cp  = const CP,
+            op1 = const OP1,
+            crm = const CRM,
+            options(nostack, nomem)
+        )
+    };
+}
+
+/// This instruction moves two Coprocessor Registers to Registers.
+/// This function generates inline assembly and needs the instruction configuration
+/// during compilation time (i.e. as `const`).
+/// The values of the constants required by this function should be defined by
+/// the coprocessor's reference manual.
+///  - CP: The coprocessor's index.
+///  - OP1: First optional operation for the coprocessor.
+///  - CRM: Coprocessor register M.
+#[inline(always)]
+#[asm_cfg(any(armv7m, armv8m))]
+pub unsafe fn mrrc<const CP: u32, const OPC: u32, const CRM: u32>() -> (u32, u32) {
+    // Preallocate the values.
+    let a: u32;
+    let b: u32;
+
+    unsafe {
+        core::arch::asm!(
+            "MRRC p{cp}, #{opc}, {0}, {1}, c{crm}",
+            out(reg) a,
+            out(reg) b,
+            cp  = const CP,
+            opc = const OPC,
+            crm = const CRM,
+            options(nostack, nomem)
+        )
+    };
+
+    (a, b)
 }

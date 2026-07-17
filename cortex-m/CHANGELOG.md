@@ -7,9 +7,28 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Deprecated
+- The `inline-asm` feature is now a currently a no-op, will be removed in a future major version
+
+### Changed
+- Updated to edition 2024.
 - MSRV is 1.85 to match cortex-m-rt crate
 - Add `enter_unprivileged` function to switch to unprivileged mode (on the Process Stack, or `PSP`)
 - Updated references from 'Cortex-M Team' to 'Arm Team'
+- Add ITNS field to NVIC peripheral.
+- Expose more bits from within SCR.
+- Refactor asm code to remove need for very old nightly toolchain. Everything is now compiled with
+  the default toolchain.
+- The code should be clippy clean on all supported configurations now.
+- Add embedded-hal 1.0 delays.
+- Changed number of cycles performed in `asm::delay()` to guarantee that the
+  number of CPU cycles consumed is always at least the number of cycles
+  requested, even on Cortex-M7 platforms with dual issue. For other CPUs
+  the number of cycles is likely to be twice as long as before.
+
+### Fixed
+- `SCB::vect_active()` now reads ICSR with a volatile access, preventing the load from being narrowed
+  to a byte read that faults on word-only ICSR models.
 
 ## [v0.7.7] - 2023-01-03
 

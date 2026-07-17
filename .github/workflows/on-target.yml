@@ -12,20 +12,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Install qemu-run
+        uses: taiki-e/cache-cargo-install-action@v3
         with:
-          targets: thumbv7m-none-eabi
-      - name: Build testsuite
-        env:
-          RUSTFLAGS: -C link-arg=-Tlink.x -D warnings
-        run: cargo build -p testsuite --target thumbv7m-none-eabi
-      - name: Install QEMU
-        run: sudo apt-get update && sudo apt-get install qemu-system-arm
-      - name: Run testsuite
+          tool: qemu-run
+      - name: Install QEMU Dependencies
         run: |
-          qemu-system-arm \
-            -cpu cortex-m3 \
-            -machine lm3s6965evb \
-            -nographic \
-            -semihosting-config enable=on,target=native \
-            -kernel target/thumbv7m-none-eabi/debug/testsuite
+          sudo apt-get -y update
+          sudo apt-get -y install libpixman-1-0 libfdt1 libglib2.0-0t64
+      - name: Install custom QEMU into /opt
+        run: |
+          curl -sSL https://github.com/jonathanpallant/qemu9-for-ubuntu-2404/releases/download/qemu-9.2.3%2Bbuild0/qemu-9.2.3-ubuntu-24.04.tar.gz | sudo tar xvzf - -C /
+          echo "/opt/qemu/bin" >> "$GITHUB_PATH"
+      - name: Install toolchains
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: thumbv7em-none-eabihf, thumbv6m-none-eabi
+      - name: Run testsuite Cortex-M3
+        run: |
+          cd testsuite && cargo test --features qemu --target thumbv7em-none-eabihf
+      - name: Run testsuite Cortex-M0
+        run: |
+          cd testsuite && cargo test --features qemu --target thumbv6m-none-eabi

@@ -9,22 +9,6 @@
 //!
 //! # Optional features
 //!
-//! ## `inline-asm`
-//!
-//! When this feature is enabled the implementation of all the functions inside the `asm` and
-//! `register` modules use inline assembly (`asm!`) instead of external assembly (FFI into separate
-//! assembly files pre-compiled using `arm-none-eabi-gcc`). The advantages of enabling `inline-asm`
-//! are:
-//!
-//! - Reduced overhead. FFI eliminates the possibility of inlining so all operations include a
-//!   function call overhead when `inline-asm` is not enabled.
-//!
-//! - Some of the `register` API only becomes available only when `inline-asm` is enabled. Check the
-//!   API docs for details.
-//!
-//! The disadvantage is that `inline-asm` requires a Rust version at least 1.59 to use the `asm!()`
-//! macro. In the future 0.8 and above versions of `cortex-m`, this feature will always be enabled.
-//!
 //! ## `critical-section-single-core`
 //!
 //! This feature enables a [`critical-section`](https://github.com/rust-embedded/critical-section)
@@ -49,8 +33,7 @@
 //! ## `linker-plugin-lto`
 //!
 //! This feature links against prebuilt assembly blobs that are compatible with [Linker-Plugin LTO].
-//! This allows inlining assembly routines into the caller, even without the `inline-asm` feature,
-//! and works on stable Rust (but note the drawbacks below!).
+//! This allows inlining assembly routines into the caller, and works on stable Rust (but note the drawbacks below!).
 //!
 //! If you want to use this feature, you need to be aware of a few things:
 //!
@@ -65,6 +48,12 @@
 //!
 //! [Linker-Plugin LTO]: https://doc.rust-lang.org/stable/rustc/linker-plugin-lto.html
 //! [rust-lang/rust#75940]: https://github.com/rust-lang/rust/issues/75940
+//!
+//! ## `inline-asm`
+//!
+//! This feature is deprecated.
+//! Enabling this feature does nothing - it exists for backwards-compatibility only.
+//! It will be removed in a future version of this crate.
 //!
 //! # Minimum Supported Rust Version (MSRV)
 //!

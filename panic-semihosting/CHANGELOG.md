@@ -7,8 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.7.0] - 2026-07-20
+
 - MSRV bumped to 1.85
 - Updated references from 'Cortex-M Team' to 'Arm Team'
+- Now uses `cortex-m-semihosting` version 0.6, which uses
+  `critical_section::Mutex` rather than `cortex_m::interrupt::free`
 
 ## [v0.6.0] - 2022-03-01
 
@@ -77,7 +81,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 Initial release
 
-[Unreleased]: https://github.com/rust-embedded/panic-semihosting/compare/p-sh-v0.6.0...HEAD
+[Unreleased]: https://github.com/rust-embedded/panic-semihosting/compare/p-sh-v0.7.0...HEAD
+[v0.7.0]: https://github.com/rust-embedded/cortex-m/compare/p-sh-v0.6.0...p-sh-v0.7.0
 [v0.6.0]: https://github.com/rust-embedded/cortex-m/compare/p-sh-v0.5.6...p-sh-v0.6.0
 [v0.5.6]: https://github.com/rust-embedded/cortex-m/compare/p-sh-v0.5.5...p-sh-v0.5.6
 [v0.5.5]: https://github.com/rust-embedded/cortex-m/compare/p-sh-v0.5.4...p-sh-v0.5.5

@@ -5,8 +5,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.6.0] - 2026-07-20
+
 - MSRV bumped to 1.85
 - Updated references from 'Cortex-M Team' to 'Arm Team'
+- Now uses `critical_section::Mutex` rather than `cortex_m::interrupt::free`
 
 ## [v0.5.0] - 2022-03-01
 
@@ -149,7 +152,8 @@ change.
 
 - Initial release
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/c-m-sh-v0.5.0...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/c-m-sh-v0.6.0...HEAD
+[v0.6.0]: https://github.com/rust-embedded/cortex-m/compare/c-m-sh-v0.5.0...c-m-sh-v0.6.0
 [v0.5.0]: https://github.com/rust-embedded/cortex-m/compare/c-m-sh-v0.4.1...c-m-sh-v0.5.0
 [v0.4.1]: https://github.com/rust-embedded/cortex-m/compare/c-m-sh-v0.4.0...c-m-sh-v0.4.1
 [v0.4.0]: https://github.com/rust-embedded/cortex-m/compare/c-m-sh-v0.3.5...c-m-sh-v0.4.0

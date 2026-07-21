@@ -465,9 +465,9 @@ core::arch::global_asm!(
         .type _bx_ns_trampoline_part2,%function
         .global _bx_ns_trampoline_part2
     _bx_ns_trampoline_part2:
-        mov     lr, r0    // Put target address in LR
-        mov     r0, 0     // Zero all the other registers
-        mov     r1, 0     // Except secure MSP, as nonsecure has its own MSP, which we set
+        mov     lr, r0         // Put target address in LR
+        mov     r0, 0          // Zero all the other registers
+        mov     r1, 0          // Except secure MSP, as nonsecure has its own MSP, which we set
         mov     r2, 0
         mov     r3, 0
         mov     r4, 0
@@ -480,7 +480,8 @@ core::arch::global_asm!(
         mov     r10, 0
         mov     r11, 0
         mov     r12, 0
-        bxns    lr        // Branch to nonsecure mode
+        msr     apsr_nzcvq, r0 // Also clear processor flags
+        bxns    lr             // Branch to nonsecure mode
         .size _bx_ns_trampoline_part2, . - _bx_ns_trampoline_part2
     "#,
 );

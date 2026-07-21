@@ -464,10 +464,13 @@ core::arch::global_asm!(
 );
 
 /// This instruction moves one Register to a Coprocessor Register.
+///
 /// This function generates inline assembly and needs the instruction configuration
 /// during compilation time (i.e. as `const`).
+///
 /// The values of the constants required by this function should be defined by
 /// the coprocessor's reference manual.
+///
 ///  - CP: The coprocessor's index.
 ///  - OP1: First optional operation for the coprocessor.
 ///  - CRN: Coprocessor register N.
@@ -493,10 +496,13 @@ pub unsafe fn mcr<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32,
 }
 
 /// This instruction moves one Coprocessor Register to a Register.
+///
 /// This function generates inline assembly and needs the instruction configuration
 /// during compilation time (i.e. as `const`).
+///
 /// The values of the constants required by this function should be defined by
 /// the coprocessor's reference manual.
+///
 ///  - CP: The coprocessor's index.
 ///  - OP1: First optional operation for the coprocessor.
 ///  - CRN: Coprocessor register N.
@@ -525,10 +531,13 @@ pub unsafe fn mrc<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32,
 }
 
 /// This instruction moves two Registers to Coprocessor Registers.
+///
 /// This function generates inline assembly and needs the instruction configuration
 /// during compilation time (i.e. as `const`).
+///
 /// The values of the constants required by this function should be defined by
 /// the coprocessor's reference manual.
+///
 ///  - CP: The coprocessor's index.
 ///  - OP1: First optional operation for the coprocessor.
 ///  - CRM: Coprocessor register M.
@@ -549,10 +558,13 @@ pub unsafe fn mcrr<const CP: u32, const OP1: u32, const CRM: u32>(a: u32, b: u32
 }
 
 /// This instruction moves two Coprocessor Registers to Registers.
+///
 /// This function generates inline assembly and needs the instruction configuration
 /// during compilation time (i.e. as `const`).
+///
 /// The values of the constants required by this function should be defined by
 /// the coprocessor's reference manual.
+///
 ///  - CP: The coprocessor's index.
 ///  - OP1: First optional operation for the coprocessor.
 ///  - CRM: Coprocessor register M.

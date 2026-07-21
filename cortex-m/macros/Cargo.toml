@@ -1,6 +1,11 @@
 [package]
+categories = ["embedded", "no-std"]
+description = "Attributes used by `cortex-m`"
+documentation = "https://docs.rs/cortex-m-rt"
+license = "MIT OR Apache-2.0"
 name = "cortex-m-macros"
-version = "0.1.0"
+repository = "https://github.com/rust-embedded/cortex-m"
+version = "0.7.8"
 edition = "2024"
 rust-version = "1.85"
 

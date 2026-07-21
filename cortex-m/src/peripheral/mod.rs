@@ -37,7 +37,7 @@
 //! let cyccnt = DWT::cycle_count();
 //! ```
 //!
-//! The singleton property can be *unsafely* bypassed using the `ptr` static method which is
+//! The singleton property can be *unsafely* bypassed using the `PTR` associated const which is
 //! available on all the peripheral types. This method is a useful building block for implementing
 //! safe higher level abstractions.
 //!

@@ -436,35 +436,13 @@ pub unsafe fn bootload_ns(ns_vtor: *const u32, scb_ns: crate::peripheral::SCBNS)
     }
 }
 
-#[cfg(all(not(has_fpu), armv8m, feature = "secure-mode"))]
-core::arch::global_asm!(
-    r#"
-        .type _bx_ns_trampoline,%function
-        .global _bx_ns_trampoline
-    _bx_ns_trampoline:
-        b       _bx_ns_trampoline_part2
-        .size _bx_ns_trampoline, . - _bx_ns_trampoline
-    "#,
-);
-
-#[cfg(all(has_fpu, armv8m, feature = "secure-mode"))]
-core::arch::global_asm!(
-    r#"
-        .type _bx_ns_trampoline,%function
-        .global _bx_ns_trampoline
-    _bx_ns_trampoline:
-        vlstm   sp        // Push secure FPU state to stack, and zero secure FPU registers
-        b       _bx_ns_trampoline_part2
-        .size _bx_ns_trampoline, . - _bx_ns_trampoline
-    "#,
-);
-
 #[cfg(all(armv8m, feature = "secure-mode"))]
 core::arch::global_asm!(
     r#"
-        .type _bx_ns_trampoline_part2,%function
-        .global _bx_ns_trampoline_part2
-    _bx_ns_trampoline_part2:
+        .type _bx_ns_trampoline,%function
+        .global _bx_ns_trampoline
+    _bx_ns_trampoline:
+        vlstm   sp             // Push secure FPU state to stack, and zero secure FPU registers (nop if no FPU present)
         mov     lr, r0         // Put target address in LR
         mov     r0, 0          // Zero all the other registers
         mov     r1, 0          // Except secure MSP, as nonsecure has its own MSP, which we set
@@ -482,7 +460,7 @@ core::arch::global_asm!(
         mov     r12, 0
         msr     apsr_nzcvq, r0 // Also clear processor flags
         bxns    lr             // Branch to nonsecure mode
-        .size _bx_ns_trampoline_part2, . - _bx_ns_trampoline_part2
+        .size _bx_ns_trampoline, . - _bx_ns_trampoline
     "#,
 );
 

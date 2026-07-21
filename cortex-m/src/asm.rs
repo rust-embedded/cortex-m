@@ -390,6 +390,80 @@ pub unsafe fn bootload(vector_table: *const u32) -> ! {
     }
 }
 
+/// Transfer control to the Non-Secure application. Does not return.
+///
+/// This performs the standard Secure→Non-Secure boot handoff:
+/// 1. Sets `SCB_NS->VTOR` to `ns_vtor` so the Non-Secure world finds its vector table.
+/// 2. Loads `MSP_NS` from the first word of the NS vector table (the initial NS stack pointer).
+/// 3. Reads the NS reset handler address from the second word of the NS vector table.
+/// 4. Executes `BXNS` to atomically switch to Non-Secure state and jump to the handler.
+///
+/// # Safety
+/// - Must be called from the Secure world after all SAU/GTZC setup is complete.
+/// - `ns_vtor` must point to a valid Non-Secure vector table. The Cortex-M33 requires the VTOR
+///   to be at least 32-byte aligned; in practice 128-byte or 256-byte alignment is typical.
+/// - The NS reset handler at `*(ns_vtor + 1)` must be a valid Thumb function address (bit 0 set
+///   in the vector table entry, as per the ARM ABI convention for vector tables).
+/// - Available on ARMv8-M only (`thumbv8m.base` and `thumbv8m.main`).
+#[cfg(all(armv8m, feature = "secure-mode"))]
+pub unsafe fn bootload_ns(ns_vtor: *const u32, scb_ns: crate::peripheral::SCBNS) -> ! {
+    // Set NS_VTOR, so nonsecure mode uses that vector table
+    unsafe {
+        scb_ns.vtor.write(ns_vtor as usize as u32);
+    }
+
+    // Load the initial NS stack pointer from the first word of the NS vector table
+    // and write it into MSP_NS.
+    let ns_sp = unsafe { ns_vtor.read_volatile() };
+
+    // Set MSP_NS, so nonsecure mode uses that stack pointer
+    unsafe {
+        crate::register::msp::write_ns(ns_sp);
+    }
+
+    // Read the NS reset handler address from the second word of the NS vector table.
+    // ARM ABI: bit 0 is set in the stored value (Thumb mode marker).
+    // BXNS requires bit 0 = 0; if bit 0 is set, it raises SecureFault (SFSR.INVTRAN).
+    let ns_reset = unsafe { ns_vtor.add(1).read_volatile() };
+
+    // BXNS switches the processor to the state given in the LSB
+    // so we must clear that bit.
+    unsafe extern "C" {
+        fn _bx_ns_trampoline(boot: u32) -> !;
+    }
+    unsafe {
+        _bx_ns_trampoline(ns_reset & 0xFFFF_FFFE);
+    }
+}
+
+#[cfg(all(armv8m, feature = "secure-mode"))]
+core::arch::global_asm!(
+    r#"
+        .type _bx_ns_trampoline,%function
+        .global _bx_ns_trampoline
+    _bx_ns_trampoline:
+        vlstm   sp             // Push secure FPU state to stack, and zero secure FPU registers (nop if no FPU present)
+        mov     lr, r0         // Put target address in LR
+        mov     r0, 0          // Zero all the other registers
+        mov     r1, 0          // Except secure MSP, as nonsecure has its own MSP, which we set
+        mov     r2, 0
+        mov     r3, 0
+        mov     r4, 0
+        mov     r5, 0
+        mov     r6, 0
+        mov     r7, 0
+        mov     r8, 0
+        mov     r8, 0
+        mov     r9, 0
+        mov     r10, 0
+        mov     r11, 0
+        mov     r12, 0
+        msr     apsr_nzcvq, r0 // Also clear processor flags
+        bxns    lr             // Branch to nonsecure mode
+        .size _bx_ns_trampoline, . - _bx_ns_trampoline
+    "#,
+);
+
 /// This instruction moves one Register to a Coprocessor Register.
 /// This function generates inline assembly and needs the instruction configuration
 /// during compilation time (i.e. as `const`).

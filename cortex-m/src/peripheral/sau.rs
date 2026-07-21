@@ -83,14 +83,23 @@ bitfield! {
     #[repr(C)]
     #[derive(Copy, Clone)]
     pub struct Sfsr(u32);
-    invep, _: 0;
-    invis, _: 1;
-    inver, _: 2;
-    auviol, _: 3;
-    invtran, _: 4;
-    lsperr, _: 5;
-    sfarvalid, _: 6;
-    lserr, _: 7;
+    impl Debug;
+    /// Invalid Entry Point
+    pub invep, _: 0;
+    /// Invalid Integrity Signature
+    pub invis, _: 1;
+    /// Invalid Exception Return
+    pub inver, _: 2;
+    /// Attribution Unit Violation
+    pub auviol, _: 3;
+    /// Invalid Transition
+    pub invtran, _: 4;
+    /// Lazy state preservation error
+    pub lsperr, _: 5;
+    /// SFAR is valid
+    pub sfarvalid, _: 6;
+    /// Lazy state error
+    pub lserr, _: 7;
 }
 
 bitfield! {
@@ -98,12 +107,16 @@ bitfield! {
     #[repr(C)]
     #[derive(Copy, Clone)]
     pub struct Sfar(u32);
+    impl Debug;
     u32;
-    address, _: 31, 0;
+    /// Faulting memory address
+    ///
+    /// Only valid if SFSR.SFARVALID = 1
+    pub address, _: 31, 0;
 }
 
 /// Possible attribute of a SAU region.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SauRegionAttribute {
     /// SAU region is Secure
     Secure,
@@ -114,7 +127,7 @@ pub enum SauRegionAttribute {
 }
 
 /// Description of a SAU region.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SauRegion {
     /// First address of the region, its 5 least significant bits must be set to zero.
     pub base_address: u32,
@@ -134,6 +147,9 @@ pub enum SauError {
     WrongBaseAddress,
     /// Bits 0 to 4 of the limit address of a SAU region must be set to one.
     WrongLimitAddress,
+    /// The number of regions passed to [`SAU::init`] exceeds the number of regions implemented
+    /// in hardware (as reported by [`SAU::region_numbers`]).
+    TooManyRegions,
 }
 
 impl SAU {
@@ -141,6 +157,55 @@ impl SAU {
     #[inline]
     pub fn region_numbers(&self) -> u8 {
         self._type.read().sregion()
+    }
+
+    /// Disable the SAU and mark all memory Non-Secure (ALLNS mode).
+    ///
+    /// Sets `CTRL.ALLNS = 1`, `CTRL.ENABLE = 0`. When the SAU is disabled with ALLNS set, the
+    /// entire address space is treated as Non-Secure (subject to any IDAU overrides). Use this
+    /// when running entirely in Non-Secure mode with no security boundary enforcement.
+    ///
+    /// To re-enable security boundaries, call [`init`] or [`enable`] after programming regions.
+    #[inline]
+    pub fn disable_allns(&mut self) {
+        unsafe {
+            self.ctrl.write(Ctrl(0b10)); // ALLNS=1, ENABLE=0
+        }
+    }
+
+    /// Program SAU regions and enable the SAU.
+    ///
+    /// This is a convenience wrapper around [`set_region`] + [`enable`]:
+    /// 1. Disables the SAU temporarily.
+    /// 2. Programs all regions from `regions`.
+    /// 3. Re-enables the SAU.
+    ///
+    /// Memory not covered by any enabled region is treated as Secure once the SAU is enabled.
+    ///
+    /// To also enable the `SecureFault` exception so TrustZone violations surface as a dedicated
+    /// fault rather than escalating to `HardFault`, call
+    /// `scb.enable(cortex_m::peripheral::scb::Exception::SecureFault)` after this.
+    ///
+    /// # Errors
+    /// Returns [`SauError::TooManyRegions`] if `regions.len()` exceeds the number of regions
+    /// implemented in hardware (see [`region_numbers`]). Returns other [`SauError`] variants if
+    /// any region descriptor has a misaligned base or limit address.
+    ///
+    /// On error the SAU is left disabled (in the state set at step 1 above).
+    #[inline]
+    pub fn init(&mut self, regions: &[SauRegion]) -> Result<(), SauError> {
+        if regions.len() > self.region_numbers() as usize {
+            return Err(SauError::TooManyRegions);
+        }
+        // Disable while reprogramming to avoid partial-update windows.
+        unsafe {
+            self.ctrl.write(Ctrl(0));
+        }
+        for (i, &region) in regions.iter().enumerate() {
+            self.set_region(i as u8, region)?;
+        }
+        self.enable();
+        Ok(())
     }
 
     /// Enable the SAU.

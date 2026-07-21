@@ -40,6 +40,8 @@ critical-section-single-core = ["critical-section/restore-state-u32"]
 critical-section = []
 # Deprecated feature from when inline-asm was optional (to preserve a lower MSRV)
 inline-asm = []
+# Add NS variants of various Cortex-M peripherals, which secure mode might want to configure
+secure-mode = []
 
 [package.metadata.docs.rs]
 targets = [

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.7.6]
+
 - Mark `pre_init` as deprecated
 - Add `set_msplim` feature to conditionally set the MSPLIM register at device
   reset ([#580]).
@@ -657,8 +659,9 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.5...HEAD
-[v0.7.4]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.4...c-m-rt-v0.7.5
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.6...HEAD
+[v0.7.6]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.5...c-m-rt-v0.7.6
+[v0.7.5]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.4...c-m-rt-v0.7.5
 [v0.7.4]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.3...c-m-rt-v0.7.4
 [v0.7.3]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.2...c-m-rt-v0.7.3
 [v0.7.2]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.1...c-m-rt-v0.7.2

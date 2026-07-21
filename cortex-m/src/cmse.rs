@@ -4,7 +4,7 @@
 //! Extensions.
 //! Most of this implementation is directly inspired by the "Armv8-M Security Extensions:
 //! Requirements on Development Tools" document available here:
-//! https://developer.arm.com/docs/ecm0359818/latest
+//! <https://developer.arm.com/docs/ecm0359818/latest>
 //!
 //! Please note that the TT instructions support as described part 4 of the document linked above is
 //! not part of CMSE but is still present in this module. The TT instructions return the

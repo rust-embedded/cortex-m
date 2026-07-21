@@ -4,11 +4,9 @@
 #![no_main]
 #![no_std]
 
-extern crate cortex_m;
 extern crate cortex_m_rt as rt;
 extern crate panic_halt;
 
-use cortex_m::asm;
 use rt::{ExceptionFrame, entry, exception};
 
 #[entry]
@@ -18,12 +16,16 @@ fn main() -> ! {
 
 #[exception]
 unsafe fn DefaultHandler(_irqn: i16) {
-    asm::bkpt();
+    unsafe {
+        core::arch::asm!("bkpt");
+    }
 }
 
 #[exception]
 unsafe fn HardFault(_ef: &ExceptionFrame) -> ! {
-    asm::bkpt();
+    unsafe {
+        core::arch::asm!("bkpt");
+    }
 
     loop {}
 }

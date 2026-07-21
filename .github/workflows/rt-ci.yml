@@ -65,18 +65,18 @@ jobs:
       - name: Remove examples that pass by failing
         run: rm examples/data_overflow.rs
       - name: Build examples for thumbv6m-none-eabi
-        run: cargo build --target=thumbv6m-none-eabi --features cortex-m/critical-section-single-core --examples
+        run: cargo build --target=thumbv6m-none-eabi --examples
       - name: Build examples for thumbv7m-none-eabi
-        run: cargo build --target=thumbv7m-none-eabi --features cortex-m/critical-section-single-core --examples
+        run: cargo build --target=thumbv7m-none-eabi --examples
       - name: Build examples for thumbv7em-none-eabi
-        run: cargo build --target=thumbv7em-none-eabi --features cortex-m/critical-section-single-core --examples
+        run: cargo build --target=thumbv7em-none-eabi --examples
       - name: Build examples for thumbv7em-none-eabihf
-        run: cargo build --target=thumbv7em-none-eabihf --features cortex-m/critical-section-single-core --examples
+        run: cargo build --target=thumbv7em-none-eabihf --examples
       - name: Build examples for thumbv8m.base-none-eabi
-        run: cargo build --target=thumbv8m.base-none-eabi --features cortex-m/critical-section-single-core --examples
+        run: cargo build --target=thumbv8m.base-none-eabi --examples
       - name: Build examples for thumbv8m.main-none-eabi
-        run: cargo build --target=thumbv8m.main-none-eabi --features cortex-m/critical-section-single-core --examples
+        run: cargo build --target=thumbv8m.main-none-eabi --examples
       - name: Build examples for thumbv8m.main-none-eabihf
-        run: cargo build --target=thumbv8m.main-none-eabihf --features cortex-m/critical-section-single-core --examples
+        run: cargo build --target=thumbv8m.main-none-eabihf --examples
       - name: Build crate for host OS
         run: cargo build

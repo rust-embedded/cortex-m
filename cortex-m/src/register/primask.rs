@@ -40,7 +40,7 @@ pub fn read() -> Primask {
 }
 
 /// Reads the entire PRIMASK register
-/// Note that bits [31:1] are reserved and UNK (Unknown)
+/// Note that bits `[31:1]` are reserved and UNK (Unknown)
 #[inline]
 #[asm_cfg(cortex_m)]
 pub fn read_raw() -> u32 {
@@ -50,7 +50,8 @@ pub fn read_raw() -> u32 {
 }
 
 /// Writes the entire PRIMASK register
-/// Note that bits [31:1] are reserved and SBZP (Should-Be-Zero-or-Preserved)
+///
+/// Note that bits `[31:1]` are reserved and SBZP (Should-Be-Zero-or-Preserved)
 ///
 /// # Safety
 ///

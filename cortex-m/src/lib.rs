@@ -49,6 +49,12 @@
 //! [Linker-Plugin LTO]: https://doc.rust-lang.org/stable/rustc/linker-plugin-lto.html
 //! [rust-lang/rust#75940]: https://github.com/rust-lang/rust/issues/75940
 //!
+//! ## `secure-mode`
+//!
+//! Adds extra non-secure peripherals to the `Peripherals` struct. Only set when your
+//! processor is running in Secure mode, and you need to control operations in nonsecure
+//! mode (e.g. to bootload some nonsecure firmware).
+//!
 //! ## `inline-asm`
 //!
 //! This feature is deprecated.
@@ -57,7 +63,7 @@
 //!
 //! # Minimum Supported Rust Version (MSRV)
 //!
-//! This crate is guaranteed to compile on stable Rust 1.61 and up. It *might*
+//! This crate is guaranteed to compile on stable Rust 1.85 and up. It *might*
 //! compile with older versions but that may change in any new patch release.
 
 #![deny(missing_docs)]

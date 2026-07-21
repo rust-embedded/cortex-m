@@ -161,11 +161,13 @@ impl SAU {
 
     /// Disable the SAU and mark all memory Non-Secure (ALLNS mode).
     ///
-    /// Sets `CTRL.ALLNS = 1`, `CTRL.ENABLE = 0`. When the SAU is disabled with ALLNS set, the
-    /// entire address space is treated as Non-Secure (subject to any IDAU overrides). Use this
-    /// when running entirely in Non-Secure mode with no security boundary enforcement.
+    /// Sets `CTRL.ALLNS = 1`, `CTRL.ENABLE = 0`. When the SAU is disabled with
+    /// ALLNS set, the entire address space is treated as Non-Secure (subject to
+    /// any IDAU overrides). Use this when running entirely in Non-Secure mode
+    /// with no security boundary enforcement.
     ///
-    /// To re-enable security boundaries, call [`init`] or [`enable`] after programming regions.
+    /// To re-enable security boundaries, call [`init`](Self::init) or
+    /// [`enable`](Self::enable) after programming regions.
     #[inline]
     pub fn disable_allns(&mut self) {
         unsafe {
@@ -175,21 +177,27 @@ impl SAU {
 
     /// Program SAU regions and enable the SAU.
     ///
-    /// This is a convenience wrapper around [`set_region`] + [`enable`]:
+    /// This is a convenience wrapper around [`set_region`](Self::set_region) +
+    /// [`enable`](Self::enable):
+    ///
     /// 1. Disables the SAU temporarily.
     /// 2. Programs all regions from `regions`.
     /// 3. Re-enables the SAU.
     ///
-    /// Memory not covered by any enabled region is treated as Secure once the SAU is enabled.
+    /// Memory not covered by any enabled region is treated as Secure once the
+    /// SAU is enabled.
     ///
-    /// To also enable the `SecureFault` exception so TrustZone violations surface as a dedicated
-    /// fault rather than escalating to `HardFault`, call
-    /// `scb.enable(cortex_m::peripheral::scb::Exception::SecureFault)` after this.
+    /// To also enable the `SecureFault` exception so TrustZone violations
+    /// surface as a dedicated fault rather than escalating to `HardFault`, call
+    /// `scb.enable(cortex_m::peripheral::scb::Exception::SecureFault)` after
+    /// this.
     ///
     /// # Errors
-    /// Returns [`SauError::TooManyRegions`] if `regions.len()` exceeds the number of regions
-    /// implemented in hardware (see [`region_numbers`]). Returns other [`SauError`] variants if
-    /// any region descriptor has a misaligned base or limit address.
+    /// Returns [`SauError::TooManyRegions`] if `regions.len()` exceeds the
+    /// number of regions implemented in hardware (see
+    /// [`region_numbers`](Self::region_numbers). Returns other [`SauError`]
+    /// variants if any region descriptor has a misaligned base or limit
+    /// address.
     ///
     /// On error the SAU is left disabled (in the state set at step 1 above).
     #[inline]

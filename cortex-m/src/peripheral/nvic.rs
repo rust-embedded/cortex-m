@@ -268,14 +268,14 @@ impl NVIC {
     /// while Secure handlers depend on it can violate security invariants.
     #[cfg(armv8m)]
     #[inline]
-    pub unsafe fn route_to_nonsecure<I>(interrupt: I)
+    pub unsafe fn route_to_nonsecure<I>(&mut self, interrupt: I)
     where
         I: InterruptNumber,
     {
         let nr = interrupt.number();
         let group_idx = usize::from(nr / 32);
         let bit_mask = 1 << (nr % 32);
-        unsafe { (*Self::PTR).itns[group_idx].modify(|v| v | bit_mask) }
+        unsafe { self.itns[group_idx].modify(|v| v | bit_mask) }
     }
 
     /// Route `interrupt` back to the Secure world (ARMv8-M only).
@@ -287,14 +287,14 @@ impl NVIC {
     /// Must be called from the Secure world.
     #[cfg(armv8m)]
     #[inline]
-    pub unsafe fn route_to_secure<I>(interrupt: I)
+    pub unsafe fn route_to_secure<I>(&mut self, interrupt: I)
     where
         I: InterruptNumber,
     {
         let nr = interrupt.number();
         let group_idx = usize::from(nr / 32);
         let bit_mask = 1 << (nr % 32);
-        unsafe { (*Self::PTR).itns[group_idx].modify(|v| v & !bit_mask) }
+        unsafe { self.itns[group_idx].modify(|v| v & !bit_mask) }
     }
 
     /// Returns `true` if `interrupt` is routed to the Non-Secure world (ARMv8-M only).

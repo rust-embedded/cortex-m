@@ -7,14 +7,14 @@ license = "MIT OR Apache-2.0"
 name = "cortex-m-rt"
 readme = "README.md"
 repository = "https://github.com/rust-embedded/cortex-m"
-version = "0.7.5"
+version = "0.7.6"
 autoexamples = true
 links = "cortex-m-rt" # Prevent multiple versions of cortex-m-rt being linked
 edition = "2024"
 rust-version = "1.85"
 
 [dependencies]
-cortex-m-rt-macros = { path = "macros", version = "=0.7.5" }
+cortex-m-rt-macros = { path = "macros", version = "=0.7.6" }
 
 [dev-dependencies]
 panic-halt = "0.2.0"

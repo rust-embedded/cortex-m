@@ -12,9 +12,10 @@ unsafe impl Send for NVIC {}
 impl NVIC {
     /// Create a new instance of the NVIC driver.
     ///
-    /// This API consumes the peripheral singleton instance.
+    /// This API consumes the NVIC field of the [super::Peripherals] instance.
     #[inline]
     pub const fn new(_resource: OwnedRegisterBlock<{ BASE_ADDRESS }>) -> Self {
+        // Safety: NVIC field of singleton is consumed here to verify ownership transfer.
         unsafe { Self::steal() }
     }
 

@@ -1,9 +1,50 @@
 //! Nested Vector Interrupt Controller
 use crate::interrupt::InterruptNumber;
-use crate::peripheral::NVIC;
 
 /// NVIC base address.
 pub const BASE_ADDRESS: usize = 0xE000_E100;
+
+/// Nested Vector Interrupt Controller
+pub struct NVIC(MmioRegisterBlock<'static>);
+
+unsafe impl Send for NVIC {}
+
+impl NVIC {
+    /// Create a new instance of the NVIC driver.
+    ///
+    /// This API consumes the peripheral singleton instance.
+    #[inline]
+    pub const fn new(_resource: OwnedRegisterBlock<{ BASE_ADDRESS }>) -> Self {
+        unsafe { Self::steal() }
+    }
+
+    /// Unsafely steal an instance of the NVIC.
+    ///
+    /// # Safety
+    ///
+    /// This potentially allows to create multiple instances of the NVIC register block, which
+    /// might only be valid in certain multi-core environments.
+    #[inline]
+    pub const unsafe fn steal() -> Self {
+        NVIC(unsafe { RegisterBlock::new_mmio_fixed() })
+    }
+}
+
+impl core::ops::Deref for NVIC {
+    type Target = MmioRegisterBlock<'static>;
+
+    #[inline(always)]
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl core::ops::DerefMut for NVIC {
+    #[inline(always)]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
 
 /// NVIC register block.
 #[derive(derive_mmio::Mmio)]

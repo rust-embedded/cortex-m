@@ -87,6 +87,8 @@ pub mod tpiu;
 #[cfg(test)]
 mod test;
 
+pub use nvic::NVIC;
+
 // NOTE the `PhantomData` used in the peripherals proxy is to make them `Send` but *not* `Sync`
 
 /// Core peripherals
@@ -541,48 +543,6 @@ impl ops::Deref for MPU {
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
         unsafe { &*Self::PTR }
-    }
-}
-
-/// Nested Vector Interrupt Controller
-pub struct NVIC(nvic::MmioRegisterBlock<'static>);
-
-unsafe impl Send for NVIC {}
-
-impl NVIC {
-    /// Create a new instance of the NVIC driver.
-    ///
-    /// This API consumes the peripheral singleton instance.
-    #[inline]
-    pub const fn new(_resource: nvic::OwnedRegisterBlock<{ nvic::BASE_ADDRESS }>) -> Self {
-        unsafe { Self::steal() }
-    }
-
-    /// Unsafely steal an instance of the NVIC.
-    ///
-    /// # Safety
-    ///
-    /// This potentially allows to create multiple instances of the NVIC register block, which
-    /// might only be valid in certain multi-core environments.
-    #[inline]
-    pub const unsafe fn steal() -> Self {
-        NVIC(unsafe { nvic::RegisterBlock::new_mmio_fixed() })
-    }
-}
-
-impl ops::Deref for NVIC {
-    type Target = nvic::MmioRegisterBlock<'static>;
-
-    #[inline(always)]
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl ops::DerefMut for NVIC {
-    #[inline(always)]
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
     }
 }
 

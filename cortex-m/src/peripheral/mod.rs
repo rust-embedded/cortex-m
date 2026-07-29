@@ -139,7 +139,7 @@ pub struct Peripherals {
     pub SAU: SAU,
 
     /// System Control Block
-    pub SCB: SCB,
+    pub SCB: scb::OwnedRegisterBlock<{ scb::BASE_ADDR }>,
 
     /// Nonsecure alias for System Control Block
     ///
@@ -219,7 +219,7 @@ impl Peripherals {
                 SAU: SAU {
                     _marker: PhantomData,
                 },
-                SCB: SCB::steal(),
+                SCB: scb::OwnedRegisterBlock::new(),
                 #[cfg(feature = "secure-mode")]
                 SCBNS: SCBNS {
                     _marker: PhantomData,
@@ -571,38 +571,6 @@ impl ops::Deref for SAU {
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
         unsafe { &*Self::PTR }
-    }
-}
-
-/// System Control Block
-pub struct SCB(scb::MmioRegisterBlock<'static>);
-
-impl SCB {
-    /// Creates a new instance of the [SCB] register block.
-    ///
-    /// # Safety
-    ///
-    /// This potentially allows to create multiple instances of the NVIC register block, which
-    /// might only be valid in multi-core environments.
-    #[inline]
-    pub const unsafe fn steal() -> Self {
-        SCB(unsafe { scb::RegisterBlock::steal() })
-    }
-}
-
-impl ops::Deref for SCB {
-    type Target = scb::MmioRegisterBlock<'static>;
-
-    #[inline(always)]
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl ops::DerefMut for SCB {
-    #[inline(always)]
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
     }
 }
 

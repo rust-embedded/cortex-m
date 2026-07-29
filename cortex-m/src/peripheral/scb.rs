@@ -12,17 +12,57 @@ use cortex_m_macros::asm_cfg;
 use super::CBP;
 #[cfg(not(armv6m))]
 use super::CPUID;
-use super::SCB;
 #[cfg(not(armv6m))]
 use super::cpuid::CsselrCacheType;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 /// SCB peripheral base address
-pub const BASE_ADDR: usize = 0xE000_ED04;
+pub const BASE_ADDRESS: usize = 0xE000_ED04;
 
 /// VECTKEY register value.
 pub const VECT_KEY: u16 = 0x05FA;
+
+/// System Control Block
+pub struct SCB(MmioRegisterBlock<'static>);
+
+impl SCB {
+    /// Create a new instance of the SCB driver.
+    ///
+    /// This API consumes the SCB field of the [super::Peripherals] instance.
+    #[inline]
+    pub const fn new(_resource: OwnedRegisterBlock<{ BASE_ADDRESS }>) -> Self {
+        // Safety: NVIC field of singleton is consumed here to verify ownership transfer.
+        unsafe { Self::steal() }
+    }
+
+    /// Creates a new instance of the [SCB] register block.
+    ///
+    /// # Safety
+    ///
+    /// This potentially allows to create multiple instances of the NVIC register block, which
+    /// might only be valid in multi-core environments.
+    #[inline]
+    pub const unsafe fn steal() -> Self {
+        SCB(unsafe { RegisterBlock::steal() })
+    }
+}
+
+impl core::ops::Deref for SCB {
+    type Target = MmioRegisterBlock<'static>;
+
+    #[inline(always)]
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl core::ops::DerefMut for SCB {
+    #[inline(always)]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
 
 /// Register block
 #[derive(derive_mmio::Mmio)]
@@ -126,7 +166,7 @@ impl RegisterBlock {
     /// might only be valid in multi-core environments.
     #[inline]
     pub const unsafe fn steal() -> MmioRegisterBlock<'static> {
-        unsafe { Self::new_mmio_at(BASE_ADDR) }
+        unsafe { Self::new_mmio_at(BASE_ADDRESS) }
     }
 }
 

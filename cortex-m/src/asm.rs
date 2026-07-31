@@ -453,7 +453,6 @@ core::arch::global_asm!(
         mov     r6, 0
         mov     r7, 0
         mov     r8, 0
-        mov     r8, 0
         mov     r9, 0
         mov     r10, 0
         mov     r11, 0

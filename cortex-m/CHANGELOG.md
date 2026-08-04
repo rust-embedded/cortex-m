@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.7.8] - 2026-07-21
+
 ### Deprecated
 - The `inline-asm` feature is now a currently a no-op, will be removed in a future major version
 
@@ -778,7 +780,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.7.7...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.7.8...HEAD
+[v0.7.8]: https://github.com/rust-embedded/cortex-m/compare/v0.7.7...v0.7.8
 [v0.7.7]: https://github.com/rust-embedded/cortex-m/compare/v0.7.6...v0.7.7
 [v0.7.6]: https://github.com/rust-embedded/cortex-m/compare/v0.7.5...v0.7.6
 [v0.7.5]: https://github.com/rust-embedded/cortex-m/compare/v0.7.4...v0.7.5

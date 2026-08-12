@@ -349,7 +349,7 @@ impl SCB {
     /// Enables I-cache if currently disabled.
     ///
     /// This operation first invalidates the entire I-cache.
-    #[inline]
+    #[inline(never)]
     #[asm_cfg(cortex_m)]
     pub fn enable_icache(&mut self) {
         // Don't do anything if I-cache is already enabled
@@ -437,7 +437,7 @@ impl SCB {
     ///
     /// This operation first invalidates the entire D-cache, ensuring it does
     /// not contain stale values before being enabled.
-    #[inline]
+    #[inline(never)]
     #[asm_cfg(cortex_m)]
     pub fn enable_dcache(&mut self, cpuid: &mut CPUID) {
         // Don't do anything if D-cache is already enabled

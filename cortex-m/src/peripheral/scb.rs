@@ -368,7 +368,11 @@ impl SCB {
         // its own, and is only `unsafe` here because it's asm.
         unsafe {
             asm!(
-                "ldr {0}, =0xE000ED14",         // CCR
+                // Build the CCR address (0xE000ED14) with movw/movt instead of `ldr =`, as the
+                // latter emits a PC-relative load from a literal pool which can end up out of
+                // range when this asm block is inlined into a large function.
+                "movw {0}, #0xED14",            // CCR address, lower half
+                "movt {0}, #0xE000",            // CCR address, upper half
                 "mrs {2}, PRIMASK",             // save critical nesting info
                 "cpsid i",                      // mask interrupts
                 "ldr {1}, [{0}]",               // read CCR
@@ -454,7 +458,11 @@ impl SCB {
         unsafe {
             asm!(
                 // Should this be replaced with a register modify?
-                "ldr {0}, =0xE000ED14",         // CCR
+                // Build the CCR address (0xE000ED14) with movw/movt instead of `ldr =`, as the
+                // latter emits a PC-relative load from a literal pool which can end up out of
+                // range when this asm block is inlined into a large function.
+                "movw {0}, #0xED14",            // CCR address, lower half
+                "movt {0}, #0xE000",            // CCR address, upper half
                 "mrs {2}, PRIMASK",             // save critical nesting info
                 "cpsid i",                      // mask interrupts
                 "ldr {1}, [{0}]",               // read CCR

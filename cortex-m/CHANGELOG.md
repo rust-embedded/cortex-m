@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- `SCB::enable_icache` and `SCB::enable_dcache` now build the CCR address with
+  `movw`/`movt` instead of `ldr =`, fixing "out of range pc-relative fixup value"
+  errors when the asm block is inlined into a large function.
+
 ## [v0.7.8] - 2026-07-21
 
 ### Deprecated

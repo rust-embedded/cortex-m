@@ -7,10 +7,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.7.9] - 2026-08-18
+
 ### Fixed
 - `SCB::enable_icache` and `SCB::enable_dcache` now build the CCR address with
   `movw`/`movt` instead of `ldr =`, fixing "out of range pc-relative fixup value"
   errors when the asm block is inlined into a large function.
+- The `basepri`, `basepri_max` and `faultmask` register modules are now available
+  (as stubs) when compiling for non-Cortex-M (host) targets. This was accidentally
+  removed in v0.7.8.
 
 ## [v0.7.8] - 2026-07-21
 
@@ -799,7 +804,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.7.8...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.7.9...HEAD
+[v0.7.9]: https://github.com/rust-embedded/cortex-m/compare/v0.7.8...v0.7.9
 [v0.7.8]: https://github.com/rust-embedded/cortex-m/compare/v0.7.7...v0.7.8
 [v0.7.7]: https://github.com/rust-embedded/cortex-m/compare/v0.7.6...v0.7.7
 [v0.7.6]: https://github.com/rust-embedded/cortex-m/compare/v0.7.5...v0.7.6

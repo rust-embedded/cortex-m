@@ -14,6 +14,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [v0.7.8] - 2026-07-21
 
+### Soundness fix (breaking change)
+
+The `singleton!` macro now requires the user to supply a [`critical-section`](https://github.com/rust-embedded/critical-section/) implementation. The
+previous behavior was to disable interrupts in the current core, which is unsound on multicore chips. By using `critical-section` the user can set
+the implementation that's sound for their chip.
+
+Not supplying an implementation will result in a linker error like `rust-lld: error: undefined symbol: _critical_section_1_0_acquire`.
+
+To supply one, do either one of:
+- For single-core chips running in privileged mode, enable feature `critical-section-single-core` in the `cortex-m` crate. This implementation disables interrupts in the current core and is equivalent to the behavior in previous versions.
+- For other chips, enable a suitable implementation that ensures locking across cores. They are typically supplied by HAL crates with a feature named `critical-section-impl` or similar.
+
+Library crates generally **should not** enable a critical section implementation, only the end user (who is building the final binary) should.
+
 ### Deprecated
 - The `inline-asm` feature is now a currently a no-op, will be removed in a future major version
 

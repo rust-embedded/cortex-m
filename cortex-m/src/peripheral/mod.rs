@@ -87,6 +87,8 @@ pub mod tpiu;
 #[cfg(test)]
 mod test;
 
+pub use nvic::NVIC;
+
 // NOTE the `PhantomData` used in the peripherals proxy is to make them `Send` but *not* `Sync`
 
 /// Core peripherals
@@ -131,7 +133,7 @@ pub struct Peripherals {
     pub MPU: MPU,
 
     /// Nested Vector Interrupt Controller
-    pub NVIC: NVIC,
+    pub NVIC: nvic::OwnedRegisterBlock<{ nvic::BASE_ADDRESS }>,
 
     /// Security Attribution Unit
     pub SAU: SAU,
@@ -213,9 +215,7 @@ impl Peripherals {
                 MPU: MPU {
                     _marker: PhantomData,
                 },
-                NVIC: NVIC {
-                    _marker: PhantomData,
-                },
+                NVIC: nvic::OwnedRegisterBlock::new(),
                 SAU: SAU {
                     _marker: PhantomData,
                 },
@@ -539,34 +539,6 @@ impl MPU {
 
 impl ops::Deref for MPU {
     type Target = self::mpu::RegisterBlock;
-
-    #[inline(always)]
-    fn deref(&self) -> &Self::Target {
-        unsafe { &*Self::PTR }
-    }
-}
-
-/// Nested Vector Interrupt Controller
-pub struct NVIC {
-    _marker: PhantomData<*const ()>,
-}
-
-unsafe impl Send for NVIC {}
-
-impl NVIC {
-    /// Pointer to the register block
-    pub const PTR: *const nvic::RegisterBlock = 0xE000_E100 as *const _;
-
-    /// Returns a pointer to the register block
-    #[inline(always)]
-    #[deprecated(since = "0.7.5", note = "Use the associated constant `PTR` instead")]
-    pub const fn ptr() -> *const nvic::RegisterBlock {
-        Self::PTR
-    }
-}
-
-impl ops::Deref for NVIC {
-    type Target = self::nvic::RegisterBlock;
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {

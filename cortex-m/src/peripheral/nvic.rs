@@ -86,7 +86,8 @@ pub struct RegisterBlock {
 /// `ISER` to `ICER` is one bitmap plus one reserved bitmap of the same size, so resizing either
 /// without the other fails this.
 const _: () = assert!(
-    core::mem::offset_of!(RegisterBlock, icer) == NVIC::BITMAP_WORDS * core::mem::size_of::<u32>() * 2
+    core::mem::offset_of!(RegisterBlock, icer)
+        == NVIC::BITMAP_WORDS * core::mem::size_of::<u32>() * 2
 );
 
 impl NVIC {

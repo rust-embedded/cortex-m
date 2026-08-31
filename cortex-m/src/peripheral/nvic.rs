@@ -82,6 +82,13 @@ pub struct RegisterBlock {
     pub stir: WO<u32>,
 }
 
+/// `BITMAP_WORDS` describes the arrays above rather than being asserted about itself: the gap from
+/// `ISER` to `ICER` is one bitmap plus one reserved bitmap of the same size, so resizing either
+/// without the other fails this.
+const _: () = assert!(
+    core::mem::offset_of!(RegisterBlock, icer) == NVIC::BITMAP_WORDS * core::mem::size_of::<u32>() * 2
+);
+
 impl NVIC {
     /// Request an IRQ in software
     ///
@@ -113,7 +120,7 @@ impl NVIC {
     {
         let nr = interrupt.number();
         // NOTE(unsafe) this is a write to a stateless register
-        unsafe { (*Self::PTR).icer[usize::from(nr / 32)].write(1 << (nr % 32)) }
+        unsafe { (*Self::PTR).icer[Self::reg_index(nr)].write(1 << (nr % 32)) }
     }
 
     /// Enables `interrupt`
@@ -127,7 +134,7 @@ impl NVIC {
         unsafe {
             let nr = interrupt.number();
             // NOTE(ptr) this is a write to a stateless register
-            (*Self::PTR).iser[usize::from(nr / 32)].write(1 << (nr % 32))
+            (*Self::PTR).iser[Self::reg_index(nr)].write(1 << (nr % 32))
         }
     }
 
@@ -168,7 +175,7 @@ impl NVIC {
         let mask = 1 << (nr % 32);
 
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { ((*Self::PTR).iabr[usize::from(nr / 32)].read() & mask) == mask }
+        unsafe { ((*Self::PTR).iabr[Self::reg_index(nr)].read() & mask) == mask }
     }
 
     /// Checks if `interrupt` is enabled
@@ -181,7 +188,7 @@ impl NVIC {
         let mask = 1 << (nr % 32);
 
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { ((*Self::PTR).iser[usize::from(nr / 32)].read() & mask) == mask }
+        unsafe { ((*Self::PTR).iser[Self::reg_index(nr)].read() & mask) == mask }
     }
 
     /// Checks if `interrupt` is pending
@@ -194,7 +201,7 @@ impl NVIC {
         let mask = 1 << (nr % 32);
 
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { ((*Self::PTR).ispr[usize::from(nr / 32)].read() & mask) == mask }
+        unsafe { ((*Self::PTR).ispr[Self::reg_index(nr)].read() & mask) == mask }
     }
 
     /// Forces `interrupt` into pending state
@@ -206,7 +213,7 @@ impl NVIC {
         let nr = interrupt.number();
 
         // NOTE(unsafe) atomic stateless write; ICPR doesn't store any state
-        unsafe { (*Self::PTR).ispr[usize::from(nr / 32)].write(1 << (nr % 32)) }
+        unsafe { (*Self::PTR).ispr[Self::reg_index(nr)].write(1 << (nr % 32)) }
     }
 
     /// Sets the "priority" of `interrupt` to `prio`
@@ -254,7 +261,7 @@ impl NVIC {
         let nr = interrupt.number();
 
         // NOTE(unsafe) atomic stateless write; ICPR doesn't store any state
-        unsafe { (*Self::PTR).icpr[usize::from(nr / 32)].write(1 << (nr % 32)) }
+        unsafe { (*Self::PTR).icpr[Self::reg_index(nr)].write(1 << (nr % 32)) }
     }
 
     /// Route `interrupt` to the Non-Secure world (ARMv8-M only).
@@ -273,7 +280,7 @@ impl NVIC {
         I: InterruptNumber,
     {
         let nr = interrupt.number();
-        let group_idx = usize::from(nr / 32);
+        let group_idx = Self::reg_index(nr);
         let bit_mask = 1 << (nr % 32);
         unsafe { self.itns[group_idx].modify(|v| v | bit_mask) }
     }
@@ -292,7 +299,7 @@ impl NVIC {
         I: InterruptNumber,
     {
         let nr = interrupt.number();
-        let group_idx = usize::from(nr / 32);
+        let group_idx = Self::reg_index(nr);
         let bit_mask = 1 << (nr % 32);
         unsafe { self.itns[group_idx].modify(|v| v & !bit_mask) }
     }
@@ -305,10 +312,26 @@ impl NVIC {
         I: InterruptNumber,
     {
         let nr = interrupt.number();
-        let group_idx = usize::from(nr / 32);
+        let group_idx = Self::reg_index(nr);
         let bit_mask = 1 << (nr % 32);
         // NOTE(unsafe) atomic read with no side effects
         unsafe { ((*Self::PTR).itns[group_idx].read() & bit_mask) == bit_mask }
+    }
+
+    /// Words in each of the NVIC's interrupt bitmaps: `ISER`, `ICER`, `ISPR`, `ICPR`, `IABR`
+    /// and `ITNS`.
+    const BITMAP_WORDS: usize = 16;
+
+    /// Which 32-bit word of an interrupt bitmap holds `nr`'s bit.
+    ///
+    /// The mask is what lets this be indexed without a bounds check. Each bitmap is
+    /// [`BITMAP_WORDS`](Self::BITMAP_WORDS) words, spanning 512 interrupts; no Cortex-M implements
+    /// more than 496, so `nr / 32` is at most 15 and the mask never alters a legal index. Without
+    /// it the compiler only knows `nr` is a `u16`, so `nr / 32` could be up to 2047, and every
+    /// accessor below keeps a bounds check and a panic path that no reachable input can take.
+    #[inline]
+    const fn reg_index(nr: u16) -> usize {
+        (nr / 32) as usize & (Self::BITMAP_WORDS - 1)
     }
 
     #[cfg(armv6m)]

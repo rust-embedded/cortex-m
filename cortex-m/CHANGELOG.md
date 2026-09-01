@@ -9,12 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 - `NVIC`'s interrupt-bitmap accessors no longer emit a bounds check and a panic
-  path. `mask`, `unmask`, `is_enabled`, `is_active`, `is_pending`, `pend`,
-  `unpend` and the ARMv8-M `route_to_*`/`is_routed_to_nonsecure` all indexed a
-  16-word array with `nr / 32`, which the optimiser cannot prove is in range for
-  a `u16`. No Cortex-M implements more than 496 external interrupts, so the
-  index is now masked to the array's own bound, which no reachable interrupt
-  number reaches.
+  path.
 
 ## [v0.7.9] - 2026-08-18
 

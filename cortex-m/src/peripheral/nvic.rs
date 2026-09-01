@@ -321,7 +321,7 @@ impl NVIC {
     /// The `&` helps remove an expensive bounds check - we know all valid interrupt numbers will be in range.
     #[inline]
     const fn reg_index_and_mask(irq: u16) -> (usize, u32) {
-        debug_assert!(irq < 512);
+        debug_assert!((irq as usize) < (Self::BITMAP_WORDS * 32));
         let idx = (irq / 32) as usize & (Self::BITMAP_WORDS - 1);
         let mask = 1 << (irq % 32);
         (idx, mask)

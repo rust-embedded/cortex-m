@@ -318,7 +318,7 @@ impl NVIC {
 
     /// Which 32-bit word of an interrupt bitmap holds `nr`'s bit.
     ///
-    /// The mask helps remove an expensive bounds check - we know all valid interrupt numbers will be in range.
+    /// The `&` helps remove an expensive bounds check - we know all valid interrupt numbers will be in range.
     #[inline]
     const fn reg_index_and_mask(irq: u16) -> (usize, u32) {
         debug_assert!(irq < 512);

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- `NVIC`'s interrupt-bitmap accessors no longer emit a bounds check and a panic
+  path.
+
 ## [v0.7.9] - 2026-08-18
 
 ### Fixed

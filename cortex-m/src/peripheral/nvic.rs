@@ -11,40 +11,40 @@ use crate::peripheral::NVIC;
 #[repr(C)]
 pub struct RegisterBlock {
     /// Interrupt Set-Enable
-    pub iser: [RW<u32>; 16],
+    pub iser: [RW<u32>; NVIC::BITMAP_WORDS],
 
-    _reserved0: [u32; 16],
+    _reserved0: [u32; NVIC::BITMAP_WORDS],
 
     /// Interrupt Clear-Enable
-    pub icer: [RW<u32>; 16],
+    pub icer: [RW<u32>; NVIC::BITMAP_WORDS],
 
-    _reserved1: [u32; 16],
+    _reserved1: [u32; NVIC::BITMAP_WORDS],
 
     /// Interrupt Set-Pending
-    pub ispr: [RW<u32>; 16],
+    pub ispr: [RW<u32>; NVIC::BITMAP_WORDS],
 
-    _reserved2: [u32; 16],
+    _reserved2: [u32; NVIC::BITMAP_WORDS],
 
     /// Interrupt Clear-Pending
-    pub icpr: [RW<u32>; 16],
+    pub icpr: [RW<u32>; NVIC::BITMAP_WORDS],
 
-    _reserved3: [u32; 16],
+    _reserved3: [u32; NVIC::BITMAP_WORDS],
 
     /// Interrupt Active Bit (not present on Cortex-M0 variants)
     #[cfg(not(armv6m))]
-    pub iabr: [RO<u32>; 16],
+    pub iabr: [RO<u32>; NVIC::BITMAP_WORDS],
     #[cfg(armv6m)]
-    _reserved4: [u32; 16],
+    _reserved4: [u32; NVIC::BITMAP_WORDS],
 
-    _reserved5: [u32; 16],
+    _reserved5: [u32; NVIC::BITMAP_WORDS],
 
     #[cfg(armv8m)]
     /// Interrupt Target Non-secure (only present on Arm v8-M)
-    pub itns: [RW<u32>; 16],
+    pub itns: [RW<u32>; NVIC::BITMAP_WORDS],
     #[cfg(not(armv8m))]
-    _reserved6: [u32; 16],
+    _reserved6: [u32; NVIC::BITMAP_WORDS],
 
-    _reserved7: [u32; 16],
+    _reserved7: [u32; NVIC::BITMAP_WORDS],
 
     /// Interrupt Priority
     ///
@@ -112,8 +112,9 @@ impl NVIC {
         I: InterruptNumber,
     {
         let nr = interrupt.number();
+        let (idx, mask) = Self::reg_index_and_mask(nr);
         // NOTE(unsafe) this is a write to a stateless register
-        unsafe { (*Self::PTR).icer[usize::from(nr / 32)].write(1 << (nr % 32)) }
+        unsafe { (*Self::PTR).icer[idx].write(mask) }
     }
 
     /// Enables `interrupt`
@@ -126,8 +127,9 @@ impl NVIC {
     {
         unsafe {
             let nr = interrupt.number();
+            let (idx, mask) = Self::reg_index_and_mask(nr);
             // NOTE(ptr) this is a write to a stateless register
-            (*Self::PTR).iser[usize::from(nr / 32)].write(1 << (nr % 32))
+            (*Self::PTR).iser[idx].write(mask)
         }
     }
 
@@ -165,10 +167,10 @@ impl NVIC {
         I: InterruptNumber,
     {
         let nr = interrupt.number();
-        let mask = 1 << (nr % 32);
+        let (idx, mask) = Self::reg_index_and_mask(nr);
 
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { ((*Self::PTR).iabr[usize::from(nr / 32)].read() & mask) == mask }
+        unsafe { ((*Self::PTR).iabr[idx].read() & mask) == mask }
     }
 
     /// Checks if `interrupt` is enabled
@@ -178,10 +180,10 @@ impl NVIC {
         I: InterruptNumber,
     {
         let nr = interrupt.number();
-        let mask = 1 << (nr % 32);
+        let (idx, mask) = Self::reg_index_and_mask(nr);
 
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { ((*Self::PTR).iser[usize::from(nr / 32)].read() & mask) == mask }
+        unsafe { ((*Self::PTR).iser[idx].read() & mask) == mask }
     }
 
     /// Checks if `interrupt` is pending
@@ -191,10 +193,10 @@ impl NVIC {
         I: InterruptNumber,
     {
         let nr = interrupt.number();
-        let mask = 1 << (nr % 32);
+        let (idx, mask) = Self::reg_index_and_mask(nr);
 
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { ((*Self::PTR).ispr[usize::from(nr / 32)].read() & mask) == mask }
+        unsafe { ((*Self::PTR).ispr[idx].read() & mask) == mask }
     }
 
     /// Forces `interrupt` into pending state
@@ -204,9 +206,10 @@ impl NVIC {
         I: InterruptNumber,
     {
         let nr = interrupt.number();
+        let (idx, mask) = Self::reg_index_and_mask(nr);
 
         // NOTE(unsafe) atomic stateless write; ICPR doesn't store any state
-        unsafe { (*Self::PTR).ispr[usize::from(nr / 32)].write(1 << (nr % 32)) }
+        unsafe { (*Self::PTR).ispr[idx].write(mask) }
     }
 
     /// Sets the "priority" of `interrupt` to `prio`
@@ -252,9 +255,10 @@ impl NVIC {
         I: InterruptNumber,
     {
         let nr = interrupt.number();
+        let (idx, mask) = Self::reg_index_and_mask(nr);
 
         // NOTE(unsafe) atomic stateless write; ICPR doesn't store any state
-        unsafe { (*Self::PTR).icpr[usize::from(nr / 32)].write(1 << (nr % 32)) }
+        unsafe { (*Self::PTR).icpr[idx].write(mask) }
     }
 
     /// Route `interrupt` to the Non-Secure world (ARMv8-M only).
@@ -273,8 +277,7 @@ impl NVIC {
         I: InterruptNumber,
     {
         let nr = interrupt.number();
-        let group_idx = usize::from(nr / 32);
-        let bit_mask = 1 << (nr % 32);
+        let (group_idx, bit_mask) = Self::reg_index_and_mask(nr);
         unsafe { self.itns[group_idx].modify(|v| v | bit_mask) }
     }
 
@@ -292,8 +295,7 @@ impl NVIC {
         I: InterruptNumber,
     {
         let nr = interrupt.number();
-        let group_idx = usize::from(nr / 32);
-        let bit_mask = 1 << (nr % 32);
+        let (group_idx, bit_mask) = Self::reg_index_and_mask(nr);
         unsafe { self.itns[group_idx].modify(|v| v & !bit_mask) }
     }
 
@@ -305,10 +307,24 @@ impl NVIC {
         I: InterruptNumber,
     {
         let nr = interrupt.number();
-        let group_idx = usize::from(nr / 32);
-        let bit_mask = 1 << (nr % 32);
+        let (group_idx, bit_mask) = Self::reg_index_and_mask(nr);
         // NOTE(unsafe) atomic read with no side effects
         unsafe { ((*Self::PTR).itns[group_idx].read() & bit_mask) == bit_mask }
+    }
+
+    /// Words in each of the NVIC's interrupt bitmaps: `ISER`, `ICER`, `ISPR`, `ICPR`, `IABR`
+    /// and `ITNS`.
+    const BITMAP_WORDS: usize = 16;
+
+    /// Which 32-bit word of an interrupt bitmap holds `nr`'s bit.
+    ///
+    /// The `&` helps remove an expensive bounds check - we know all valid interrupt numbers will be in range.
+    #[inline]
+    const fn reg_index_and_mask(irq: u16) -> (usize, u32) {
+        debug_assert!((irq as usize) < (Self::BITMAP_WORDS * 32));
+        let idx = (irq / 32) as usize & (Self::BITMAP_WORDS - 1);
+        let mask = 1 << (irq % 32);
+        (idx, mask)
     }
 
     #[cfg(armv6m)]

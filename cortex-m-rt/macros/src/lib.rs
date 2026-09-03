@@ -240,7 +240,7 @@ pub fn exception(args: TokenStream, input: TokenStream) -> TokenStream {
         }
     };
 
-    if f.sig.unsafety.is_none() {
+    if !matches!(f.sig.safety, syn::Safety::Unsafe(_)) {
         match exn {
             Exception::DefaultHandler | Exception::HardFault(_) | Exception::NonMaskableInt => {
                 // These are unsafe to define.
@@ -635,7 +635,7 @@ pub fn pre_init(args: TokenStream, input: TokenStream) -> TokenStream {
     // check the function signature
     let valid_signature = f.sig.constness.is_none()
         && f.vis == Visibility::Inherited
-        && f.sig.unsafety.is_some()
+        && matches!(f.sig.safety, syn::Safety::Unsafe(_))
         && f.sig.abi.is_none()
         && f.sig.inputs.is_empty()
         && f.sig.generics.params.is_empty()

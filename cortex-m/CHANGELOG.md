@@ -8,10 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 ### Removed
-- The separate `#[cfg(not(cortex_m))]` stub for `interrupt::free`. The real
-  `free` already compiles on non-Cortex-M targets on its own (it only calls
-  functions that fall back to `unimplemented!()` off-target), so the stub was
-  dead weight.
+- The separate `#[cfg(not(cortex_m))]` stub for `interrupt::free`.
 
 ### Fixed
 - `NVIC`'s interrupt-bitmap accessors no longer emit a bounds check and a panic

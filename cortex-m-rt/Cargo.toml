@@ -37,6 +37,7 @@ required-features = ["device"]
 
 [features]
 device = []
+reset-interrupt-state = []
 set-sp = []
 set-vtor = []
 set-msplim = []

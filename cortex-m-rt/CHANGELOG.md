@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+- Add a new `reset-interrupt-state` feature to disable and clear interrupts
+  inherited from a bootloader before application startup.
+
 ## [v0.7.6]
 
 - Mark `pre_init` as deprecated

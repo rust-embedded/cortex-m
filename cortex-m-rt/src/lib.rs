@@ -187,6 +187,14 @@
 //! conjunction with crates generated using `svd2rust`. Those peripheral access crates, or PACs,
 //! will populate the missing part of the vector table when their `"rt"` feature is enabled.
 //!
+//! ## `reset-interrupt-state`
+//!
+//! If this feature is enabled, the reset handler disables all configurable interrupts before any
+//! other startup code runs. It then stops and clears SysTick, clears pending PendSV, and disables
+//! and clears all device specific interrupts. This is useful when a bootloader jumps to the
+//! application without first disabling its interrupts. If the bootloader also leaves its vector
+//! table active, enable the `set-vtor` feature as well.
+//!
 //! ## `set-sp`
 //!
 //! If this feature is enabled, the stack pointer (SP) is initialised in the reset handler to the
@@ -556,6 +564,11 @@ cfg_global_asm! {
     ".cfi_startproc
      Reset:",
 
+    // If enabled, mask all configurable interrupts before any other startup code runs. This
+    // prevents interrupts left enabled by a bootloader from using the bootloader's vector table.
+    #[cfg(feature = "reset-interrupt-state")]
+    "cpsid i",
+
     // If enabled, initialise the SP. This is normally initialised by the CPU itself or by a
     // bootloader, but some debuggers fail to set it when resetting the target, leading to
     // stack corruptions.
@@ -579,6 +592,55 @@ cfg_global_asm! {
     #[cfg(all(armv8m_main, feature = "set-msplim"))]
     "ldr r0, =_stack_end
      msr MSPLIM, r0",
+
+    // If enabled, stop and clear SysTick, clear pending SysTick and PendSV exceptions, and disable
+    // and clear every implemented device specific interrupt. Global interrupts remain masked until
+    // the interrupt state is reset.
+    #[cfg(feature = "reset-interrupt-state")]
+    "ldr r0, =0xe000e010
+     movs r1, #0
+     str r1, [r0]
+     str r1, [r0, #4]
+     str r1, [r0, #8]
+     ldr r0, =0xe000ed04
+     ldr r1, =0x0a000000
+     str r1, [r0]",
+
+    // ARMv6-M has at most 32 device specific interrupts and does not provide ICTR.
+    #[cfg(all(feature = "reset-interrupt-state", armv6m))]
+    "ldr r0, =0xe000e180
+     ldr r1, =0xe000e280
+     movs r2, #0
+     mvns r2, r2
+     str r2, [r0]
+     str r2, [r1]",
+
+    // On other architectures ICTR contains the number of implemented groups of 32 interrupts,
+    // minus one. Disable and clear each group through NVIC.ICER and NVIC.ICPR respectively.
+    #[cfg(all(feature = "reset-interrupt-state", not(armv6m)))]
+    "ldr r0, =0xe000e004
+     ldr r0, [r0]
+     lsls r0, r0, #28
+     lsrs r0, r0, #28
+     adds r0, #1
+     ldr r1, =0xe000e180
+     ldr r2, =0xe000e280
+     movs r3, #0
+     mvns r3, r3
+     0:
+     str r3, [r1]
+     str r3, [r2]
+     adds r1, #4
+     adds r2, #4
+     subs r0, #1
+     bne 0b",
+
+    // All inherited core interrupt enables and pending state have been cleared, so restore the
+    // global interrupt state expected after a hardware reset before continuing startup.
+    #[cfg(feature = "reset-interrupt-state")]
+    "dsb
+     isb
+     cpsie i",
 
     // Run user pre-init code which must be executed immediately after startup, before the
     // potentially time-consuming memory initialisation takes place.

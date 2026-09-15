@@ -68,6 +68,8 @@ main() {
             cargo rustc --target "$TARGET" --example minimal --features "zero-init-ram,${needed_features}" --release -- $linker
             cargo rustc --target "$TARGET" --example minimal --features "set-vtor,${needed_features}" -- $linker
             cargo rustc --target "$TARGET" --example minimal --features "set-vtor,${needed_features}" --release -- $linker
+            cargo rustc --target "$TARGET" --example minimal --features "reset-interrupt-state,${needed_features}" -- $linker
+            cargo rustc --target "$TARGET" --example minimal --features "reset-interrupt-state,${needed_features}" --release -- $linker
         done
     fi
 

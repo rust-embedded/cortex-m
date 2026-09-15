@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Removed
+- The separate `#[cfg(not(cortex_m))]` stub for `interrupt::free`.
+
 ### Fixed
 - `NVIC`'s interrupt-bitmap accessors no longer emit a bounds check and a panic
   path.

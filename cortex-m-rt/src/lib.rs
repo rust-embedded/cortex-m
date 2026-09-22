@@ -113,6 +113,10 @@
 //! _stext = ORIGIN(FLASH) + 0x40C;
 //! ```
 //!
+//! It is your responsibility to ensure `_stext` is aligned to what the `.text` section requires.
+//! This is typically 4 but can ocasionally be higher, such as when using `.p2align` directives inside ASM.
+//! If you fail to do so you will see a linker warning like `address (...) of section .text is not a multiple of alignment (...)`.
+//!
 //! # An example
 //!
 //! This section presents a minimal application built on top of `cortex-m-rt`. Apart from the

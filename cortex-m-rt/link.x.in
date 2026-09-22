@@ -89,7 +89,11 @@ SECTIONS
     KEEP(*(.vector_table.interrupts)); /* this is the `__INTERRUPTS` symbol */
   } > FLASH
 
-  PROVIDE(_stext = ADDR(.vector_table) + SIZEOF(.vector_table));
+  /* The alignment of .text is the maximum alignment required by its input sections, which
+     can be more than 4 (e.g. `.p2align` directives inside inline assembly). Since the
+     start address of .text is set explicitly, the linker won't align it automatically, so do it
+     here. */
+  PROVIDE(_stext = ALIGN(ADDR(.vector_table) + SIZEOF(.vector_table), ALIGNOF(.text)));
 
   /* ### .text */
   .text _stext :

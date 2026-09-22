@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+- Align the default `_stext` to the alignment required by the `.text` section. Fixes
+  the lld warning `address (...) of section .text is not a multiple of alignment (...)`.
+    - Note: `_stext` is not auto-aligned if it's explicitly overridden by the user. It's their responsibility to align it, else the warning will show.
+
 ## [v0.7.6]
 
 - Mark `pre_init` as deprecated

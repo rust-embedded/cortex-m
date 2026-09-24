@@ -7,9 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.7.7]
+
 - Align the default `_stext` to the alignment required by the `.text` section. Fixes
   the lld warning `address (...) of section .text is not a multiple of alignment (...)`.
     - Note: `_stext` is not auto-aligned if it's explicitly overridden by the user. It's their responsibility to align it, else the warning will show.
+- Update to `syn` v3.
 
 ## [v0.7.6]
 
@@ -663,7 +666,8 @@ section                size        addr
 
 Initial release
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.6...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.7...HEAD
+[v0.7.7]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.6...c-m-rt-v0.7.7
 [v0.7.6]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.5...c-m-rt-v0.7.6
 [v0.7.5]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.4...c-m-rt-v0.7.5
 [v0.7.4]: https://github.com/rust-embedded/cortex-m/compare/c-m-rt-v0.7.3...c-m-rt-v0.7.4

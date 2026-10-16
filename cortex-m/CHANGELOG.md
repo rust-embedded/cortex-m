@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - The separate `#[cfg(not(cortex_m))]` stub for `interrupt::free`.
 
 ### Fixed
+- Preserve memory accesses across `control::write`, `asm::bootstrap`, and
+  `asm::bootload`.
 - Preserve memory accesses around semihosting syscalls.
 - Fix compiler ordering around interrupt-mask writes.
 - `NVIC`'s interrupt-bitmap accessors no longer emit a bounds check and a panic

@@ -361,7 +361,7 @@ pub unsafe fn bootstrap(msp: *const u32, rv: *const u32) -> ! {
             spsel = in(reg) 2,
             msp = in(reg) msp,
             rv = in(reg) rv,
-            options(noreturn, nomem, nostack),
+            options(noreturn, nostack),
         )
     };
 }

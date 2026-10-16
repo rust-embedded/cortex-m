@@ -242,9 +242,7 @@ pub unsafe fn bx_ns(addr: u32) {
 #[inline]
 #[asm_cfg(cortex_m)]
 pub unsafe fn semihosting_syscall(mut nr: u32, arg: u32) -> u32 {
-    unsafe {
-        asm!("bkpt #0xab", inout("r0") nr, in("r1") arg, options(nomem, nostack, preserves_flags))
-    };
+    unsafe { asm!("bkpt #0xab", inout("r0") nr, in("r1") arg, options(nostack, preserves_flags)) };
     nr
 }
 

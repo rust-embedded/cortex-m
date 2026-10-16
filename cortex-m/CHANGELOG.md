@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - The separate `#[cfg(not(cortex_m))]` stub for `interrupt::free`.
 
 ### Fixed
+- Account for memory-mapped coprocessor state in coprocessor transfers.
 - Preserve memory accesses across `control::write`, `asm::bootstrap`, and
   `asm::bootload`.
 - Preserve memory accesses around semihosting syscalls.

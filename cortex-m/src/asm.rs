@@ -488,7 +488,7 @@ pub unsafe fn mcr<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32,
             crn = const CRN,
             crm = const CRM,
             op2 = const OP2,
-            options(nostack, nomem)
+            options(nostack)
         )
     };
 }
@@ -521,7 +521,7 @@ pub unsafe fn mrc<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32,
             crn = const CRN,
             crm = const CRM,
             op2 = const OP2,
-            options(nostack, nomem)
+            options(nostack)
         )
     };
 
@@ -550,7 +550,7 @@ pub unsafe fn mcrr<const CP: u32, const OP1: u32, const CRM: u32>(a: u32, b: u32
             cp  = const CP,
             op1 = const OP1,
             crm = const CRM,
-            options(nostack, nomem)
+            options(nostack)
         )
     };
 }
@@ -581,7 +581,7 @@ pub unsafe fn mrrc<const CP: u32, const OPC: u32, const CRM: u32>() -> (u32, u32
             cp  = const CP,
             opc = const OPC,
             crm = const CRM,
-            options(nostack, nomem)
+            options(nostack)
         )
     };
 

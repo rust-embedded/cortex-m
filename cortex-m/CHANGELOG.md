@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - The separate `#[cfg(not(cortex_m))]` stub for `interrupt::free`.
 
 ### Fixed
+- Fix compiler ordering around interrupt-mask writes.
 - `NVIC`'s interrupt-bitmap accessors no longer emit a bounds check and a panic
   path.
 

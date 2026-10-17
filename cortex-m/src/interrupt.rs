@@ -38,16 +38,20 @@ unsafe impl<T: Nr + Copy> InterruptNumber for T {
 }
 
 /// Disables all interrupts
+///
+/// Forms a read/write memory barrier for the compiler.
 #[inline]
 #[asm_cfg(cortex_m)]
 pub fn disable() {
-    unsafe { asm!("cpsid i", options(nomem, nostack, preserves_flags)) };
+    unsafe { asm!("cpsid i", options(nostack, preserves_flags)) };
 
     // Ensure no subsequent memory accesses are reordered to before interrupts are disabled.
     compiler_fence(Ordering::SeqCst);
 }
 
 /// Enables all the interrupts
+///
+/// Forms a read/write memory barrier for the compiler.
 ///
 /// # Safety
 ///
@@ -58,7 +62,7 @@ pub unsafe fn enable() {
     // Ensure no preceeding memory accesses are reordered to after interrupts are enabled.
     compiler_fence(Ordering::SeqCst);
 
-    unsafe { asm!("cpsie i", options(nomem, nostack, preserves_flags)) };
+    unsafe { asm!("cpsie i", options(nostack, preserves_flags)) };
 }
 
 /// Execute closure `f` in an interrupt-free context.

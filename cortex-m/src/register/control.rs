@@ -199,7 +199,7 @@ pub unsafe fn write(control: Control) {
             "msr CONTROL, {}",
             "isb",
             in(reg) control,
-            options(nomem, nostack, preserves_flags),
+            options(nostack, preserves_flags),
         );
         compiler_fence(Ordering::SeqCst);
     }

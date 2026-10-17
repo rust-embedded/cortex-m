@@ -242,9 +242,7 @@ pub unsafe fn bx_ns(addr: u32) {
 #[inline]
 #[asm_cfg(cortex_m)]
 pub unsafe fn semihosting_syscall(mut nr: u32, arg: u32) -> u32 {
-    unsafe {
-        asm!("bkpt #0xab", inout("r0") nr, in("r1") arg, options(nomem, nostack, preserves_flags))
-    };
+    unsafe { asm!("bkpt #0xab", inout("r0") nr, in("r1") arg, options(nostack, preserves_flags)) };
     nr
 }
 
@@ -363,7 +361,7 @@ pub unsafe fn bootstrap(msp: *const u32, rv: *const u32) -> ! {
             spsel = in(reg) 2,
             msp = in(reg) msp,
             rv = in(reg) rv,
-            options(noreturn, nomem, nostack),
+            options(noreturn, nostack),
         )
     };
 }
@@ -490,7 +488,7 @@ pub unsafe fn mcr<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32,
             crn = const CRN,
             crm = const CRM,
             op2 = const OP2,
-            options(nostack, nomem)
+            options(nostack)
         )
     };
 }
@@ -523,7 +521,7 @@ pub unsafe fn mrc<const CP: u32, const OP1: u32, const CRN: u32, const CRM: u32,
             crn = const CRN,
             crm = const CRM,
             op2 = const OP2,
-            options(nostack, nomem)
+            options(nostack)
         )
     };
 
@@ -552,7 +550,7 @@ pub unsafe fn mcrr<const CP: u32, const OP1: u32, const CRM: u32>(a: u32, b: u32
             cp  = const CP,
             op1 = const OP1,
             crm = const CRM,
-            options(nostack, nomem)
+            options(nostack)
         )
     };
 }
@@ -583,7 +581,7 @@ pub unsafe fn mrrc<const CP: u32, const OPC: u32, const CRM: u32>() -> (u32, u32
             cp  = const CP,
             opc = const OPC,
             crm = const CRM,
-            options(nostack, nomem)
+            options(nostack)
         )
     };
 

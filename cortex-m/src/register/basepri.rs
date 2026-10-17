@@ -2,6 +2,8 @@
 
 #[cfg(any(armv7m, armv8m))]
 use core::arch::asm;
+#[cfg(any(armv7m, armv8m))]
+use core::sync::atomic::{Ordering, compiler_fence};
 use cortex_m_macros::asm_cfg;
 
 /// Reads the CPU register
@@ -15,16 +17,20 @@ pub fn read() -> u8 {
 
 /// Writes to the CPU register
 ///
+/// Forms a read/write memory barrier for the compiler.
+///
 /// **IMPORTANT** If you are using a Cortex-M7 device with revision r0p1 you MUST enable the
 /// `cm7-r0p1` Cargo feature or this function WILL misbehave.
 #[inline]
 #[asm_cfg(any(armv7m, armv8m_main))]
 pub unsafe fn write(basepri: u8) {
+    // Release before enabling interrupts; acquire after disabling them.
+    // Work around missing asm synchronization effects: rust-lang/rust#144351.
+    compiler_fence(Ordering::Release);
+
     #[cfg(not(feature = "cm7-r0p1"))]
     {
-        unsafe {
-            asm!("msr BASEPRI, {}", in(reg) basepri, options(nomem, nostack, preserves_flags))
-        };
+        unsafe { asm!("msr BASEPRI, {}", in(reg) basepri, options(nostack, preserves_flags)) };
     }
 
     #[cfg(feature = "cm7-r0p1")]
@@ -40,8 +46,9 @@ pub unsafe fn write(basepri: u8) {
                 "cpsie i",
                 in(reg) basepri,
                 out(reg) _,
-                options(nomem, nostack, preserves_flags),
+                options(nostack, preserves_flags),
             )
         };
     }
+    compiler_fence(Ordering::Acquire);
 }

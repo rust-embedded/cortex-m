@@ -64,7 +64,9 @@ pub fn read_raw() -> u32 {
 pub unsafe fn write_raw(r: u32) {
     // Ensure no preceeding memory accesses are reordered to after interrupts are possibly enabled.
     compiler_fence(Ordering::SeqCst);
-    unsafe { asm!("msr PRIMASK, {}", in(reg) r, options(nomem, nostack, preserves_flags)) };
+
+    unsafe { asm!("msr PRIMASK, {}", in(reg) r, options(nostack, preserves_flags)) };
+
     // Ensure no subsequent memory accesses are reordered to before interrupts are possibly disabled.
     compiler_fence(Ordering::SeqCst);
 }

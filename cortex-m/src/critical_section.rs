@@ -12,7 +12,8 @@ unsafe impl Impl for SingleCoreCriticalSection {
         // u32 instead of using the primask::read() function to minimize the number of processor
         // cycles during which interrupts are disabled.
         let restore_state = primask::read_raw();
-        // NOTE: Fence guarantees are provided by interrupt::disable(), which performs a `compiler_fence(SeqCst)`.
+        // NOTE: Fence guarantees are provided by interrupt::disable(),
+        // which performs a `compiler_fence(SeqCst)` fore and aft.
         interrupt::disable();
         restore_state
     }

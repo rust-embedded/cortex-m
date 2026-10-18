@@ -15,3 +15,4 @@ jobs:
         with:
           components: rustfmt
       - run: cargo fmt --all -- --check
+      - run: cd testsuite && cargo fmt --all -- --check

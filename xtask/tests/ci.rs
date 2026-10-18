@@ -50,7 +50,7 @@ static PACKAGE_FEATURES: &[(&str, &[&str], &[&str])] = &[
     ("panic-itm", NON_BASE_TARGETS, &[]),
 ];
 
-fn check_crates_build(is_nightly: bool, is_msrv: bool) {
+fn check_crates_build(is_nightly: bool) {
     // Build all crates for each supported target.
     for (package, targets, all_features) in PACKAGE_FEATURES {
         for target in *targets {
@@ -100,9 +100,8 @@ fn main() {
 
     let output = Command::new("rustc").arg("-V").output().unwrap();
     let is_nightly = str::from_utf8(&output.stdout).unwrap().contains("nightly");
-    let is_msrv = str::from_utf8(&output.stdout).unwrap().contains("1.59");
 
-    check_crates_build(is_nightly, is_msrv);
+    check_crates_build(is_nightly);
 
     // Check host-side applications of the crate.
     check_host_side();

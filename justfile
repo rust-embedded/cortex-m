@@ -72,7 +72,7 @@ build-test-msrv: \
 
 [working-directory: "cortex-m-rt"]
 build-test target rust-version:
-  TARGET={{target}} TRAVIS_RUST_VERSION={{rust-version}} bash ci/script.sh
+  TARGET={{target}} CI_RUST_VERSION={{rust-version}} bash ci/script.sh
 
 # Run the unit tests
 unit-test:

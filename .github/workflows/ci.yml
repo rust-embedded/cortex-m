@@ -39,26 +39,26 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
-      - name: Install all Rust targets for ${{ matrix.rust }}
-        run: rustup target install --toolchain=${{ matrix.rust }} thumbv6m-none-eabi thumbv7m-none-eabi thumbv7em-none-eabi thumbv7em-none-eabihf thumbv8m.base-none-eabi thumbv8m.main-none-eabi thumbv8m.main-none-eabihf
+      - name: Install all Rust targets
+        run: rustup target install thumbv6m-none-eabi thumbv7m-none-eabi thumbv7em-none-eabi thumbv7em-none-eabihf thumbv8m.base-none-eabi thumbv8m.main-none-eabi thumbv8m.main-none-eabihf
       - name: Install qemu and gcc
         run: sudo apt-get update && sudo apt-get install qemu-system-arm gcc-arm-none-eabi
       - name: Run CI script for x86_64-unknown-linux-gnu under ${{ matrix.rust }}
-        run: TARGET=x86_64-unknown-linux-gnu TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
+        run: TARGET=x86_64-unknown-linux-gnu CI_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
       - name: Run CI script for thumbv6m-none-eabi under ${{ matrix.rust }}
-        run: TARGET=thumbv6m-none-eabi TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
+        run: TARGET=thumbv6m-none-eabi CI_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
       - name: Run CI script for thumbv7m-none-eabi under ${{ matrix.rust }}
-        run: TARGET=thumbv7m-none-eabi TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
+        run: TARGET=thumbv7m-none-eabi CI_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
       - name: Run CI script for thumbv7em-none-eabi under ${{ matrix.rust }}
-        run: TARGET=thumbv7em-none-eabi TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
+        run: TARGET=thumbv7em-none-eabi CI_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
       - name: Run CI script for thumbv7em-none-eabihf under ${{ matrix.rust }}
-        run: TARGET=thumbv7em-none-eabihf TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
+        run: TARGET=thumbv7em-none-eabihf CI_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
       - name: Run CI script for thumbv8m.base-none-eabi under ${{ matrix.rust }}
-        run: TARGET=thumbv8m.base-none-eabi TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
+        run: TARGET=thumbv8m.base-none-eabi CI_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
       - name: Run CI script for thumbv8m.main-none-eabi under ${{ matrix.rust }}
-        run: TARGET=thumbv8m.main-none-eabi TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
+        run: TARGET=thumbv8m.main-none-eabi CI_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
       - name: Run CI script for thumbv8m.main-none-eabihf under ${{ matrix.rust }}
-        run: TARGET=thumbv8m.main-none-eabihf TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
+        run: TARGET=thumbv8m.main-none-eabihf CI_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
 
   # On macOS and Windows, we at least make sure that all examples build and link.
   cortex-m-rt-ci-other-os:

@@ -7,7 +7,7 @@ name: Clippy
 
 jobs:
   clippy-host:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@1.85
@@ -15,7 +15,7 @@ jobs:
           components: clippy
       - run: cargo clippy --all --features cortex-m/critical-section-single-core -- -D warnings
   clippy-target:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     continue-on-error: true
     strategy:
       matrix:

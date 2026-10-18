@@ -11,7 +11,7 @@ name: cortex-m CI
 jobs:
   # Test cortex-m
   cortex-m-ci-linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     continue-on-error: true
     strategy:
       matrix:
@@ -26,7 +26,7 @@ jobs:
 
   # On x86_64-unknown-linux-gnu we can run our special testing shell script
   cortex-m-rt-ci-linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     continue-on-error: true
     strategy:
       matrix:
@@ -97,7 +97,7 @@ jobs:
 
   # Run examples in QEMU
   cortex-m-testsuite:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     continue-on-error: true
     strategy:
       matrix:
@@ -137,7 +137,7 @@ jobs:
           cd testsuite && cargo test --features qemu --target thumbv6m-none-eabi
 
   report-issues:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     if: always()
     needs: [cortex-m-ci-linux, cortex-m-rt-ci-other-os, cortex-m-rt-ci-linux, cortex-m-testsuite]
     steps:

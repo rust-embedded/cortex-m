@@ -5,7 +5,7 @@ fn main() {
     // Tests execute in the containing crate's root dir, `cd ..` so that we find `asm` etc.
     std::env::set_current_dir("..").unwrap();
 
-    install_targets(&ALL_TARGETS);
+    install_targets(ALL_TARGETS);
 
     let output = Command::new("rustc").arg("-V").output().unwrap();
     let is_nightly = std::str::from_utf8(&output.stdout)

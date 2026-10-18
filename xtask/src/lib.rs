@@ -86,7 +86,7 @@ pub fn check_crates_build(is_nightly: bool) {
             let used_features = &*all_features
                 .iter()
                 .copied()
-                .filter(|feat| should_use_feature(*feat))
+                .filter(|feat| should_use_feature(feat))
                 .collect::<Vec<_>>();
 
             // (note: we don't test with default features disabled, since we don't use them yet)
@@ -108,9 +108,9 @@ pub fn check_crates_build(is_nightly: bool) {
 fn build(package: &str, target: &str, features: &[&str]) {
     println!("building {} for {} {:?}", package, target, features);
     let mut cargo = Command::new("cargo");
-    cargo.args(&["build", "-p", package, "--target", target]);
+    cargo.args(["build", "-p", package, "--target", target]);
     for feat in features {
-        cargo.args(&["--features", *feat]);
+        cargo.args(["--features", *feat]);
     }
 
     // Cargo features don't work right when invoked from the workspace root, so change to the

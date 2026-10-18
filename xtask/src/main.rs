@@ -4,7 +4,7 @@ use xtask::{ALL_TARGETS, check_crates_build, check_host_side, install_targets};
 fn main() {
     let subcommand = std::env::args().nth(1);
     match subcommand.as_deref() {
-        Some("install-targets") => install_targets(&ALL_TARGETS),
+        Some("install-targets") => install_targets(ALL_TARGETS),
         Some("check-host-side") => check_host_side(),
         Some("check-crates-build") => {
             let output = std::process::Command::new("rustc")

@@ -7,13 +7,10 @@ main() {
 
     cargo check --target "$TARGET" --features device
 
-    # A `critical_section` implementation is always needed.
-    needed_features=
-
     if [ "$TARGET" = x86_64-unknown-linux-gnu ] && [ "$TRAVIS_RUST_VERSION" = stable ]; then
         ( cd macros && cargo check && cargo test )
 
-        cargo test --features "device,${needed_features}" --test compiletest
+        cargo test --features "device" --test compiletest
     fi
 
     local examples=(
@@ -47,27 +44,27 @@ main() {
     if [ "$TARGET" != x86_64-unknown-linux-gnu ]; then
         # Only test on stable and nightly, not MSRV.
         if [ "$TRAVIS_RUST_VERSION" = stable ] || [ "$TRAVIS_RUST_VERSION" = nightly ]; then
-            RUSTDOCFLAGS="-Cpanic=abort" cargo test --features "${needed_features}" --doc
+            RUSTDOCFLAGS="-Cpanic=abort" cargo test --doc
         fi
 
         for linker in "${linkers[@]}"; do
             for ex in "${examples[@]}"; do
-                cargo rustc --target "$TARGET" --example "$ex" --features "${needed_features}" -- $linker
-                cargo rustc --target "$TARGET" --example "$ex" --features "${needed_features}" --release -- $linker
+                cargo rustc --target "$TARGET" --example "$ex" -- $linker
+                cargo rustc --target "$TARGET" --example "$ex" --release -- $linker
             done
             for ex in "${fail_examples[@]}"; do
-                cargo rustc --target "$TARGET" --example "$ex" --features "${needed_features}" -- $linker && exit 1
-                cargo rustc --target "$TARGET" --example "$ex" --features "${needed_features}" --release -- $linker && exit 1
+                cargo rustc --target "$TARGET" --example "$ex" -- $linker && exit 1
+                cargo rustc --target "$TARGET" --example "$ex" --release -- $linker && exit 1
             done
-            cargo rustc --target "$TARGET" --example device --features "device,${needed_features}" -- $linker
-            cargo rustc --target "$TARGET" --example device --features "device,${needed_features}" --release -- $linker
+            cargo rustc --target "$TARGET" --example device --features "device" -- $linker
+            cargo rustc --target "$TARGET" --example device --features "device" --release -- $linker
 
-            cargo rustc --target "$TARGET" --example minimal --features "set-sp,${needed_features}" -- $linker
-            cargo rustc --target "$TARGET" --example minimal --features "set-sp,${needed_features}" --release -- $linker
-            cargo rustc --target "$TARGET" --example minimal --features "zero-init-ram,${needed_features}" -- $linker
-            cargo rustc --target "$TARGET" --example minimal --features "zero-init-ram,${needed_features}" --release -- $linker
-            cargo rustc --target "$TARGET" --example minimal --features "set-vtor,${needed_features}" -- $linker
-            cargo rustc --target "$TARGET" --example minimal --features "set-vtor,${needed_features}" --release -- $linker
+            cargo rustc --target "$TARGET" --example minimal --features "set-sp" -- $linker
+            cargo rustc --target "$TARGET" --example minimal --features "set-sp" --release -- $linker
+            cargo rustc --target "$TARGET" --example minimal --features "zero-init-ram" -- $linker
+            cargo rustc --target "$TARGET" --example minimal --features "zero-init-ram" --release -- $linker
+            cargo rustc --target "$TARGET" --example minimal --features "set-vtor" -- $linker
+            cargo rustc --target "$TARGET" --example minimal --features "set-vtor" --release -- $linker
         done
     fi
 
@@ -75,9 +72,9 @@ main() {
         thumbv6m-none-eabi|thumbv7m-none-eabi)
             for linker in "${linkers[@]}"; do
                 env RUSTFLAGS="$linker -C link-arg=-Tlink.x" cargo run \
-                    --target "$TARGET" --features "${needed_features}" --example qemu | grep "x = 42"
+                    --target "$TARGET" --example qemu | grep "x = 42"
                 env RUSTFLAGS="$linker -C link-arg=-Tlink.x" cargo run \
-                    --target "$TARGET" --features "${needed_features}" --example qemu --release | grep "x = 42"
+                    --target "$TARGET" --example qemu --release | grep "x = 42"
             done
 
             ;;

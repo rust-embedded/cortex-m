@@ -3,7 +3,8 @@ on:
   merge_group:
   workflow_dispatch:
 
-name: Clippy check
+name: Clippy
+
 jobs:
   clippy:
     runs-on: ubuntu-latest
@@ -12,9 +13,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@1.85
         with:
           components: clippy
-      - run: cargo clippy --all --features cortex-m/critical-section-single-core -- -D warnings
-      - uses: dtolnay/rust-toolchain@1.85
-        with:
-          components: clippy
           targets: thumbv7em-none-eabihf
+      - run: cargo clippy --all --features cortex-m/critical-section-single-core -- -D warnings
       - run: cd testsuite && cargo clippy --features qemu -- -D warnings

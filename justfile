@@ -76,7 +76,7 @@ build-test target rust-version:
 
 # Run the unit tests
 unit-test:
-  cargo test --all --exclude cortex-m-rt --exclude testsuite --features cortex-m/critical-section-single-core
+  cargo test --all --exclude cortex-m-rt --features cortex-m/critical-section-single-core
 
 # Run clippy on the testsuite
 [working-directory: "testsuite"]

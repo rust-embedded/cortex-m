@@ -26,11 +26,31 @@ jobs:
           echo "/opt/qemu/bin" >> "$GITHUB_PATH"
       - name: Install toolchains
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: thumbv7em-none-eabihf, thumbv6m-none-eabi
-      - name: Run testsuite Cortex-M3
+      - name: Run testsuite for thumbv8m.main-none-eabihf
         run: |
+          rustup target add thumbv8m.main-none-eabihf
+          cd testsuite && cargo test --features qemu --target thumbv8m.main-none-eabihf
+      - name: Run testsuite for thumbv8m.main-none-eabi
+        run: |
+          rustup target add thumbv8m.main-none-eabi
+          cd testsuite && cargo test --features qemu --target thumbv8m.main-none-eabi
+      - name: Run testsuite for thumbv8m.base-none-eabi
+        run: |
+          rustup target add thumbv8m.base-none-eabi
+          cd testsuite && cargo test --features qemu --target thumbv8m.base-none-eabi
+      - name: Run testsuite for thumbv7em-none-eabi
+        run: |
+          rustup target add thumbv7em-none-eabi
+          cd testsuite && cargo test --features qemu --target thumbv7em-none-eabi
+      - name: Run testsuite for thumbv7em-none-eabihf
+        run: |
+          rustup target add thumbv7em-none-eabihf
           cd testsuite && cargo test --features qemu --target thumbv7em-none-eabihf
-      - name: Run testsuite Cortex-M0
+      - name: Run testsuite for thumbv7m-none-eabi
         run: |
+          rustup target add thumbv7m-none-eabi
+          cd testsuite && cargo test --features qemu --target thumbv7m-none-eabi
+      - name: Run testsuite for thumbv6m-none-eabi
+        run: |
+          rustup target add thumbv6m-none-eabi
           cd testsuite && cargo test --features qemu --target thumbv6m-none-eabi

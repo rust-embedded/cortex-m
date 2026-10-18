@@ -23,6 +23,9 @@ defmt = "1"
 [dev-dependencies]
 defmt-test = "0.4"
 
+[build-dependencies]
+arm-targets = "0.4.2"
+
 # for the library crate (src/lib.rs)
 [lib]
 harness = false
@@ -39,3 +42,4 @@ cortex-m-rt = { path = "../cortex-m-rt" }
 opt-level = "z"     # Optimize for size
 lto = true          # Enable Link Time Optimization
 codegen-units = 1   # Better optimization at cost of compile time
+debug = 2

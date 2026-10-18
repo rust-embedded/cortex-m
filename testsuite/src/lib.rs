@@ -166,8 +166,8 @@ mod tests {
             cortex_m::asm::semihosting_syscall(SYS_WRITE0, msg.as_ptr() as usize as u32);
         }
     }
-    
-    #[cfg(armv8m)]
+
+    #[cfg(any(arm_architecture = "v8-m.base", arm_architecture = "v8-m.main"))]
     #[test]
     fn sau_set_get_region(p: &mut cortex_m::Peripherals) {
         use cortex_m::peripheral::sau::{SauRegion, SauRegionAttribute};

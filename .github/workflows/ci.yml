@@ -2,30 +2,173 @@ on:
   pull_request:
   merge_group:
   workflow_dispatch:
+  schedule:
+    # Run every night at 8am UTC
+    - cron: '0 8 * * SAT'
 
 name: cortex-m CI
 
 jobs:
-  ci-linux:
+  # Test cortex-m
+  cortex-m-ci-linux:
     runs-on: ubuntu-latest
-    continue-on-error: ${{ matrix.experimental || false }}
+    continue-on-error: true
     strategy:
       matrix:
-        # All generated code should be running on stable now
-        rust: [stable]
-        test_cortex_m_types: [true]
-
-        include:
-          # Test MSRV
-          - rust: 1.85.0
-
-          # Test nightly but don't fail
-          - rust: nightly
-            experimental: true
+        rust: [nightly, stable, 1.85.0]
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
       - name: Run tests
-        run: cargo test --all --exclude cortex-m-rt --exclude testsuite --features cortex-m/critical-section-single-core
+        run: cargo test --all --exclude cortex-m-rt --features cortex-m/critical-section-single-core
+
+  # On x86_64-unknown-linux-gnu we can run our special testing shell script
+  cortex-m-rt-ci-linux:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        rust: [nightly, stable, 1.85.0]
+    defaults:
+      run:
+        working-directory: cortex-m-rt
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+      - name: Install all Rust targets for ${{ matrix.rust }}
+        run: rustup target install --toolchain=${{ matrix.rust }} thumbv6m-none-eabi thumbv7m-none-eabi thumbv7em-none-eabi thumbv7em-none-eabihf thumbv8m.base-none-eabi thumbv8m.main-none-eabi thumbv8m.main-none-eabihf
+      - name: Install qemu and gcc
+        run: sudo apt-get update && sudo apt-get install qemu-system-arm gcc-arm-none-eabi
+      - name: Run CI script for x86_64-unknown-linux-gnu under ${{ matrix.rust }}
+        run: TARGET=x86_64-unknown-linux-gnu TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
+      - name: Run CI script for thumbv6m-none-eabi under ${{ matrix.rust }}
+        run: TARGET=thumbv6m-none-eabi TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
+      - name: Run CI script for thumbv7m-none-eabi under ${{ matrix.rust }}
+        run: TARGET=thumbv7m-none-eabi TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
+      - name: Run CI script for thumbv7em-none-eabi under ${{ matrix.rust }}
+        run: TARGET=thumbv7em-none-eabi TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
+      - name: Run CI script for thumbv7em-none-eabihf under ${{ matrix.rust }}
+        run: TARGET=thumbv7em-none-eabihf TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
+      - name: Run CI script for thumbv8m.base-none-eabi under ${{ matrix.rust }}
+        run: TARGET=thumbv8m.base-none-eabi TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
+      - name: Run CI script for thumbv8m.main-none-eabi under ${{ matrix.rust }}
+        run: TARGET=thumbv8m.main-none-eabi TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
+      - name: Run CI script for thumbv8m.main-none-eabihf under ${{ matrix.rust }}
+        run: TARGET=thumbv8m.main-none-eabihf TRAVIS_RUST_VERSION=${{ matrix.rust }} bash ci/script.sh
+
+  # On macOS and Windows, we at least make sure that all examples build and link.
+  cortex-m-rt-ci-other-os:
+    strategy:
+      matrix:
+        os: [macOS-latest, windows-latest]
+        rust: [nightly, stable, 1.85.0]
+    runs-on: ${{ matrix.os }}
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: cortex-m-rt
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+      - name: Install all Rust targets
+        run: rustup target install thumbv6m-none-eabi thumbv7m-none-eabi thumbv7em-none-eabi thumbv7em-none-eabihf thumbv8m.base-none-eabi thumbv8m.main-none-eabi thumbv8m.main-none-eabihf
+      - name: Remove examples that pass by failing
+        run: rm examples/data_overflow.rs
+      - name: Build examples for thumbv6m-none-eabi
+        run: cargo build --target=thumbv6m-none-eabi --examples
+      - name: Build examples for thumbv7m-none-eabi
+        run: cargo build --target=thumbv7m-none-eabi --examples
+      - name: Build examples for thumbv7em-none-eabi
+        run: cargo build --target=thumbv7em-none-eabi --examples
+      - name: Build examples for thumbv7em-none-eabihf
+        run: cargo build --target=thumbv7em-none-eabihf --examples
+      - name: Build examples for thumbv8m.base-none-eabi
+        run: cargo build --target=thumbv8m.base-none-eabi --examples
+      - name: Build examples for thumbv8m.main-none-eabi
+        run: cargo build --target=thumbv8m.main-none-eabi --examples
+      - name: Build examples for thumbv8m.main-none-eabihf
+        run: cargo build --target=thumbv8m.main-none-eabihf --examples
+      - name: Build crate for host OS
+        run: cargo build
+
+  # Run examples in QEMU
+  cortex-m-testsuite:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        rust: [nightly, stable, 1.85.0]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install qemu-run
+        uses: taiki-e/cache-cargo-install-action@v3
+        with:
+          tool: qemu-run
+      - name: Install QEMU Dependencies
+        run: |
+          sudo apt-get -y update
+          sudo apt-get -y install libpixman-1-0 libfdt1 libglib2.0-0t64
+      - name: Install custom QEMU into /opt
+        run: |
+          curl -sSL https://github.com/jonathanpallant/qemu9-for-ubuntu-2404/releases/download/qemu-9.2.3%2Bbuild0/qemu-9.2.3-ubuntu-24.04.tar.gz | sudo tar xvzf - -C /
+          echo "/opt/qemu/bin" >> "$GITHUB_PATH"
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+      - name: Run testsuite for thumbv8m.main-none-eabihf
+        run: |
+          rustup target add thumbv8m.main-none-eabihf
+          cd testsuite && cargo test --features qemu --target thumbv8m.main-none-eabihf
+      - name: Run testsuite for thumbv8m.main-none-eabi
+        run: |
+          rustup target add thumbv8m.main-none-eabi
+          cd testsuite && cargo test --features qemu --target thumbv8m.main-none-eabi
+      - name: Run testsuite for thumbv8m.base-none-eabi
+        run: |
+          rustup target add thumbv8m.base-none-eabi
+          cd testsuite && cargo test --features qemu --target thumbv8m.base-none-eabi
+      - name: Run testsuite for thumbv7em-none-eabi
+        run: |
+          rustup target add thumbv7em-none-eabi
+          cd testsuite && cargo test --features qemu --target thumbv7em-none-eabi
+      - name: Run testsuite for thumbv7em-none-eabihf
+        run: |
+          rustup target add thumbv7em-none-eabihf
+          cd testsuite && cargo test --features qemu --target thumbv7em-none-eabihf
+      - name: Run testsuite for thumbv7m-none-eabi
+        run: |
+          rustup target add thumbv7m-none-eabi
+          cd testsuite && cargo test --features qemu --target thumbv7m-none-eabi
+      - name: Run testsuite for thumbv6m-none-eabi
+        run: |
+          rustup target add thumbv6m-none-eabi
+          cd testsuite && cargo test --features qemu --target thumbv6m-none-eabi
+
+  report-issues:
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [cortex-m-ci-linux, cortex-m-rt-ci-other-os, cortex-m-rt-ci-linux, cortex-m-testsuite]
+    steps:
+      - name: Ensure all required jobs succeed
+        run: |
+          echo "Our needs:"
+          echo '${{ toJSON(needs) }}'
+          echo "Checking..."
+          echo '${{ toJSON(needs) }}' | jq -e 'to_entries | all(.value.result == "success")'
+      - uses: imjohnbo/issue-bot@v3
+        if: failure() && github.event_name == 'schedule'
+        with:
+          title: CI Failure
+          labels: ci
+          body: |
+            Scheduled CI run failed. Details:
+
+            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

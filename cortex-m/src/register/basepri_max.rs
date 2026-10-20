@@ -20,7 +20,14 @@ use cortex_m_macros::asm_cfg;
 pub fn write(basepri: u8) {
     #[cfg(not(feature = "cm7-r0p1"))]
     {
-        unsafe { asm!("msr BASEPRI_MAX, {}", in(reg) basepri, options(nostack, preserves_flags)) };
+        unsafe {
+            asm!(
+                "msr BASEPRI_MAX, {}",
+                "isb",
+                in(reg) basepri,
+                options(nostack, preserves_flags)
+            )
+        };
     }
 
     #[cfg(feature = "cm7-r0p1")]
@@ -31,6 +38,7 @@ pub fn write(basepri: u8) {
                 "cpsid i",
                 "tst.w {1}, #1",
                 "msr BASEPRI_MAX, {0}",
+                "isb",
                 "it ne",
                 "bxne lr",
                 "cpsie i",

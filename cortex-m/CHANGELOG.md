@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [v0.7.10] - 2026-10-21
+
 ### Removed
 - The separate `#[cfg(not(cortex_m))]` stub for `interrupt::free`.
 
@@ -18,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fix compiler ordering around interrupt-mask writes.
 - `NVIC`'s interrupt-bitmap accessors no longer emit a bounds check and a panic
   path.
+- Add ISB when changing BASEPRI and PRIMASK
 
 ## [v0.7.9] - 2026-08-18
 
@@ -816,7 +819,8 @@ fn main() {
 - Functions to get the vector table
 - Wrappers over miscellaneous instructions like `bkpt`
 
-[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.7.9...HEAD
+[Unreleased]: https://github.com/rust-embedded/cortex-m/compare/v0.7.10...HEAD
+[v0.7.10]: https://github.com/rust-embedded/cortex-m/compare/v0.7.9...v0.7.10
 [v0.7.9]: https://github.com/rust-embedded/cortex-m/compare/v0.7.8...v0.7.9
 [v0.7.8]: https://github.com/rust-embedded/cortex-m/compare/v0.7.7...v0.7.8
 [v0.7.7]: https://github.com/rust-embedded/cortex-m/compare/v0.7.6...v0.7.7

@@ -6,12 +6,12 @@ on:
 name: Code formatting check
 
 jobs:
-  fmt:
-    name: rustfmt
-    runs-on: ubuntu-latest
+  rustfmt:
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
       - run: cargo fmt --all -- --check
+      - run: cd testsuite && cargo fmt --all -- --check

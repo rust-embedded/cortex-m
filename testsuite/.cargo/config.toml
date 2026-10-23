@@ -5,7 +5,23 @@ rustflags = [
   "-C", "link-arg=-Tdefmt.x",
 ]
 
+[target.thumbv8m.base-none-eabi]
+# We don't have a Cortex-M23 machine, but this should work
+runner = "qemu-run --machine mps2-an505 --cpu cortex-m33"
+
+[target.thumbv8m.main-none-eabi]
+runner = "qemu-run --machine mps2-an505 --cpu cortex-m33"
+
+[target.thumbv8m.main-none-eabihf]
+runner = "qemu-run --machine mps2-an505 --cpu cortex-m33"
+
 [target.thumbv7em-none-eabihf]
+runner = "qemu-run --machine lm3s6965evb --cpu cortex-m4"
+
+[target.thumbv7em-none-eabi]
+runner = "qemu-run --machine lm3s6965evb --cpu cortex-m4"
+
+[target.thumbv7m-none-eabi]
 runner = "qemu-run --machine lm3s6965evb --cpu cortex-m3"
 
 [target.thumbv6m-none-eabi]

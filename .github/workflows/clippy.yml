@@ -3,18 +3,41 @@ on:
   merge_group:
   workflow_dispatch:
 
-name: Clippy check
+name: Clippy
+
 jobs:
-  clippy:
-    runs-on: ubuntu-latest
+  clippy-host:
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@1.85
         with:
           components: clippy
       - run: cargo clippy --all --features cortex-m/critical-section-single-core -- -D warnings
+  clippy-target:
+    runs-on: ubuntu-26.04
+    continue-on-error: true
+    strategy:
+      matrix:
+        target:
+          - thumbv6m-none-eabi
+          - thumbv7m-none-eabi
+          - thumbv7em-none-eabi
+          - thumbv7em-none-eabihf
+          - thumbv8m.base-none-eabi
+          - thumbv8m.main-none-eabi
+          - thumbv8m.main-none-eabihf
+    steps:
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@1.85
         with:
           components: clippy
-          targets: thumbv7em-none-eabihf
-      - run: cd testsuite && cargo clippy --features qemu -- -D warnings
+          targets: ${{ matrix.target }}
+      - run: cd cortex-m && cargo clippy --target ${{ matrix.target }} --features critical-section-single-core -- -D warnings
+      - run: cd cortex-m-rt && cargo clippy --target ${{ matrix.target }} -- -D warnings
+      - run: cd testsuite && cargo clippy --target ${{ matrix.target }} --features qemu -- -D warnings
+      - run: cd testsuite && cargo clippy --target ${{ matrix.target }} --features hardware -- -D warnings
+      - run: cd cortex-m-semihosting && cargo clippy --target ${{ matrix.target }} -- -D warnings
+      - run: cd panic-semihosting && cargo clippy --target ${{ matrix.target }} -- -D warnings
+      - if: ${{ matrix.target != 'thumbv6m-none-eabi' && matrix.target != 'thumbv8m.base-none-eabi' }}
+        run: cd panic-itm && cargo clippy --target ${{ matrix.target }} -- -D warnings

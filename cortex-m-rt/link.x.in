@@ -281,6 +281,36 @@ ASSERT(_stext >= ORIGIN(FLASH) && _stext < ORIGIN(FLASH) + LENGTH(FLASH), "
 ERROR(cortex-m-rt): The .text section must be placed inside the FLASH memory.
 Set _stext to an address within the FLASH region.");
 
+/* ## RAM-based symbols that should not be placed in FLASH */
+/* stack/heap start/end symbols */
+ASSERT(_stack_start < ORIGIN(FLASH) || _stack_start >= ORIGIN(FLASH) + LENGTH(FLASH), "
+ERROR(cortex-m-rt): stack start address is within the FLASH region.");
+
+ASSERT(_stack_end < ORIGIN(FLASH) || _stack_end >= ORIGIN(FLASH) + LENGTH(FLASH), "
+ERROR(cortex-m-rt): stack end address is within the FLASH region.");
+
+ASSERT(__sheap < ORIGIN(FLASH) || __sheap >= ORIGIN(FLASH) + LENGTH(FLASH), "
+ERROR(cortex-m-rt): heap start address is within the FLASH region.");
+
+/* initialised ram start/end symbols */
+ASSERT(_ram_start < ORIGIN(FLASH) || _ram_start >= ORIGIN(FLASH) + LENGTH(FLASH), "
+ERROR(cortex-m-rt): ram start address is within the FLASH region.");
+
+ASSERT(_ram_end < ORIGIN(FLASH) || _ram_end >= ORIGIN(FLASH) + LENGTH(FLASH), "
+ERROR(cortex-m-rt): ram end address is within the FLASH region.");
+
+ASSERT(__sbss < ORIGIN(FLASH) || __sbss >= ORIGIN(FLASH) + LENGTH(FLASH), "
+ERROR(cortex-m-rt): .bss start address is within the FLASH region.");
+
+ASSERT(__ebss < ORIGIN(FLASH) || __ebss >= ORIGIN(FLASH) + LENGTH(FLASH), "
+ERROR(cortex-m-rt): .bss end address is within the FLASH region.");
+
+ASSERT(__sdata < ORIGIN(FLASH) || __sdata >= ORIGIN(FLASH) + LENGTH(FLASH), "
+ERROR(cortex-m-rt): .data start address is within the FLASH region.");
+
+ASSERT(__edata < ORIGIN(FLASH) || __edata >= ORIGIN(FLASH) + LENGTH(FLASH), "
+ERROR(cortex-m-rt): .data end address is within the FLASH region.");
+
 /* # Other checks */
 ASSERT(SIZEOF(.got) == 0, "
 ERROR(cortex-m-rt): .got section detected in the input object files

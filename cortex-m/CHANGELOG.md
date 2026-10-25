@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- `interrupt::{CriticalSection, Mutex, Nr}` are now defined in this crate instead of
+  being re-exported from the deprecated `bare-metal` 0.2 crate
+  ([RUSTSEC-2026-0110]). `bare-metal` is now an optional dependency. Enable the new
+  `bare-metal` feature to get the old re-exports, for example if you pass these
+  types to `bare_metal` items directly or use a PAC that implements `bare_metal::Nr`.
+
+[RUSTSEC-2026-0110]: https://rustsec.org/advisories/RUSTSEC-2026-0110
+
 ## [v0.7.10] - 2026-10-21
 
 ### Removed

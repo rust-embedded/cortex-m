@@ -1,5 +1,8 @@
 //! Nested Vector Interrupt Controller
 
+// NVIC stays on the old trait so that PACs implementing it directly keep working.
+#![allow(deprecated)]
+
 use volatile_register::RW;
 #[cfg(not(armv6m))]
 use volatile_register::{RO, WO};

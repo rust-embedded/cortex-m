@@ -159,7 +159,7 @@ pub struct Peripherals {
 #[unsafe(no_mangle)]
 static CORE_PERIPHERALS: () = ();
 
-/// Set to `true` when `take` or `steal` was called to make `Peripherals` a singleton.
+/// Set to `true` when `take` was called to make `Peripherals` a singleton.
 static mut TAKEN: bool = false;
 
 impl Peripherals {
@@ -170,69 +170,78 @@ impl Peripherals {
             if unsafe { TAKEN } {
                 None
             } else {
+                unsafe { TAKEN = true };
                 Some(unsafe { Peripherals::steal() })
             }
         })
     }
 
-    /// Unchecked version of `Peripherals::take`
+    /// Steal a peripheral singleton instance.
+    ///
+    /// Compared to [Self::take], this does not mark the peripherals as taken and can be called
+    /// multiple times. A later call to [Self::take] still returns `Some`.
+    ///
+    /// This can also be useful for multi-core systems where each core has its own peripheral block.
+    ///
+    /// # Safety
+    ///
+    /// This allows multiple instances to exist at the same time, which allows unsynchronized
+    /// access to the same registers. You must ensure that accesses through different instances
+    /// can not race, for example by using critical sections or by ensuring only one instance
+    /// exists at a time.
     #[inline]
     pub unsafe fn steal() -> Self {
-        unsafe {
-            TAKEN = true;
-
-            Peripherals {
-                #[cfg(feature = "cm7")]
-                AC: AC {
-                    _marker: PhantomData,
-                },
-                CBP: CBP {
-                    _marker: PhantomData,
-                },
-                CPUID: CPUID {
-                    _marker: PhantomData,
-                },
-                DCB: DCB {
-                    _marker: PhantomData,
-                },
-                DWT: DWT {
-                    _marker: PhantomData,
-                },
-                FPB: FPB {
-                    _marker: PhantomData,
-                },
-                FPU: FPU {
-                    _marker: PhantomData,
-                },
-                ICB: ICB {
-                    _marker: PhantomData,
-                },
-                ITM: ITM {
-                    _marker: PhantomData,
-                },
-                MPU: MPU {
-                    _marker: PhantomData,
-                },
-                NVIC: NVIC {
-                    _marker: PhantomData,
-                },
-                SAU: SAU {
-                    _marker: PhantomData,
-                },
-                SCB: SCB {
-                    _marker: PhantomData,
-                },
-                #[cfg(feature = "secure-mode")]
-                SCBNS: SCBNS {
-                    _marker: PhantomData,
-                },
-                SYST: SYST {
-                    _marker: PhantomData,
-                },
-                TPIU: TPIU {
-                    _marker: PhantomData,
-                },
-            }
+        Peripherals {
+            #[cfg(feature = "cm7")]
+            AC: AC {
+                _marker: PhantomData,
+            },
+            CBP: CBP {
+                _marker: PhantomData,
+            },
+            CPUID: CPUID {
+                _marker: PhantomData,
+            },
+            DCB: DCB {
+                _marker: PhantomData,
+            },
+            DWT: DWT {
+                _marker: PhantomData,
+            },
+            FPB: FPB {
+                _marker: PhantomData,
+            },
+            FPU: FPU {
+                _marker: PhantomData,
+            },
+            ICB: ICB {
+                _marker: PhantomData,
+            },
+            ITM: ITM {
+                _marker: PhantomData,
+            },
+            MPU: MPU {
+                _marker: PhantomData,
+            },
+            NVIC: NVIC {
+                _marker: PhantomData,
+            },
+            SAU: SAU {
+                _marker: PhantomData,
+            },
+            SCB: SCB {
+                _marker: PhantomData,
+            },
+            #[cfg(feature = "secure-mode")]
+            SCBNS: SCBNS {
+                _marker: PhantomData,
+            },
+            SYST: SYST {
+                _marker: PhantomData,
+            },
+            TPIU: TPIU {
+                _marker: PhantomData,
+            },
         }
     }
 }

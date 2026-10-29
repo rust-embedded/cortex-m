@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+-  `cortex_m::peripheral::Peripherals::steal` is zero-cost now. However, the
+  `cortex_m::peripheral::Peripherals::steal` function does not mark the peripherals as taken
+  anymore so `take` will still return `Some` no matter how often `steal` was called before.
+
 ## [v0.7.10] - 2026-10-21
 
 ### Removed

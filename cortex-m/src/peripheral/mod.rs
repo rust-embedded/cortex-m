@@ -3,24 +3,19 @@
 //! # API
 //!
 //! To use (most of) the peripheral API first you must get an *instance* of the peripheral. All the
-//! core peripherals are modeled as singletons (there can only ever be, at most, one instance of any
-//! one of them at any given point in time) and the only way to get an instance of them is through
-//! the [`Peripherals::take`](struct.Peripherals.html#method.take) method.
+//! core peripherals are bundled in [`Peripherals`], which is created with the unsafe
+//! [`Peripherals::new`] constructor.
 //!
 //! ``` no_run
 //! # use cortex_m::peripheral::Peripherals;
-//! let mut peripherals = Peripherals::take().unwrap();
+//! // SAFETY: This is the only instance.
+//! let mut peripherals = unsafe { Peripherals::new() };
 //! peripherals.DCB.enable_trace();
 //! ```
 //!
-//! This method can only be successfully called *once* -- this is why the method returns an
-//! `Option`. Subsequent calls to the method will result in a `None` value being returned.
+//! `new` does not prevent creating multiple instances. The caller must ensure that accesses
+//! through different instances can not race.
 //!
-//! ``` no_run, should_panic
-//! # use cortex_m::peripheral::Peripherals;
-//! let ok = Peripherals::take().unwrap();
-//! let panics = Peripherals::take().unwrap();
-//! ```
 //! A part of the peripheral API doesn't require access to a peripheral instance. This part of the
 //! API is provided as static methods on the peripheral types. One example is the
 //! [`DWT::cycle_count`](struct.DWT.html#method.cycle_count) method.
@@ -28,26 +23,26 @@
 //! ``` no_run
 //! # use cortex_m::peripheral::{DWT, Peripherals};
 //! {
-//!     let mut peripherals = Peripherals::take().unwrap();
+//!     let mut peripherals = unsafe { Peripherals::new() };
 //!     peripherals.DCB.enable_trace();
 //!     peripherals.DWT.enable_cycle_counter();
-//! } // all the peripheral singletons are destroyed here
+//! } // all the peripheral instances are destroyed here
 //!
 //! // but this method can be called without a DWT instance
 //! let cyccnt = DWT::cycle_count();
 //! ```
 //!
-//! The singleton property can be *unsafely* bypassed using the `PTR` associated const which is
+//! The peripheral instances can be *unsafely* bypassed using the `PTR` associated const which is
 //! available on all the peripheral types. This method is a useful building block for implementing
 //! safe higher level abstractions.
 //!
 //! ``` no_run
 //! # use cortex_m::peripheral::{DWT, Peripherals};
 //! {
-//!     let mut peripherals = Peripherals::take().unwrap();
+//!     let mut peripherals = unsafe { Peripherals::new() };
 //!     peripherals.DCB.enable_trace();
 //!     peripherals.DWT.enable_cycle_counter();
-//! } // all the peripheral singletons are destroyed here
+//! } // all the peripheral instances are destroyed here
 //!
 //! // actually safe because this is an atomic read with no side effects
 //! let cyccnt = unsafe { (*DWT::PTR).cyccnt.read() };
@@ -154,85 +149,68 @@ pub struct Peripherals {
     pub TPIU: TPIU,
 }
 
-// NOTE `no_mangle` is used here to prevent linking different minor versions of this crate as that
-// would let you `take` the core peripherals more than once (one per minor version)
-#[unsafe(no_mangle)]
-static CORE_PERIPHERALS: () = ();
-
-/// Set to `true` when `take` or `steal` was called to make `Peripherals` a singleton.
-static mut TAKEN: bool = false;
-
 impl Peripherals {
-    /// Returns all the core peripherals *once*
+    /// Constructor for a wrapper structure containing all core peripherals.
+    ///
+    /// # Safety
+    ///
+    /// This allows multiple instances to exist at the same time, which allows unsynchronized
+    /// access to the same registers. You must ensure that accesses through different instances
+    /// can not race, for example by using critical sections or by ensuring only one instance
+    /// exists at a time.
     #[inline]
-    pub fn take() -> Option<Self> {
-        crate::interrupt::free(|_| {
-            if unsafe { TAKEN } {
-                None
-            } else {
-                Some(unsafe { Peripherals::steal() })
-            }
-        })
-    }
-
-    /// Unchecked version of `Peripherals::take`
-    #[inline]
-    pub unsafe fn steal() -> Self {
-        unsafe {
-            TAKEN = true;
-
-            Peripherals {
-                #[cfg(feature = "cm7")]
-                AC: AC {
-                    _marker: PhantomData,
-                },
-                CBP: CBP {
-                    _marker: PhantomData,
-                },
-                CPUID: CPUID {
-                    _marker: PhantomData,
-                },
-                DCB: DCB {
-                    _marker: PhantomData,
-                },
-                DWT: DWT {
-                    _marker: PhantomData,
-                },
-                FPB: FPB {
-                    _marker: PhantomData,
-                },
-                FPU: FPU {
-                    _marker: PhantomData,
-                },
-                ICB: ICB {
-                    _marker: PhantomData,
-                },
-                ITM: ITM {
-                    _marker: PhantomData,
-                },
-                MPU: MPU {
-                    _marker: PhantomData,
-                },
-                NVIC: NVIC {
-                    _marker: PhantomData,
-                },
-                SAU: SAU {
-                    _marker: PhantomData,
-                },
-                SCB: SCB {
-                    _marker: PhantomData,
-                },
-                #[cfg(feature = "secure-mode")]
-                SCBNS: SCBNS {
-                    _marker: PhantomData,
-                },
-                SYST: SYST {
-                    _marker: PhantomData,
-                },
-                TPIU: TPIU {
-                    _marker: PhantomData,
-                },
-            }
+    pub unsafe fn new() -> Self {
+        Peripherals {
+            #[cfg(feature = "cm7")]
+            AC: AC {
+                _marker: PhantomData,
+            },
+            CBP: CBP {
+                _marker: PhantomData,
+            },
+            CPUID: CPUID {
+                _marker: PhantomData,
+            },
+            DCB: DCB {
+                _marker: PhantomData,
+            },
+            DWT: DWT {
+                _marker: PhantomData,
+            },
+            FPB: FPB {
+                _marker: PhantomData,
+            },
+            FPU: FPU {
+                _marker: PhantomData,
+            },
+            ICB: ICB {
+                _marker: PhantomData,
+            },
+            ITM: ITM {
+                _marker: PhantomData,
+            },
+            MPU: MPU {
+                _marker: PhantomData,
+            },
+            NVIC: NVIC {
+                _marker: PhantomData,
+            },
+            SAU: SAU {
+                _marker: PhantomData,
+            },
+            SCB: SCB {
+                _marker: PhantomData,
+            },
+            #[cfg(feature = "secure-mode")]
+            SCBNS: SCBNS {
+                _marker: PhantomData,
+            },
+            SYST: SYST {
+                _marker: PhantomData,
+            },
+            TPIU: TPIU {
+                _marker: PhantomData,
+            },
         }
     }
 }

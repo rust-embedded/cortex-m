@@ -5,7 +5,7 @@
 //! ```no_run
 //! use cortex_m::peripheral::{Peripherals, SYST};
 //!
-//! let core_periph = cortex_m::peripheral::Peripherals::take().unwrap();
+//! let core_periph = unsafe { Peripherals::new() };
 //! let mut syst = core_periph.SYST;
 //! syst.set_reload(0xffffff);
 //! syst.clear_current();

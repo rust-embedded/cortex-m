@@ -67,12 +67,7 @@ mod tests {
     #[init]
     fn init() -> cortex_m::Peripherals {
         info!("Hello world!");
-        cortex_m::Peripherals::take().unwrap()
-    }
-
-    #[test]
-    fn double_take() {
-        assert!(cortex_m::Peripherals::take().is_none());
+        unsafe { cortex_m::Peripherals::new() }
     }
 
     #[test]

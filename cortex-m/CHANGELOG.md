@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- `Peripherals::steal` and `Peripherals::take` are replaced with unsafe `Peripherals::new`.
+  The structure is not a singleton anymore and users need to take care of avoiding data races
+  themselves.
+
 ## [v0.7.10] - 2026-10-21
 
 ### Removed

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- `SCB::clean_dcache_by_address` and `SCB::clean_invalidate_dcache_by_address` (and so
+  `clean_dcache_by_ref` and `clean_dcache_by_slice`) now clean the last cache line of a range that
+  does not start on a line; before, they counted the lines from `size` alone and missed it.
+
 ## [v0.7.10] - 2026-10-21
 
 ### Removed

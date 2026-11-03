@@ -344,6 +344,23 @@ mod scb_consts {
 #[cfg(not(armv6m))]
 use self::scb_consts::*;
 
+/// The first cache line and the number of lines that hold any of `addr..addr + size`.
+///
+/// `size` must not be 0.
+/// The count goes from the line of the first byte to the line of the last byte.
+/// So a range that does not start on a line still gets its last line.
+/// The last byte, `addr + size - 1`, fits for every range.
+/// Rounding the end, `addr + size`, up would overflow at the top of the address space.
+/// A range that runs past the top stops at the top (`saturating_add`).
+#[cfg(not(armv6m))]
+#[inline(always)]
+fn dcache_lines(addr: usize, size: usize, line_size: usize) -> (usize, usize) {
+    let mask = !(line_size - 1);
+    let first = addr & mask;
+    let last = addr.saturating_add(size - 1) & mask;
+    (first, (last - first) / line_size + 1)
+}
+
 #[cfg(not(armv6m))]
 impl SCB {
     /// Enables I-cache if currently disabled.
@@ -771,10 +788,7 @@ impl SCB {
 
         let dminline = CPUID::cache_dminline();
         let line_size = (1 << dminline) * 4;
-        let num_lines = ((size - 1) / line_size) + 1;
-
-        let mask = 0xFFFF_FFFF - (line_size - 1);
-        let mut addr = addr & mask;
+        let (mut addr, num_lines) = dcache_lines(addr, size, line_size);
 
         for _ in 0..num_lines {
             cbp.dccmvac(addr as u32);
@@ -847,9 +861,7 @@ impl SCB {
 
         // Cache lines are fixed to 32 bit on Cortex-M7 and not present in earlier Cortex-M
         const LINESIZE: usize = 32;
-        let num_lines = ((size - 1) / LINESIZE) + 1;
-
-        let mut addr = addr & 0xFFFF_FFE0;
+        let (mut addr, num_lines) = dcache_lines(addr, size, LINESIZE);
 
         for _ in 0..num_lines {
             cbp.dccimvac(addr as u32);
@@ -1190,6 +1202,37 @@ impl SCB {
             (self.shcsr.read() & (1 << shift)) > 0
         } else {
             false
+        }
+    }
+}
+
+#[cfg(all(test, not(armv6m)))]
+mod tests {
+    use super::dcache_lines;
+
+    #[test]
+    fn dcache_lines_cover_an_unaligned_range() {
+        // a 1460-byte buffer 20 bytes into a 32-byte line touches 47 lines
+        assert_eq!(dcache_lines(0x2400_0014, 1460, 32), (0x2400_0000, 47));
+        assert_eq!(dcache_lines(0x2400_0000, 1460, 32), (0x2400_0000, 46));
+        assert_eq!(dcache_lines(0x2400_001f, 2, 32), (0x2400_0000, 2));
+        // the last line of the address space: no overflow, and a range past the top stops there
+        let top = usize::MAX & !31;
+        assert_eq!(dcache_lines(top, 32, 32), (top, 1));
+        assert_eq!(dcache_lines(top - 8, 40, 32), (top - 32, 2));
+        assert_eq!(dcache_lines(usize::MAX - 3, 100, 32), (top, 1));
+        for addr in 0x100..0x140 {
+            for size in 1..200 {
+                let (start, n) = dcache_lines(addr, size, 32);
+                assert!(
+                    start <= addr && addr + size <= start + n * 32,
+                    "{addr:#x} {size}"
+                );
+                assert!(
+                    addr + size > start + (n - 1) * 32,
+                    "{addr:#x} {size}: one line too many"
+                );
+            }
         }
     }
 }

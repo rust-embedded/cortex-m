@@ -1,5 +1,17 @@
 #![no_std]
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
+pub struct InvalidNumberError;
+
+impl core::fmt::Display for InvalidNumberError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "invalid number")
+    }
+}
+
+impl core::error::Error for InvalidNumberError {}
+
 /// Trait for enums of target-specific exception numbers.
 ///
 /// This trait should be implemented by a peripheral access crate (PAC) on its enum of available
@@ -22,20 +34,8 @@ pub unsafe trait ExceptionNumber: Copy {
     fn number(self) -> usize;
 
     /// Tries to convert a number to a valid exception.
-    fn from_number(value: usize) -> Result<Self, InvalidExceptionNumberError>;
+    fn from_number(value: usize) -> Result<Self, InvalidNumberError>;
 }
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "defmt", derive(defmt::Format))]
-pub struct InvalidExceptionNumberError;
-
-impl core::fmt::Display for InvalidExceptionNumberError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "invalid exception number")
-    }
-}
-
-impl core::error::Error for InvalidExceptionNumberError {}
 
 /// Trait for enums of target-specific interrupt numbers.
 ///
@@ -58,20 +58,8 @@ pub unsafe trait InterruptNumber: Copy {
     fn number(self) -> usize;
 
     /// Tries to convert a number to a valid interrupt.
-    fn from_number(value: usize) -> Result<Self, InvalidInterruptNumberError>;
+    fn from_number(value: usize) -> Result<Self, InvalidNumberError>;
 }
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "defmt", derive(defmt::Format))]
-pub struct InvalidInterruptNumberError;
-
-impl core::fmt::Display for InvalidInterruptNumberError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "invalid interrupt number")
-    }
-}
-
-impl core::error::Error for InvalidInterruptNumberError {}
 
 /// Trait for enums of priority levels.
 ///
@@ -94,20 +82,8 @@ pub unsafe trait PriorityNumber: Copy {
     fn number(self) -> usize;
 
     /// Tries to convert a number to a valid priority level.
-    fn from_number(value: usize) -> Result<Self, InvalidPriorityNumberError>;
+    fn from_number(value: usize) -> Result<Self, InvalidNumberError>;
 }
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "defmt", derive(defmt::Format))]
-pub struct InvalidPriorityNumberError;
-
-impl core::fmt::Display for InvalidPriorityNumberError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "invalid priority number")
-    }
-}
-
-impl core::error::Error for InvalidPriorityNumberError {}
 
 /// Trait for enums of core identifiers.
 ///
@@ -130,20 +106,8 @@ pub unsafe trait CoreIdNumber: Copy {
     fn number(self) -> usize;
 
     /// Tries to convert a number to a valid Core ID.
-    fn from_number(value: usize) -> Result<Self, InvalidCoreIdNumberError>;
+    fn from_number(value: usize) -> Result<Self, InvalidNumberError>;
 }
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "defmt", derive(defmt::Format))]
-pub struct InvalidCoreIdNumberError;
-
-impl core::fmt::Display for InvalidCoreIdNumberError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "invalid core ID number")
-    }
-}
-
-impl core::error::Error for InvalidCoreIdNumberError {}
 
 #[cfg(test)]
 mod test {
@@ -186,11 +150,11 @@ mod test {
         }
 
         #[inline]
-        fn from_number(number: usize) -> Result<Self, InvalidExceptionNumberError> {
+        fn from_number(number: usize) -> Result<Self, InvalidNumberError> {
             match number {
                 1 => Ok(Exception::E1),
                 3 => Ok(Exception::E3),
-                _ => Err(InvalidExceptionNumberError),
+                _ => Err(InvalidNumberError),
             }
         }
     }
@@ -204,12 +168,12 @@ mod test {
         }
 
         #[inline]
-        fn from_number(number: usize) -> Result<Self, InvalidInterruptNumberError> {
+        fn from_number(number: usize) -> Result<Self, InvalidNumberError> {
             match number {
                 1 => Ok(Interrupt::I1),
                 2 => Ok(Interrupt::I2),
                 4 => Ok(Interrupt::I4),
-                _ => Err(InvalidInterruptNumberError),
+                _ => Err(InvalidNumberError),
             }
         }
     }
@@ -223,13 +187,13 @@ mod test {
         }
 
         #[inline]
-        fn from_number(number: usize) -> Result<Self, InvalidPriorityNumberError> {
+        fn from_number(number: usize) -> Result<Self, InvalidNumberError> {
             match number {
                 0 => Ok(Priority::P0),
                 1 => Ok(Priority::P1),
                 2 => Ok(Priority::P2),
                 3 => Ok(Priority::P3),
-                _ => Err(InvalidPriorityNumberError),
+                _ => Err(InvalidNumberError),
             }
         }
     }
@@ -243,12 +207,12 @@ mod test {
         }
 
         #[inline]
-        fn from_number(number: usize) -> Result<Self, InvalidCoreIdNumberError> {
+        fn from_number(number: usize) -> Result<Self, InvalidNumberError> {
             match number {
                 0 => Ok(CoreId::H0),
                 1 => Ok(CoreId::H1),
                 2 => Ok(CoreId::H2),
-                _ => Err(InvalidCoreIdNumberError),
+                _ => Err(InvalidNumberError),
             }
         }
     }
@@ -258,11 +222,11 @@ mod test {
         assert_eq!(Exception::E1.number(), 1);
         assert_eq!(Exception::E3.number(), 3);
 
-        assert_eq!(Exception::from_number(0), Err(InvalidExceptionNumberError));
+        assert_eq!(Exception::from_number(0), Err(InvalidNumberError));
         assert_eq!(Exception::from_number(1), Ok(Exception::E1));
-        assert_eq!(Exception::from_number(2), Err(InvalidExceptionNumberError));
+        assert_eq!(Exception::from_number(2), Err(InvalidNumberError));
         assert_eq!(Exception::from_number(3), Ok(Exception::E3));
-        assert_eq!(Exception::from_number(4), Err(InvalidExceptionNumberError));
+        assert_eq!(Exception::from_number(4), Err(InvalidNumberError));
     }
 
     #[test]
@@ -271,12 +235,12 @@ mod test {
         assert_eq!(Interrupt::I2.number(), 2);
         assert_eq!(Interrupt::I4.number(), 4);
 
-        assert_eq!(Interrupt::from_number(0), Err(InvalidInterruptNumberError));
+        assert_eq!(Interrupt::from_number(0), Err(InvalidNumberError));
         assert_eq!(Interrupt::from_number(1), Ok(Interrupt::I1));
         assert_eq!(Interrupt::from_number(2), Ok(Interrupt::I2));
-        assert_eq!(Interrupt::from_number(3), Err(InvalidInterruptNumberError));
+        assert_eq!(Interrupt::from_number(3), Err(InvalidNumberError));
         assert_eq!(Interrupt::from_number(4), Ok(Interrupt::I4));
-        assert_eq!(Interrupt::from_number(5), Err(InvalidInterruptNumberError));
+        assert_eq!(Interrupt::from_number(5), Err(InvalidNumberError));
     }
 
     #[test]
@@ -290,7 +254,7 @@ mod test {
         assert_eq!(Priority::from_number(1), Ok(Priority::P1));
         assert_eq!(Priority::from_number(2), Ok(Priority::P2));
         assert_eq!(Priority::from_number(3), Ok(Priority::P3));
-        assert_eq!(Priority::from_number(4), Err(InvalidPriorityNumberError));
+        assert_eq!(Priority::from_number(4), Err(InvalidNumberError));
     }
 
     #[test]
@@ -302,6 +266,6 @@ mod test {
         assert_eq!(CoreId::from_number(0), Ok(CoreId::H0));
         assert_eq!(CoreId::from_number(1), Ok(CoreId::H1));
         assert_eq!(CoreId::from_number(2), Ok(CoreId::H2));
-        assert_eq!(CoreId::from_number(3), Err(InvalidCoreIdNumberError));
+        assert_eq!(CoreId::from_number(3), Err(InvalidNumberError));
     }
 }

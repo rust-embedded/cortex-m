@@ -9,3 +9,5 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - MSRV bumped to 1.85
 - Updated references from 'Cortex-M Team' to 'Arm Team'
+- Breaking: Replaced the `result` module and its `Error` enum with a single `InvalidNumberError`
+  type, returned by all `from_number` methods.

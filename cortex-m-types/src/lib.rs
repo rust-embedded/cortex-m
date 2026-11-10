@@ -1,8 +1,16 @@
 #![no_std]
 
-pub mod result;
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
+pub struct InvalidNumberError;
 
-use result::Result;
+impl core::fmt::Display for InvalidNumberError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "invalid number")
+    }
+}
+
+impl core::error::Error for InvalidNumberError {}
 
 /// Trait for enums of target-specific exception numbers.
 ///
@@ -26,7 +34,7 @@ pub unsafe trait ExceptionNumber: Copy {
     fn number(self) -> usize;
 
     /// Tries to convert a number to a valid exception.
-    fn from_number(value: usize) -> Result<Self>;
+    fn from_number(value: usize) -> Result<Self, InvalidNumberError>;
 }
 
 /// Trait for enums of target-specific interrupt numbers.
@@ -50,7 +58,7 @@ pub unsafe trait InterruptNumber: Copy {
     fn number(self) -> usize;
 
     /// Tries to convert a number to a valid interrupt.
-    fn from_number(value: usize) -> Result<Self>;
+    fn from_number(value: usize) -> Result<Self, InvalidNumberError>;
 }
 
 /// Trait for enums of priority levels.
@@ -74,7 +82,7 @@ pub unsafe trait PriorityNumber: Copy {
     fn number(self) -> usize;
 
     /// Tries to convert a number to a valid priority level.
-    fn from_number(value: usize) -> Result<Self>;
+    fn from_number(value: usize) -> Result<Self, InvalidNumberError>;
 }
 
 /// Trait for enums of core identifiers.
@@ -98,13 +106,12 @@ pub unsafe trait CoreIdNumber: Copy {
     fn number(self) -> usize;
 
     /// Tries to convert a number to a valid Core ID.
-    fn from_number(value: usize) -> Result<Self>;
+    fn from_number(value: usize) -> Result<Self, InvalidNumberError>;
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::result::Error;
 
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
     enum Exception {
@@ -143,11 +150,11 @@ mod test {
         }
 
         #[inline]
-        fn from_number(number: usize) -> Result<Self> {
+        fn from_number(number: usize) -> Result<Self, InvalidNumberError> {
             match number {
                 1 => Ok(Exception::E1),
                 3 => Ok(Exception::E3),
-                _ => Err(Error::InvalidVariant(number)),
+                _ => Err(InvalidNumberError),
             }
         }
     }
@@ -161,12 +168,12 @@ mod test {
         }
 
         #[inline]
-        fn from_number(number: usize) -> Result<Self> {
+        fn from_number(number: usize) -> Result<Self, InvalidNumberError> {
             match number {
                 1 => Ok(Interrupt::I1),
                 2 => Ok(Interrupt::I2),
                 4 => Ok(Interrupt::I4),
-                _ => Err(Error::InvalidVariant(number)),
+                _ => Err(InvalidNumberError),
             }
         }
     }
@@ -180,13 +187,13 @@ mod test {
         }
 
         #[inline]
-        fn from_number(number: usize) -> Result<Self> {
+        fn from_number(number: usize) -> Result<Self, InvalidNumberError> {
             match number {
                 0 => Ok(Priority::P0),
                 1 => Ok(Priority::P1),
                 2 => Ok(Priority::P2),
                 3 => Ok(Priority::P3),
-                _ => Err(Error::InvalidVariant(number)),
+                _ => Err(InvalidNumberError),
             }
         }
     }
@@ -200,12 +207,12 @@ mod test {
         }
 
         #[inline]
-        fn from_number(number: usize) -> Result<Self> {
+        fn from_number(number: usize) -> Result<Self, InvalidNumberError> {
             match number {
                 0 => Ok(CoreId::H0),
                 1 => Ok(CoreId::H1),
                 2 => Ok(CoreId::H2),
-                _ => Err(Error::InvalidVariant(number)),
+                _ => Err(InvalidNumberError),
             }
         }
     }
@@ -215,11 +222,11 @@ mod test {
         assert_eq!(Exception::E1.number(), 1);
         assert_eq!(Exception::E3.number(), 3);
 
-        assert_eq!(Exception::from_number(0), Err(Error::InvalidVariant(0)));
+        assert_eq!(Exception::from_number(0), Err(InvalidNumberError));
         assert_eq!(Exception::from_number(1), Ok(Exception::E1));
-        assert_eq!(Exception::from_number(2), Err(Error::InvalidVariant(2)));
+        assert_eq!(Exception::from_number(2), Err(InvalidNumberError));
         assert_eq!(Exception::from_number(3), Ok(Exception::E3));
-        assert_eq!(Exception::from_number(4), Err(Error::InvalidVariant(4)));
+        assert_eq!(Exception::from_number(4), Err(InvalidNumberError));
     }
 
     #[test]
@@ -228,12 +235,12 @@ mod test {
         assert_eq!(Interrupt::I2.number(), 2);
         assert_eq!(Interrupt::I4.number(), 4);
 
-        assert_eq!(Interrupt::from_number(0), Err(Error::InvalidVariant(0)));
+        assert_eq!(Interrupt::from_number(0), Err(InvalidNumberError));
         assert_eq!(Interrupt::from_number(1), Ok(Interrupt::I1));
         assert_eq!(Interrupt::from_number(2), Ok(Interrupt::I2));
-        assert_eq!(Interrupt::from_number(3), Err(Error::InvalidVariant(3)));
+        assert_eq!(Interrupt::from_number(3), Err(InvalidNumberError));
         assert_eq!(Interrupt::from_number(4), Ok(Interrupt::I4));
-        assert_eq!(Interrupt::from_number(5), Err(Error::InvalidVariant(5)));
+        assert_eq!(Interrupt::from_number(5), Err(InvalidNumberError));
     }
 
     #[test]
@@ -247,7 +254,7 @@ mod test {
         assert_eq!(Priority::from_number(1), Ok(Priority::P1));
         assert_eq!(Priority::from_number(2), Ok(Priority::P2));
         assert_eq!(Priority::from_number(3), Ok(Priority::P3));
-        assert_eq!(Priority::from_number(4), Err(Error::InvalidVariant(4)));
+        assert_eq!(Priority::from_number(4), Err(InvalidNumberError));
     }
 
     #[test]
@@ -259,6 +266,6 @@ mod test {
         assert_eq!(CoreId::from_number(0), Ok(CoreId::H0));
         assert_eq!(CoreId::from_number(1), Ok(CoreId::H1));
         assert_eq!(CoreId::from_number(2), Ok(CoreId::H2));
-        assert_eq!(CoreId::from_number(3), Err(Error::InvalidVariant(3)));
+        assert_eq!(CoreId::from_number(3), Err(InvalidNumberError));
     }
 }

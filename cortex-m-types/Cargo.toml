@@ -11,6 +11,12 @@ license = "MIT OR Apache-2.0"
 readme = "README.md"
 rust-version = "1.85"
 
+[features]
+defmt = ["dep:defmt"]
+
+[dependencies]
+defmt = { version = "1", optional = true }
+
 [package.metadata.docs.rs]
 targets = [
     "thumbv8m.main-none-eabihf",

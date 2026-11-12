@@ -1,10 +1,10 @@
 //! Nested Vector Interrupt Controller
 
+pub use cortex_m_types::InterruptNumber;
 use volatile_register::RW;
 #[cfg(not(armv6m))]
 use volatile_register::{RO, WO};
 
-use crate::interrupt::InterruptNumber;
 use crate::peripheral::NVIC;
 
 /// Register block
@@ -101,7 +101,7 @@ impl NVIC {
         let nr = interrupt.number();
 
         unsafe {
-            self.stir.write(u32::from(nr));
+            self.stir.write(nr as u32);
         }
     }
 
@@ -147,7 +147,7 @@ impl NVIC {
         {
             let nr = interrupt.number();
             // NOTE(unsafe) atomic read with no side effects
-            unsafe { (*Self::PTR).ipr[usize::from(nr)].read() }
+            unsafe { (*Self::PTR).ipr[nr].read() }
         }
 
         #[cfg(armv6m)]
@@ -233,7 +233,7 @@ impl NVIC {
             #[cfg(not(armv6m))]
             {
                 let nr = interrupt.number();
-                self.ipr[usize::from(nr)].write(prio)
+                self.ipr[nr].write(prio)
             }
 
             #[cfg(armv6m)]
@@ -320,9 +320,9 @@ impl NVIC {
     ///
     /// The `&` helps remove an expensive bounds check - we know all valid interrupt numbers will be in range.
     #[inline]
-    const fn reg_index_and_mask(irq: u16) -> (usize, u32) {
-        debug_assert!((irq as usize) < (Self::BITMAP_WORDS * 32));
-        let idx = (irq / 32) as usize & (Self::BITMAP_WORDS - 1);
+    const fn reg_index_and_mask(irq: usize) -> (usize, u32) {
+        debug_assert!(irq < (Self::BITMAP_WORDS * 32));
+        let idx = (irq / 32) & (Self::BITMAP_WORDS - 1);
         let mask = 1 << (irq % 32);
         (idx, mask)
     }
@@ -333,7 +333,7 @@ impl NVIC {
     where
         I: InterruptNumber,
     {
-        usize::from(interrupt.number()) / 4
+        interrupt.number() / 4
     }
 
     #[cfg(armv6m)]
@@ -342,6 +342,6 @@ impl NVIC {
     where
         I: InterruptNumber,
     {
-        (usize::from(interrupt.number()) % 4) * 8
+        (interrupt.number() % 4) * 8
     }
 }

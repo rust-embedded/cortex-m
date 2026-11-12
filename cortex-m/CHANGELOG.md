@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- `nvic` methods now take `cortex_m_types::InterruptNumber` which is re-exported
+  as `InterruptNumber`. PACs and HALs need to implement the new trait.
+
+### Removed
+
+- Removed `bare_metal::interrupt::Nr` blanket implementation of `InterruptNumber`
+- Removed `bare_metal::interrupt::Nr` re-export inside `interrupt`
+
+### Deprecated
+
+- `interrupt::InterruptNumber`. Implement `cortex_m_types::InterruptNumber` instead.
+
 ## [v0.7.10] - 2026-10-21
 
 ### Removed

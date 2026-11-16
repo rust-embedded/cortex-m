@@ -52,21 +52,25 @@ impl core::ops::DerefMut for NVIC {
 #[repr(C)]
 pub struct RegisterBlock {
     /// Interrupt Set-Enable
+    #[mmio(PureRead, Write)]
     iser: [u32; NVIC::BITMAP_WORDS],
 
     _reserved0: [u32; NVIC::BITMAP_WORDS],
 
     /// Interrupt Clear-Enable
+    #[mmio(Write)]
     icer: [u32; NVIC::BITMAP_WORDS],
 
     _reserved1: [u32; NVIC::BITMAP_WORDS],
 
     /// Interrupt Set-Pending
+    #[mmio(PureRead, Write)]
     ispr: [u32; NVIC::BITMAP_WORDS],
 
     _reserved2: [u32; NVIC::BITMAP_WORDS],
 
     /// Interrupt Clear-Pending
+    #[mmio(Write)]
     icpr: [u32; NVIC::BITMAP_WORDS],
 
     _reserved3: [u32; NVIC::BITMAP_WORDS],
@@ -81,6 +85,7 @@ pub struct RegisterBlock {
     _reserved5: [u32; NVIC::BITMAP_WORDS],
 
     #[cfg(armv8m)]
+    #[mmio(PureRead, Modify, Write)]
     /// Interrupt Target Non-secure (only present on Arm v8-M)
     itns: [u32; NVIC::BITMAP_WORDS],
     #[cfg(not(armv8m))]
@@ -98,7 +103,7 @@ pub struct RegisterBlock {
     /// so convenient byte-sized representation wouldn't work on that
     /// architecture.
     #[cfg(not(armv6m))]
-    ipr: [u32; 124],
+    ipr: [u8; 496],
 
     /// Interrupt Priority
     ///
@@ -202,11 +207,10 @@ impl NVIC {
             let nr = interrupt.number();
             // SAFETY: atomic read with no side effects
             let nvic = unsafe { Self::steal() };
-            let ipr_ptr = nvic.pointer_to_ipr_start() as *const u8;
             // SAFETY:
             //  - atomic read with no side effects
             //  - InterruptNumber is an unsafe trait, we can assume correct implementation.
-            unsafe { core::ptr::read_volatile(ipr_ptr.offset(nr as isize)) }
+            unsafe { nvic.read_ipr_unchecked(nr as usize) }
         }
 
         #[cfg(armv6m)]
@@ -303,11 +307,10 @@ impl NVIC {
         #[cfg(not(armv6m))]
         {
             let nr = interrupt.number();
-            let ipr_ptr = self.pointer_to_ipr_start() as *mut u8;
             // SAFETY:
             // - atomic stateless write; IPR doesn't store any state
             // - InterruptNumber is an unsafe trait, we can assume correct implementation.
-            unsafe { core::ptr::write_volatile(ipr_ptr.offset(nr as isize), prio) }
+            unsafe { self.write_ipr_unchecked(nr as usize, prio) };
         }
 
         #[cfg(armv6m)]

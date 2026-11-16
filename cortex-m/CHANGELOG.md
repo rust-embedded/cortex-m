@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Breaking: Rewrote the `NVIC` peripheral to use `derive-mmio`.
+  - `Peripherals::NVIC` is now an `nvic::OwnedRegisterBlock`. Pass it to
+    `NVIC::new` to get the `NVIC` driver.
+  - The fields of `nvic::RegisterBlock` are private. Use the generated accessor
+    methods instead.
+  - `ICER` and `ICPR` are write-only. Read the state from `ISER` and `ISPR`.
+
+### Added
+
+- `NVIC::new` and `NVIC::steal`.
+- `nvic::BASE_ADDRESS`.
+
+### Removed
+
+- Breaking: `NVIC::PTR` and the deprecated `NVIC::ptr()`.
+
 ## [v0.7.10] - 2026-10-21
 
 ### Removed

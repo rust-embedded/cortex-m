@@ -1,5 +1,8 @@
 //! Interrupts
 
+#[cfg(not(feature = "bare-metal"))]
+pub use self::compat::{CriticalSection, Mutex, Nr};
+#[cfg(feature = "bare-metal")]
 pub use bare_metal::{CriticalSection, Mutex, Nr};
 #[cfg(cortex_m)]
 use core::arch::asm;
@@ -28,7 +31,8 @@ pub unsafe trait InterruptNumber: Copy {
     fn number(self) -> u16;
 }
 
-/// Implement InterruptNumber for the old bare_metal::Nr trait.
+/// Implement InterruptNumber for the old `Nr` trait (`bare_metal::Nr` with the
+/// `bare-metal` feature).
 /// This implementation is for backwards compatibility only and will be removed in cortex-m 0.8.
 unsafe impl<T: Nr + Copy> InterruptNumber for T {
     #[inline]
@@ -88,4 +92,85 @@ where
     }
 
     r
+}
+
+/// Local definitions of the items this module used to re-export from the
+/// deprecated `bare-metal` 0.2 crate. They match `bare-metal` 0.2.5 exactly.
+#[cfg(not(feature = "bare-metal"))]
+mod compat {
+    use core::cell::UnsafeCell;
+
+    /// Critical section token
+    ///
+    /// Indicates that you are executing code within a critical section
+    pub struct CriticalSection {
+        _0: (),
+    }
+
+    impl CriticalSection {
+        /// Creates a critical section token
+        ///
+        /// This method is meant to be used to create safe abstractions rather than
+        /// meant to be directly used in applications.
+        ///
+        /// # Safety
+        ///
+        /// The token must only exist while interrupts are disabled (or while
+        /// some other mechanism ensures exclusive access on a single core).
+        #[inline]
+        pub unsafe fn new() -> Self {
+            CriticalSection { _0: () }
+        }
+    }
+
+    /// A "mutex" based on critical sections
+    ///
+    /// # Safety
+    ///
+    /// **This Mutex is only safe on single-core systems.**
+    ///
+    /// On multi-core systems, a `CriticalSection` **is not sufficient** to ensure exclusive access.
+    pub struct Mutex<T> {
+        inner: UnsafeCell<T>,
+    }
+
+    impl<T> Mutex<T> {
+        /// Creates a new mutex
+        #[inline]
+        pub const fn new(value: T) -> Self {
+            Mutex {
+                inner: UnsafeCell::new(value),
+            }
+        }
+
+        /// Borrows the data for the duration of the critical section
+        #[inline]
+        pub fn borrow<'cs>(&'cs self, _cs: &'cs CriticalSection) -> &'cs T {
+            unsafe { &*self.inner.get() }
+        }
+    }
+
+    // NOTE A `Mutex` can be used as a channel so the protected data must be `Send`
+    // to prevent sending non-Sendable stuff (e.g. access tokens) across different
+    // execution contexts (e.g. interrupts)
+    unsafe impl<T> Sync for Mutex<T> where T: Send {}
+
+    /// Interrupt number
+    ///
+    /// # Safety
+    ///
+    /// See [`InterruptNumber`](super::InterruptNumber), which supersedes this trait.
+    pub unsafe trait Nr {
+        /// Returns the number associated with an interrupt
+        fn nr(&self) -> u8;
+    }
+
+    /// ``` compile_fail
+    /// fn bad(cs: &cortex_m::interrupt::CriticalSection) -> &u32 {
+    ///     let x = cortex_m::interrupt::Mutex::new(42u32);
+    ///     x.borrow(cs)
+    /// }
+    /// ```
+    #[allow(dead_code)]
+    const GH_6: () = ();
 }

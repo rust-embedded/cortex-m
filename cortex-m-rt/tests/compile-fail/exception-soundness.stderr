@@ -1,0 +1,5 @@
+error[E0425]: cannot find function, tuple struct or tuple variant `SysTick` in this scope
+  --> tests/compile-fail/exception-soundness.rs:28:5
+   |
+28 |     SysTick();
+   |     ^^^^^^^ not found in this scope

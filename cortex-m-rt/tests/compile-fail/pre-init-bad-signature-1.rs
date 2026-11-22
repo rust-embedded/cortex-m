@@ -6,9 +6,8 @@ extern crate panic_halt;
 
 use cortex_m_rt::{entry, pre_init};
 
-#[pre_init] //~ WARNING Use core::arch::global_asm! to define the __pre_init function instead
+#[pre_init]
 fn foo() {}
-//~^ ERROR `#[pre_init]` function must have signature `unsafe fn()`
 
 #[entry]
 fn bar() -> ! {

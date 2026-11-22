@@ -13,4 +13,3 @@ fn foo() -> ! {
 
 #[exception]
 fn SysTick(undef: u32) {}
-//~^ ERROR `#[exception]` handlers other than `DefaultHandler` and `HardFault` must have signature `[unsafe] fn() [-> !]`

@@ -1,0 +1,15 @@
+warning: unused import: `ExceptionFrame`
+ --> tests/compile-fail/hard-fault-twice-mixed-trampoline.rs:7:37
+  |
+7 | use cortex_m_rt::{entry, exception, ExceptionFrame};
+  |                                     ^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error: symbol `_HardFault` is already defined
+  --> tests/compile-fail/hard-fault-twice-mixed-trampoline.rs:22:5
+   |
+22 |     #[exception]
+   |     ^^^^^^^^^^^^
+   |
+   = note: this error originates in the attribute macro `exception` (in Nightly builds, run with -Z macro-backtrace for more info)

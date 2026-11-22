@@ -13,12 +13,9 @@ fn foo() -> ! {
 
 #[exception]
 fn DefaultHandler(_irq: i16) {}
-//~^ ERROR defining a `DefaultHandler` is unsafe and requires an `unsafe fn`
 
 #[exception]
 fn HardFault() {}
-//~^ ERROR defining a `HardFault` handler is unsafe and requires an `unsafe fn`
 
 #[exception]
 fn NonMaskableInt() {}
-//~^ ERROR defining a `NonMaskableInt` handler is unsafe and requires an `unsafe fn`

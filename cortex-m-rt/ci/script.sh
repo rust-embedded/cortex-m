@@ -13,7 +13,7 @@ main() {
     if [ "$TARGET" = x86_64-unknown-linux-gnu ] && [ "$TRAVIS_RUST_VERSION" = stable ]; then
         ( cd macros && cargo check && cargo test )
 
-        cargo test --features "device,${needed_features}" --test compiletest
+        cargo test --features "device,${needed_features}" --test compile_fail
     fi
 
     local examples=(

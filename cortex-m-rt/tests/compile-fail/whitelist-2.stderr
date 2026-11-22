@@ -1,0 +1,23 @@
+error: this attribute is not allowed on a cortex-m-rt entry point
+ --> tests/compile-fail/whitelist-2.rs:9:1
+  |
+9 | #[export_name = "not_allowed"]
+  | ^
+
+error: this attribute is not allowed on an exception handler controlled by cortex-m-rt
+  --> tests/compile-fail/whitelist-2.rs:15:1
+   |
+15 | #[export_name = "not_allowed"]
+   | ^
+
+error: this attribute is not allowed on an interrupt handler controlled by cortex-m-rt
+  --> tests/compile-fail/whitelist-2.rs:25:1
+   |
+25 | #[export_name = "not_allowed"]
+   | ^
+
+error: this attribute is not allowed on an interrupt handler controlled by cortex-m-rt
+  --> tests/compile-fail/whitelist-2.rs:30:1
+   |
+30 | #[cfg_attr(feature = "device", export_name = "not_allowed")]
+   | ^

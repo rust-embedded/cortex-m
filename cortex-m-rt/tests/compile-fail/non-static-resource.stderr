@@ -1,0 +1,25 @@
+warning: unused import: `ExceptionFrame`
+  --> tests/compile-fail/non-static-resource.rs:12:48
+   |
+12 | use cortex_m_rt::{entry, exception, interrupt, ExceptionFrame};
+   |                                                ^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error: lifetime may not live long enough
+  --> tests/compile-fail/non-static-resource.rs:23:16
+   |
+19 | #[exception]
+   | - let's call the lifetime of this reference `'1`
+...
+23 |     let _stat: &'static mut u8 = STAT;
+   |                ^^^^^^^^^^^^^^^ type annotation requires that `'1` must outlive `'static`
+
+error: lifetime may not live long enough
+  --> tests/compile-fail/non-static-resource.rs:30:16
+   |
+26 | #[interrupt]
+   | - let's call the lifetime of this reference `'1`
+...
+30 |     let _stat: &'static mut u8 = STAT;
+   |                ^^^^^^^^^^^^^^^ type annotation requires that `'1` must outlive `'static`

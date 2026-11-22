@@ -1,0 +1,5 @@
+error[E0425]: cannot find function `foo` in this scope
+  --> tests/compile-fail/entry-soundness.rs:25:5
+   |
+25 |     foo();
+   |     ^^^ not found in this scope

@@ -1,0 +1,5 @@
+error: `#[exception]` handlers other than `DefaultHandler` and `HardFault` must have signature `[unsafe] fn() [-> !]`
+  --> tests/compile-fail/exception-bad-signature-1.rs:15:1
+   |
+15 | fn SysTick(undef: u32) {}
+   | ^^

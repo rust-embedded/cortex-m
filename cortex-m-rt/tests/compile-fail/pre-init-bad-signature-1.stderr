@@ -1,0 +1,13 @@
+error: `#[pre_init]` function must have signature `unsafe fn()`
+  --> tests/compile-fail/pre-init-bad-signature-1.rs:10:1
+   |
+10 | fn foo() {}
+   | ^^
+
+warning: use of deprecated macro `pre_init`: Use core::arch::global_asm! to define the __pre_init function instead
+ --> tests/compile-fail/pre-init-bad-signature-1.rs:9:3
+  |
+9 | #[pre_init]
+  |   ^^^^^^^^
+  |
+  = note: `#[warn(deprecated)]` on by default

@@ -18,28 +18,28 @@ const unsafe fn init() -> u32 { 0 }
 
 #[entry]
 fn foo() -> ! {
-    static mut X: u32 = init();  //~ ERROR requires unsafe
+    static mut X: u32 = init();
 
     loop {}
 }
 
 #[exception]
 fn SVCall() {
-    static mut X: u32 = init();  //~ ERROR requires unsafe
+    static mut X: u32 = init();
 }
 
 #[exception]
 unsafe fn DefaultHandler(_irq: i16) {
-    static mut X: u32 = init();  //~ ERROR requires unsafe
+    static mut X: u32 = init();
 }
 
 #[exception]
 unsafe fn HardFault(_frame: &cortex_m_rt::ExceptionFrame) -> ! {
-    static mut X: u32 = init();  //~ ERROR requires unsafe
+    static mut X: u32 = init();
     loop {}
 }
 
 #[interrupt]
 fn UART0() {
-    static mut X: u32 = init();  //~ ERROR requires unsafe
+    static mut X: u32 = init();
 }

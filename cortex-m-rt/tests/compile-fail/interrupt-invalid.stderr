@@ -1,0 +1,8 @@
+error[E0599]: no variant, associated function, or constant named `foo` found for enum `interrupt` in the current scope
+  --> tests/compile-fail/interrupt-invalid.rs:22:4
+   |
+15 | enum interrupt {
+   | -------------- variant, associated function, or constant `foo` not found for this enum
+...
+22 | fn foo() {}
+   |    ^^^ variant, associated function, or constant not found in `interrupt`

@@ -13,6 +13,5 @@ fn foo() -> ! {
 
 #[exception(trampoline = true)]
 unsafe fn HardFault() -> ! {
-    //~^ ERROR `HardFault` handler must have signature `unsafe fn(&ExceptionFrame) -> !`
     loop {}
 }

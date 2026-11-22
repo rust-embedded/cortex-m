@@ -11,7 +11,7 @@ fn foo() -> ! {
     loop {}
 }
 
-#[entry] //~ ERROR symbol `main` is already defined
+#[entry]
 fn bar() -> ! {
     loop {}
 }

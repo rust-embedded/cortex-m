@@ -1,0 +1,13 @@
+error: this attribute is not allowed on an exception handler controlled by cortex-m-rt
+  --> tests/compile-fail/whitelist-double-attr.rs:10:1
+   |
+10 | #[entry]
+   | ^
+
+warning: unused import: `entry`
+ --> tests/compile-fail/whitelist-double-attr.rs:7:19
+  |
+7 | use cortex_m_rt::{entry, exception};
+  |                   ^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default

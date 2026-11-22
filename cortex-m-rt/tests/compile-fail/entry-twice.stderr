@@ -1,0 +1,7 @@
+error: symbol `main` is already defined
+  --> tests/compile-fail/entry-twice.rs:14:1
+   |
+14 | #[entry]
+   | ^^^^^^^^
+   |
+   = note: this error originates in the attribute macro `entry` (in Nightly builds, run with -Z macro-backtrace for more info)

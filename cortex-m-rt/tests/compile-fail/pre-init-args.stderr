@@ -1,0 +1,15 @@
+error: This attribute accepts no arguments
+ --> tests/compile-fail/pre-init-args.rs:9:1
+  |
+9 | #[pre_init(foo)]
+  | ^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the attribute macro `pre_init` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: use of deprecated macro `pre_init`: Use core::arch::global_asm! to define the __pre_init function instead
+ --> tests/compile-fail/pre-init-args.rs:9:3
+  |
+9 | #[pre_init(foo)]
+  |   ^^^^^^^^
+  |
+  = note: `#[warn(deprecated)]` on by default

@@ -1,0 +1,8 @@
+error[E0433]: cannot find module or crate `interrupt` in this scope
+  --> tests/compile-fail/interrupt-not-reexported.rs:14:1
+   |
+14 | #[interrupt]
+   | ^^^^^^^^^^^^ use of unresolved module or unlinked crate `interrupt`
+   |
+   = help: if you wanted to use a crate named `interrupt`, use `cargo add interrupt` to add it to your `Cargo.toml`
+   = note: this error originates in the attribute macro `interrupt` (in Nightly builds, run with -Z macro-backtrace for more info)

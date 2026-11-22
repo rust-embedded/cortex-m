@@ -1,0 +1,5 @@
+error: `#[entry]` function must have signature `[unsafe] fn() -> !`
+  --> tests/compile-fail/entry-bad-signature-2.rs:10:1
+   |
+10 | fn foo(undef: i32) -> ! {}
+   | ^^

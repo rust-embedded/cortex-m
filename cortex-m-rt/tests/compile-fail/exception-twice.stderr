@@ -1,0 +1,7 @@
+error: symbol `SysTick` is already defined
+  --> tests/compile-fail/exception-twice.rs:20:5
+   |
+20 |     #[exception]
+   |     ^^^^^^^^^^^^
+   |
+   = note: this error originates in the attribute macro `exception` (in Nightly builds, run with -Z macro-backtrace for more info)

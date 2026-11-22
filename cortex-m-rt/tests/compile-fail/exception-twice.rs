@@ -17,6 +17,6 @@ fn SysTick() {}
 pub mod reachable {
     use cortex_m_rt::exception;
 
-    #[exception] //~ ERROR symbol `SysTick` is already defined
+    #[exception]
     fn SysTick() {}
 }

@@ -1,0 +1,13 @@
+error: `HardFault` handler must have signature `unsafe fn(&ExceptionFrame) -> !`
+  --> tests/compile-fail/hard-fault-bad-signature-2.rs:15:1
+   |
+15 | unsafe fn HardFault() -> ! {
+   | ^^^^^^
+
+warning: unused import: `ExceptionFrame`
+ --> tests/compile-fail/hard-fault-bad-signature-2.rs:7:37
+  |
+7 | use cortex_m_rt::{entry, exception, ExceptionFrame};
+  |                                     ^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default

@@ -1,0 +1,5 @@
+error: `#[interrupt]` handlers must have signature `[unsafe] fn() [-> !]`
+  --> tests/compile-fail/interrupt-bad-signature-1.rs:20:1
+   |
+20 | fn USART1(undef: i32) {}
+   | ^^

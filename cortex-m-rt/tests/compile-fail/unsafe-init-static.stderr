@@ -1,0 +1,72 @@
+error[E0133]: call to unsafe function `init` is unsafe and requires unsafe block
+  --> tests/compile-fail/unsafe-init-static.rs:21:25
+   |
+19 | #[entry]
+   | -------- items do not inherit unsafety from separate enclosing items
+20 | fn foo() -> ! {
+21 |     static mut X: u32 = init();
+   |                         ^^^^^^ call to unsafe function
+   |
+   = note: consult the function's documentation for information on how to avoid undefined behavior
+
+warning: unused variable: `X`
+  --> tests/compile-fail/unsafe-init-static.rs:21:16
+   |
+21 |     static mut X: u32 = init();
+   |                ^ help: if this is intentional, prefix it with an underscore: `_X`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+error[E0133]: call to unsafe function `init` is unsafe and requires unsafe block
+  --> tests/compile-fail/unsafe-init-static.rs:28:25
+   |
+26 | #[exception]
+   | ------------ items do not inherit unsafety from separate enclosing items
+27 | fn SVCall() {
+28 |     static mut X: u32 = init();
+   |                         ^^^^^^ call to unsafe function
+   |
+   = note: consult the function's documentation for information on how to avoid undefined behavior
+
+warning: unused variable: `X`
+  --> tests/compile-fail/unsafe-init-static.rs:28:16
+   |
+28 |     static mut X: u32 = init();
+   |                ^ help: if this is intentional, prefix it with an underscore: `_X`
+
+error[E0133]: call to unsafe function `init` is unsafe and requires unsafe block
+  --> tests/compile-fail/unsafe-init-static.rs:33:25
+   |
+32 | unsafe fn DefaultHandler(_irq: i16) {
+   | ----------------------------------- items do not inherit unsafety from separate enclosing items
+33 |     static mut X: u32 = init();
+   |                         ^^^^^^ call to unsafe function
+   |
+   = note: consult the function's documentation for information on how to avoid undefined behavior
+
+error[E0133]: call to unsafe function `init` is unsafe and requires unsafe block
+  --> tests/compile-fail/unsafe-init-static.rs:38:25
+   |
+37 | unsafe fn HardFault(_frame: &cortex_m_rt::ExceptionFrame) -> ! {
+   | -------------------------------------------------------------- items do not inherit unsafety from separate enclosing items
+38 |     static mut X: u32 = init();
+   |                         ^^^^^^ call to unsafe function
+   |
+   = note: consult the function's documentation for information on how to avoid undefined behavior
+
+error[E0133]: call to unsafe function `init` is unsafe and requires unsafe block
+  --> tests/compile-fail/unsafe-init-static.rs:44:25
+   |
+42 | #[interrupt]
+   | ------------ items do not inherit unsafety from separate enclosing items
+43 | fn UART0() {
+44 |     static mut X: u32 = init();
+   |                         ^^^^^^ call to unsafe function
+   |
+   = note: consult the function's documentation for information on how to avoid undefined behavior
+
+warning: unused variable: `X`
+  --> tests/compile-fail/unsafe-init-static.rs:44:16
+   |
+44 |     static mut X: u32 = init();
+   |                ^ help: if this is intentional, prefix it with an underscore: `_X`

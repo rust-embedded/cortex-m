@@ -11,5 +11,5 @@ fn foo() -> ! {
     loop {}
 }
 
-#[exception(SysTick)] //~ ERROR This attribute accepts no arguments
+#[exception(SysTick)]
 fn SysTick() {}

@@ -1,0 +1,5 @@
+error: `DefaultHandler` must have signature `unsafe fn(i16) [-> !]`
+  --> tests/compile-fail/default-handler-bad-signature-1.rs:15:1
+   |
+15 | unsafe fn DefaultHandler(_irqn: i16, undef: u32) {}
+   | ^^^^^^

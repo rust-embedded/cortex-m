@@ -21,7 +21,6 @@ fn SVCall() {
     static mut STAT: u8 = 0;
 
     let _stat: &'static mut u8 = STAT;
-    //~^ ERROR lifetime may not live long enough
 }
 
 #[interrupt]
@@ -29,7 +28,6 @@ fn UART0() {
     static mut STAT: u8 = 0;
 
     let _stat: &'static mut u8 = STAT;
-    //~^ ERROR lifetime may not live long enough
 }
 
 #[entry]

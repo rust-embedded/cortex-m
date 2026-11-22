@@ -1,0 +1,7 @@
+error: This attribute accepts no arguments
+ --> tests/compile-fail/entry-args.rs:9:1
+  |
+9 | #[entry(foo)]
+  | ^^^^^^^^^^^^^
+  |
+  = note: this error originates in the attribute macro `entry` (in Nightly builds, run with -Z macro-backtrace for more info)

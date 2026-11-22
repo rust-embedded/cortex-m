@@ -1,0 +1,17 @@
+error: the name `X` is defined multiple times
+  --> tests/compile-fail/duplicate-static.rs:17:16
+   |
+17 |     static mut X: i32 = 0;
+   |                ^
+
+error: the name `X` is defined multiple times
+  --> tests/compile-fail/duplicate-static.rs:25:16
+   |
+25 |     static mut X: i32 = 0;
+   |                ^
+
+error: the name `X` is defined multiple times
+  --> tests/compile-fail/duplicate-static.rs:31:16
+   |
+31 |     static mut X: i32 = 0;
+   |                ^

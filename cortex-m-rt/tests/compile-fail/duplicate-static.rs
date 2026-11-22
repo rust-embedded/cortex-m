@@ -14,7 +14,7 @@ enum interrupt {
 #[entry]
 fn foo() -> ! {
     static mut X: u32 = 0;
-    static mut X: i32 = 0; //~ ERROR the name `X` is defined multiple times
+    static mut X: i32 = 0;
 
     loop {}
 }
@@ -22,11 +22,11 @@ fn foo() -> ! {
 #[exception]
 fn SVCall() {
     static mut X: u32 = 0;
-    static mut X: i32 = 0; //~ ERROR the name `X` is defined multiple times
+    static mut X: i32 = 0;
 }
 
 #[interrupt]
 fn UART0() {
     static mut X: u32 = 0;
-    static mut X: i32 = 0; //~ ERROR the name `X` is defined multiple times
+    static mut X: i32 = 0;
 }

@@ -1,0 +1,7 @@
+error: This attribute accepts no arguments
+  --> tests/compile-fail/interrupt-args.rs:19:1
+   |
+19 | #[interrupt(true)]
+   | ^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the attribute macro `interrupt` (in Nightly builds, run with -Z macro-backtrace for more info)

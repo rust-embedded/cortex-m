@@ -1,0 +1,7 @@
+error: symbol `USART1` is already defined
+  --> tests/compile-fail/interrupt-twice.rs:29:5
+   |
+29 |     #[interrupt]
+   |     ^^^^^^^^^^^^
+   |
+   = note: this error originates in the attribute macro `interrupt` (in Nightly builds, run with -Z macro-backtrace for more info)

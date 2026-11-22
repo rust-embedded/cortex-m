@@ -1,0 +1,5 @@
+error: `#[entry]` function must have signature `[unsafe] fn() -> !`
+  --> tests/compile-fail/entry-bad-signature-3.rs:10:1
+   |
+10 | extern "C" fn foo() -> ! {
+   | ^^^^^^

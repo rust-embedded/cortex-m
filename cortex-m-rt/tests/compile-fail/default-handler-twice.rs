@@ -17,6 +17,6 @@ unsafe fn DefaultHandler(_irqn: i16) {}
 pub mod reachable {
     use cortex_m_rt::exception;
 
-    #[exception] //~ ERROR symbol `DefaultHandler` is already defined
+    #[exception]
     unsafe fn DefaultHandler(_irqn: i16) {}
 }

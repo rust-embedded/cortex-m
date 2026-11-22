@@ -16,5 +16,5 @@ enum interrupt {
     USART1,
 }
 
-#[interrupt(true)] //~ ERROR This attribute accepts no arguments
+#[interrupt(true)]
 fn USART1() {}

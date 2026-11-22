@@ -1,0 +1,17 @@
+error: defining a `DefaultHandler` is unsafe and requires an `unsafe fn` (see the cortex-m-rt docs)
+  --> tests/compile-fail/exception-nmi-unsafe.rs:15:4
+   |
+15 | fn DefaultHandler(_irq: i16) {}
+   |    ^^^^^^^^^^^^^^
+
+error: defining a `HardFault` handler is unsafe and requires an `unsafe fn` (see the cortex-m-rt docs)
+  --> tests/compile-fail/exception-nmi-unsafe.rs:18:4
+   |
+18 | fn HardFault() {}
+   |    ^^^^^^^^^
+
+error: defining a `NonMaskableInt` handler is unsafe and requires an `unsafe fn` (see the cortex-m-rt docs)
+  --> tests/compile-fail/exception-nmi-unsafe.rs:21:4
+   |
+21 | fn NonMaskableInt() {}
+   |    ^^^^^^^^^^^^^^

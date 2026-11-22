@@ -18,4 +18,3 @@ enum interrupt {
 
 #[interrupt]
 fn USART1(undef: i32) {}
-//~^ ERROR `#[interrupt]` handlers must have signature `[unsafe] fn() [-> !]`

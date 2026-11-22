@@ -7,7 +7,7 @@ extern crate panic_halt;
 use cortex_m_rt::{entry, exception};
 
 #[exception]
-#[entry] //~ ERROR this attribute is not allowed on an exception handler
+#[entry]
 fn SVCall() -> ! {
     loop {}
 }

@@ -22,5 +22,5 @@ fn foo() -> ! {
 #[exception]
 fn SysTick() {
     // If this was allowed it would lead to a data race as `SysTick` can preempt `foo`
-    foo(); //~ ERROR cannot find function `foo` in this scope
+    foo();
 }

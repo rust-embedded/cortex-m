@@ -1,0 +1,7 @@
+error: This attribute accepts no arguments
+  --> tests/compile-fail/exception-args.rs:14:1
+   |
+14 | #[exception(SysTick)]
+   | ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the attribute macro `exception` (in Nightly builds, run with -Z macro-backtrace for more info)

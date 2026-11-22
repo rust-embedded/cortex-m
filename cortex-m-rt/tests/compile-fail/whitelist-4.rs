@@ -6,13 +6,13 @@ extern crate panic_halt;
 
 use cortex_m_rt::{entry, exception, interrupt};
 
-#[must_use] //~ ERROR this attribute is not allowed on a cortex-m-rt entry point
+#[must_use]
 #[entry]
 fn foo() -> ! {
     loop {}
 }
 
-#[must_use] //~ ERROR this attribute is not allowed on an exception handler controlled by cortex-m-rt
+#[must_use]
 #[exception]
 fn SysTick() {}
 
@@ -22,11 +22,11 @@ enum interrupt {
     USART2,
 }
 
-#[must_use] //~ ERROR this attribute is not allowed on an interrupt handler controlled by cortex-m-rt
+#[must_use]
 #[interrupt]
 fn USART1() {}
 
 #[cfg(feature = "device")]
-#[cfg_attr(feature = "device", must_use)] //~ ERROR this attribute is not allowed on an interrupt handler controlled by cortex-m-rt
+#[cfg_attr(feature = "device", must_use)]
 #[interrupt]
 fn USART2() {}

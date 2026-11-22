@@ -19,7 +19,7 @@ unsafe fn HardFault(_ef: &ExceptionFrame) -> ! {
 pub mod reachable {
     use cortex_m_rt::{exception, ExceptionFrame};
 
-    #[exception] //~ ERROR symbol `_HardFault` is already defined
+    #[exception]
     unsafe fn HardFault(_ef: &ExceptionFrame) -> ! {
         loop {}
     }

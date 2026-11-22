@@ -1,0 +1,5 @@
+error[E0599]: no variant, associated function, or constant named `SecureFault` found for enum `cortex_m_rt::Exception` in the current scope
+  --> tests/compile-fail/exception-v8only.rs:15:4
+   |
+15 | fn SecureFault() {}
+   |    ^^^^^^^^^^^ variant, associated function, or constant not found in `cortex_m_rt::Exception`

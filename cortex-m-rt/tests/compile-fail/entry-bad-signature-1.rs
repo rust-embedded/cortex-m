@@ -8,4 +8,3 @@ use cortex_m_rt::entry;
 
 #[entry]
 fn foo() {}
-//~^ ERROR `#[entry]` function must have signature `[unsafe] fn() -> !`

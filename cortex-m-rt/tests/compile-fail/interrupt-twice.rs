@@ -26,6 +26,6 @@ pub mod reachable {
         USART1,
     }
 
-    #[interrupt] //~ ERROR symbol `USART1` is already defined
+    #[interrupt]
     fn USART1() {}
 }

@@ -13,6 +13,5 @@ fn foo() -> ! {
 
 #[exception]
 unsafe fn HardFault(_ef: &ExceptionFrame, undef: u32) -> ! {
-    //~^ ERROR `HardFault` handler must have signature `unsafe fn(&ExceptionFrame) -> !`
     loop {}
 }

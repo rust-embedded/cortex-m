@@ -1,0 +1,7 @@
+error: symbol `_HardFault` is already defined
+  --> tests/compile-fail/hard-fault-twice.rs:22:5
+   |
+22 |     #[exception]
+   |     ^^^^^^^^^^^^
+   |
+   = note: this error originates in the attribute macro `exception` (in Nightly builds, run with -Z macro-backtrace for more info)

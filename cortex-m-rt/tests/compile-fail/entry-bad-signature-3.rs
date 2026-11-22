@@ -8,6 +8,5 @@ use cortex_m_rt::entry;
 
 #[entry]
 extern "C" fn foo() -> ! {
-    //~^ ERROR `#[entry]` function must have signature `[unsafe] fn() -> !`
     loop {}
 }
